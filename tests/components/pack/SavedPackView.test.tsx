@@ -2,7 +2,8 @@
  * @file tests/components/pack/SavedPackView.test.tsx
  * @desc /p/[slug] view: Download card first (recorded magnet links, then the mirror), pool,
  *       owner-only controls, admins removing a magnet link and pinning a public pack to the top
- *       of /packs, short link + key sharing, Copy ID per map.
+ *       of /packs, short link + key sharing, Copy ID per map, and map usage (one request for the
+ *       whole pack, ids sorted; the pack's own entries left out).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -399,5 +400,74 @@ describe("SavedPackView", () => {
     // The default handler rates nothing and owes nothing: the TB (freemod) slot's pairs failed.
     render(<SavedPackView pack={PACK} isOwner={false} />);
     expect(await screen.findByTitle(MODDED_FAILED_NOTE)).toHaveTextContent("5.97");
+  });
+
+  describe("map usage", () => {
+    const used = (slug: string, tournament: string, year: number) => ({
+      slug,
+      tournament,
+      round: "Finals",
+      year,
+      badged: null,
+      slot: "NM1",
+      mods: "NM",
+    });
+
+    it("asks once for the whole pack, ids sorted, and shows Used in N pools per map", async () => {
+      const asked: string[] = [];
+      server.use(
+        http.get("*/api/v1/beatmaps/usage", ({ request }) => {
+          asked.push(new URL(request.url).searchParams.get("ids") ?? "");
+          return HttpResponse.json({
+            beatmaps: [
+              {
+                beatmapId: 129891,
+                count: 2,
+                entries: [
+                  used("bbbbbbbbbb", "Autumn Cup 2025", 2025),
+                  used("cccccccccc", "Spring Cup 2023", 2023),
+                ],
+              },
+              { beatmapId: 1872396, count: 0, entries: [] },
+            ],
+          });
+        }),
+      );
+      const user = userEvent.setup();
+      render(
+        <SavedPackView pack={{ ...PACK, slots: [...PACK.slots].reverse() }} isOwner={false} />,
+      );
+      const button = await screen.findByRole("button", { name: "Used in 2 pools" });
+      expect(screen.getAllByRole("button", { name: /^Used in/ })).toHaveLength(1);
+      expect(asked).toEqual(["129891,1872396"]);
+      await user.click(button);
+      const list = screen.getByRole("list", { name: "Pools that used beatmap 129891" });
+      expect(
+        within(list)
+          .getAllByRole("link")
+          .map((link) => link.getAttribute("href")),
+      ).toEqual(["/p/bbbbbbbbbb", "/p/cccccccccc"]);
+    });
+
+    it("leaves the pack itself out of its maps' usage", async () => {
+      const fetchUsage = vi.fn(async (ids: readonly number[]) => ({
+        beatmaps: ids.map((beatmapId) => ({
+          beatmapId,
+          count: 1,
+          entries: [used(PACK.slug, "SPC", 2026)],
+        })),
+      }));
+      render(<SavedPackView pack={PACK} isOwner={false} fetchUsage={fetchUsage} />);
+      await waitFor(() => expect(fetchUsage).toHaveBeenCalledTimes(1));
+      await screen.findByRole("link", { name: "xi - FREEDOM DiVE" });
+      expect(screen.queryByRole("button", { name: /^Used in/ })).toBeNull();
+    });
+
+    it("shows nothing when the usage request fails", async () => {
+      server.use(http.get("*/api/v1/beatmaps/usage", () => HttpResponse.error()));
+      render(<SavedPackView pack={PACK} isOwner={false} />);
+      await screen.findByRole("link", { name: "xi - FREEDOM DiVE" });
+      expect(screen.queryByRole("button", { name: /^Used in/ })).toBeNull();
+    });
   });
 });

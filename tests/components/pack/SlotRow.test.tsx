@@ -1,7 +1,8 @@
 /**
  * @file tests/components/pack/SlotRow.test.tsx
- * @desc SlotRow in each metadata state, the optional remove control, and Copy ID (the map's
- *       beatmap ID for "!mp map").
+ * @desc SlotRow in each metadata state, the optional remove control, Copy ID (the map's
+ *       beatmap ID for "!mp map"), and "Used in N pools" under the row when other archive pools
+ *       used the map.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -308,7 +309,48 @@ describe("SlotRow Copy ID", () => {
     // Phones: a full-width line under the map, so the title keeps its room. Wider screens: in
     // the row after the map, never squeezed.
     const wrapper = screen.getByRole("button", { name: "Copy beatmap ID 129891" }).parentElement;
-    expect(wrapper?.parentElement).toBe(screen.getByRole("listitem"));
+    // The row inside the list item holds the map, Copy ID and the controls; usage goes under it.
+    const row = wrapper?.parentElement;
+    expect(row?.parentElement).toBe(screen.getByRole("listitem"));
+    expect(row).toHaveClass("flex-wrap", "sm:flex-nowrap");
     expect(wrapper).toHaveClass("w-full", "sm:w-auto", "shrink-0");
+  });
+});
+
+describe("SlotRow map usage", () => {
+  const USED = {
+    slug: "aaaaaaaaaa",
+    tournament: "osu! World Cup 2023",
+    round: "Grand Finals",
+    year: 2023,
+    badged: null,
+    slot: "NM1",
+    mods: "NM",
+  };
+
+  it("shows Used in N pools under the row, whatever state the map is in", () => {
+    inList(
+      <SlotRow slot={SLOT} entry={{ code: "NM" }} state={{ status: "loading" }} usage={[USED]} />,
+    );
+    const button = screen.getByRole("button", { name: "Used in 1 pool" });
+    const row = screen.getByRole("button", { name: "Copy beatmap ID 129891" }).parentElement
+      ?.parentElement;
+    expect(row?.contains(button)).toBe(false);
+    expect(screen.getByRole("listitem").contains(button)).toBe(true);
+  });
+
+  it.each([
+    ["no usage given", undefined],
+    ["no other pool", []],
+  ])("shows nothing with %s", (_label, usage) => {
+    inList(
+      <SlotRow
+        slot={SLOT}
+        entry={{ code: "NM" }}
+        state={{ status: "found", meta: META }}
+        {...(usage ? { usage } : {})}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: /^Used in/ })).toBeNull();
   });
 });

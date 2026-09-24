@@ -1,9 +1,10 @@
 /**
  * @file src/components/pack/SavedPackEditor.tsx
  * @desc /p/[slug]/edit: edit a saved pack in memory (no IndexedDB draft), then save or delete.
+ *       Map usage leaves out the pack's own entries.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 "use client";
@@ -98,7 +99,7 @@ export function SavedPackEditor({
 
       {saved.hiddenAt ? <HiddenNotice /> : null}
 
-      <PackEditor pack={pack} dispatch={dispatch} ready={!busy} meta={meta} />
+      <PackEditor pack={pack} dispatch={dispatch} ready={!busy} meta={meta} slug={saved.slug} />
 
       <Card title="Visibility">
         <VisibilityField value={visibility} onChange={setVisibility} disabled={busy} />

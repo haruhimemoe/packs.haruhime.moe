@@ -1,10 +1,11 @@
 /**
  * @file src/components/pack/PoolTable.tsx
  * @desc Pool grouped by bucket: no-slot maps first, then the pack's buckets in order, one labelled
- *       section per non-empty group. Editable pools add Remove and "Move to" per row.
+ *       section per non-empty group. Editable pools add Remove and "Move to" per row. Given map
+ *       usage, each row shows the other archive pools that used its map.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import {
@@ -23,6 +24,7 @@ import { NO_SLOT_VALUE } from "@/constants/mods";
 import { MAX_SLOT_INDEX } from "@/constants/pack";
 import type { MetaState } from "@/hooks/beatmapMetaState";
 import type { ModdedStarRatings } from "@/hooks/useModdedStarRatings";
+import type { MapUsageEntry } from "@/schemas/map-usage";
 import { type BucketEntry, type PoolSlot, type SlotBucket, slotKey } from "@/schemas/pack";
 
 type PoolTableProps = {
@@ -35,6 +37,8 @@ type PoolTableProps = {
   modsBySlot?: ReadonlyMap<string, SlotMods>;
   /** slotKey -> ratings with mods, from usePoolStarRatings. */
   ratings?: ModdedStarRatings;
+  /** Beatmap id -> other archive pools that used it, from useMapUsage. */
+  usageOf?: (beatmapId: number) => readonly MapUsageEntry[];
 };
 
 export function PoolTable({
@@ -45,6 +49,7 @@ export function PoolTable({
   onMove,
   modsBySlot,
   ratings,
+  usageOf,
 }: PoolTableProps) {
   if (slots.length === 0) {
     return (
@@ -102,6 +107,7 @@ export function PoolTable({
                   onMove={onMove ? (to) => onMove(slot, to) : undefined}
                   slotMods={modsBySlot?.get(slotKey(slot))}
                   ratings={ratings?.get(slotKey(slot))}
+                  usage={usageOf?.(slot.beatmapId)}
                 />
               ))}
             </ul>

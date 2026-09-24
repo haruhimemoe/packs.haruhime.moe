@@ -1,7 +1,8 @@
 /**
  * @file src/components/pack/SlotRow.tsx
  * @desc One pool slot: badge, cover, title/difficulty/mapper, stars + stats, stars with mods,
- *       Copy ID (the beatmap ID, for "!mp map"), optional move and remove.
+ *       Copy ID (the beatmap ID, for "!mp map"), optional move and remove, and under it "Used in
+ *       N pools" when other archive pools used the map.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -17,9 +18,11 @@ import type { ReactNode } from "react";
 import { Fragment, useState } from "react";
 import { BeatmapStats } from "@/components/beatmap/BeatmapStats";
 import { StarRating } from "@/components/beatmap/StarRating";
+import { MapUsage } from "@/components/pack/MapUsage";
 import { ModBadge } from "@/components/pack/ModBadge";
 import { NO_SLOT_VALUE } from "@/constants/mods";
 import type { MetaState } from "@/hooks/beatmapMetaState";
+import type { MapUsageEntry } from "@/schemas/map-usage";
 import type { BucketEntry, PoolSlot, SlotBucket } from "@/schemas/pack";
 import { type ModdedRating, slotStars } from "@/utils/slot-stars";
 
@@ -36,6 +39,8 @@ type SlotRowProps = {
   slotMods?: SlotMods;
   /** Ratings with mods: absent while calculating, empty when they couldn't be calculated. */
   ratings?: readonly ModdedRating[];
+  /** Other archive pools that used this map (map usage). Absent or empty: nothing shows. */
+  usage?: readonly MapUsageEntry[];
 };
 
 const body = (
@@ -113,6 +118,7 @@ export function SlotRow({
   onMove,
   slotMods,
   ratings,
+  usage,
 }: SlotRowProps) {
   const title = slotTitle(slot);
   // Pick, then press Move: a <select> fires change on arrow keys, so moving on change would
@@ -124,58 +130,61 @@ export function SlotRow({
   );
   const target = offered ? picked : "";
   return (
-    <li className="flex flex-wrap items-center gap-3 rounded-[10px] bg-b4 p-3 sm:flex-nowrap">
-      <ModBadge entry={entry} index={slot.index} />
-      {body(slot, state, slotMods, ratings)}
-      {/* The slot's ID, so it works before the map loads. Phones: its own line under the map.
+    <li className="flex flex-col gap-2 rounded-[10px] bg-b4 p-3">
+      <div className="flex flex-wrap items-center gap-3 sm:flex-nowrap">
+        <ModBadge entry={entry} index={slot.index} />
+        {body(slot, state, slotMods, ratings)}
+        {/* The slot's ID, so it works before the map loads. Phones: its own line under the map.
           Wider: the status sits left of the button, so the button never moves on a press. */}
-      <CopyButton
-        text={String(slot.beatmapId)}
-        label="Copy ID"
-        aria-label={`Copy beatmap ID ${slot.beatmapId}`}
-        failedMessage={`Couldn't copy. The beatmap ID is ${slot.beatmapId}.`}
-        className="whitespace-nowrap"
-        wrapperClassName="w-full shrink-0 gap-2 sm:w-auto sm:flex-row-reverse"
-      />
-      {onMove && moveTargets ? (
-        <div className="flex items-center gap-1">
-          <select
-            aria-label={`Move ${title} to`}
-            value={target}
-            onChange={(event) => setPicked(event.target.value)}
-            className={fieldClasses("w-auto text-sm")}
-          >
-            <option value="" disabled>
-              Move to…
-            </option>
-            {moveTargets.map((option) => (
-              <option
-                key={option.value ?? NO_SLOT_VALUE}
-                value={option.value ?? NO_SLOT_VALUE}
-                disabled={option.disabled}
-              >
-                {option.label}
+        <CopyButton
+          text={String(slot.beatmapId)}
+          label="Copy ID"
+          aria-label={`Copy beatmap ID ${slot.beatmapId}`}
+          failedMessage={`Couldn't copy. The beatmap ID is ${slot.beatmapId}.`}
+          className="whitespace-nowrap"
+          wrapperClassName="w-full shrink-0 gap-2 sm:w-auto sm:flex-row-reverse"
+        />
+        {onMove && moveTargets ? (
+          <div className="flex items-center gap-1">
+            <select
+              aria-label={`Move ${title} to`}
+              value={target}
+              onChange={(event) => setPicked(event.target.value)}
+              className={fieldClasses("w-auto text-sm")}
+            >
+              <option value="" disabled>
+                Move to…
               </option>
-            ))}
-          </select>
-          <Button
-            variant="secondary"
-            aria-label={`Move ${title}`}
-            disabled={target === ""}
-            onClick={() => {
-              onMove(target === NO_SLOT_VALUE ? null : target);
-              setPicked("");
-            }}
-          >
-            Move
+              {moveTargets.map((option) => (
+                <option
+                  key={option.value ?? NO_SLOT_VALUE}
+                  value={option.value ?? NO_SLOT_VALUE}
+                  disabled={option.disabled}
+                >
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <Button
+              variant="secondary"
+              aria-label={`Move ${title}`}
+              disabled={target === ""}
+              onClick={() => {
+                onMove(target === NO_SLOT_VALUE ? null : target);
+                setPicked("");
+              }}
+            >
+              Move
+            </Button>
+          </div>
+        ) : null}
+        {onRemove ? (
+          <Button variant="ghost" onClick={onRemove} aria-label={`Remove ${title}`}>
+            Remove
           </Button>
-        </div>
-      ) : null}
-      {onRemove ? (
-        <Button variant="ghost" onClick={onRemove} aria-label={`Remove ${title}`}>
-          Remove
-        </Button>
-      ) : null}
+        ) : null}
+      </div>
+      {usage ? <MapUsage beatmapId={slot.beatmapId} entries={usage} /> : null}
     </li>
   );
 }

@@ -1,25 +1,28 @@
 /**
  * @file src/components/pack/PackEditor.tsx
  * @desc Editing surface shared by /new and /p/[slug]/edit: name, add maps, slots, the pool, with
- *       star ratings with mods.
+ *       star ratings with mods and the other archive pools each map was used in (asked once the
+ *       pool holds still, only for maps it hasn't asked about).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 "use client";
 
 import { bucketsOf } from "@haruhimemoe/pool";
 import { Button, Card, TextInput } from "@haruhimemoe/ui";
-import { type Dispatch, useId, useState } from "react";
+import { type Dispatch, useId, useMemo, useState } from "react";
 import { AddBeatmapForm } from "@/components/pack/AddBeatmapForm";
 import { BucketManager } from "@/components/pack/BucketManager";
 import { BulkPasteInput } from "@/components/pack/BulkPasteInput";
 import { PackStats } from "@/components/pack/PackStats";
 import { PoolTable } from "@/components/pack/PoolTable";
+import { MAP_USAGE_EDITOR_DELAY_MS } from "@/constants/map-usage";
 import { DEFAULT_PACK_NAME, MAX_NAME_LENGTH, MAX_SLOTS } from "@/constants/pack";
 import { EDITOR_STAR_DELAY_MS } from "@/constants/star-ratings";
 import type { BeatmapMetaApi } from "@/hooks/useBeatmapMeta";
+import { type MapUsageFetcher, useMapUsage } from "@/hooks/useMapUsage";
 import { usePoolStarRatings } from "@/hooks/useModdedStarRatings";
 import type { DraftAction } from "@/hooks/usePackDraft";
 import type { Pool } from "@/schemas/pack";
@@ -30,9 +33,22 @@ type PackEditorProps = {
   /** False while hydrating or saving: inputs are disabled. */
   ready: boolean;
   meta: BeatmapMetaApi;
+  /** The saved pack being edited, whose own map usage is left out. Absent on /new. */
+  slug?: string;
+  /** Test seams: the map usage route and how long to wait before asking it. */
+  fetchUsage?: MapUsageFetcher;
+  usageDelayMs?: number;
 };
 
-export function PackEditor({ pack, dispatch, ready, meta }: PackEditorProps) {
+export function PackEditor({
+  pack,
+  dispatch,
+  ready,
+  meta,
+  slug,
+  fetchUsage,
+  usageDelayMs = MAP_USAGE_EDITOR_DELAY_MS,
+}: PackEditorProps) {
   // Armed for one pack value: any edit makes a new pack object and disarms it.
   const [armedFor, setArmedFor] = useState<Pool | null>(null);
   const confirmClear = armedFor === pack;
@@ -41,6 +57,12 @@ export function PackEditor({ pack, dispatch, ready, meta }: PackEditorProps) {
   const buckets = bucketsOf(pack);
   // Ask osu! only once the pool has settled for a moment.
   const stars = usePoolStarRatings(pack, meta.get, { delayMs: EDITOR_STAR_DELAY_MS });
+  const ids = useMemo(() => pack.slots.map((slot) => slot.beatmapId), [pack.slots]);
+  const usageOf = useMapUsage(ids, {
+    excludeSlug: slug,
+    delayMs: usageDelayMs,
+    ...(fetchUsage ? { fetchUsage } : {}),
+  });
 
   return (
     <>
@@ -132,6 +154,7 @@ export function PackEditor({ pack, dispatch, ready, meta }: PackEditorProps) {
           getState={meta.get}
           modsBySlot={stars.modsBySlot}
           ratings={stars.ratings}
+          usageOf={usageOf}
           onRemove={(slot) => dispatch({ type: "remove", mod: slot.mod, index: slot.index })}
           onMove={(slot, to) =>
             dispatch({ type: "move-slot", mod: slot.mod, index: slot.index, to })

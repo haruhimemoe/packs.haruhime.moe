@@ -4,7 +4,8 @@
  *       mirror, and the retry when map info fails), the saved pool with live metadata and star ratings with mods, and sharing. The
  *       owner also sees its visibility, an Edit link, and can add or remove magnet links; an admin
  *       can remove a magnet link from a public or unlisted pack, and pin a public pack that isn't
- *       hidden to the top of /packs (or unpin it).
+ *       hidden to the top of /packs (or unpin it). Each map shows the other archive pools that used
+ *       it (one request for the whole pack; the pack's own entries left out).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -26,6 +27,7 @@ import { PoolTable } from "@/components/pack/PoolTable";
 import { ShortLinkField } from "@/components/pack/ShortLinkField";
 import { VISIBILITY_OPTIONS } from "@/constants/visibility";
 import { useBeatmapMeta } from "@/hooks/useBeatmapMeta";
+import { type MapUsageFetcher, useMapUsage } from "@/hooks/useMapUsage";
 import { usePoolStarRatings } from "@/hooks/useModdedStarRatings";
 import { usePackAccess } from "@/hooks/usePackAccess";
 import { packsApi } from "@/lib/packs-api";
@@ -51,6 +53,7 @@ export function SavedPackView({
   pinned: pinnedProp,
   api = packsApi,
   readCookie,
+  fetchUsage,
 }: {
   pack: SavedPack;
   /** Known already (not-found fallback, tests). Omitted: asked in the browser when signed in. */
@@ -62,6 +65,7 @@ export function SavedPackView({
   /** Test seams. Defaults: our API, document.cookie. */
   api?: PackViewApi;
   readCookie?: () => string;
+  fetchUsage?: MapUsageFetcher;
 }) {
   const access = usePackAccess(isOwnerProp === undefined ? pack.slug : null, {
     get: api.get,
@@ -86,6 +90,10 @@ export function SavedPackView({
   const ids = useMemo(() => ref.slots.map((s) => s.beatmapId), [ref]);
   const meta = useBeatmapMeta(ids);
   const stars = usePoolStarRatings(ref, meta.get);
+  const usageOf = useMapUsage(ids, {
+    excludeSlug: pack.slug,
+    ...(fetchUsage ? { fetchUsage } : {}),
+  });
   const count = `${pack.slots.length} ${pack.slots.length === 1 ? "map" : "maps"}`;
   const [exports, setExports] = useState<readonly PackExport[]>(pack.exports ?? []);
   const magnets = useMemo<MagnetTarget | undefined>(
@@ -140,6 +148,7 @@ export function SavedPackView({
           getState={meta.get}
           modsBySlot={stars.modsBySlot}
           ratings={stars.ratings}
+          usageOf={usageOf}
         />
       </section>
       <Card title="Share">
