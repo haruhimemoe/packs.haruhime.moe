@@ -2,7 +2,8 @@
  * @file tests/components/hooks/useMapUsage.test.tsx
  * @desc useMapUsage with a fake fetcher and fake timers: one request for a whole pool, ids
  *       sorted and each once; nothing for an empty pool; only new maps asked for after a change,
- *       nothing after a removal; the editor delay (one request after a burst of changes); the
+ *       nothing after a removal; the editor delay (none for the pool it opens with, then one
+ *       request after a burst of changes); the
  *       pack's own entries left out; a failed request shows nothing and the next change asks
  *       again; stopping on unmount. Plus fetchMapUsage.
  * @author David @dvhsh (https://dvh.sh)
@@ -92,19 +93,31 @@ describe("useMapUsage", () => {
     expect(fetchUsage).toHaveBeenCalledTimes(2);
   });
 
-  it("waits for the pool to hold still in the editor, then asks once", async () => {
+  it("asks at once for the pool the editor opens with, then waits for changes to hold still", async () => {
     const fetchUsage = fetcherWith();
     const { rerender } = renderHook(({ ids }) => useMapUsage(ids, { fetchUsage, delayMs: 1500 }), {
       initialProps: { ids: [1] },
     });
-    await settle(1000);
+    await settle();
+    expect(fetchUsage.mock.calls).toEqual([[[1]]]);
     rerender({ ids: [1, 2] });
     await settle(1000);
     rerender({ ids: [1, 2, 3] });
     await settle(1499);
-    expect(fetchUsage).not.toHaveBeenCalled();
+    expect(fetchUsage).toHaveBeenCalledTimes(1);
     await settle(1);
-    expect(fetchUsage.mock.calls).toEqual([[[1, 2, 3]]]);
+    expect(fetchUsage.mock.calls).toEqual([[[1]], [[2, 3]]]);
+  });
+
+  it("asks at once when an empty editor gets its first maps (a draft loading)", async () => {
+    const fetchUsage = fetcherWith();
+    const { rerender } = renderHook(({ ids }) => useMapUsage(ids, { fetchUsage, delayMs: 1500 }), {
+      initialProps: { ids: [] as number[] },
+    });
+    await settle();
+    rerender({ ids: [5, 4] });
+    await settle();
+    expect(fetchUsage.mock.calls).toEqual([[[4, 5]]]);
   });
 
   it("shows nothing when the request fails, and asks again on the next change", async () => {

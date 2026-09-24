@@ -2,8 +2,8 @@
  * @file src/hooks/useMapUsage.ts
  * @desc Map usage for a pool's maps (pool archive spec, part 2): asks
  *       /api/v1/beatmaps/usage once for every map it doesn't know yet, ids sorted so every viewer
- *       of a pack shares one CDN-cached URL (after a delay in the editor), and keeps the answers
- *       while the pool changes. A pack's own entries are left out. Usage is extra: a failed
+ *       of a pack shares one CDN-cached URL, and keeps the answers while the pool changes. The
+ *       first ask goes out at once; in the editor, later ones wait for the pool to hold still. A pack's own entries are left out. Usage is extra: a failed
  *       lookup shows nothing, and the next change to the pool asks again.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
@@ -26,7 +26,8 @@ export type MapUsageFetcher = (ids: readonly number[]) => Promise<BeatmapUsageLi
 export type MapUsageOptions = {
   /** The pack being shown: its own entries are left out. */
   excludeSlug?: string | undefined;
-  /** Wait this long after the pool changes before asking (the editor). */
+  /** Wait this long after the pool changes before asking (the editor). The first ask, for the
+   *  pool it opens with, never waits. */
   delayMs?: number;
   /** Test seam. Default: fetchMapUsage. */
   fetchUsage?: MapUsageFetcher;
@@ -72,6 +73,8 @@ export const useMapUsage = (
   );
   const knownRef = useRef(known);
   knownRef.current = known;
+  // The pool a page opens with is asked for at once; only later changes wait.
+  const askedRef = useRef(false);
   // One canonical list per pool: sorted, each id once.
   const wanted = useMemo(() => [...new Set(ids)].sort((a, b) => a - b).join(","), [ids]);
 
@@ -84,27 +87,31 @@ export const useMapUsage = (
       .filter((id) => !knownRef.current.has(id));
     if (missing.length === 0) return;
     let cancelled = false;
-    const timer = setTimeout(async () => {
-      const batches: number[][] = [];
-      for (let at = 0; at < missing.length; at += MAX_USAGE_IDS) {
-        batches.push(missing.slice(at, at + MAX_USAGE_IDS));
-      }
-      try {
-        // A pack (at most MAX_SLOTS maps) is always one request.
-        const answers = await Promise.all(batches.map((batch) => fetchUsage(batch)));
-        if (cancelled) return;
-        setKnown((prev) => {
-          const next = new Map(prev);
-          for (const id of missing) next.set(id, NONE);
-          for (const usage of answers.flatMap((answer) => answer.beatmaps)) {
-            next.set(usage.beatmapId, usage.entries);
-          }
-          return next;
-        });
-      } catch {
-        // Usage is extra: nothing shows, and the next change to the pool asks again.
-      }
-    }, delayMs);
+    const timer = setTimeout(
+      async () => {
+        askedRef.current = true;
+        const batches: number[][] = [];
+        for (let at = 0; at < missing.length; at += MAX_USAGE_IDS) {
+          batches.push(missing.slice(at, at + MAX_USAGE_IDS));
+        }
+        try {
+          // A pack (at most MAX_SLOTS maps) is always one request.
+          const answers = await Promise.all(batches.map((batch) => fetchUsage(batch)));
+          if (cancelled) return;
+          setKnown((prev) => {
+            const next = new Map(prev);
+            for (const id of missing) next.set(id, NONE);
+            for (const usage of answers.flatMap((answer) => answer.beatmaps)) {
+              next.set(usage.beatmapId, usage.entries);
+            }
+            return next;
+          });
+        } catch {
+          // Usage is extra: nothing shows, and the next change to the pool asks again.
+        }
+      },
+      askedRef.current ? delayMs : 0,
+    );
     return () => {
       cancelled = true;
       clearTimeout(timer);

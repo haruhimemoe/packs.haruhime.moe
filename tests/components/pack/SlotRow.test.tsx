@@ -1,8 +1,8 @@
 /**
  * @file tests/components/pack/SlotRow.test.tsx
  * @desc SlotRow in each metadata state, the optional remove control, Copy ID (the map's
- *       beatmap ID for "!mp map"), and "Used in N pools" under the row when other archive pools
- *       used the map.
+ *       beatmap ID for "!mp map"), and "Used in N pools" in the map's stats line when other
+ *       archive pools used the map (only once the map's details are shown).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -355,14 +355,33 @@ describe("SlotRow map usage", () => {
     mods: "NM",
   };
 
-  it("shows Used in N pools under the row, whatever state the map is in", () => {
+  it("shows Used in N pools in the map's stats line, so it adds no line of its own", () => {
     inList(
-      <SlotRow slot={SLOT} entry={{ code: "NM" }} state={{ status: "loading" }} usage={[USED]} />,
+      <SlotRow
+        slot={SLOT}
+        entry={{ code: "NM" }}
+        state={{ status: "found", meta: META }}
+        usage={[USED]}
+      />,
     );
     const button = screen.getByRole("button", { name: "Used in 1 pool" });
-    const row = screen.getByRole("button", { name: "Copy ID 129891" }).parentElement?.parentElement;
-    expect(row?.contains(button)).toBe(false);
-    expect(screen.getByRole("listitem").contains(button)).toBe(true);
+    // The line with the star rating and the map's stats (CS, AR, ... Length).
+    const statsLine = screen.getByText("4:18").closest("dl")?.parentElement;
+    expect(statsLine).toHaveClass("flex-wrap");
+    expect(statsLine?.contains(button)).toBe(true);
+    // The list opens under the stats, as a line of its own.
+    expect(document.getElementById(button.getAttribute("aria-controls") ?? "")).toHaveClass(
+      "basis-full",
+    );
+  });
+
+  it.each([
+    { status: "loading" } as const,
+    { status: "missing" } as const,
+    { status: "error", message: "Mirror is down." } as const,
+  ])("shows no usage until the map's details are shown ($status)", (state) => {
+    inList(<SlotRow slot={SLOT} entry={{ code: "NM" }} state={state} usage={[USED]} />);
+    expect(screen.queryByRole("button", { name: /^Used in/ })).toBeNull();
   });
 
   it.each([

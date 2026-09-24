@@ -20,5 +20,8 @@ export const MAX_USAGE_IDS = 100;
  */
 export const MAP_USAGE_CACHE = "public, s-maxage=3600, stale-while-revalidate=86400";
 
-/** The editor asks once the pool has held still this long (milliseconds). */
+/**
+ * The editor asks about maps added after it opened once the pool has held still this long
+ * (milliseconds). The pool it opens with is asked about at once.
+ */
 export const MAP_USAGE_EDITOR_DELAY_MS = 1500;

@@ -1,13 +1,14 @@
 /**
  * @file tests/components/pack/PackEditor.test.tsx
- * @desc The editor's map usage: each map shows the other archive pools that used it, asked once
- *       for the pool, again only for maps added later, never before the pool holds still, and
- *       without the saved pack's own entries.
+ * @desc The editor's map usage: each map shows the other archive pools that used it, asked at
+ *       once for the pool it opens with, again only for maps added later once the pool holds
+ *       still, and without the saved pack's own entries.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
  */
 
+import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
 import { act, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { PackEditor } from "@/components/pack/PackEditor";
@@ -16,9 +17,28 @@ import type { MapUsageFetcher } from "@/hooks/useMapUsage";
 import type { MapUsageEntry } from "@/schemas/map-usage";
 import type { Pool } from "@/schemas/pack";
 
-/** Every map still loading: the editor then asks osu! for no star ratings. */
+const details = (beatmapId: number): BeatmapMeta => ({
+  beatmapId,
+  beatmapsetId: beatmapId,
+  mode: "osu",
+  title: `Song ${beatmapId}`,
+  artist: "Artist",
+  version: "Insane",
+  creator: "Mapper",
+  creatorId: 1,
+  cs: 4,
+  ar: 9,
+  od: 8,
+  hp: 6,
+  bpm: 180,
+  lengthSeconds: 120,
+  starRating: 5.5,
+  checksum: null,
+});
+
+/** Every map's details shown (usage only shows with them); NM slots need no ratings with mods. */
 const META: BeatmapMetaApi = {
-  get: () => ({ status: "loading" }),
+  get: (beatmapId) => ({ status: "found", meta: details(beatmapId) }),
   retry: () => undefined,
   hasErrors: false,
 };
@@ -75,7 +95,7 @@ describe("PackEditor map usage", () => {
     expect(fetchUsage.mock.calls).toEqual([[[75, 76, 77]]]);
   });
 
-  it("waits for the pool to hold still, then asks only for maps it hasn't asked about", async () => {
+  it("asks at once for the pool it opens with, then waits for changes to hold still", async () => {
     vi.useFakeTimers();
     const fetchUsage = fetcher();
     const view = (pack: Pool) => (
@@ -83,16 +103,16 @@ describe("PackEditor map usage", () => {
     );
     const { rerender } = render(view(pool(75)));
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(1000);
-    });
-    expect(fetchUsage).not.toHaveBeenCalled();
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(500);
+      await vi.advanceTimersByTimeAsync(0);
     });
     expect(fetchUsage.mock.calls).toEqual([[[75]]]);
     rerender(view(pool(75, 76)));
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(1500);
+      await vi.advanceTimersByTimeAsync(1000);
+    });
+    expect(fetchUsage).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(500);
     });
     expect(fetchUsage.mock.calls).toEqual([[[75]], [[76]]]);
     expect(screen.getAllByRole("button", { name: "Used in 2 pools" })).toHaveLength(2);

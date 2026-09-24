@@ -1,9 +1,11 @@
 /**
  * @file src/components/pack/MapUsage.tsx
- * @desc "Used in N pools" under a map row (pool archive spec, part 2): a disclosure button that
- *       opens the list of archive pools the map was used in (tournament and round, then year and
- *       slot), each linking its archive pack. Nothing at all when no other pool used the map.
- *       Escape inside the list closes it and puts focus back on the button.
+ * @desc "Used in N pools" in a map row's stats line (pool archive spec, part 2): a disclosure
+ *       button that opens the list of archive pools the map was used in (tournament and round,
+ *       then year and slot), each linking its archive pack. Nothing at all when no other pool
+ *       used the map. Its wrapper takes no box of its own, so the button sits in the flex-wrap
+ *       line it's put in and the open list takes a full line under it. Escape inside the list
+ *       closes it and puts focus back on the button.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -39,14 +41,14 @@ export function MapUsage({ beatmapId, entries }: MapUsageProps) {
   return (
     // Only catches Escape bubbling up from the button and the links inside.
     // biome-ignore lint/a11y/noStaticElementInteractions: the button and links are the controls
-    <div className="flex w-full flex-col gap-2" onKeyDown={closeOnEscape}>
+    <div className="contents" onKeyDown={closeOnEscape}>
       <button
         ref={buttonRef}
         type="button"
         aria-expanded={open}
         aria-controls={listId}
         onClick={() => setOpen(!open)}
-        className="inline-flex items-center gap-1 self-start text-c3 text-sm transition-colors hover:text-c1 focus-visible:outline-2 focus-visible:outline-h1 focus-visible:outline-offset-2"
+        className="inline-flex items-center gap-1 text-c3 text-sm transition-colors hover:text-c1 focus-visible:outline-2 focus-visible:outline-h1 focus-visible:outline-offset-2"
       >
         {usageLabel(pools)}
         <span aria-hidden="true">{open ? "▴" : "▾"}</span>
@@ -55,7 +57,7 @@ export function MapUsage({ beatmapId, entries }: MapUsageProps) {
         id={listId}
         hidden={!open}
         aria-label={`Pools that used beatmap ${beatmapId}`}
-        className="flex flex-col gap-1 rounded-md bg-b5 px-3 py-2 text-sm"
+        className="flex basis-full flex-col gap-1 rounded-md bg-b5 px-3 py-2 text-sm"
       >
         {entries.map((entry) => {
           const { pool, details } = usageEntryText(entry);

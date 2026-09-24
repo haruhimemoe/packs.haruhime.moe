@@ -1,8 +1,9 @@
 /**
  * @file src/components/pack/SlotRow.tsx
  * @desc One pool slot: badge, cover, title/difficulty/mapper, stars + stats, stars with mods,
- *       Copy ID (the beatmap ID, for "!mp map"), optional move and remove, and under it "Used in
- *       N pools" when other archive pools used the map. A press of Copy ID never moves the row:
+ *       Copy ID (the beatmap ID, for "!mp map"), optional move and remove, and "Used in N pools"
+ *       in the stats line when other archive pools used the map (only once the map's details
+ *       show, so both land together). A press of Copy ID never moves the row:
  *       its status has room kept for it. Editable rows put their controls on their own line
  *       below lg, so the map keeps room for its title.
  * @author David @dvhsh (https://dvh.sh)
@@ -60,6 +61,7 @@ const body = (
   state: MetaState,
   slotMods: SlotMods | undefined,
   ratings: readonly ModdedRating[] | undefined,
+  usage: readonly MapUsageEntry[] | undefined,
 ): ReactNode => {
   switch (state.status) {
     case "found": {
@@ -90,6 +92,9 @@ const body = (
             <div className="mt-1 flex flex-wrap items-center gap-2">
               <StarRating value={stars.stars} title={stars.title} label={stars.label} />
               <BeatmapStats meta={meta} />
+              {/* In the stats line, not under the row, so an answer that comes after the map's
+                details adds no line; and only here, so it never shows before them. */}
+              {usage ? <MapUsage beatmapId={slot.beatmapId} entries={usage} /> : null}
             </div>
             {stars.freemod ? (
               <p className="mt-1 text-c4 text-xs">
@@ -150,7 +155,7 @@ export function SlotRow({
         too little room below lg, so there the controls take a line of their own under it. */}
       <div className={editable ? EDIT_ROW : VIEW_ROW}>
         <ModBadge entry={entry} index={slot.index} />
-        {body(slot, state, slotMods, ratings)}
+        {body(slot, state, slotMods, ratings, usage)}
         <div className={editable ? EDIT_ACTIONS : VIEW_ACTIONS}>
           {/* The slot's ID, so it works before the map loads. Phones: its own line under the
             map. Wider: the status sits left of the button in a box as wide as "Copied.", so a
@@ -206,7 +211,6 @@ export function SlotRow({
           ) : null}
         </div>
       </div>
-      {usage ? <MapUsage beatmapId={slot.beatmapId} entries={usage} /> : null}
     </li>
   );
 }
