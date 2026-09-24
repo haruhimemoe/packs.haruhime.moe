@@ -7,7 +7,9 @@
  *       and so does server start (src/instrumentation.ts). Production means VERCEL_ENV=production
  *       when VERCEL_ENV is set (so Preview deployments without auth config still start), else
  *       NODE_ENV=production; never during `next build`. The optional CRON_SECRET guards the daily
- *       stats job; getCronSecret reads it on every call, so the route fails closed without it.
+ *       stats job. It isn't part of the server env: getCronSecret reads and checks it on its own on
+ *       every call, so a missing or bad value only makes the cron route refuse, never sign-in or
+ *       anything else getServerEnv backs.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -27,11 +29,6 @@ const serverEnvSchema = z.object({
     .string()
     .regex(/^\d+(\s*,\s*\d+)*$/)
     .optional(),
-  /**
-   * Vercel Cron sends it as `Authorization: Bearer <CRON_SECRET>` (/api/cron/pack-stats).
-   * Optional: without it the cron route refuses every call.
-   */
-  CRON_SECRET: z.string().min(16).optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -158,7 +155,14 @@ export const parseDatabaseEnv = (
  */
 export const getDatabaseUri = (): string => parseDatabaseEnv(process.env).MONGODB_URI;
 
-const cronEnvSchema = serverEnvSchema.pick({ CRON_SECRET: true });
+/** The daily stats job's secret, read only by getCronSecret. */
+export const CRON_SECRET_KEY = "CRON_SECRET";
+
+/**
+ * Vercel Cron sends it as `Authorization: Bearer <CRON_SECRET>` (/api/cron/pack-stats).
+ * Optional: without it the cron route refuses every call.
+ */
+const cronSecretSchema = z.string().min(16).optional();
 
 /**
  * @function getCronSecret
@@ -167,11 +171,11 @@ const cronEnvSchema = serverEnvSchema.pick({ CRON_SECRET: true });
  * @throws {EnvError} naming (never printing) CRON_SECRET when it's set but shorter than 16
  */
 export const getCronSecret = (): string | undefined => {
-  const parsed = cronEnvSchema.safeParse({
-    CRON_SECRET: process.env.CRON_SECRET?.trim() || undefined,
-  });
-  if (parsed.success) return parsed.data.CRON_SECRET;
-  throw new EnvError("Missing or invalid environment variables: CRON_SECRET. See .env.example.");
+  const parsed = cronSecretSchema.safeParse(process.env[CRON_SECRET_KEY]?.trim() || undefined);
+  if (parsed.success) return parsed.data;
+  throw new EnvError(
+    `Missing or invalid environment variables: ${CRON_SECRET_KEY}. See .env.example.`,
+  );
 };
 
 let cached: ServerEnv | null = null;

@@ -1,6 +1,7 @@
 /**
  * @file tests/integration/app/api/cron-pack-stats.test.ts
- * @desc GET /api/cron/pack-stats: fails closed without CRON_SECRET (503), refuses a missing or
+ * @desc GET /api/cron/pack-stats: fails closed without CRON_SECRET or with a short one (503,
+ *       and the rest of the server env still parses), refuses a missing or
  *       wrong Bearer secret (401) without doing any work, and with the right one runs one capped
  *       batch of the stats job and says what's left. The mirror and osu! are MSW.
  * @author David @dvhsh (https://dvh.sh)
@@ -11,6 +12,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GET } from "@/app/api/cron/pack-stats/route";
 import { PACK_STATS_JOB_LIMIT } from "@/constants/pack-stats";
+import { parseServerEnv } from "@/env";
 import { getPackModel } from "@/models/Pack";
 import { createPack } from "@/services/packs";
 import { createTestUser } from "../../../helpers/auth";
@@ -57,6 +59,18 @@ describe("GET /api/cron/pack-stats", () => {
       "not_configured",
     );
     expect(lookups.calls.mirror).toEqual([]);
+  });
+
+  it("refuses everything, and leaves the rest of the server env alone, when CRON_SECRET is too short", async () => {
+    vi.stubEnv("CRON_SECRET", "short-secret");
+    await makePacks(1);
+    const response = await cron("Bearer short-secret");
+    expect(response.status).toBe(503);
+    expect(((await response.json()) as { error: { code: string } }).error.code).toBe(
+      "not_configured",
+    );
+    expect(lookups.calls.mirror).toEqual([]);
+    expect(() => parseServerEnv(process.env)).not.toThrow();
   });
 
   it.each([

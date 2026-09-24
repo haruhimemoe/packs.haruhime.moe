@@ -4,7 +4,8 @@
  *       SKIP_ENV_VALIDATION escape hatch, which a production server refuses when it would fall
  *       back to a placeholder secret (a production build still may). On Vercel, only VERCEL_ENV
  *       production counts as production, so Preview deployments without auth config start. The
- *       optional CRON_SECRET, when set, is long enough to guess at.
+ *       optional CRON_SECRET is read on its own: when set it must be too long to guess, and a bad
+ *       value only breaks the cron route, never the rest of the server env.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -40,7 +41,7 @@ describe("parseServerEnv", () => {
     const error = errorFrom({});
     expect(error).toBeInstanceOf(EnvError);
     expect(error.message).toBe(
-      `Missing or invalid environment variables: ${SERVER_ENV_KEYS.filter((key) => key !== "ADMIN_OSU_IDS" && key !== "CRON_SECRET").join(", ")}. See .env.example.`,
+      `Missing or invalid environment variables: ${SERVER_ENV_KEYS.filter((key) => key !== "ADMIN_OSU_IDS").join(", ")}. See .env.example.`,
     );
   });
 
@@ -100,20 +101,16 @@ describe("ADMIN_OSU_IDS", () => {
 });
 
 describe("CRON_SECRET", () => {
-  it("is optional", () => {
-    expect(parseServerEnv({ ...TEST_SERVER_ENV }).CRON_SECRET).toBeUndefined();
-    expect(parseServerEnv({ ...TEST_SERVER_ENV, CRON_SECRET: " " }).CRON_SECRET).toBeUndefined();
-  });
-
-  it("takes a secret of 16 characters or more", () => {
+  it("isn't part of the server env, so only the cron route reads it", () => {
+    expect(SERVER_ENV_KEYS).not.toContain("CRON_SECRET");
     const secret = "a-cron-secret-of-32-characters!!";
-    expect(parseServerEnv({ ...TEST_SERVER_ENV, CRON_SECRET: secret }).CRON_SECRET).toBe(secret);
+    expect(parseServerEnv({ ...TEST_SERVER_ENV, CRON_SECRET: secret })).toEqual(TEST_SERVER_ENV);
   });
 
-  it("refuses a short one without printing it", () => {
-    const error = errorFrom({ ...TEST_SERVER_ENV, CRON_SECRET: "short-secret" });
-    expect(error.message).toContain("CRON_SECRET");
-    expect(error.message).not.toContain("short-secret");
+  it("can't break sign-in and the rest of the site when it's too short", () => {
+    expect(parseServerEnv({ ...TEST_SERVER_ENV, CRON_SECRET: "short-secret" })).toEqual(
+      TEST_SERVER_ENV,
+    );
   });
 });
 

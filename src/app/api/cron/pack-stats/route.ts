@@ -2,15 +2,15 @@
  * @file src/app/api/cron/pack-stats/route.ts
  * @desc GET: the daily Vercel cron (vercel.json). Repairs missing or incomplete pack stats, one
  *       capped batch a run (runPackStatsJob), and answers { updated, remaining }. Vercel sends
- *       `Authorization: Bearer <CRON_SECRET>`. Fails closed: 503 while CRON_SECRET isn't set,
- *       401 for a missing or wrong secret, and neither does any work. Never cached.
+ *       `Authorization: Bearer <CRON_SECRET>`. Fails closed: 503 while CRON_SECRET isn't set or
+ *       is too short, 401 for a missing or wrong secret, and neither does any work. Never cached.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
  */
 
 import { createHash, timingSafeEqual } from "node:crypto";
-import { getCronSecret } from "@/env";
+import { EnvError, getCronSecret } from "@/env";
 import { jsonError } from "@/lib/api";
 import { runPackStatsJob } from "@/services/pack-stats";
 
@@ -26,8 +26,19 @@ const digest = (value: string): Buffer => createHash("sha256").update(value, "ut
 const isSecret = (given: string, secret: string): boolean =>
   timingSafeEqual(digest(given), digest(secret));
 
+/** CRON_SECRET, or undefined when it's unset or too short (logged by name, never by value). */
+const cronSecret = (): string | undefined => {
+  try {
+    return getCronSecret();
+  } catch (error) {
+    if (!(error instanceof EnvError)) throw error;
+    console.error(`[cron] ${error.message}`);
+    return undefined;
+  }
+};
+
 export async function GET(request: Request) {
-  const secret = getCronSecret();
+  const secret = cronSecret();
   if (!secret) {
     return jsonError(503, "The stats job isn't set up on this server.", "not_configured");
   }
