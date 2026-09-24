@@ -3,8 +3,8 @@
  * @desc /packs in the browser: the filter bar over the server-rendered list. With no search,
  *       filter or sort (the plain /packs URL), the cached list (children) shows and nothing is
  *       fetched. Anything else loads /packs/index.json once and filters and sorts it here,
- *       50 cards at a time. The filters live in the URL (usePackFilters), the result count is
- *       announced once changes settle, an empty result says what might help (other words, a
+ *       50 cards at a time. The filters live in the URL (usePackFilters), the result count
+ *       follows every change on screen but is announced only once changes settle, an empty result says what might help (other words, a
  *       wider range, or clearing the stat filters while stats are still being worked out), and
  *       if the index can't load the server list stays.
  * @author David @dvhsh (https://dvh.sh)
@@ -153,7 +153,14 @@ export function PublicPackBrowser({ children, loadIndex }: PublicPackBrowserProp
         filters={filters}
         onChange={update}
         onSearchFocus={load}
-        resultCount={settledCount}
+        resultCount={
+          // People see every change; screen readers hear only where a drag or burst of typing
+          // ends up (changes inside aria-hidden text aren't announced).
+          <>
+            <span aria-hidden="true">{count}</span>
+            <span className="sr-only">{settledCount}</span>
+          </>
+        }
       />
       {browsing && state.status === "error" ? (
         <p role="alert" className="text-rose-300 text-sm">

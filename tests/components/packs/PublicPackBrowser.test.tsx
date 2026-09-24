@@ -3,7 +3,7 @@
  * @desc /packs in the browser: the server list shows until someone searches, filters or sorts;
  *       then the index loads once and the bar filters it. The filters live in the URL (written
  *       with replaceState, even without String.prototype.toWellFormed, read back on load and on
- *       back/forward), the count is announced once
+ *       back/forward), the count shows at once and is announced once
  *       changes settle, packs hidden for missing stats are counted, results come 50 at a time,
  *       and a failed index load keeps the server list.
  * @author David @dvhsh (https://dvh.sh)
@@ -39,6 +39,17 @@ const cardNames = () =>
 
 const openUrl = (url: string) => window.history.replaceState(null, "", url);
 
+/** The count people see: it follows every change. */
+const shownCount = () =>
+  screen.getByRole("status").querySelector('[aria-hidden="true"]')?.textContent ?? "";
+
+/** The count screen readers get: the live region's text without its aria-hidden part. */
+const announcedCount = () => {
+  const copy = screen.getByRole("status").cloneNode(true) as HTMLElement;
+  for (const hidden of copy.querySelectorAll('[aria-hidden="true"]')) hidden.remove();
+  return copy.textContent ?? "";
+};
+
 beforeEach(() => {
   openUrl("/packs");
 });
@@ -53,7 +64,7 @@ describe("PublicPackBrowser", () => {
     const { load } = setup();
     expect(screen.getByText("Server list")).toBeInTheDocument();
     expect(load).not.toHaveBeenCalled();
-    expect(screen.getByRole("status")).toBeEmptyDOMElement();
+    expect(screen.getByRole("status").textContent).toBe("");
   });
 
   it("loads the index once, on first use, and searches it", async () => {
@@ -188,9 +199,7 @@ describe("PublicPackBrowser", () => {
     openUrl("/packs?sr=5-6.5");
     setup();
     await waitFor(() =>
-      expect(screen.getByRole("status")).toHaveTextContent(
-        "2 packs match. 1 pack is hidden until its stats are ready.",
-      ),
+      expect(announcedCount()).toBe("2 packs match. 1 pack is hidden until its stats are ready."),
     );
     expect(cardNames()).toEqual(["Mania Open Finals", "Spring Cup Quarterfinals"]);
   });
@@ -211,7 +220,7 @@ describe("PublicPackBrowser", () => {
     openUrl("/packs?sr=6.5-");
     setup(async () => ({ v: 1, packs: [partial] }));
     await waitFor(() =>
-      expect(screen.getByRole("status")).toHaveTextContent(
+      expect(announcedCount()).toBe(
         "No packs match these filters. 1 pack is hidden until its stats are ready.",
       ),
     );
@@ -224,7 +233,7 @@ describe("PublicPackBrowser", () => {
     await user.clear(screen.getByRole("searchbox", { name: "Search public packs" }));
     await user.click(screen.getByRole("button", { name: "FL" }));
     await waitFor(() =>
-      expect(screen.getByRole("status")).toHaveTextContent(
+      expect(announcedCount()).toBe(
         "No packs match these filters. 1 pack is hidden until its stats are ready.",
       ),
     );
@@ -240,11 +249,7 @@ describe("PublicPackBrowser", () => {
   it("names the search and the filters when both are set", async () => {
     openUrl("/packs?q=zzzz&maps=5-");
     setup();
-    await waitFor(() =>
-      expect(screen.getByRole("status")).toHaveTextContent(
-        "No packs match “zzzz” with these filters.",
-      ),
-    );
+    await waitFor(() => expect(announcedCount()).toBe("No packs match “zzzz” with these filters."));
     expect(
       screen.getByText("Try a wider range, fewer mods or modes, or other words."),
     ).toBeInTheDocument();
@@ -269,7 +274,7 @@ describe("PublicPackBrowser", () => {
     expect(screen.queryByText(/wider range/)).not.toBeInTheDocument();
   });
 
-  it("announces the count only once changes settle", async () => {
+  it("shows the count at once but announces it only once changes settle", async () => {
     vi.useFakeTimers();
     render(
       <PublicPackBrowser loadIndex={async () => INDEX}>
@@ -277,25 +282,30 @@ describe("PublicPackBrowser", () => {
       </PublicPackBrowser>,
     );
     const box = screen.getByRole("searchbox", { name: "Search public packs" });
-    const status = screen.getByRole("status");
     const typeText = (value: string) => fireEvent.change(box, { target: { value } });
     fireEvent.focus(box);
     await act(async () => {});
     typeText("c");
     typeText("cu");
     typeText("cup");
+    await act(async () => {});
+    expect(shownCount()).toBe("2 packs match.");
     await act(() => vi.advanceTimersByTimeAsync(COUNT_SETTLE_MS - 1));
-    expect(status).toBeEmptyDOMElement();
+    expect(announcedCount()).toBe("");
     await act(() => vi.advanceTimersByTimeAsync(1));
-    expect(status).toHaveTextContent("2 packs match.");
-    // A count that only flashes by ("zzz" matches nothing) is never announced.
+    expect(announcedCount()).toBe("2 packs match.");
+    // A count that only flashes by ("zzz" matches nothing) shows, but is never announced.
     typeText("zzz");
+    await act(async () => {});
+    expect(shownCount()).toBe("No packs match “zzz”.");
     await act(() => vi.advanceTimersByTimeAsync(COUNT_SETTLE_MS / 2));
     typeText("cup spr");
+    await act(async () => {});
+    expect(shownCount()).toBe("1 pack matches.");
     await act(() => vi.advanceTimersByTimeAsync(COUNT_SETTLE_MS - 1));
-    expect(status).toHaveTextContent("2 packs match.");
+    expect(announcedCount()).toBe("2 packs match.");
     await act(() => vi.advanceTimersByTimeAsync(1));
-    expect(status).toHaveTextContent("1 pack matches.");
+    expect(announcedCount()).toBe("1 pack matches.");
   });
 
   it("keeps the server list and explains when the index can't load", async () => {
