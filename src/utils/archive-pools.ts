@@ -4,7 +4,8 @@
  *       @haruhimemoe/pool's pasted-pool parsing ("NM1", "HD2", "TB", and custom labels like
  *       "HDHR1" or "EZ1", which become custom slots forcing those mods when the label spells a
  *       valid set); plain numbers ("#1", "12") are maps without a slot. A pool that doesn't parse
- *       cleanly, or fails pack validation (the content filter included), is skipped with a
+ *       cleanly, or fails pack validation (the content filter on its name and slot labels
+ *       included), is skipped with a
  *       reason, never half-imported. Each pool gets its tournament, round and year from its
  *       name, a fingerprint (sha256 of its sorted "beatmapId:mods" entries: the same maps with
  *       the same mods in any order, from any source, give the same one), and stats seeded from

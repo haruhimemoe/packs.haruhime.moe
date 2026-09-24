@@ -76,6 +76,30 @@ describe("packInputSchema", () => {
     });
   });
 
+  const BUILT_INS = ["NM", "HD", "HR", "DT", "FM", "TB"].map((code) => ({ code }));
+
+  it("refuses slurs in a custom slot's code, which map usage shows on other packs' pages", () => {
+    const result = packInputSchema.safeParse({
+      name: "Finals",
+      slots: [{ mod: "F4GG0T", index: 1, beatmapId: 129891 }],
+      buckets: [...BUILT_INS, { code: "F4GG0T", color: 0 }],
+    });
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]).toMatchObject({
+      path: ["buckets", 6, "code"],
+      message: "Please keep the slot names free of slurs.",
+    });
+  });
+
+  it("lets ordinary custom slot codes through", () => {
+    const result = packInputSchema.safeParse({
+      name: "Finals",
+      slots: [{ mod: "SV", index: 1, beatmapId: 129891 }],
+      buckets: [...BUILT_INS, { code: "SV", color: 0 }],
+    });
+    expect(result.success).toBe(true);
+  });
+
   it("lets ordinary names and swearing through", () => {
     expect(packInputSchema.safeParse({ name: "Scunthorpe Cup", slots: SLOTS }).success).toBe(true);
     expect(packInputSchema.safeParse({ name: "fuck this pool", slots: SLOTS }).success).toBe(true);

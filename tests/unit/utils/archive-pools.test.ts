@@ -258,6 +258,11 @@ describe("normalizePool", () => {
       /^name: Please keep the name free of slurs\.$/,
     ],
     [
+      "blocked language in a slot label",
+      source(9, "Cup Finals", ["NM1", "F4GG0T1"]),
+      /^buckets\.\d+\.code: Please keep the slot names free of slurs\.$/,
+    ],
+    [
       "a label the parser refuses",
       source(8, "Cup", ["NM1", "NM1"]),
       /^Slot NM1: NM1 appears more than once\.$/,
