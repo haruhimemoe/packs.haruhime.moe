@@ -1,8 +1,8 @@
 /**
  * @file tests/integration/services/packs.test.ts
  * @desc Packs service on in-memory Mongo: create, visibility rules, owner-only edits, list order,
- *       the per-account cap (none for admins), paging, slug collision retries, and the model's
- *       indexes.
+ *       the per-account cap (none for admins), paging, slug collision retries, the model's
+ *       indexes, and a pack's origin (stored, never returned, one pack per origin).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -19,6 +19,7 @@ import { deleteAccount } from "@/services/account";
 import {
   createPack,
   deletePack,
+  duplicateKeyOn,
   getPackForViewer,
   listPacks,
   PackLimitError,
@@ -424,5 +425,43 @@ describe("indexes", () => {
 
   it("keeps no archive fingerprint index", () => {
     expect(keys()).not.toContain("archive.fingerprint");
+  });
+
+  it("keeps one pack per pools origin with a partial unique index", () => {
+    expect(getPackModel().schema.indexes()).toContainEqual([
+      { "origin.id": 1 },
+      expect.objectContaining({
+        unique: true,
+        partialFilterExpression: { "origin.id": { $exists: true } },
+      }),
+    ]);
+  });
+});
+
+describe("origin", () => {
+  const origin = { kind: "pools", id: "otdb-58" };
+
+  it("stores a pack's origin and never returns it", async () => {
+    const pack = await createPack(newId(), input(), { origin });
+    expect(JSON.stringify(pack)).not.toContain("otdb-58");
+    expect((await getPackModel().findOne({ slug: pack.slug }).lean())?.origin).toEqual(origin);
+    expect(JSON.stringify(await getPackForViewer(pack.slug, null))).not.toContain("origin");
+  });
+
+  it("refuses a second pack with the same origin, without retrying it as a slug collision", async () => {
+    await createPack(newId(), input(), { origin });
+    const makeSlug = vi.fn(() => "bbbbbbbbbb");
+    const error = await createPack(newId(), input(), { origin, makeSlug }).catch(
+      (thrown: unknown) => thrown,
+    );
+    expect(duplicateKeyOn(error, "origin.id")).toBe(true);
+    expect(duplicateKeyOn(error, "slug")).toBe(false);
+    expect(makeSlug).toHaveBeenCalledTimes(1);
+  });
+
+  it("tells other errors apart", () => {
+    expect(duplicateKeyOn(new Error("nope"), "slug")).toBe(false);
+    expect(duplicateKeyOn({ code: 11000, keyPattern: { slug: 1 } }, "slug")).toBe(true);
+    expect(duplicateKeyOn({ code: 11000 }, "slug")).toBe(false);
   });
 });

@@ -3,7 +3,9 @@
  * @desc pools.haruhime.moe publishes past tournament pools as packs: the haruhime pools account
  *       that owns them. A users record with `system: true` and no linked osu! account, so nobody
  *       can sign in as it (src/lib/auth.ts refuses its sessions too). Its id is fixed, so two
- *       first syncs at once make one record, and queries can name it without a lookup.
+ *       first syncs at once make one record, and queries can name it without a lookup. Also a
+ *       pools pool id's shape, the origin kind, where tombstones live, and the rate-limit subject
+ *       pools' saves spend osu! calls under.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -21,3 +23,18 @@ export const POOLS_ACCOUNT = Object.freeze({
   email: "pools@packs.invalid",
   avatarUrl: `${SITE.url}/brand/packs-icon.svg`,
 });
+
+/** A pools pool id, as the service route takes it (`otdb-58`, `otdb-58-2`). */
+export const POOLS_REF_PATTERN = /^[a-z0-9-]{1,64}$/;
+
+/** `origin.kind` on a pack pools publishes. */
+export const POOLS_ORIGIN_KIND = "pools";
+
+/** Tombstones: the pools ids of packs a moderator deleted (the id is the document's _id). */
+export const DELETED_ORIGINS_COLLECTION = "deleted_origins";
+
+/**
+ * The rate-limit subject pools' saves spend osu! calls under: a share of the global budget of its
+ * own (OSU_API_BUDGET_PER_IP, 20 a minute), never a visitor's.
+ */
+export const POOLS_SYNC_SUBJECT = "pools-sync";

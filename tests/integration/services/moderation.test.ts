@@ -1,7 +1,8 @@
 /**
  * @file tests/integration/services/moderation.test.ts
  * @desc Admin list (public + unlisted only, hidden filter, literal name filter) and hiding,
- *       the haruhime pools account's packs (a system account, no osu! id) included.
+ *       the haruhime pools account's packs (a system account, no osu! id) included; deleting a
+ *       pack pools published leaves a tombstone of its pool.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -9,6 +10,8 @@
 
 import { ObjectId } from "mongodb";
 import { describe, expect, it } from "vitest";
+import { DELETED_ORIGINS_COLLECTION } from "@/constants/pools";
+import { getDb } from "@/lib/db";
 import type { PackInput } from "@/schemas/saved-pack";
 import { adminDeletePack, listPacksForAdmin, setPackHidden } from "@/services/moderation";
 import { createPack } from "@/services/packs";
@@ -104,5 +107,22 @@ describe("setPackHidden", () => {
     expect(await setPackHidden(secret.slug, adminId(), true)).toBeNull();
     expect(await setPackHidden("zzzzzzzzzz", adminId(), true)).toBeNull();
     expect(await setPackHidden("../etc", adminId(), true)).toBeNull();
+  });
+});
+
+describe("adminDeletePack and pools packs", () => {
+  it("leaves a tombstone of a pools pack's pool, and none for any other pack", async () => {
+    const poolsId = await ensurePoolsAccount();
+    const pooled = await createPack(poolsId, input({ name: "Ricma 2 Quarterfinals" }), {
+      unlimited: true,
+      origin: { kind: "pools", id: "otdb-58" },
+    });
+    const host = await createTestUser();
+    const saved = await createPack(host.id, input());
+    expect(await adminDeletePack(pooled.slug)).toBe(true);
+    expect(await adminDeletePack(saved.slug)).toBe(true);
+    expect(await getDb().collection(DELETED_ORIGINS_COLLECTION).find({}).toArray()).toEqual([
+      { _id: "otdb-58", deletedAt: expect.any(Date) },
+    ]);
   });
 });

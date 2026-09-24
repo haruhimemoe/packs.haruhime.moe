@@ -1,7 +1,8 @@
 /**
  * @file src/models/Pack.ts
  * @desc Saved pack model (collection "packs"): identity (name, slots, bucket list), description, export links,
- *       owner, visibility, moderation flag, pin to the top of /packs, filter stats, timestamps.
+ *       owner, visibility, moderation flag, pin to the top of /packs, filter stats, the pools
+ *       pool a pack pools.haruhime.moe publishes comes from (origin), timestamps.
  *       Registered lazily on the shared connection so importing it needs no env.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
@@ -67,6 +68,16 @@ const statsSchema = new Schema(
   { _id: false },
 );
 
+// Packs pools.haruhime.moe publishes only (src/services/pools-sync.ts): the pools pool the pack
+// is. A sync finds its pack by it; it's never sent anywhere. Absent on every other pack.
+const originSchema = new Schema(
+  {
+    kind: { type: String, required: true },
+    id: { type: String, required: true },
+  },
+  { _id: false },
+);
+
 const packSchema = new Schema(
   {
     slug: { type: String, required: true, unique: true },
@@ -94,6 +105,8 @@ const packSchema = new Schema(
     // Absent until computed (a save schedules it; the daily job repairs gaps). Cleared when the
     // slots or buckets change.
     stats: { type: statsSchema, default: undefined },
+    // Packs pools publishes only. Absent on every other pack.
+    origin: { type: originSchema, default: undefined },
   },
   { timestamps: true, collection: "packs" },
 );
@@ -108,6 +121,12 @@ packSchema.index({ visibility: 1, createdAt: -1 });
 packSchema.index(
   { pinOrder: 1, pinnedAt: 1, _id: 1 },
   { partialFilterExpression: { pinnedAt: { $exists: true } } },
+);
+// One pack per pools pool: a sync finds its pack here, and two first syncs racing can't both
+// create one.
+packSchema.index(
+  { "origin.id": 1 },
+  { unique: true, partialFilterExpression: { "origin.id": { $exists: true } } },
 );
 
 /** A `$unset` that takes a pin away: unpinning, hiding, or saving a pack away from public. */

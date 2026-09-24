@@ -6,7 +6,9 @@
  *       writes go through the driver so `updatedAt` never moves (a hidden pack keeps its place).
  *       Hiding a pack also unpins it (pins live in src/services/pins.ts); unhiding never pins it
  *       again. Rows say when a pack was pinned. The haruhime pools account's packs (a system
- *       account with no osu! id) are moderated like any other.
+ *       account with no osu! id) are moderated like any other. Deleting a pack pools.haruhime.moe
+ *       published leaves a tombstone of its pool (src/services/pools-sync.ts), so no sync creates
+ *       it again.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -21,6 +23,7 @@ import { UNPIN } from "@/models/Pack";
 import { type AdminPackPage, type AdminPackRow, adminPackRowSchema } from "@/schemas/public-pack";
 import { slugSchema, type Visibility } from "@/schemas/saved-pack";
 import { connectedPackModel } from "@/services/packs";
+import { tombstoneOrigin } from "@/services/pools-sync";
 import { escapeRegExp } from "@/utils/text";
 
 /** What admins moderate: anything others can reach. */
@@ -147,8 +150,13 @@ export const setPackHidden = async (
 export const adminDeletePack = async (slug: string): Promise<boolean> => {
   if (!slugSchema.safeParse(slug).success) return false;
   const model = await connectedPackModel();
-  const result = await model.collection.deleteOne({ slug, ...MODERATED });
-  if (result.deletedCount !== 1) return false;
+  const deleted = await model.collection.findOneAndDelete(
+    { slug, ...MODERATED },
+    { projection: { origin: 1 } },
+  );
+  if (!deleted) return false;
+  const originId = (deleted as { origin?: { id?: unknown } }).origin?.id;
+  if (typeof originId === "string") await tombstoneOrigin(originId);
   revalidatePack(slug);
   revalidatePublicPacks();
   return true;

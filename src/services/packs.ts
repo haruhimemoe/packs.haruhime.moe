@@ -5,7 +5,9 @@
  *       never confirm that a private slug exists). Changes that touch a public pack mark the
  *       cached /packs stale. Saves schedule the pack's filter stats after the response
  *       (services/pack-stats.ts); a slot or bucket change clears the old ones first. Saving a
- *       pack as anything but public takes away its pin (services/pins.ts).
+ *       pack as anything but public takes away its pin (services/pins.ts). A pack
+ *       pools.haruhime.moe publishes also stores its origin (the pools pool), which no DTO
+ *       carries.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -127,6 +129,24 @@ export const toSavedPack = (doc: PackRecord): SavedPack => {
 const isDuplicateKey = (error: unknown): boolean =>
   typeof error === "object" && error !== null && "code" in error && error.code === 11000;
 
+/** The pools pool a pack pools.haruhime.moe publishes comes from (never sent anywhere). */
+export type PackOrigin = { kind: string; id: string };
+
+/**
+ * @function duplicateKeyOn
+ * @param error {unknown} what a write threw
+ * @param path {string} a unique index's field ("slug", "origin.id")
+ * @returns {boolean} true for a duplicate-key error on that index
+ */
+export const duplicateKeyOn = (error: unknown, path: string): boolean =>
+  isDuplicateKey(error) &&
+  typeof error === "object" &&
+  error !== null &&
+  "keyPattern" in error &&
+  typeof error.keyPattern === "object" &&
+  error.keyPattern !== null &&
+  path in error.keyPattern;
+
 /**
  * @function connectedPackModel
  * @returns {Promise<ReturnType<typeof getPackModel>>} the Pack model, connected, indexes built
@@ -145,12 +165,14 @@ const touchesPublicList = (...visibilities: unknown[]): boolean => visibilities.
  * @function createPack
  * @param ownerId {string} signed-in user's id
  * @param input {PackInput} validated pack
- * @param options {{ makeSlug?: () => string; unlimited?: boolean; subject?: string }} slug
- *        source (tests), unlimited to skip the MAX_SAVED_PACKS check (admins), and the caller's
- *        rate-limit subject (its share of the osu! budget pays for the stats lookups)
+ * @param options {{ makeSlug?: () => string; unlimited?: boolean; subject?: string; origin?: PackOrigin }}
+ *        slug source (tests), unlimited to skip the MAX_SAVED_PACKS check (admins, the pools
+ *        account), the caller's rate-limit subject (its share of the osu! budget pays for the
+ *        stats lookups), and the pools pool it comes from
  * @returns {Promise<SavedPack>} the stored pack, without stats: they're computed after the
  *          response
  * @throws {PackLimitError} when the owner already has MAX_SAVED_PACKS packs and isn't unlimited
+ * @throws {MongoServerError} a duplicate key on origin.id when a pack with that origin exists
  */
 export const createPack = async (
   ownerId: string,
@@ -159,7 +181,8 @@ export const createPack = async (
     makeSlug = () => nanoid(SLUG_LENGTH),
     unlimited = false,
     subject,
-  }: { makeSlug?: () => string; unlimited?: boolean; subject?: string } = {},
+    origin,
+  }: { makeSlug?: () => string; unlimited?: boolean; subject?: string; origin?: PackOrigin } = {},
 ): Promise<SavedPack> => {
   const model = await connectedPackModel();
   if (!unlimited && (await model.countDocuments({ ownerId })) >= MAX_SAVED_PACKS) {
@@ -177,12 +200,16 @@ export const createPack = async (
         ...(buckets ? { buckets } : {}),
         ...(description ? { description } : {}),
         visibility: input.visibility,
+        ...(origin ? { origin } : {}),
       });
       if (touchesPublicList(input.visibility)) revalidatePublicPacks();
       schedulePackStats(doc.slug, subject);
       return toSavedPack(doc.toObject());
     } catch (error) {
-      if (attempt < SLUG_ATTEMPTS && isDuplicateKey(error)) continue;
+      // A slug collision gets a new slug; a pack with the same origin is the caller's to handle.
+      if (attempt < SLUG_ATTEMPTS && isDuplicateKey(error) && !duplicateKeyOn(error, "origin.id")) {
+        continue;
+      }
       throw error;
     }
   }
@@ -344,6 +371,13 @@ export const storedPackKey = (doc: PackRecord): string => poolKey(toSavedPack(do
  * @returns {string} its canonical pack key (the same key the site shows)
  */
 export const packKeyOf = (pack: SavedPack): string => poolKey(pack);
+
+/**
+ * @function inputPackKey
+ * @param input {PackInput} a validated pack input
+ * @returns {string} the canonical pack key it saves as (compare with packKeyOf)
+ */
+export const inputPackKey = (input: PackInput): string => poolKey(input);
 
 /**
  * @function updatePack

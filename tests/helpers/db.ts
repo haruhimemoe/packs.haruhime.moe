@@ -19,6 +19,7 @@ const COLLECTIONS = [
   "star_ratings",
   "rate_limits",
   "api_keys",
+  "deleted_origins",
 ];
 
 /**
