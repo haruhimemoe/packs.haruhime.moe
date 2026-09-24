@@ -6,9 +6,9 @@
  *       prints a summary, and writes only without --dry-run. After a real import that changed
  *       something it asks the live site to refresh /packs and its index
  *       (POST /api/cron/revalidate-packs with CRON_SECRET); without CRON_SECRET, or if that
- *       request fails, it says so, and the pages refresh on their own within 5 minutes. Answers
- *       an exit code: 0 done, 1 a fatal error (download, a bad file or export, the database), 2
- *       bad arguments. Every outside call is injectable, so tests never reach otdb or the site.
+ *       request fails, it says so: the pages then pick the packs up at their daily refresh.
+ *       Answers an exit code: 0 done, 1 a fatal error (download, a bad file or export, the
+ *       database), 2 bad arguments. Every outside call is injectable, so tests never reach otdb or the site.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -73,7 +73,7 @@ const refreshSite = async ({
   log: (text: string) => void;
   warn: (text: string) => void;
 }): Promise<void> => {
-  const later = "/packs refreshes on its own within 5 minutes.";
+  const later = "/packs shows the changes at its daily refresh, or after the next pack save.";
   let secret: string | undefined;
   try {
     secret = cronSecret();

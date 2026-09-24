@@ -262,7 +262,7 @@ describe("archive:import", () => {
       const noSecret = await withSample(["otdb"], { siteUrl: site });
       expect(noSecret.code).toBe(0);
       expect(noSecret.out).toContain(
-        `CRON_SECRET isn't set, so ${site} wasn't asked to refresh. /packs refreshes on its own within 5 minutes.`,
+        `CRON_SECRET isn't set, so ${site} wasn't asked to refresh. /packs shows the changes at its daily refresh, or after the next pack save.`,
       );
     });
 
@@ -281,7 +281,9 @@ describe("archive:import", () => {
         },
       });
       expect(bad.code).toBe(0);
-      expect(bad.err).toContain("CRON_SECRET. /packs refreshes on its own within 5 minutes.");
+      expect(bad.err).toContain(
+        "CRON_SECRET. /packs shows the changes at its daily refresh, or after the next pack save.",
+      );
     });
   });
 });
