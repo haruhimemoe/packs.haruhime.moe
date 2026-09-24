@@ -1,16 +1,18 @@
 /**
  * @file src/schemas/saved-pack.ts
  * @desc Saved packs (accounts): visibility, slug, the body POST/PUT accept, and the DTOs the API
- *       and pages pass around. Identity only; beatmap metadata is always fetched fresh.
+ *       and pages pass around. Identity only; beatmap metadata is always fetched fresh. The only
+ *       derived field is `stats` (filters), which the server computes and bodies never carry.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { z } from "zod";
 import { MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH, SLUG_LENGTH } from "@/constants/pack";
 import { checkPoolBuckets, poolFields } from "@/schemas/pack";
 import { packExportsSchema } from "@/schemas/pack-export";
+import { packStatsSchema } from "@/schemas/pack-stats";
 import { hasBlockedLanguage } from "@/utils/content-filter";
 import { normalizeDescription } from "@/utils/text";
 
@@ -70,6 +72,8 @@ export const savedPackSchema = poolFields
     exports: packExportsSchema.optional(),
     /** Set when a moderator hid the pack; only its owner and admins ever receive it. */
     hiddenAt: z.string().optional(),
+    /** Filter stats, once the server has computed them (a few seconds after a save). */
+    stats: packStatsSchema.optional(),
     createdAt: z.string(),
     updatedAt: z.string(),
   })

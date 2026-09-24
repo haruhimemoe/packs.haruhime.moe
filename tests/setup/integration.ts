@@ -1,13 +1,15 @@
 /**
  * @file tests/setup/integration.ts
  * @desc Per-file setup for the integration project: a full fake server env pointing at the
- *       in-memory MongoDB.
+ *       in-memory MongoDB, revalidation calls recorded, and after() work queued until a test
+ *       flushes it (tests/helpers/after.ts).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Thu Sep 24, 2026
  */
 
-import { inject, vi } from "vitest";
+import { beforeEach, inject, vi } from "vitest";
+import { clearAfter } from "../helpers/after";
 import { stubServerEnv } from "../helpers/server-env";
 
 stubServerEnv({ MONGODB_URI: inject("mongoUri") });
@@ -17,3 +19,10 @@ vi.stubEnv("SKIP_ENV_VALIDATION", "");
 
 // revalidatePath needs Next's request store; tests assert the calls instead.
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+
+// after() needs Next's request store too. Queued work runs only when a test calls flushAfter().
+vi.mock("next/server", async (importOriginal) => {
+  const { queueAfter } = await import("../helpers/after");
+  return { ...(await importOriginal<typeof import("next/server")>()), after: queueAfter };
+});
+beforeEach(clearAfter);

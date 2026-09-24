@@ -3,10 +3,11 @@
  * @desc Saved pack operations. Every owner check lives here: callers pass the signed-in user's
  *       id and get null/false for "not found or not yours" (routes answer 404 for both, so they
  *       never confirm that a private slug exists). Changes that touch a public pack mark the
- *       cached /packs stale.
+ *       cached /packs stale. Saves schedule the pack's filter stats after the response
+ *       (services/pack-stats.ts); a slot or bucket change clears the old ones first.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import "server-only";
@@ -17,6 +18,7 @@ import { connectDb } from "@/lib/db";
 import { revalidatePack, revalidatePublicPacks } from "@/lib/revalidate";
 import { getPackModel } from "@/models/Pack";
 import type { Pool } from "@/schemas/pack";
+import { type PackStats, packStatsSchema } from "@/schemas/pack-stats";
 import {
   type PackInput,
   type SavedPack,
@@ -25,7 +27,9 @@ import {
   savedPackSummarySchema,
   slugSchema,
 } from "@/schemas/saved-pack";
+import { schedulePackStats } from "@/services/pack-stats";
 import { canonicalLinks } from "@/utils/magnet";
+import { storedBuckets } from "@/utils/stored-buckets";
 
 const SLUG_ATTEMPTS = 3;
 
@@ -47,26 +51,25 @@ export type PackRecord = {
   visibility: unknown;
   hiddenAt?: Date | null;
   exports?: { kind: string; url: string; createdAt: Date }[] | null;
+  stats?: { computedAt?: unknown } | null;
   createdAt: Date;
   updatedAt: Date;
 };
 
 /**
- * Mongoose leaves built-in entries without a color; drop null/undefined colors so zod sees
- * { code }, and keep a custom slot's mods only when it has some.
+ * @function storedStats
+ * @param value {PackRecord["stats"]} a stored document's stats
+ * @returns {PackStats | undefined} the DTO form, or undefined when there are none or they don't
+ *          parse (a bad stats row never breaks the pack)
  */
-const storedBuckets = (value: unknown): unknown =>
-  Array.isArray(value) && value.length > 0
-    ? value.map((entry: { code?: unknown; color?: unknown; mods?: unknown }) =>
-        entry.color === undefined || entry.color === null
-          ? { code: entry.code }
-          : {
-              code: entry.code,
-              color: entry.color,
-              ...(entry.mods === undefined || entry.mods === null ? {} : { mods: entry.mods }),
-            },
-      )
-    : undefined;
+const storedStats = (value: PackRecord["stats"]): PackStats | undefined => {
+  if (!value || !(value.computedAt instanceof Date)) return undefined;
+  const parsed = packStatsSchema.safeParse({
+    ...value,
+    computedAt: value.computedAt.toISOString(),
+  });
+  return parsed.success ? parsed.data : undefined;
+};
 
 export type StoredExport = { kind: string; url: string; createdAt: Date };
 
@@ -104,6 +107,7 @@ export const toPackExports = (list: readonly StoredExport[] | null | undefined) 
  */
 export const toSavedPack = (doc: PackRecord): SavedPack => {
   const buckets = storedBuckets(doc.buckets);
+  const stats = storedStats(doc.stats);
   return savedPackSchema.parse({
     slug: doc.slug,
     name: doc.name,
@@ -113,6 +117,7 @@ export const toSavedPack = (doc: PackRecord): SavedPack => {
     visibility: doc.visibility,
     exports: toPackExports(doc.exports),
     ...(doc.hiddenAt ? { hiddenAt: doc.hiddenAt.toISOString() } : {}),
+    ...(stats ? { stats } : {}),
     createdAt: doc.createdAt.toISOString(),
     updatedAt: doc.updatedAt.toISOString(),
   });
@@ -139,9 +144,11 @@ const touchesPublicList = (...visibilities: unknown[]): boolean => visibilities.
  * @function createPack
  * @param ownerId {string} signed-in user's id
  * @param input {PackInput} validated pack
- * @param options {{ makeSlug?: () => string; unlimited?: boolean }} slug source (tests), and
- *        unlimited to skip the MAX_SAVED_PACKS check (admins)
- * @returns {Promise<SavedPack>} the stored pack
+ * @param options {{ makeSlug?: () => string; unlimited?: boolean; subject?: string }} slug
+ *        source (tests), unlimited to skip the MAX_SAVED_PACKS check (admins), and the caller's
+ *        rate-limit subject (its share of the osu! budget pays for the stats lookups)
+ * @returns {Promise<SavedPack>} the stored pack, without stats: they're computed after the
+ *          response
  * @throws {PackLimitError} when the owner already has MAX_SAVED_PACKS packs and isn't unlimited
  */
 export const createPack = async (
@@ -150,7 +157,8 @@ export const createPack = async (
   {
     makeSlug = () => nanoid(SLUG_LENGTH),
     unlimited = false,
-  }: { makeSlug?: () => string; unlimited?: boolean } = {},
+    subject,
+  }: { makeSlug?: () => string; unlimited?: boolean; subject?: string } = {},
 ): Promise<SavedPack> => {
   const model = await connectedPackModel();
   if (!unlimited && (await model.countDocuments({ ownerId })) >= MAX_SAVED_PACKS) {
@@ -170,6 +178,7 @@ export const createPack = async (
         visibility: input.visibility,
       });
       if (touchesPublicList(input.visibility)) revalidatePublicPacks();
+      schedulePackStats(doc.slug, subject);
       return toSavedPack(doc.toObject());
     } catch (error) {
       if (attempt < SLUG_ATTEMPTS && isDuplicateKey(error)) continue;
@@ -317,6 +326,10 @@ const poolKey = (pack: { name: string; slots: Pool["slots"]; buckets?: Pool["buc
       : { name: pack.name, slots: pack.slots },
   );
 
+/** Stats depend on slots and buckets only: the pool key under a fixed name. */
+const statsKey = (pack: { slots: Pool["slots"]; buckets?: Pool["buckets"] }) =>
+  poolKey({ ...pack, name: "stats" });
+
 /**
  * @function storedPackKey
  * @param doc {PackRecord} a stored pack document
@@ -336,14 +349,17 @@ export const packKeyOf = (pack: SavedPack): string => poolKey(pack);
  * @param slug {string} untrusted route segment
  * @param ownerId {string} signed-in user's id
  * @param input {PackInput} validated replacement (a missing description clears it)
+ * @param options {{ subject?: string }} the caller's rate-limit subject (for the stats lookups)
  * @returns {Promise<SavedPack | null>} the updated pack, or null when missing or not the owner's.
  *          Never touches the moderation flag. Clears recorded export links when the pack
- *          key changes.
+ *          key changes, and stats when the slots or buckets change; schedules new stats then,
+ *          or whenever the pack has none or incomplete ones.
  */
 export const updatePack = async (
   slug: string,
   ownerId: string,
   input: PackInput,
+  { subject }: { subject?: string } = {},
 ): Promise<SavedPack | null> => {
   if (!slugSchema.safeParse(slug).success) return null;
   const model = await connectedPackModel();
@@ -351,8 +367,11 @@ export const updatePack = async (
   if (!before) return null;
   const buckets = canonicalBuckets(bucketsOf(input));
   const description = input.description ?? "";
+  const previous = toSavedPack(before);
   // A different pack key means different files, folder, or pack.txt: its torrents no longer match.
-  const poolChanged = poolKey(toSavedPack(before)) !== poolKey(input);
+  const poolChanged = poolKey(previous) !== poolKey(input);
+  // Old stats describe other maps: clear them rather than serve them until the new ones land.
+  const statsChanged = statsKey(previous) !== statsKey(input);
   const set = {
     name: input.name,
     slots: input.slots,
@@ -364,6 +383,7 @@ export const updatePack = async (
     ...(buckets ? {} : { buckets: 1 }),
     ...(description ? {} : { description: 1 }),
     ...(poolChanged ? { exports: 1 } : {}),
+    ...(statsChanged ? { stats: 1 } : {}),
   };
   const doc = await model
     .findOneAndUpdate(
@@ -375,7 +395,9 @@ export const updatePack = async (
   if (!doc) return null;
   revalidatePack(slug);
   if (touchesPublicList(before.visibility, doc.visibility)) revalidatePublicPacks();
-  return toSavedPack(doc);
+  const pack = toSavedPack(doc);
+  if (!pack.stats?.complete) schedulePackStats(slug, subject);
+  return pack;
 };
 
 /**

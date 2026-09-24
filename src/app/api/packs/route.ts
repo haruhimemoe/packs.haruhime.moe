@@ -3,10 +3,11 @@
  * @desc GET ?page=: one page of the caller's saved packs (OWN_PAGE_SIZE a page), never cached
  *       (Cache-Control: private, no-store; it's the caller's own list). POST: save a pack (owner
  *       = caller; body ownerId/slug are ignored; admins skip the saved-pack cap), under the
- *       /api/v1 write limit (RATE_LIMITS.apiWrite, per user, shared with the API).
+ *       /api/v1 write limit (RATE_LIMITS.apiWrite, per user, shared with the API). The pack's
+ *       stats are computed after the response, on the caller's share of the osu! budget.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { RATE_LIMITS } from "@/constants/api";
@@ -15,6 +16,7 @@ import { getUserFromHeaders } from "@/lib/auth";
 import { refuseOverLimit } from "@/lib/rate-limit";
 import { packInputSchema } from "@/schemas/saved-pack";
 import { createPack, listPacks, PackLimitError } from "@/services/packs";
+import { clientIp, rateLimitSubject } from "@/utils/client-ip";
 import { pageFromQuery } from "@/utils/paging";
 
 /** Session-scoped reads: never a shared cache, never a stale copy on the caller's next load. */
@@ -37,7 +39,12 @@ export async function POST(request: Request) {
   if (!body.ok) return body.response;
   try {
     return Response.json(
-      { pack: await createPack(user.id, body.data, { unlimited: user.isAdmin }) },
+      {
+        pack: await createPack(user.id, body.data, {
+          unlimited: user.isAdmin,
+          subject: rateLimitSubject(clientIp(request.headers)),
+        }),
+      },
       { status: 201 },
     );
   } catch (error) {

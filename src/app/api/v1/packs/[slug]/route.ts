@@ -1,10 +1,11 @@
 /**
  * @file src/app/api/v1/packs/[slug]/route.ts
  * @desc One pack. GET: public and unlisted for any key; private and hidden only for the owner.
- *       PUT and DELETE: the owner's pack only. "Not yours" and "doesn't exist" are both 404.
+ *       PUT and DELETE: the owner's pack only. "Not yours" and "doesn't exist" are both 404. A PUT
+ *       that changes the maps clears the stats and computes new ones after the response.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { jsonError, PACK_NOT_FOUND, parseJsonBody } from "@/lib/api";
@@ -12,6 +13,7 @@ import { withApiKey } from "@/lib/api-auth";
 import { packInputSchema } from "@/schemas/saved-pack";
 import { getApiPack, toApiPack } from "@/services/api-packs";
 import { deletePack, updatePack } from "@/services/packs";
+import { clientIp, rateLimitSubject } from "@/utils/client-ip";
 
 type Context = { params: Promise<{ slug: string }> };
 
@@ -26,7 +28,9 @@ export const PUT = withApiKey<Context>(async (request, caller, { params }) => {
   const { slug } = await params;
   const body = await parseJsonBody(request, packInputSchema);
   if (!body.ok) return body.response;
-  const pack = await updatePack(slug, caller.id, body.data);
+  const pack = await updatePack(slug, caller.id, body.data, {
+    subject: rateLimitSubject(clientIp(request.headers)),
+  });
   if (!pack) return jsonError(404, PACK_NOT_FOUND);
   return Response.json({ pack: toApiPack(pack, caller.username) });
 });

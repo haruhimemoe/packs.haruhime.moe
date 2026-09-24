@@ -6,10 +6,11 @@
  *       (isOwner, isAdmin) and can hold private or hidden packs, so it's never cached (Cache-
  *       Control: private, no-store), even though it isn't prerendered today. Writes count against
  *       the /api/v1 write limit (RATE_LIMITS.apiWrite, per user, shared with the API).
- *       DELETE reads no body, so it refuses requests from other origins (refuseCrossSite).
+ *       DELETE reads no body, so it refuses requests from other origins (refuseCrossSite). A PUT
+ *       that changes the maps clears the stats and computes new ones after the response.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { RATE_LIMITS } from "@/constants/api";
@@ -24,6 +25,7 @@ import { getUserFromHeaders } from "@/lib/auth";
 import { refuseOverLimit } from "@/lib/rate-limit";
 import { packInputSchema } from "@/schemas/saved-pack";
 import { deletePack, getPackForViewer, updatePack } from "@/services/packs";
+import { clientIp, rateLimitSubject } from "@/utils/client-ip";
 
 type Context = { params: Promise<{ slug: string }> };
 
@@ -51,7 +53,9 @@ export async function PUT(request: Request, { params }: Context) {
   if (limited) return limited;
   const body = await parseJsonBody(request, packInputSchema);
   if (!body.ok) return body.response;
-  const pack = await updatePack(slug, user.id, body.data);
+  const pack = await updatePack(slug, user.id, body.data, {
+    subject: rateLimitSubject(clientIp(request.headers)),
+  });
   if (!pack) return jsonError(404, PACK_NOT_FOUND);
   return Response.json({ pack });
 }
