@@ -5,7 +5,8 @@
  *       nothing after a removal; the editor delay (none for the pool it opens with, then one
  *       request after a burst of changes); the
  *       pack's own entries left out; a failed request shows nothing and the next change asks
- *       again; stopping on unmount. Plus fetchMapUsage.
+ *       again; an answer that lands after the pool changed is kept, and its ids aren't asked
+ *       for twice; stopping on unmount. Plus fetchMapUsage.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -134,6 +135,55 @@ describe("useMapUsage", () => {
     await settle();
     expect(fetchUsage.mock.calls).toEqual([[[1]], [[1, 2]]]);
     expect(result.current(1)).toEqual([entry("aaaaaaaaaa")]);
+  });
+
+  it("keeps an answer that lands after the pool changed, and never asks for its ids again", async () => {
+    let release: (() => void) | undefined;
+    const fetchUsage = vi
+      .fn<MapUsageFetcher>()
+      .mockImplementationOnce(
+        (ids) =>
+          new Promise((done) => {
+            release = () => done(fetcherWith({ 1: [entry("aaaaaaaaaa")] })(ids));
+          }),
+      )
+      .mockImplementation(fetcherWith());
+    const { result, rerender } = renderHook(
+      ({ ids }) => useMapUsage(ids, { fetchUsage, delayMs: 1500 }),
+      { initialProps: { ids: [1, 2] } },
+    );
+    await settle();
+    expect(fetchUsage.mock.calls).toEqual([[[1, 2]]]);
+    rerender({ ids: [1, 2, 3] });
+    await settle(100);
+    release?.();
+    await settle(1500);
+    expect(fetchUsage.mock.calls).toEqual([[[1, 2]], [[3]]]);
+    expect(result.current(1)).toEqual([entry("aaaaaaaaaa")]);
+  });
+
+  it("asks again for ids whose request failed while the pool changed", async () => {
+    let fail: (() => void) | undefined;
+    const fetchUsage = vi
+      .fn<MapUsageFetcher>()
+      .mockImplementationOnce(
+        () =>
+          new Promise((_, reject) => {
+            fail = () => reject(new Error("Map usage answered 500."));
+          }),
+      )
+      .mockImplementation(fetcherWith());
+    const { rerender } = renderHook(({ ids }) => useMapUsage(ids, { fetchUsage, delayMs: 10 }), {
+      initialProps: { ids: [1] },
+    });
+    await settle();
+    rerender({ ids: [1, 2] });
+    await settle(10);
+    fail?.();
+    await settle();
+    rerender({ ids: [1, 2, 3] });
+    await settle(10);
+    expect(fetchUsage.mock.calls).toEqual([[[1]], [[2]], [[1, 3]]]);
   });
 
   it("drops an answer that arrives after unmount", async () => {
