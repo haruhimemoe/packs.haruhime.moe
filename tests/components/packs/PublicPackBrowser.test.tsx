@@ -2,7 +2,8 @@
  * @file tests/components/packs/PublicPackBrowser.test.tsx
  * @desc /packs in the browser: the server list shows until someone searches, filters or sorts;
  *       then the index loads once and the bar filters it. The filters live in the URL (written
- *       with replaceState, read back on load and on back/forward), the count is announced once
+ *       with replaceState, even without String.prototype.toWellFormed, read back on load and on
+ *       back/forward), the count is announced once
  *       changes settle, packs hidden for missing stats are counted, results come 50 at a time,
  *       and a failed index load keeps the server list.
  * @author David @dvhsh (https://dvh.sh)
@@ -116,6 +117,25 @@ describe("PublicPackBrowser", () => {
     await waitFor(() => expect(window.location.pathname + window.location.search).toBe("/packs"));
     expect(push).not.toHaveBeenCalled();
     expect(screen.getByText("Server list")).toBeInTheDocument();
+  });
+
+  it("writes the URL in browsers without String.prototype.toWellFormed", async () => {
+    // jsdom's own history needs toWellFormed, so the write is only recorded here.
+    const replace = vi.spyOn(window.history, "replaceState").mockImplementation(() => {});
+    const original = Object.getOwnPropertyDescriptor(String.prototype, "toWellFormed");
+    Reflect.deleteProperty(String.prototype, "toWellFormed");
+    try {
+      const { user } = setup();
+      await user.click(screen.getByRole("button", { name: "DT" }));
+      await waitFor(() => expect(replace).toHaveBeenLastCalledWith(null, "", "/packs?mods=DT"));
+      await user.type(screen.getByRole("searchbox", { name: "Search public packs" }), "cup");
+      await waitFor(() =>
+        expect(replace).toHaveBeenLastCalledWith(null, "", "/packs?mods=DT&q=cup"),
+      );
+      await waitFor(() => expect(cardNames()).toEqual(["Spring Cup Quarterfinals"]));
+    } finally {
+      if (original) Object.defineProperty(String.prototype, "toWellFormed", original);
+    }
   });
 
   it("writes the URL at most every so often while a slider moves", async () => {

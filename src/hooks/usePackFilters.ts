@@ -30,14 +30,15 @@ export const usePackFilters = (): [PackFilters, (next: PackFilters) => void] => 
   const write = useCallback(() => {
     pending.current = null;
     lastWrite.current = Date.now();
-    const { pathname, search, hash } = window.location;
-    const href = filtersHref(pathname, latest.current) + hash;
-    if (href === pathname + search + hash) return;
     try {
+      const { pathname, search, hash } = window.location;
+      const href = filtersHref(pathname, latest.current) + hash;
+      if (href === pathname + search + hash) return;
       // null state: Next.js keeps its own router state and follows the new URL.
       window.history.replaceState(null, "", href);
     } catch {
-      // The browser refused this write (too many too fast); the next change writes again.
+      // The browser refused this write (too many too fast), or the URL couldn't be built; the
+      // filters still apply, and the next change writes again.
     }
   }, []);
 

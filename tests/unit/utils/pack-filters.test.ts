@@ -4,14 +4,15 @@
  *       ranges overlap, every ticked mod and mode must be there, the map count sits inside its
  *       range, ends are inclusive and an end at the slider's edge is open; packs without the
  *       stats a filter needs are hidden and counted; sorts keep ties in index order; the URL
- *       form parses and serializes (bad params ignored) and survives a round trip.
+ *       form parses and serializes (bad params ignored, lone surrogates replaced, also where
+ *       String.prototype.toWellFormed is missing) and survives a round trip.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
  */
 
 import fc from "fast-check";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   BPM_RANGE,
   LENGTH_RANGE,
@@ -440,6 +441,42 @@ describe("serializeFilters", () => {
 
   it("writes a text holding a lone surrogate without throwing", () => {
     expect(serializeFilters({ ...EMPTY_FILTERS, q: "a\uD800b" })).toBe("q=a%EF%BF%BDb");
+  });
+
+  describe("in a browser without String.prototype.toWellFormed (Firefox before 119)", () => {
+    const original = Object.getOwnPropertyDescriptor(String.prototype, "toWellFormed");
+    const toWellFormed = original?.value as (this: string) => string;
+    beforeEach(() => {
+      Reflect.deleteProperty(String.prototype, "toWellFormed");
+    });
+    afterEach(() => {
+      if (original) Object.defineProperty(String.prototype, "toWellFormed", original);
+    });
+
+    it("still writes the filters and the text", () => {
+      expect("".toWellFormed).toBeUndefined();
+      expect(serializeFilters({ ...EMPTY_FILTERS, mods: ["DT"] })).toBe("mods=DT");
+      expect(filtersHref("/packs", { ...EMPTY_FILTERS, q: "cup" })).toBe("/packs?q=cup");
+    });
+
+    it("replaces lone surrogates and keeps pairs", () => {
+      const write = (q: string) => serializeFilters({ ...EMPTY_FILTERS, q });
+      expect(write("a\uD800b")).toBe("q=a%EF%BF%BDb");
+      expect(write("a\uDC00b")).toBe("q=a%EF%BF%BDb");
+      expect(write("\uD800")).toBe("q=%EF%BF%BD");
+      expect(write("\uDC00\uD800")).toBe("q=%EF%BF%BD%EF%BF%BD");
+      expect(write("cup 🌸")).toBe(`q=${encodeURIComponent("cup 🌸")}`);
+    });
+
+    it("matches toWellFormed for any text", () => {
+      fc.assert(
+        fc.property(fc.string({ unit: "binary" }), (q) => {
+          const expected = toWellFormed.call(q).trim();
+          const written = serializeFilters({ ...EMPTY_FILTERS, q });
+          expect(written).toBe(expected === "" ? "" : `q=${encodeURIComponent(expected)}`);
+        }),
+      );
+    });
   });
 
   it("builds the page's href", () => {

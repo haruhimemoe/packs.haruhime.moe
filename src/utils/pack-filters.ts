@@ -321,11 +321,22 @@ export const parseFilters = (search: string): PackFilters => {
 
 const rangeText = ([low, high]: FilterRange): string => `${low}-${high ?? ""}`;
 
+/** A surrogate pair, or a surrogate on its own. */
+const SURROGATES = /[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDFFF]/g;
+
+/**
+ * The text with each lone surrogate replaced by U+FFFD, as String.prototype.toWellFormed does.
+ * Written out because Firefox only has toWellFormed from 119, and Next supports 111 and up.
+ */
+const wellFormed = (text: string): string =>
+  text.replace(SURROGATES, (match) => (match.length === 2 ? match : "\uFFFD"));
+
 /**
  * @function serializeFilters
  * @param filters {PackFilters} the filters
  * @returns {string} the query string without "?" (empty for the defaults): only what is set, in
- *          the order sr, mods, len, bpm, mode, maps, sort, q, with commas left readable
+ *          the order sr, mods, len, bpm, mode, maps, sort, q, with commas left readable and each
+ *          lone surrogate in the text written as U+FFFD. Never throws.
  */
 export const serializeFilters = (filters: PackFilters): string => {
   const parts: string[] = [];
@@ -336,8 +347,8 @@ export const serializeFilters = (filters: PackFilters): string => {
   if (filters.mode.length > 0) parts.push(`mode=${filters.mode.join(",")}`);
   if (filters.maps) parts.push(`maps=${rangeText(filters.maps)}`);
   if (filters.sort !== DEFAULT_PACK_SORT) parts.push(`sort=${filters.sort}`);
-  // toWellFormed: encodeURIComponent throws on a lone surrogate.
-  const q = filters.q.toWellFormed().trim();
+  // encodeURIComponent throws on a lone surrogate.
+  const q = wellFormed(filters.q).trim();
   if (q !== "") parts.push(`q=${encodeURIComponent(q)}`);
   return parts.join("&");
 };
