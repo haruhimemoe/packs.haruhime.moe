@@ -3,7 +3,7 @@
  * @desc Admin rows: host link, status, hide/unhide, delete with confirm, errors.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { render, screen, waitFor } from "@testing-library/react";
@@ -25,6 +25,7 @@ const ROW: AdminPackRow = {
   slotCount: 2,
   updatedAt: "2026-09-22T23:30:00.000Z",
   hiddenAt: null,
+  pinnedAt: null,
 };
 
 const fakeApi = () => ({

@@ -1,6 +1,6 @@
 /**
  * @file src/constants/public-packs.ts
- * @desc Page sizes and caps for /packs, its search index, and /admin.
+ * @desc Page sizes and caps for /packs, its search index, its pinned row, and /admin.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -8,6 +8,8 @@
 
 export const PUBLIC_PAGE_SIZE = 24;
 export const ADMIN_PAGE_SIZE = 50;
+/** Most packs admins can pin above the /packs list at once. */
+export const MAX_PINNED_PACKS = 6;
 /**
  * ~150 bytes a pack, ~240 with stats (r, a, l, b, m, g and k add about 90). On synthetic data
  * (random slugs, names and numbers, so a worst case) 5,000 packs with stats is ~1.2 MB raw and

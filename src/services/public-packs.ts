@@ -8,6 +8,8 @@
  *       (listPublicPacksFull) lists full pack objects, most recently updated first, and keeps a
  *       pack whose owner has no username or no record (as UNKNOWN_OWNER_NAME), so its total is
  *       exact. Cards and index entries carry the pack's stats in compact form when it has them.
+ *       The "Pinned" row (listPinnedPacks) is the same cards for the packs admins pinned, in pin
+ *       order.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -17,10 +19,11 @@ import "server-only";
 import type { PipelineStage } from "mongoose";
 import { UNKNOWN_OWNER_NAME } from "@/constants/api";
 import { DESCRIPTION_EXCERPT_LENGTH } from "@/constants/pack";
-import { PUBLIC_PAGE_SIZE, SEARCH_INDEX_LIMIT } from "@/constants/public-packs";
+import { MAX_PINNED_PACKS, PUBLIC_PAGE_SIZE, SEARCH_INDEX_LIMIT } from "@/constants/public-packs";
 import { isEnvValidationSkipped } from "@/env";
 import type { IndexStats } from "@/schemas/pack-stats";
 import {
+  type PublicPackCard,
   type PublicPackPage,
   publicPackCardSchema,
   type SearchIndex,
@@ -28,6 +31,7 @@ import {
 } from "@/schemas/public-pack";
 import type { SavedPack } from "@/schemas/saved-pack";
 import { connectedPackModel, type PackRecord, storedStats, toSavedPack } from "@/services/packs";
+import { PIN_SORT, PINNED } from "@/services/pins";
 import { toIndexStats } from "@/utils/saved-pack-stats";
 import { excerpt } from "@/utils/text";
 
@@ -45,12 +49,8 @@ type ListedRow = {
   owner: { username: string; avatarUrl?: string | null };
 };
 
-/** Newest created first. Packs whose owner record is gone drop out at $unwind. */
-const listedStages = (skip: number, limit: number): PipelineStage[] => [
-  { $match: LISTED },
-  { $sort: { createdAt: -1, _id: -1 } },
-  { $skip: skip },
-  { $limit: limit },
+/** Host and card fields. Packs whose owner record is gone drop out at $unwind. */
+const cardStages: PipelineStage[] = [
   { $lookup: { from: "user", localField: "ownerId", foreignField: "_id", as: "owner" } },
   { $unwind: "$owner" },
   {
@@ -68,6 +68,15 @@ const listedStages = (skip: number, limit: number): PipelineStage[] => [
   },
 ];
 
+/** Newest created first. */
+const listedStages = (skip: number, limit: number): PipelineStage[] => [
+  { $match: LISTED },
+  { $sort: { createdAt: -1, _id: -1 } },
+  { $skip: skip },
+  { $limit: limit },
+  ...cardStages,
+];
+
 const describe = (row: ListedRow): string =>
   excerpt(row.description ?? "", DESCRIPTION_EXCERPT_LENGTH);
 
@@ -76,6 +85,19 @@ const compactStats = (row: ListedRow): { stats?: IndexStats } => {
   const stats = storedStats(row.stats);
   return stats ? { stats: toIndexStats(stats) } : {};
 };
+
+const toCard = (row: ListedRow): PublicPackCard =>
+  publicPackCardSchema.parse({
+    slug: row.slug,
+    name: row.name,
+    ownerName: row.owner.username,
+    ownerAvatarUrl: row.owner.avatarUrl ?? null,
+    slotCount: row.slotCount,
+    excerpt: describe(row),
+    updatedAt: row.updatedAt.toISOString(),
+    createdAt: row.createdAt.toISOString(),
+    ...compactStats(row),
+  });
 
 /**
  * @function listPublicPacks
@@ -93,24 +115,25 @@ export const listPublicPacks = async (page: number): Promise<PublicPackPage> => 
   const rows = await model.aggregate<ListedRow>(
     listedStages((page - 1) * PUBLIC_PAGE_SIZE, PUBLIC_PAGE_SIZE),
   );
-  return {
-    packs: rows.map((row) =>
-      publicPackCardSchema.parse({
-        slug: row.slug,
-        name: row.name,
-        ownerName: row.owner.username,
-        ownerAvatarUrl: row.owner.avatarUrl ?? null,
-        slotCount: row.slotCount,
-        excerpt: describe(row),
-        updatedAt: row.updatedAt.toISOString(),
-        createdAt: row.createdAt.toISOString(),
-        ...compactStats(row),
-      }),
-    ),
-    page,
-    pageCount,
-    total,
-  };
+  return { packs: rows.map(toCard), page, pageCount, total };
+};
+
+/**
+ * @function listPinnedPacks
+ * @returns {Promise<PublicPackCard[]>} the packs admins pinned, in pin order, as the same cards
+ *          the list shows: public and not hidden only (the pin services keep it that way; the
+ *          filter makes sure), at most MAX_PINNED_PACKS
+ */
+export const listPinnedPacks = async (): Promise<PublicPackCard[]> => {
+  if (isEnvValidationSkipped()) return [];
+  const model = await connectedPackModel();
+  const rows = await model.aggregate<ListedRow>([
+    { $match: { ...PINNED, ...LISTED } },
+    { $sort: PIN_SORT },
+    { $limit: MAX_PINNED_PACKS },
+    ...cardStages,
+  ]);
+  return rows.map(toCard);
 };
 
 /**

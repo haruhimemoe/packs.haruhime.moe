@@ -1,7 +1,8 @@
 /**
  * @file src/app/api/packs/[slug]/route.ts
  * @desc One saved pack. GET honours visibility, and tells the page whether the viewer owns it or
- *       is an admin (who may remove magnet links); PUT and DELETE are owner-only. "Not yours" and
+ *       is an admin (who may remove magnet links, and pin the pack: admins also get `pinned`);
+ *       PUT and DELETE are owner-only. "Not yours" and
  *       "doesn't exist" are both 404, so private slugs are never confirmed. GET varies by viewer
  *       (isOwner, isAdmin) and can hold private or hidden packs, so it's never cached (Cache-
  *       Control: private, no-store), even though it isn't prerendered today. Writes count against
@@ -25,6 +26,7 @@ import { getUserFromHeaders } from "@/lib/auth";
 import { refuseOverLimit } from "@/lib/rate-limit";
 import { packInputSchema } from "@/schemas/saved-pack";
 import { deletePack, getPackForViewer, updatePack } from "@/services/packs";
+import { isPackPinned } from "@/services/pins";
 import { clientIp, rateLimitSubject } from "@/utils/client-ip";
 
 type Context = { params: Promise<{ slug: string }> };
@@ -39,8 +41,9 @@ export async function GET(request: Request, { params }: Context) {
     isAdmin: user?.isAdmin ?? false,
   });
   if (!found) return jsonError(404, PACK_NOT_FOUND);
+  const isAdmin = user?.isAdmin ?? false;
   return Response.json(
-    { ...found, isAdmin: user?.isAdmin ?? false },
+    { ...found, isAdmin, ...(isAdmin ? { pinned: await isPackPinned(slug) } : {}) },
     { headers: PRIVATE_NO_STORE },
   );
 }

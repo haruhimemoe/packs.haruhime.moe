@@ -102,6 +102,7 @@ describe("createPacksApi", () => {
       slotCount: 1,
       updatedAt: "2026-09-22T23:30:00.000Z",
       hiddenAt: "2026-09-22T23:40:00.000Z",
+      pinnedAt: null,
     };
     server.use(
       http.patch(`${BASE}/api/admin/packs/:slug`, async ({ request }) => {

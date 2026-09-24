@@ -4,7 +4,8 @@
  *       id and get null/false for "not found or not yours" (routes answer 404 for both, so they
  *       never confirm that a private slug exists). Changes that touch a public pack mark the
  *       cached /packs stale. Saves schedule the pack's filter stats after the response
- *       (services/pack-stats.ts); a slot or bucket change clears the old ones first.
+ *       (services/pack-stats.ts); a slot or bucket change clears the old ones first. Saving a
+ *       pack as anything but public takes away its pin (services/pins.ts).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -16,7 +17,7 @@ import { nanoid } from "nanoid";
 import { MAX_SAVED_PACKS, OWN_PAGE_SIZE, SLUG_LENGTH } from "@/constants/pack";
 import { connectDb } from "@/lib/db";
 import { revalidatePack, revalidatePublicPacks } from "@/lib/revalidate";
-import { getPackModel } from "@/models/Pack";
+import { getPackModel, UNPIN } from "@/models/Pack";
 import type { Pool } from "@/schemas/pack";
 import { type PackStats, packStatsSchema } from "@/schemas/pack-stats";
 import {
@@ -352,8 +353,8 @@ export const packKeyOf = (pack: SavedPack): string => poolKey(pack);
  * @param options {{ subject?: string }} the caller's rate-limit subject (for the stats lookups)
  * @returns {Promise<SavedPack | null>} the updated pack, or null when missing or not the owner's.
  *          Never touches the moderation flag. Clears recorded export links when the pack
- *          key changes, and stats when the slots or buckets change; schedules new stats then,
- *          or whenever the pack has none or incomplete ones.
+ *          key changes, stats when the slots or buckets change, and the pin when it stops being
+ *          public; schedules new stats then, or whenever the pack has none or incomplete ones.
  */
 export const updatePack = async (
   slug: string,
@@ -384,6 +385,8 @@ export const updatePack = async (
     ...(description ? {} : { description: 1 }),
     ...(poolChanged ? { exports: 1 } : {}),
     ...(statsChanged ? { stats: 1 } : {}),
+    // Only public packs can be pinned; the "Pinned" row on /packs would drop it anyway.
+    ...(input.visibility === "public" ? {} : UNPIN),
   };
   const doc = await model
     .findOneAndUpdate(

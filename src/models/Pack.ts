@@ -1,7 +1,7 @@
 /**
  * @file src/models/Pack.ts
  * @desc Saved pack model (collection "packs"): identity (name, slots, bucket list), description, export links,
- *       owner, visibility, moderation flag, filter stats, timestamps.
+ *       owner, visibility, moderation flag, pin to the top of /packs, filter stats, timestamps.
  *       Registered lazily on the shared connection so importing it needs no env.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
@@ -86,6 +86,11 @@ const packSchema = new Schema(
     hiddenAt: { type: Date },
     hiddenBy: { type: Schema.Types.ObjectId },
     visibility: { type: String, enum: [...VISIBILITIES], required: true },
+    // Set by an admin (src/services/pins.ts): shown in the "Pinned" row on /packs, by pinOrder.
+    // Public packs that aren't hidden only; hiding or leaving public unsets both. Absent = not
+    // pinned (never null, so the partial index below covers every pinned pack).
+    pinnedAt: { type: Date },
+    pinOrder: { type: Number },
     // Absent until computed (a save schedules it; the daily job repairs gaps). Cleared when the
     // slots or buckets change.
     stats: { type: statsSchema, default: undefined },
@@ -97,6 +102,11 @@ packSchema.index({ ownerId: 1, updatedAt: -1 });
 packSchema.index({ visibility: 1, updatedAt: -1 });
 // /packs and its search index: newest created first.
 packSchema.index({ visibility: 1, createdAt: -1 });
+// The pinned row and the admin's pin list: a handful of packs, found without a collection scan.
+packSchema.index({ pinOrder: 1 }, { partialFilterExpression: { pinnedAt: { $exists: true } } });
+
+/** A `$unset` that takes a pin away: unpinning, hiding, or saving a pack away from public. */
+export const UNPIN = { pinnedAt: "", pinOrder: "" } as const;
 
 const register = (connection: Connection) => connection.model("Pack", packSchema);
 

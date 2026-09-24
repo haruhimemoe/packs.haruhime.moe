@@ -4,9 +4,11 @@
  *       name filter), hide, unhide, delete. Private packs are never listed or touched. Removing
  *       one magnet link lives with the owner's remove in src/services/pack-exports.ts. Moderation
  *       writes go through the driver so `updatedAt` never moves (a hidden pack keeps its place).
+ *       Hiding a pack also unpins it (pins live in src/services/pins.ts); unhiding never pins it
+ *       again. Rows say when a pack was pinned.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import "server-only";
@@ -14,6 +16,7 @@ import { type Document, ObjectId } from "mongodb";
 import type { PipelineStage } from "mongoose";
 import { ADMIN_PAGE_SIZE } from "@/constants/public-packs";
 import { revalidatePack, revalidatePublicPacks } from "@/lib/revalidate";
+import { UNPIN } from "@/models/Pack";
 import { type AdminPackPage, type AdminPackRow, adminPackRowSchema } from "@/schemas/public-pack";
 import { slugSchema, type Visibility } from "@/schemas/saved-pack";
 import { connectedPackModel } from "@/services/packs";
@@ -31,6 +34,7 @@ type AdminRecord = {
   slotCount: number;
   updatedAt: Date;
   hiddenAt?: Date | null;
+  pinnedAt?: Date | null;
   owner: { username: string; osuId: number };
 };
 
@@ -45,6 +49,7 @@ const ownerStages: PipelineStage[] = [
       visibility: 1,
       updatedAt: 1,
       hiddenAt: 1,
+      pinnedAt: 1,
       slotCount: { $size: "$slots" },
       owner: { username: "$owner.username", osuId: "$owner.osuId" },
     },
@@ -61,6 +66,7 @@ const toRow = (record: AdminRecord): AdminPackRow =>
     slotCount: record.slotCount,
     updatedAt: record.updatedAt.toISOString(),
     hiddenAt: record.hiddenAt ? record.hiddenAt.toISOString() : null,
+    pinnedAt: record.pinnedAt ? record.pinnedAt.toISOString() : null,
   });
 
 export type AdminListOptions = { page?: number; hiddenOnly?: boolean; query?: string };
@@ -102,7 +108,7 @@ export const listPacksForAdmin = async ({
  * @function setPackHidden
  * @param slug {string} untrusted route segment
  * @param adminId {string} the moderating admin's user id
- * @param hidden {boolean} hide (true) or unhide (false)
+ * @param hidden {boolean} hide (true, which also unpins it) or unhide (false)
  * @returns {Promise<AdminPackRow | null>} the updated row; null when missing, malformed, or private
  */
 export const setPackHidden = async (
@@ -112,13 +118,14 @@ export const setPackHidden = async (
 ): Promise<AdminPackRow | null> => {
   if (!slugSchema.safeParse(slug).success) return null;
   const model = await connectedPackModel();
-  // Hiding an already hidden pack keeps the first hide's date and moderator.
+  // Hiding an already hidden pack keeps the first hide's date and moderator. A hidden pack
+  // can't stay pinned, so the hide takes the pin away in the same write.
   const result = await model.collection.updateOne(
     (hidden
       ? { slug, ...MODERATED, hiddenAt: { $exists: false } }
       : { slug, ...MODERATED }) as Document,
     hidden
-      ? { $set: { hiddenAt: new Date(), hiddenBy: new ObjectId(adminId) } }
+      ? { $set: { hiddenAt: new Date(), hiddenBy: new ObjectId(adminId) }, $unset: UNPIN }
       : { $unset: { hiddenAt: "", hiddenBy: "" } },
   );
   if (result.matchedCount === 0 && !(await model.collection.findOne({ slug, ...MODERATED }))) {

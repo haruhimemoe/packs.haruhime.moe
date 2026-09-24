@@ -3,7 +3,8 @@
  * @desc The cached public list and search index: only public, visible packs, newest created
  *       first (an edit doesn't move a pack up), with the host's osu! name; paging; the index shape
  *       (creation date included) and cap; pack stats in compact form on index entries and cards
- *       (left out when a pack has none); no database under CI builds.
+ *       (left out when a pack has none); the pinned row (public, visible, in pin order, the same
+ *       cards); no database under CI builds.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -15,7 +16,8 @@ import { getPackModel } from "@/models/Pack";
 import { searchIndexSchema } from "@/schemas/public-pack";
 import type { PackInput } from "@/schemas/saved-pack";
 import { createPack } from "@/services/packs";
-import { buildSearchIndex, listPublicPacks } from "@/services/public-packs";
+import { pinPack, reorderPins } from "@/services/pins";
+import { buildSearchIndex, listPinnedPacks, listPublicPacks } from "@/services/public-packs";
 import { createTestUser } from "../../helpers/auth";
 import { setupTestDb } from "../../helpers/db";
 
@@ -231,5 +233,51 @@ describe("buildSearchIndex", () => {
       "Pack 2",
       "Pack 1",
     ]);
+  });
+});
+
+describe("listPinnedPacks", () => {
+  it("lists pinned packs in pin order, as the same cards the list shows", async () => {
+    const host = await createTestUser({ username: "Chiyo" });
+    const first = await createPack(host.id, input({ name: "First", description: "Quals" }));
+    const second = await createPack(host.id, input({ name: "Second" }));
+    await createPack(host.id, input({ name: "Not pinned" }));
+    await giveStats(first.slug, {});
+    await pinPack(first.slug);
+    await pinPack(second.slug);
+    await reorderPins([second.slug, first.slug]);
+
+    const pinned = await listPinnedPacks();
+
+    expect(pinned.map((card) => card.name)).toEqual(["Second", "First"]);
+    const listed = (await listPublicPacks(1)).packs.find((card) => card.slug === first.slug);
+    expect(pinned[1]).toEqual(listed);
+  });
+
+  it("leaves out a pinned pack that is hidden or not public", async () => {
+    const host = await createTestUser();
+    const shown = await createPack(host.id, input({ name: "Shown" }));
+    const hidden = await createPack(host.id, input({ name: "Hidden" }));
+    const unlisted = await createPack(host.id, input({ name: "Unlisted" }));
+    await pinPack(shown.slug);
+    // Pins the services would have taken away, written straight to the database.
+    await getPackModel().collection.updateOne(
+      { slug: hidden.slug },
+      { $set: { pinnedAt: new Date(), pinOrder: 1, hiddenAt: new Date() } },
+    );
+    await getPackModel().collection.updateOne(
+      { slug: unlisted.slug },
+      { $set: { pinnedAt: new Date(), pinOrder: 2, visibility: "unlisted" } },
+    );
+    expect((await listPinnedPacks()).map((card) => card.name)).toEqual(["Shown"]);
+  });
+
+  it("is empty without a database query in CI builds", async () => {
+    vi.stubEnv("SKIP_ENV_VALIDATION", "true");
+    try {
+      expect(await listPinnedPacks()).toEqual([]);
+    } finally {
+      vi.stubEnv("SKIP_ENV_VALIDATION", "");
+    }
   });
 });
