@@ -28,7 +28,7 @@ tests/            unit/ (node), components/ (jsdom), integration/ (node + in-mem
 
 - TypeScript 7, `strict`, `noUncheckedIndexedAccess`. No `any`; validate external data with zod.
 - Biome is the only linter/formatter (`bun run check`, `bun run check:fix`). No ESLint or Prettier: typescript-eslint doesn't support TS 7.
-- No barrel files. Import exact paths (`@/components/pack/PoolTable`). The one exception is `@haruhimemoe/ui`, whose components all come from the package root.
+- No barrel files in `src/`. Import exact local paths (`@/components/pack/PoolTable`). npm packages (`@haruhimemoe/ui`, `@haruhimemoe/pool` and the rest) are imported from their published entry points: the package root, or a subpath the package exports such as `@haruhimemoe/osu/shapes`.
 - One component per file, PascalCase filename, Tailwind only, no CSS modules. Components are presentational; data fetching lives in hooks or services.
 - `utils/` is pure. Integration code goes in `lib/`. Don't make one-function files in `lib/`.
 - Server-only modules `import "server-only"`. Browser-only integrations are imported only from client components.
