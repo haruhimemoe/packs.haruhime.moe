@@ -2,7 +2,8 @@
  * @file tests/integration/services/map-usage.test.ts
  * @desc Map usage in the database: a full rebuild counts public archive packs that aren't hidden
  *       (never community packs), orders entries newest year first and writes only what changed;
- *       a rebuild for some maps leaves the rest alone; hiding, unhiding and deleting an archive
+ *       a rebuild for some maps leaves the rest alone; a rebuild that wrote stale entries because
+ *       another one saw a newer hide first goes round again; hiding, unhiding and deleting an archive
  *       pack (as an admin), and editing or deleting it as its owner, rebuild its maps; a
  *       community pack's changes never touch map usage.
  * @author David @dvhsh (https://dvh.sh)
@@ -10,8 +11,8 @@
  * @modified Thu Sep 24, 2026
  */
 
-import { ObjectId } from "mongodb";
-import { describe, expect, it } from "vitest";
+import { Collection, ObjectId } from "mongodb";
+import { describe, expect, it, vi } from "vitest";
 import { MAP_USAGE_COLLECTION } from "@/constants/map-usage";
 import { getDb } from "@/lib/db";
 import type { PackInput } from "@/schemas/saved-pack";
@@ -167,6 +168,48 @@ describe("rebuildMapUsage", () => {
     expect(await getMapUsage([75])).toEqual([{ beatmapId: 75, count: 0, entries: [] }]);
     expect(await rebuildMapUsage([75], LATER)).toMatchObject({ written: 1 });
     expect((await getMapUsage([75]))[0]?.count).toBe(1);
+  });
+});
+
+describe("rebuilds that race", () => {
+  const hideNow = (slug: string) =>
+    getDb()
+      .collection("packs")
+      .updateOne({ slug }, { $set: { hiddenAt: new Date(), hiddenBy: new ObjectId() } });
+
+  it("never leave a hidden pack in usage when one writes after another saw a newer hide", async () => {
+    const a = await archivePack(1, "Spring Cup 2023 Finals", [["NM1", 75]]);
+    const b = await archivePack(2, "Autumn Cup 2025 Finals", [["NM1", 75]]);
+    await rebuildMapUsage(undefined, NOW);
+    // An admin hides A: A's refresh reads the packs while B is still shown, so it plans [B]...
+    await hideNow(a.slug);
+    let raced = false;
+    await rebuildMapUsage([75], LATER, {
+      beforeWrite: async () => {
+        if (raced) return;
+        raced = true;
+        // ...then B is hidden too, and B's refresh runs to the end (removing the map) first.
+        await hideNow(b.slug);
+        await rebuildMapUsage([75], LATER);
+      },
+    });
+    expect(raced).toBe(true);
+    expect(await getMapUsage([75])).toEqual([{ beatmapId: 75, count: 0, entries: [] }]);
+    expect(await usedIds()).toEqual([]);
+  });
+
+  it("read the packs again only once when nothing changed meanwhile", async () => {
+    await archivePack(1, "Spring Cup 2023 Finals", [["NM1", 75]]);
+    const find = vi.spyOn(Collection.prototype, "find");
+    try {
+      await rebuildMapUsage([75], NOW);
+      const packReads = find.mock.contexts.filter(
+        (context) => (context as Collection).collectionName === "packs",
+      );
+      expect(packReads).toHaveLength(2);
+    } finally {
+      find.mockRestore();
+    }
   });
 });
 

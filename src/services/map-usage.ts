@@ -3,7 +3,8 @@
  * @desc Map usage in the database (pool archive spec, part 2): the map_usage collection, one
  *       document per beatmap id ({ _id, entries, updatedAt }), built from archive packs only
  *       (public and not hidden: the packs anyone can open). rebuildMapUsage rebuilds the given
- *       beatmaps, or all of them, from the packs and writes only what changed. Moderation
+ *       beatmaps, or all of them, from the packs and writes only what changed, going round again
+ *       when the packs changed while it wrote (two rebuilds racing). Moderation
  *       (hide, unhide, delete), archive pack edits and deletes call refreshMapUsage for the maps
  *       they touch; the importer rebuilds everything at the end of a real run. getMapUsage
  *       answers the public API. Reads and writes go through the driver: the collection holds no
@@ -22,6 +23,7 @@ import {
   buildMapUsage,
   planUsageWrites,
   type StoredUsagePack,
+  sameUsage,
   storedUsageEntries,
   toBeatmapUsage,
   type UsagePack,
@@ -82,36 +84,57 @@ export type UsageRebuild = {
   removed: number;
 };
 
+/** A rebuild whose packs changed while it wrote goes round at most this many times. */
+const MAX_REBUILD_ROUNDS = 3;
+
 /**
  * @function rebuildMapUsage
  * @param beatmapIds {readonly number[]} the maps to rebuild; left out, every map (the importer)
  * @param now {Date} the write time (tests)
+ * @param hooks {{ beforeWrite?: () => Promise<void> }} runs between the reads and the writes of
+ *        each round (tests: another rebuild racing this one)
  * @returns {Promise<UsageRebuild>} what the rebuild found and wrote. Only documents whose entries
- *          change are written, so a rebuild that finds nothing new writes nothing.
+ *          change are written, so a rebuild that finds nothing new writes nothing. Two rebuilds
+ *          can race (an admin hiding two packs that share a map): after writing, the packs are
+ *          read again, and when they changed since the first read (so what was written may be
+ *          older than another rebuild's), it goes round again, up to MAX_REBUILD_ROUNDS times.
  */
 export const rebuildMapUsage = async (
   beatmapIds?: readonly number[],
   now: Date = new Date(),
+  { beforeWrite }: { beforeWrite?: () => Promise<void> } = {},
 ): Promise<UsageRebuild> => {
   const ids = beatmapIds ? [...new Set(beatmapIds)] : undefined;
   if (ids?.length === 0) return { beatmaps: 0, written: 0, removed: 0 };
-  const [packs, stored] = await Promise.all([countedPacks(ids), storedUsage(ids)]);
-  const next = buildMapUsage(packs, ids ? new Set(ids) : undefined);
-  const writes = planUsageWrites(ids ?? [...stored.keys(), ...next.keys()], stored, next);
-  const operations: AnyBulkWriteOperation<UsageDoc>[] = [
-    ...writes.set.map(([id, entries]) => ({
-      replaceOne: {
-        filter: { _id: id },
-        replacement: { entries, updatedAt: now },
-        upsert: true,
-      },
-    })),
-    ...writes.remove.map((id) => ({ deleteOne: { filter: { _id: id } } })),
-  ];
-  if (operations.length > 0) {
-    await (await usageCollection()).bulkWrite(operations, { ordered: false });
+  const only = ids ? new Set(ids) : undefined;
+  let next = buildMapUsage(await countedPacks(ids), only);
+  let written = 0;
+  let removed = 0;
+  for (let round = 1; ; round++) {
+    const stored = await storedUsage(ids);
+    const writes = planUsageWrites(ids ?? [...stored.keys(), ...next.keys()], stored, next);
+    await beforeWrite?.();
+    const operations: AnyBulkWriteOperation<UsageDoc>[] = [
+      ...writes.set.map(([id, entries]) => ({
+        replaceOne: {
+          filter: { _id: id },
+          replacement: { entries, updatedAt: now },
+          upsert: true,
+        },
+      })),
+      ...writes.remove.map((id) => ({ deleteOne: { filter: { _id: id } } })),
+    ];
+    if (operations.length > 0) {
+      await (await usageCollection()).bulkWrite(operations, { ordered: false });
+    }
+    written += writes.set.length;
+    removed += writes.remove.length;
+    const again = buildMapUsage(await countedPacks(ids), only);
+    if (sameUsage(again, next) || round >= MAX_REBUILD_ROUNDS) {
+      return { beatmaps: next.size, written, removed };
+    }
+    next = again;
   }
-  return { beatmaps: next.size, written: writes.set.length, removed: writes.remove.length };
 };
 
 /**

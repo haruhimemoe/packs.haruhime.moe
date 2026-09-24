@@ -240,6 +240,24 @@ const sameEntry = (a: MapUsageEntry, b: MapUsageEntry): boolean =>
 const sameEntries = (a: readonly MapUsageEntry[], b: readonly MapUsageEntry[]): boolean =>
   a.length === b.length && a.every((entry, i) => sameEntry(entry, b[i] as MapUsageEntry));
 
+/**
+ * @function sameUsage
+ * @param a {ReadonlyMap<number, readonly MapUsageEntry[]>} usage by beatmap id
+ * @param b {ReadonlyMap<number, readonly MapUsageEntry[]>} other usage by beatmap id
+ * @returns {boolean} whether both hold the same ids with the same entries in the same order
+ */
+export const sameUsage = (
+  a: ReadonlyMap<number, readonly MapUsageEntry[]>,
+  b: ReadonlyMap<number, readonly MapUsageEntry[]>,
+): boolean => {
+  if (a.size !== b.size) return false;
+  for (const [id, entries] of a) {
+    const other = b.get(id);
+    if (!other || !sameEntries(entries, other)) return false;
+  }
+  return true;
+};
+
 export type UsageWrites = {
   /** Beatmap ids whose stored entries change, with the new ones. */
   set: [number, MapUsageEntry[]][];

@@ -19,6 +19,7 @@ import {
   fingerprintText,
   packUsage,
   planUsageWrites,
+  sameUsage,
   slotModsCode,
   storedUsageEntries,
   toBeatmapUsage,
@@ -316,6 +317,17 @@ describe("planUsageWrites", () => {
       set: [],
       remove: [1],
     });
+  });
+});
+
+describe("sameUsage", () => {
+  it("is true only for the same ids with the same entries in the same order", () => {
+    const one = new Map([[1, [entry()]]]);
+    expect(sameUsage(one, new Map([[1, [entry()]]]))).toBe(true);
+    expect(sameUsage(one, new Map())).toBe(false);
+    expect(sameUsage(one, new Map([[2, [entry()]]]))).toBe(false);
+    expect(sameUsage(one, new Map([[1, [entry({ slot: "NM2" })]]]))).toBe(false);
+    expect(sameUsage(one, new Map([[1, [entry(), entry()]]]))).toBe(false);
   });
 });
 
