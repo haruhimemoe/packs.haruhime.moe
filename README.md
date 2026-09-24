@@ -26,7 +26,8 @@ packs uses these shared haruhime.moe packages:
 - [`@haruhimemoe/pool`](https://www.npmjs.com/package/@haruhimemoe/pool): the mappool shape, slot and mod rules, pasted-pool parsing, and the pack key codec.
 - [`@haruhimemoe/hinai`](https://www.npmjs.com/package/@haruhimemoe/hinai): the client for the hinai beatmap mirror (metadata and `.osz` downloads).
 - [`@haruhimemoe/osu`](https://www.npmjs.com/package/@haruhimemoe/osu): osu! API v2 shapes and the server client used for star ratings with mods.
-- [`@haruhimemoe/brand`](https://www.npmjs.com/package/@haruhimemoe/brand): the palette, wordmark and icons.
+- [`@haruhimemoe/ui`](https://www.npmjs.com/package/@haruhimemoe/ui): the theme and colors the site uses, buttons, cards, form fields, pagination, and the site header, footer and page frame.
+- [`@haruhimemoe/brand`](https://www.npmjs.com/package/@haruhimemoe/brand): the wordmark, icons and link preview image, and the palette file behind the colors on [/brand](https://packs.haruhime.moe/brand).
 
 ## License
 
