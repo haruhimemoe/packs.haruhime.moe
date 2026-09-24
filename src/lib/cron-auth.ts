@@ -1,9 +1,9 @@
 /**
  * @file src/lib/cron-auth.ts
- * @desc CRON_SECRET checks for machine-only routes: the daily stats job (Vercel Cron) and the
- *       archive importer's request to refresh /packs. Callers send `Authorization: Bearer
- *       <CRON_SECRET>`. Fails closed: 503 while CRON_SECRET isn't set or is too short, 401 for a
- *       missing or wrong secret. The comparison takes the same time whatever was sent.
+ * @desc CRON_SECRET checks for machine-only routes: the daily stats job (Vercel Cron). Callers
+ *       send `Authorization: Bearer <CRON_SECRET>`. Fails closed: 503 while CRON_SECRET isn't set
+ *       or is too short, 401 for a missing or wrong secret. The comparison takes the same time
+ *       whatever was sent.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
