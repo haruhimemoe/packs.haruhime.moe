@@ -4,7 +4,7 @@
  *       legal doc appears, docs by their .md copy), and every link is absolute and on one line.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -48,8 +48,10 @@ describe("buildLlmsTxt", () => {
     expect(text).toContain(`- [${LEGAL_DOCS[slug].title}](${SITE.url}/legal/${slug})`);
   });
 
-  it("describes the public packs index", () => {
+  it("describes the public packs index, stats included", () => {
     expect(text).toContain(`](${SITE.url}/packs/index.json): `);
+    expect(text).toContain("r: [min, max] star rating");
+    expect(text).toContain("k: stats complete");
   });
 
   it("uses absolute links on our own site only", () => {

@@ -5,7 +5,7 @@
  *       Docs link their Markdown copy (/docs/<slug>.md), as llmstxt.org suggests.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { OPENAPI_PATH } from "@/constants/api";
@@ -67,7 +67,7 @@ export const llmsSections = (): LlmsSection[] => [
       {
         title: "Public packs index",
         url: at("/packs/index.json"),
-        description: `JSON { v: 1, packs: [{ s: slug, n: name, o: owner's osu! username, c: map count, d: description excerpt, u: last updated (ISO 8601) }] }, newest first; a pack's page is ${at("/p/")}{s}.`,
+        description: `JSON { v: 1, packs: [{ s: slug, n: name, o: owner's osu! username, c: map count, d: description excerpt, u: last updated (ISO 8601), and once computed r: [min, max] star rating, a: average stars, l: [min, max] length in seconds, b: [min, max] BPM, m: mods (comma-separated), g: rulesets (comma-separated), k: stats complete }] }, newest first; a pack's page is ${at("/p/")}{s}.`,
       },
     ],
   },

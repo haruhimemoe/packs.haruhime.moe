@@ -58,11 +58,11 @@ export type PackRecord = {
 
 /**
  * @function storedStats
- * @param value {PackRecord["stats"]} a stored document's stats
+ * @param value {PackRecord["stats"]} a stored document's (or aggregate row's) stats
  * @returns {PackStats | undefined} the DTO form, or undefined when there are none or they don't
  *          parse (a bad stats row never breaks the pack)
  */
-const storedStats = (value: PackRecord["stats"]): PackStats | undefined => {
+export const storedStats = (value: PackRecord["stats"]): PackStats | undefined => {
   if (!value || !(value.computedAt instanceof Date)) return undefined;
   const parsed = packStatsSchema.safeParse({
     ...value,

@@ -6,9 +6,10 @@
  *       CI builds (SKIP_ENV_VALIDATION) get empty results instead of a database. The API's page
  *       (listPublicPacksFull) has the same order as full pack objects, and keeps a pack whose
  *       owner has no username or no record (as UNKNOWN_OWNER_NAME), so its total is exact.
+ *       Cards and index entries carry the pack's stats in compact form when it has them.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import "server-only";
@@ -17,6 +18,7 @@ import { UNKNOWN_OWNER_NAME } from "@/constants/api";
 import { DESCRIPTION_EXCERPT_LENGTH } from "@/constants/pack";
 import { PUBLIC_PAGE_SIZE, SEARCH_INDEX_LIMIT } from "@/constants/public-packs";
 import { isEnvValidationSkipped } from "@/env";
+import type { IndexStats } from "@/schemas/pack-stats";
 import {
   type PublicPackPage,
   publicPackCardSchema,
@@ -24,7 +26,8 @@ import {
   searchIndexSchema,
 } from "@/schemas/public-pack";
 import type { SavedPack } from "@/schemas/saved-pack";
-import { connectedPackModel, type PackRecord, toSavedPack } from "@/services/packs";
+import { connectedPackModel, type PackRecord, storedStats, toSavedPack } from "@/services/packs";
+import { toIndexStats } from "@/utils/saved-pack-stats";
 import { excerpt } from "@/utils/text";
 
 /** On /packs: public and not hidden (`hiddenAt: null` also matches a missing field). */
@@ -36,6 +39,7 @@ type ListedRow = {
   description?: string | null;
   slotCount: number;
   updatedAt: Date;
+  stats?: PackRecord["stats"];
   owner: { username: string; avatarUrl?: string | null };
 };
 
@@ -54,6 +58,7 @@ const listedStages = (skip: number, limit: number): PipelineStage[] => [
       name: 1,
       description: 1,
       updatedAt: 1,
+      stats: 1,
       slotCount: { $size: "$slots" },
       owner: { username: "$owner.username", avatarUrl: "$owner.avatarUrl" },
     },
@@ -62,6 +67,12 @@ const listedStages = (skip: number, limit: number): PipelineStage[] => [
 
 const describe = (row: ListedRow): string =>
   excerpt(row.description ?? "", DESCRIPTION_EXCERPT_LENGTH);
+
+/** The row's stats in the compact card and index form, or nothing when it has none. */
+const compactStats = (row: ListedRow): { stats?: IndexStats } => {
+  const stats = storedStats(row.stats);
+  return stats ? { stats: toIndexStats(stats) } : {};
+};
 
 /**
  * @function listPublicPacks
@@ -89,6 +100,7 @@ export const listPublicPacks = async (page: number): Promise<PublicPackPage> => 
         slotCount: row.slotCount,
         excerpt: describe(row),
         updatedAt: row.updatedAt.toISOString(),
+        ...compactStats(row),
       }),
     ),
     page,
@@ -119,6 +131,7 @@ export const buildSearchIndex = async ({
       c: row.slotCount,
       d: describe(row),
       u: row.updatedAt.toISOString(),
+      ...compactStats(row).stats,
     })),
   });
 };

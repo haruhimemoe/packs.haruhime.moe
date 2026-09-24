@@ -1,10 +1,11 @@
 /**
  * @file tests/integration/services/public-packs.test.ts
  * @desc The cached public list and search index: only public, visible packs, newest first, with
- *       the host's osu! name; paging; the index shape and cap; no database under CI builds.
+ *       the host's osu! name; paging; the index shape and cap; pack stats in compact form on
+ *       index entries and cards (left out when a pack has none); no database under CI builds.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { ObjectId } from "mongodb";
@@ -18,6 +19,32 @@ import { createTestUser } from "../../helpers/auth";
 import { setupTestDb } from "../../helpers/db";
 
 setupTestDb();
+
+/** Stores stats on a pack the way the stats job would, without moving updatedAt. */
+const giveStats = (slug: string, stats: Record<string, unknown>) =>
+  getPackModel().updateOne(
+    { slug },
+    {
+      $set: {
+        stats: {
+          srMin: 5.12,
+          srMax: 7.81,
+          srAvg: 6.3,
+          lenMin: 90,
+          lenMax: 258,
+          bpmMin: 120,
+          bpmMax: 333,
+          mods: ["NM", "TB"],
+          modes: ["osu"],
+          count: 2,
+          complete: true,
+          computedAt: new Date("2026-09-24T12:00:00Z"),
+          ...stats,
+        },
+      },
+    },
+    { timestamps: false },
+  );
 
 const input = (overrides: Partial<PackInput> = {}): PackInput => ({
   name: "SPC Finals",
@@ -72,6 +99,28 @@ describe("listPublicPacks", () => {
   });
 });
 
+describe("public cards", () => {
+  it("carry the compact stats when the pack has them", async () => {
+    const host = await createTestUser();
+    const none = await createPack(host.id, input({ name: "No stats" }));
+    const full = await createPack(host.id, input({ name: "Full" }));
+    await giveStats(full.slug, {});
+
+    const cards = (await listPublicPacks(1)).packs;
+
+    expect(cards.find((card) => card.slug === full.slug)?.stats).toEqual({
+      r: [5.12, 7.81],
+      a: 6.3,
+      l: [90, 258],
+      b: [120, 333],
+      m: "NM,TB",
+      g: "osu",
+      k: true,
+    });
+    expect(cards.find((card) => card.slug === none.slug)).not.toHaveProperty("stats");
+  });
+});
+
 describe("listPublicPacks past the end", () => {
   it("skips the page query when the page is past the last one", async () => {
     const host = await createTestUser();
@@ -98,6 +147,54 @@ describe("buildSearchIndex", () => {
     expect(searchIndexSchema.safeParse(index).success).toBe(true);
     expect(index.packs).toEqual([
       { s: pack.slug, n: "Pokémon Cup", o: "Chiyo", c: 2, d: "Round of 16", u: pack.updatedAt },
+    ]);
+  });
+
+  it("adds each pack's stats in compact form, and leaves them out when it has none", async () => {
+    const host = await createTestUser({ username: "Chiyo" });
+    const none = await createPack(host.id, input({ name: "No stats" }));
+    const partial = await createPack(host.id, input({ name: "Partial" }));
+    const full = await createPack(host.id, input({ name: "Full" }));
+    await giveStats(full.slug, {});
+    await giveStats(partial.slug, {
+      srMin: null,
+      srMax: null,
+      srAvg: null,
+      mods: ["NM", "DT"],
+      modes: ["osu", "mania"],
+      complete: false,
+    });
+
+    const index = await buildSearchIndex();
+
+    expect(searchIndexSchema.safeParse(index).success).toBe(true);
+    const base = { o: "Chiyo", c: 2, d: "" };
+    expect(index.packs).toEqual([
+      {
+        s: full.slug,
+        n: "Full",
+        ...base,
+        u: full.updatedAt,
+        r: [5.12, 7.81],
+        a: 6.3,
+        l: [90, 258],
+        b: [120, 333],
+        m: "NM,TB",
+        g: "osu",
+        k: true,
+      },
+      {
+        s: partial.slug,
+        n: "Partial",
+        ...base,
+        u: partial.updatedAt,
+        l: [90, 258],
+        b: [120, 333],
+        m: "NM,DT",
+        g: "osu,mania",
+        k: false,
+      },
+      { s: none.slug, n: "No stats", ...base, u: none.updatedAt },
     ]);
   });
 

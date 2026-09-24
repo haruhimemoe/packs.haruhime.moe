@@ -1,13 +1,15 @@
 /**
  * @file src/schemas/public-pack.ts
  * @desc Shapes for the public list (/packs cards), its search index (/packs/index.json), and the
- *       admin table and moderation body.
+ *       admin table and moderation body. Cards and index entries carry a pack's stats in the
+ *       compact form (src/schemas/pack-stats.ts) when it has them.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { z } from "zod";
+import { indexStatsSchema } from "@/schemas/pack-stats";
 import { slugSchema, visibilitySchema } from "@/schemas/saved-pack";
 
 export const publicPackCardSchema = z.object({
@@ -18,6 +20,8 @@ export const publicPackCardSchema = z.object({
   slotCount: z.number().int().nonnegative(),
   excerpt: z.string(),
   updatedAt: z.string(),
+  /** Absent until the pack's stats are computed. */
+  stats: indexStatsSchema.optional(),
 });
 
 export type PublicPackCard = z.infer<typeof publicPackCardSchema>;
@@ -29,7 +33,10 @@ export type PublicPackPage = {
   total: number;
 };
 
-/** Short keys keep the index small: slug, name, owner, count, description excerpt, updated. */
+/**
+ * Short keys keep the index small: slug, name, owner, count, description excerpt, updated, then
+ * the pack's stats (r, a, l, b, m, g, k; see indexStatsSchema), all left out when it has none.
+ */
 export const searchIndexEntrySchema = z.object({
   s: slugSchema,
   n: z.string(),
@@ -37,6 +44,7 @@ export const searchIndexEntrySchema = z.object({
   c: z.number().int().nonnegative(),
   d: z.string(),
   u: z.string(),
+  ...indexStatsSchema.partial().shape,
 });
 
 export type SearchIndexEntry = z.infer<typeof searchIndexEntrySchema>;
