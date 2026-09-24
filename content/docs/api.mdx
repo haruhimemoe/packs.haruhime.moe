@@ -1,0 +1,172 @@
+The packs API lets your own scripts and bots read public packs and manage the packs you saved. It's JSON over HTTPS at `https://packs.haruhime.moe/api/v1`, and every request needs your personal API key.
+
+A machine-readable description is at [/api/v1/openapi.json](https://packs.haruhime.moe/api/v1/openapi.json) (OpenAPI 3.1).
+
+## Quick start
+
+1. Sign in with osu! and open [your account page](/me).
+2. In **API key**, press **Create API key**. Copy the key right away: you only see it once.
+3. Call the API with it:
+
+```sh
+curl https://packs.haruhime.moe/api/v1/me \
+  -H "Authorization: Bearer hpk_your_key_here"
+```
+
+```json
+{ "user": { "id": "66f0a1b2c3d4e5f6a7b8c9d0", "osuId": 1234567, "username": "player1" } }
+```
+
+## Authentication
+
+- Send `Authorization: Bearer hpk_…` with every request. A key is `hpk_` followed by 43 letters, digits, `-` and `_`.
+- Each account has one key. **Regenerate** on your account page makes a new one, and the old key stops working right away. **Revoke** deletes it.
+- We keep only a hash of your key, so we can't show it to you again. Lost it? Regenerate.
+- A key acts as you and nothing more. It never carries admin rights.
+- A missing key gets `401` with the code `unauthorized`. A wrong, revoked, or replaced key gets `401` with the code `invalid_api_key`.
+
+### Keep your key on a server
+
+The API is for servers and bots. It sends no CORS headers, so a web page on another site can't call it, and a key inside a web page or app would leak to everyone who opens it. Keep it in an environment variable or a secret store, never in a public repo.
+
+## Rate limits
+
+- 60 requests a minute per account, across every endpoint.
+- 10 writes a minute per account (`POST`, `PUT`, `DELETE`). Writes count toward the 60 too. Saving, editing or deleting packs and magnet links on the site counts toward the same 10.
+- 20 failed key attempts a minute per IP address (an IPv6 address counts by its /64).
+- 10 new keys an hour per account, on your account page.
+
+Counters start over at the top of each minute. Every response carries:
+
+- `RateLimit-Limit`: requests allowed in the current window;
+- `RateLimit-Remaining`: how many are left;
+- `RateLimit-Reset`: seconds until the window starts over.
+
+On a 401, these describe the failed-attempt limit for your IP address.
+
+Over a limit you get `429` with a `Retry-After` header, in seconds. Wait that long, then try again.
+
+## Errors
+
+Every error has the same shape:
+
+```json
+{ "error": { "code": "not_found", "message": "Pack not found." } }
+```
+
+`code` doesn't change, so your program can check it. `message` is for people and may change.
+
+- `400` `bad_request`: the body or `page` isn't valid. The message says what to fix.
+- `401` `unauthorized`: no key. A bad key gets `invalid_api_key` instead. Both come with `WWW-Authenticate: Bearer`.
+- `404` `not_found`: the pack doesn't exist, or it's private or hidden and not yours. The API doesn't say which.
+- `409` `conflict`: you already have 200 saved packs. Delete one first.
+- `413` `too_large`: the body is over 16 KB.
+- `415` `unsupported_media_type`: send the body with `Content-Type: application/json`.
+- `429` `rate_limited`: see Rate limits.
+- `500` `internal_error`: something failed on our side. Try again later.
+
+## The pack object
+
+```json
+{
+  "slug": "V1StGXR8_Z",
+  "name": "Spring Cup Finals",
+  "visibility": "public",
+  "description": "Grand finals pool.",
+  "slots": [
+    { "mod": "NM", "index": 1, "beatmapId": 129891 },
+    { "mod": "HD", "index": 1, "beatmapId": 75 }
+  ],
+  "exports": [],
+  "packKey": "pk1.…",
+  "ownerName": "player1",
+  "createdAt": "2026-09-22T12:00:00.000Z",
+  "updatedAt": "2026-09-22T12:00:00.000Z"
+}
+```
+
+- `slots` holds beatmap (difficulty) IDs by slot. Titles, star ratings, and other beatmap details aren't included. Look them up on osu! or a beatmap mirror.
+- `buckets` shows up when a pack has its own slots or slot order. Custom slots carry their color and mods.
+- `packKey` is the pack's [pack key](/guide/pack-key). Anyone can open it at `https://packs.haruhime.moe/k#` followed by the key.
+- `exports` lists the magnet links the owner recorded, newest first.
+- `hiddenAt` shows up only on your own packs, when a moderator has hidden one.
+
+## Endpoints
+
+### `GET /api/v1/me`
+
+The key's owner.
+
+```json
+{ "user": { "id": "66f0a1b2c3d4e5f6a7b8c9d0", "osuId": 1234567, "username": "player1" } }
+```
+
+### `GET /api/v1/packs`
+
+Public packs, most recently updated first, 50 per page. Takes `?page=` (see Pagination). Each entry in `packs` is a full pack object, shortened here.
+
+```json
+{ "packs": [{ "slug": "V1StGXR8_Z", "name": "Spring Cup Finals", "packKey": "pk1.…" }], "page": 1, "pageCount": 3, "total": 131 }
+```
+
+### `GET /api/v1/packs/{slug}`
+
+One pack. Public and unlisted packs work with any key. Private and hidden packs work only with their owner's key.
+
+```json
+{ "pack": { "slug": "V1StGXR8_Z", "name": "Spring Cup Finals", "packKey": "pk1.…" } }
+```
+
+### `GET /api/v1/me/packs`
+
+Your packs, any visibility, most recently updated first, 50 per page. Takes `?page=` (see Pagination) and answers in the same shape as `GET /api/v1/packs`.
+
+```json
+{ "packs": [{ "slug": "V1StGXR8_Z", "name": "Spring Cup Finals", "visibility": "private" }], "page": 1, "pageCount": 1, "total": 12 }
+```
+
+### `POST /api/v1/packs`
+
+Save a new pack. The body follows the same rules as the site: a name of 1 to 64 characters, 1 to 64 maps, a description of up to 500 characters, and no slurs in either. `visibility` is `private`, `unlisted` (the default), or `public`.
+
+```sh
+curl https://packs.haruhime.moe/api/v1/packs \
+  -H "Authorization: Bearer hpk_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Spring Cup Finals","visibility":"unlisted","slots":[{"mod":"NM","index":1,"beatmapId":129891}]}'
+```
+
+Answers `201` with `{ "pack": … }`.
+
+### `PUT /api/v1/packs/{slug}`
+
+Replace one of your packs. Send the whole pack, as for `POST`. Leaving out `description` clears it. A new pool (different maps, slots, or name) clears the pack's recorded magnet links, because they no longer match. Answers `200` with `{ "pack": … }`.
+
+### `DELETE /api/v1/packs/{slug}`
+
+Delete one of your packs. Answers `204` with no body.
+
+## Pagination
+
+`page` starts at 1 and goes up to 999999. Responses include `page`, `pageCount`, and `total`. A page past the end comes back with an empty `packs` list.
+
+To list public packs (slug, name, owner, map count) without a key, use the static search index at [/packs/index.json](https://packs.haruhime.moe/packs/index.json) (up to 5,000 newest). It doesn't count toward any limit. For a pack's maps, call `GET /api/v1/packs/{slug}`.
+
+## Pack keys
+
+A pack key holds a whole pool in one line of text. The [pack key guide](/guide/pack-key) documents every key version, byte by byte.
+
+## Use it with Claude Code
+
+The haruhime plugin for Claude Code has skills for osu! tools, including one for packs and this API. Install it from Claude Code:
+
+```
+/plugin marketplace add haruhimemoe/claude-plugin
+/plugin install haruhime@haruhimemoe
+```
+
+The source is at [github.com/haruhimemoe/claude-plugin](https://github.com/haruhimemoe/claude-plugin).
+
+## Changes
+
+- 2026-09-23: `GET /me/packs` is paged like `GET /packs`.

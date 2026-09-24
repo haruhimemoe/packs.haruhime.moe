@@ -1,0 +1,1 @@
+packs: osu! beatmap packs for tournament hosts

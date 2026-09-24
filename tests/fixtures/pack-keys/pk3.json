@@ -1,0 +1,1516 @@
+[
+  {
+    "label": "packs-keys.json case 27: forced-mod custom bucket (DT), 6 maps",
+    "pack": {
+      "name": "Pool 🎵",
+      "slots": [
+        {
+          "mod": "TB",
+          "index": 88,
+          "beatmapId": 2705679
+        },
+        {
+          "mod": "FM",
+          "index": 7,
+          "beatmapId": 42
+        },
+        {
+          "mod": "X1",
+          "index": 3,
+          "beatmapId": 3185574
+        },
+        {
+          "mod": "DT",
+          "index": 5,
+          "beatmapId": 85
+        },
+        {
+          "mod": "FM",
+          "index": 47,
+          "beatmapId": 433547
+        },
+        {
+          "mod": "RC",
+          "index": 6,
+          "beatmapId": 16
+        }
+      ],
+      "buckets": [
+        {
+          "code": "NM"
+        },
+        {
+          "code": "DT"
+        },
+        {
+          "code": "HR"
+        },
+        {
+          "code": "FM"
+        },
+        {
+          "code": "HD"
+        },
+        {
+          "code": "X1",
+          "color": 6,
+          "mods": {
+            "kind": "forced",
+            "set": ["DT"]
+          }
+        },
+        {
+          "code": "TB"
+        },
+        {
+          "code": "RC",
+          "color": 8,
+          "mods": {
+            "kind": "free"
+          }
+        }
+      ]
+    },
+    "key": "pk3.AwlQb29sIPCfjrUIAAMCBAH9BgJYMQEIBf0IAlJDAgYBBVUDByoDL4u7GgUDprfCAQZYj5KlAQcGEHdb",
+    "decoded": {
+      "name": "Pool 🎵",
+      "slots": [
+        {
+          "mod": "DT",
+          "index": 5,
+          "beatmapId": 85
+        },
+        {
+          "mod": "FM",
+          "index": 7,
+          "beatmapId": 42
+        },
+        {
+          "mod": "FM",
+          "index": 47,
+          "beatmapId": 433547
+        },
+        {
+          "mod": "X1",
+          "index": 3,
+          "beatmapId": 3185574
+        },
+        {
+          "mod": "TB",
+          "index": 88,
+          "beatmapId": 2705679
+        },
+        {
+          "mod": "RC",
+          "index": 6,
+          "beatmapId": 16
+        }
+      ],
+      "buckets": [
+        {
+          "code": "NM"
+        },
+        {
+          "code": "DT"
+        },
+        {
+          "code": "HR"
+        },
+        {
+          "code": "FM"
+        },
+        {
+          "code": "HD"
+        },
+        {
+          "code": "X1",
+          "color": 6,
+          "mods": {
+            "kind": "forced",
+            "set": ["DT"]
+          }
+        },
+        {
+          "code": "TB"
+        },
+        {
+          "code": "RC",
+          "color": 8,
+          "mods": {
+            "kind": "free"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "label": "packs-keys.json case 67: no slots, 14 buckets",
+    "pack": {
+      "name": "  spaced  ",
+      "slots": [],
+      "buckets": [
+        {
+          "code": "Ωmega",
+          "color": 5,
+          "mods": {
+            "kind": "free"
+          }
+        },
+        {
+          "code": "Tech",
+          "color": 6
+        },
+        {
+          "code": "Speed",
+          "color": 2,
+          "mods": {
+            "kind": "free"
+          }
+        },
+        {
+          "code": "rc",
+          "color": 8,
+          "mods": {
+            "kind": "free"
+          }
+        },
+        {
+          "code": "EZ",
+          "color": 3,
+          "mods": {
+            "kind": "forced",
+            "set": ["DT"]
+          }
+        },
+        {
+          "code": "Alt2",
+          "color": 4,
+          "mods": {
+            "kind": "free"
+          }
+        },
+        {
+          "code": "Aim",
+          "color": 1
+        },
+        {
+          "code": "NM"
+        },
+        {
+          "code": "HD"
+        },
+        {
+          "code": "HR"
+        },
+        {
+          "code": "DT"
+        },
+        {
+          "code": "LN",
+          "color": 3,
+          "mods": {
+            "kind": "free"
+          }
+        },
+        {
+          "code": "FM"
+        },
+        {
+          "code": "TB"
+        }
+      ]
+    },
+    "key": "pk3.AwZzcGFjZWQO_QUGzqltZWdhAv4GBFRlY2j9AgVTcGVlZAL9CAJyYwL9AwJFWgEI_QQEQWx0MgL-AQNBaW0AAQID_QMCTE4CBAUAiOg",
+    "decoded": {
+      "name": "spaced",
+      "slots": [],
+      "buckets": [
+        {
+          "code": "Ωmega",
+          "color": 5,
+          "mods": {
+            "kind": "free"
+          }
+        },
+        {
+          "code": "Tech",
+          "color": 6
+        },
+        {
+          "code": "Speed",
+          "color": 2,
+          "mods": {
+            "kind": "free"
+          }
+        },
+        {
+          "code": "rc",
+          "color": 8,
+          "mods": {
+            "kind": "free"
+          }
+        },
+        {
+          "code": "EZ",
+          "color": 3,
+          "mods": {
+            "kind": "forced",
+            "set": ["DT"]
+          }
+        },
+        {
+          "code": "Alt2",
+          "color": 4,
+          "mods": {
+            "kind": "free"
+          }
+        },
+        {
+          "code": "Aim",
+          "color": 1
+        },
+        {
+          "code": "NM"
+        },
+        {
+          "code": "HD"
+        },
+        {
+          "code": "HR"
+        },
+        {
+          "code": "DT"
+        },
+        {
+          "code": "LN",
+          "color": 3,
+          "mods": {
+            "kind": "free"
+          }
+        },
+        {
+          "code": "FM"
+        },
+        {
+          "code": "TB"
+        }
+      ]
+    }
+  },
+  {
+    "label": "packs-keys.json case 119: 64 maps, forced-mod custom bucket (HD DT FL)",
+    "pack": {
+      "name": "\ttabbed\t",
+      "slots": [
+        {
+          "mod": "HB",
+          "index": 8,
+          "beatmapId": 2316101
+        },
+        {
+          "mod": "FM",
+          "index": 7,
+          "beatmapId": 89
+        },
+        {
+          "mod": "NM",
+          "index": 77,
+          "beatmapId": 5630
+        },
+        {
+          "mod": "TB",
+          "index": 4,
+          "beatmapId": 173627
+        },
+        {
+          "mod": "Tech",
+          "index": 9,
+          "beatmapId": 2101965034
+        },
+        {
+          "mod": "Tech",
+          "index": 3,
+          "beatmapId": 2146691074
+        },
+        {
+          "mod": "FM",
+          "index": 3,
+          "beatmapId": 2641455
+        },
+        {
+          "mod": "Speed",
+          "index": 1,
+          "beatmapId": 804777
+        },
+        {
+          "mod": "FM",
+          "index": 4,
+          "beatmapId": 2110011700
+        },
+        {
+          "mod": "Speed",
+          "index": 2,
+          "beatmapId": 2025005439
+        },
+        {
+          "mod": "TB",
+          "index": 3,
+          "beatmapId": 2096543412
+        },
+        {
+          "mod": "Tech",
+          "index": 1,
+          "beatmapId": 3099037
+        },
+        {
+          "mod": "HB",
+          "index": 3,
+          "beatmapId": 37
+        },
+        {
+          "mod": "HR",
+          "index": 9,
+          "beatmapId": 119558
+        },
+        {
+          "mod": "Speed",
+          "index": 3,
+          "beatmapId": 1086081
+        },
+        {
+          "mod": "Speed",
+          "index": 5,
+          "beatmapId": 2082204289
+        },
+        {
+          "mod": "HD",
+          "index": 2,
+          "beatmapId": 2113737774
+        },
+        {
+          "mod": "Speed",
+          "index": 7,
+          "beatmapId": 1080795
+        },
+        {
+          "mod": "Q",
+          "index": 8,
+          "beatmapId": 2070706264
+        },
+        {
+          "mod": "NM",
+          "index": 3,
+          "beatmapId": 2007533457
+        },
+        {
+          "mod": "HB",
+          "index": 2,
+          "beatmapId": 66
+        },
+        {
+          "mod": "Q",
+          "index": 6,
+          "beatmapId": 34
+        },
+        {
+          "mod": "Tech",
+          "index": 7,
+          "beatmapId": 55
+        },
+        {
+          "mod": "HR",
+          "index": 8,
+          "beatmapId": 2035334641
+        },
+        {
+          "mod": "DT",
+          "index": 8,
+          "beatmapId": 9
+        },
+        {
+          "mod": "HR",
+          "index": 1,
+          "beatmapId": 2120960
+        },
+        {
+          "mod": "Speed",
+          "index": 62,
+          "beatmapId": 69
+        },
+        {
+          "mod": "DT",
+          "index": 5,
+          "beatmapId": 3993158
+        },
+        {
+          "mod": "TB",
+          "index": 9,
+          "beatmapId": 10
+        },
+        {
+          "mod": "HR",
+          "index": 13,
+          "beatmapId": 258432
+        },
+        {
+          "mod": "Speed",
+          "index": 8,
+          "beatmapId": 105543
+        },
+        {
+          "mod": "Q",
+          "index": 4,
+          "beatmapId": 9
+        },
+        {
+          "mod": "HD",
+          "index": 9,
+          "beatmapId": 49
+        },
+        {
+          "mod": "HD",
+          "index": 7,
+          "beatmapId": 614359
+        },
+        {
+          "mod": "Tech",
+          "index": 20,
+          "beatmapId": 2003783203
+        },
+        {
+          "mod": "HB",
+          "index": 6,
+          "beatmapId": 4290385
+        },
+        {
+          "mod": "HR",
+          "index": 3,
+          "beatmapId": 4695627
+        },
+        {
+          "mod": "FM",
+          "index": 5,
+          "beatmapId": 68
+        },
+        {
+          "mod": "Tech",
+          "index": 6,
+          "beatmapId": 697801
+        },
+        {
+          "mod": "DT",
+          "index": 6,
+          "beatmapId": 1003764
+        },
+        {
+          "mod": "HB",
+          "index": 7,
+          "beatmapId": 2508419
+        },
+        {
+          "mod": "HD",
+          "index": 3,
+          "beatmapId": 4745138
+        },
+        {
+          "mod": "Speed",
+          "index": 6,
+          "beatmapId": 670826
+        },
+        {
+          "mod": "HB",
+          "index": 1,
+          "beatmapId": 2095673964
+        },
+        {
+          "mod": "FM",
+          "index": 8,
+          "beatmapId": 2039025081
+        },
+        {
+          "mod": "HR",
+          "index": 5,
+          "beatmapId": 504738
+        },
+        {
+          "mod": "Speed",
+          "index": 9,
+          "beatmapId": 228752
+        },
+        {
+          "mod": "HD",
+          "index": 1,
+          "beatmapId": 233999
+        },
+        {
+          "mod": "HB",
+          "index": 97,
+          "beatmapId": 92
+        },
+        {
+          "mod": "HR",
+          "index": 66,
+          "beatmapId": 62
+        },
+        {
+          "mod": "TB",
+          "index": 7,
+          "beatmapId": 575859
+        },
+        {
+          "mod": "NM",
+          "index": 89,
+          "beatmapId": 573146
+        },
+        {
+          "mod": "NM",
+          "index": 7,
+          "beatmapId": 1297941
+        },
+        {
+          "mod": "HD",
+          "index": 4,
+          "beatmapId": 4546472
+        },
+        {
+          "mod": "HR",
+          "index": 2,
+          "beatmapId": 636172
+        },
+        {
+          "mod": "TB",
+          "index": 1,
+          "beatmapId": 2046314382
+        },
+        {
+          "mod": "TB",
+          "index": 2,
+          "beatmapId": 514491
+        },
+        {
+          "mod": "HB",
+          "index": 4,
+          "beatmapId": 2006288732
+        },
+        {
+          "mod": "NM",
+          "index": 4,
+          "beatmapId": 783219
+        },
+        {
+          "mod": "HB",
+          "index": 9,
+          "beatmapId": 2086040987
+        },
+        {
+          "mod": "TB",
+          "index": 84,
+          "beatmapId": 600970
+        },
+        {
+          "mod": "TB",
+          "index": 77,
+          "beatmapId": 2068644621
+        },
+        {
+          "mod": "HD",
+          "index": 6,
+          "beatmapId": 1
+        },
+        {
+          "mod": "DT",
+          "index": 2,
+          "beatmapId": 60495
+        }
+      ],
+      "buckets": [
+        {
+          "code": "Speed",
+          "color": 3,
+          "mods": {
+            "kind": "forced",
+            "set": ["HD", "DT", "FL"]
+          }
+        },
+        {
+          "code": "TB"
+        },
+        {
+          "code": "FM"
+        },
+        {
+          "code": "HB",
+          "color": 2,
+          "mods": {
+            "kind": "free"
+          }
+        },
+        {
+          "code": "HD"
+        },
+        {
+          "code": "HR"
+        },
+        {
+          "code": "Q",
+          "color": 5
+        },
+        {
+          "code": "Tech",
+          "color": 7,
+          "mods": {
+            "kind": "free"
+          }
+        },
+        {
+          "code": "NM"
+        },
+        {
+          "code": "DT"
+        }
+      ]
+    },
+    "key": "pk3.AwZ0YWJiZWQK_QMFU3BlZWQBKgUE_QICSEICAQL-BQFR_QcEVGVjaAIAA0AAAamPMQAC_8LMxQcAA4GlQgAFgdXv4AcABur4KAAH2_tBAAjHuAYACZD7DQA-RQEBjo_hzwcBAruzHwEDtO3a5wcBBLvMCgEH85IjAQkKAU2NhrTaBwFUitckAgOvnKEBAgS08pDuBwIFRAIHWQIIuZukzAcDAezkpecHAwJCAwMlAwTckta8BwMG0e6FAgMHg42ZAQMIxa6NAQMJm-vZ4gcDYVwEAY-kDgQCrqj07wcEA7LPoQIEBKi_lQIEBgEEB9e_JQQJMQUBgLqBAQUCjOomBQPLzJ4CBQWi5x4FCPH7wsoHBQmGpgcFDYDjDwVCPgYECQYGIgYI2PCx2wcHAZ2TvQEHA4LQz_8HBwbJyyoHBzcHCerhpeoHBxSjnL27BwgDkY-ivQcIBPPmLwgHlZxPCE3-KwhZ2v0iCQLP2AMJBcbc8wEJBvShPQkICShG",
+    "decoded": {
+      "name": "tabbed",
+      "slots": [
+        {
+          "mod": "Speed",
+          "index": 1,
+          "beatmapId": 804777
+        },
+        {
+          "mod": "Speed",
+          "index": 2,
+          "beatmapId": 2025005439
+        },
+        {
+          "mod": "Speed",
+          "index": 3,
+          "beatmapId": 1086081
+        },
+        {
+          "mod": "Speed",
+          "index": 5,
+          "beatmapId": 2082204289
+        },
+        {
+          "mod": "Speed",
+          "index": 6,
+          "beatmapId": 670826
+        },
+        {
+          "mod": "Speed",
+          "index": 7,
+          "beatmapId": 1080795
+        },
+        {
+          "mod": "Speed",
+          "index": 8,
+          "beatmapId": 105543
+        },
+        {
+          "mod": "Speed",
+          "index": 9,
+          "beatmapId": 228752
+        },
+        {
+          "mod": "Speed",
+          "index": 62,
+          "beatmapId": 69
+        },
+        {
+          "mod": "TB",
+          "index": 1,
+          "beatmapId": 2046314382
+        },
+        {
+          "mod": "TB",
+          "index": 2,
+          "beatmapId": 514491
+        },
+        {
+          "mod": "TB",
+          "index": 3,
+          "beatmapId": 2096543412
+        },
+        {
+          "mod": "TB",
+          "index": 4,
+          "beatmapId": 173627
+        },
+        {
+          "mod": "TB",
+          "index": 7,
+          "beatmapId": 575859
+        },
+        {
+          "mod": "TB",
+          "index": 9,
+          "beatmapId": 10
+        },
+        {
+          "mod": "TB",
+          "index": 77,
+          "beatmapId": 2068644621
+        },
+        {
+          "mod": "TB",
+          "index": 84,
+          "beatmapId": 600970
+        },
+        {
+          "mod": "FM",
+          "index": 3,
+          "beatmapId": 2641455
+        },
+        {
+          "mod": "FM",
+          "index": 4,
+          "beatmapId": 2110011700
+        },
+        {
+          "mod": "FM",
+          "index": 5,
+          "beatmapId": 68
+        },
+        {
+          "mod": "FM",
+          "index": 7,
+          "beatmapId": 89
+        },
+        {
+          "mod": "FM",
+          "index": 8,
+          "beatmapId": 2039025081
+        },
+        {
+          "mod": "HB",
+          "index": 1,
+          "beatmapId": 2095673964
+        },
+        {
+          "mod": "HB",
+          "index": 2,
+          "beatmapId": 66
+        },
+        {
+          "mod": "HB",
+          "index": 3,
+          "beatmapId": 37
+        },
+        {
+          "mod": "HB",
+          "index": 4,
+          "beatmapId": 2006288732
+        },
+        {
+          "mod": "HB",
+          "index": 6,
+          "beatmapId": 4290385
+        },
+        {
+          "mod": "HB",
+          "index": 7,
+          "beatmapId": 2508419
+        },
+        {
+          "mod": "HB",
+          "index": 8,
+          "beatmapId": 2316101
+        },
+        {
+          "mod": "HB",
+          "index": 9,
+          "beatmapId": 2086040987
+        },
+        {
+          "mod": "HB",
+          "index": 97,
+          "beatmapId": 92
+        },
+        {
+          "mod": "HD",
+          "index": 1,
+          "beatmapId": 233999
+        },
+        {
+          "mod": "HD",
+          "index": 2,
+          "beatmapId": 2113737774
+        },
+        {
+          "mod": "HD",
+          "index": 3,
+          "beatmapId": 4745138
+        },
+        {
+          "mod": "HD",
+          "index": 4,
+          "beatmapId": 4546472
+        },
+        {
+          "mod": "HD",
+          "index": 6,
+          "beatmapId": 1
+        },
+        {
+          "mod": "HD",
+          "index": 7,
+          "beatmapId": 614359
+        },
+        {
+          "mod": "HD",
+          "index": 9,
+          "beatmapId": 49
+        },
+        {
+          "mod": "HR",
+          "index": 1,
+          "beatmapId": 2120960
+        },
+        {
+          "mod": "HR",
+          "index": 2,
+          "beatmapId": 636172
+        },
+        {
+          "mod": "HR",
+          "index": 3,
+          "beatmapId": 4695627
+        },
+        {
+          "mod": "HR",
+          "index": 5,
+          "beatmapId": 504738
+        },
+        {
+          "mod": "HR",
+          "index": 8,
+          "beatmapId": 2035334641
+        },
+        {
+          "mod": "HR",
+          "index": 9,
+          "beatmapId": 119558
+        },
+        {
+          "mod": "HR",
+          "index": 13,
+          "beatmapId": 258432
+        },
+        {
+          "mod": "HR",
+          "index": 66,
+          "beatmapId": 62
+        },
+        {
+          "mod": "Q",
+          "index": 4,
+          "beatmapId": 9
+        },
+        {
+          "mod": "Q",
+          "index": 6,
+          "beatmapId": 34
+        },
+        {
+          "mod": "Q",
+          "index": 8,
+          "beatmapId": 2070706264
+        },
+        {
+          "mod": "Tech",
+          "index": 1,
+          "beatmapId": 3099037
+        },
+        {
+          "mod": "Tech",
+          "index": 3,
+          "beatmapId": 2146691074
+        },
+        {
+          "mod": "Tech",
+          "index": 6,
+          "beatmapId": 697801
+        },
+        {
+          "mod": "Tech",
+          "index": 7,
+          "beatmapId": 55
+        },
+        {
+          "mod": "Tech",
+          "index": 9,
+          "beatmapId": 2101965034
+        },
+        {
+          "mod": "Tech",
+          "index": 20,
+          "beatmapId": 2003783203
+        },
+        {
+          "mod": "NM",
+          "index": 3,
+          "beatmapId": 2007533457
+        },
+        {
+          "mod": "NM",
+          "index": 4,
+          "beatmapId": 783219
+        },
+        {
+          "mod": "NM",
+          "index": 7,
+          "beatmapId": 1297941
+        },
+        {
+          "mod": "NM",
+          "index": 77,
+          "beatmapId": 5630
+        },
+        {
+          "mod": "NM",
+          "index": 89,
+          "beatmapId": 573146
+        },
+        {
+          "mod": "DT",
+          "index": 2,
+          "beatmapId": 60495
+        },
+        {
+          "mod": "DT",
+          "index": 5,
+          "beatmapId": 3993158
+        },
+        {
+          "mod": "DT",
+          "index": 6,
+          "beatmapId": 1003764
+        },
+        {
+          "mod": "DT",
+          "index": 8,
+          "beatmapId": 9
+        }
+      ],
+      "buckets": [
+        {
+          "code": "Speed",
+          "color": 3,
+          "mods": {
+            "kind": "forced",
+            "set": ["HD", "DT", "FL"]
+          }
+        },
+        {
+          "code": "TB"
+        },
+        {
+          "code": "FM"
+        },
+        {
+          "code": "HB",
+          "color": 2,
+          "mods": {
+            "kind": "free"
+          }
+        },
+        {
+          "code": "HD"
+        },
+        {
+          "code": "HR"
+        },
+        {
+          "code": "Q",
+          "color": 5
+        },
+        {
+          "code": "Tech",
+          "color": 7,
+          "mods": {
+            "kind": "free"
+          }
+        },
+        {
+          "code": "NM"
+        },
+        {
+          "code": "DT"
+        }
+      ]
+    }
+  },
+  {
+    "label": "packs-keys.json case 187: forced three-mod custom bucket (EZ HT FL), non-ASCII code",
+    "pack": {
+      "name": "  spaced  ",
+      "slots": [
+        {
+          "mod": "Ωmega",
+          "index": 77,
+          "beatmapId": 4885386
+        },
+        {
+          "mod": "HR",
+          "index": 7,
+          "beatmapId": 2084294736
+        }
+      ],
+      "buckets": [
+        {
+          "code": "NM"
+        },
+        {
+          "code": "Alt2",
+          "color": 9
+        },
+        {
+          "code": "X1",
+          "color": 4
+        },
+        {
+          "code": "HD"
+        },
+        {
+          "code": "Ωmega",
+          "color": 2,
+          "mods": {
+            "kind": "forced",
+            "set": ["EZ", "HT", "FL"]
+          }
+        },
+        {
+          "code": "Speed",
+          "color": 2,
+          "mods": {
+            "kind": "forced",
+            "set": ["HT"]
+          }
+        },
+        {
+          "code": "HR"
+        },
+        {
+          "code": "DT"
+        },
+        {
+          "code": "FM"
+        },
+        {
+          "code": "TB"
+        }
+      ]
+    },
+    "key": "pk3.AwZzcGFjZWQKAP4JBEFsdDL-BAJYMQH9AgbOqW1lZ2EBMf0CBVNwZWVkARACAwQFAgRNipeqAgYH0KDv4QcK6w",
+    "decoded": {
+      "name": "spaced",
+      "slots": [
+        {
+          "mod": "Ωmega",
+          "index": 77,
+          "beatmapId": 4885386
+        },
+        {
+          "mod": "HR",
+          "index": 7,
+          "beatmapId": 2084294736
+        }
+      ],
+      "buckets": [
+        {
+          "code": "NM"
+        },
+        {
+          "code": "Alt2",
+          "color": 9
+        },
+        {
+          "code": "X1",
+          "color": 4
+        },
+        {
+          "code": "HD"
+        },
+        {
+          "code": "Ωmega",
+          "color": 2,
+          "mods": {
+            "kind": "forced",
+            "set": ["EZ", "HT", "FL"]
+          }
+        },
+        {
+          "code": "Speed",
+          "color": 2,
+          "mods": {
+            "kind": "forced",
+            "set": ["HT"]
+          }
+        },
+        {
+          "code": "HR"
+        },
+        {
+          "code": "DT"
+        },
+        {
+          "code": "FM"
+        },
+        {
+          "code": "TB"
+        }
+      ]
+    }
+  },
+  {
+    "label": "packs-keys.json case 39: astral-plane bucket code, freemod bucket, tab-wrapped name",
+    "pack": {
+      "name": "\ttabbed\t",
+      "slots": [
+        {
+          "mod": "DT",
+          "index": 6,
+          "beatmapId": 62
+        },
+        {
+          "mod": "TB",
+          "index": 9,
+          "beatmapId": 2090981246
+        },
+        {
+          "mod": "𝒜",
+          "index": 2,
+          "beatmapId": 4
+        },
+        {
+          "mod": "HR",
+          "index": 8,
+          "beatmapId": 2883798
+        },
+        {
+          "mod": "HD",
+          "index": 2,
+          "beatmapId": 2105025768
+        },
+        {
+          "mod": "FM",
+          "index": 3,
+          "beatmapId": 43
+        },
+        {
+          "mod": "NM",
+          "index": 4,
+          "beatmapId": 2117429897
+        },
+        {
+          "mod": "HD",
+          "index": 40,
+          "beatmapId": 25246
+        },
+        {
+          "mod": "TB",
+          "index": 4,
+          "beatmapId": 84
+        },
+        {
+          "mod": "FM",
+          "index": 78,
+          "beatmapId": 3334553
+        },
+        {
+          "mod": "NM",
+          "index": 6,
+          "beatmapId": 2036572
+        },
+        {
+          "mod": "HD",
+          "index": 3,
+          "beatmapId": 3145480
+        },
+        {
+          "mod": "𝒜",
+          "index": 4,
+          "beatmapId": 2031419124
+        },
+        {
+          "mod": "TB",
+          "index": 3,
+          "beatmapId": 2014041335
+        },
+        {
+          "mod": "HD",
+          "index": 5,
+          "beatmapId": 56
+        },
+        {
+          "mod": "NM",
+          "index": 5,
+          "beatmapId": 2671630
+        },
+        {
+          "mod": "FM",
+          "index": 9,
+          "beatmapId": 92
+        },
+        {
+          "mod": "NM",
+          "index": 9,
+          "beatmapId": 714684
+        },
+        {
+          "mod": "FM",
+          "index": 6,
+          "beatmapId": 61
+        },
+        {
+          "mod": "DT",
+          "index": 9,
+          "beatmapId": 2146302899
+        },
+        {
+          "mod": "FM",
+          "index": 7,
+          "beatmapId": 682056
+        },
+        {
+          "mod": "HR",
+          "index": 5,
+          "beatmapId": 711216
+        },
+        {
+          "mod": "HD",
+          "index": 4,
+          "beatmapId": 881235
+        },
+        {
+          "mod": "NM",
+          "index": 7,
+          "beatmapId": 2023939068
+        },
+        {
+          "mod": "DT",
+          "index": 7,
+          "beatmapId": 2131697417
+        },
+        {
+          "mod": "HD",
+          "index": 9,
+          "beatmapId": 97
+        },
+        {
+          "mod": "TB",
+          "index": 1,
+          "beatmapId": 2096019
+        },
+        {
+          "mod": "DT",
+          "index": 1,
+          "beatmapId": 4684626
+        }
+      ],
+      "buckets": [
+        {
+          "code": "NM"
+        },
+        {
+          "code": "HD"
+        },
+        {
+          "code": "HR"
+        },
+        {
+          "code": "DT"
+        },
+        {
+          "code": "𝒜",
+          "color": 3,
+          "mods": {
+            "kind": "free"
+          }
+        },
+        {
+          "code": "FM"
+        },
+        {
+          "code": "TB"
+        }
+      ]
+    },
+    "key": "pk3.AwZ0YWJiZWQHAAECA_0DBPCdkpwCBAUcAASJ1dXxBwAFjoijAQAG3KZ8AAf8t4vFBwAJvM8rAQLoyeDrBwEDiP6_AQEE0-Q1AQU4AQlhASiexQECBbC0KwII1oGwAQMB0vadAgMGPgMHib68-AcDCbP3t_8HBAIEBAT0_dPIBwUDKwUGPQUHyNApBQlcBU6Zw8sBBgGT938GA_epr8AHBgRUBgn-roflB8DZ",
+    "decoded": {
+      "name": "tabbed",
+      "slots": [
+        {
+          "mod": "NM",
+          "index": 4,
+          "beatmapId": 2117429897
+        },
+        {
+          "mod": "NM",
+          "index": 5,
+          "beatmapId": 2671630
+        },
+        {
+          "mod": "NM",
+          "index": 6,
+          "beatmapId": 2036572
+        },
+        {
+          "mod": "NM",
+          "index": 7,
+          "beatmapId": 2023939068
+        },
+        {
+          "mod": "NM",
+          "index": 9,
+          "beatmapId": 714684
+        },
+        {
+          "mod": "HD",
+          "index": 2,
+          "beatmapId": 2105025768
+        },
+        {
+          "mod": "HD",
+          "index": 3,
+          "beatmapId": 3145480
+        },
+        {
+          "mod": "HD",
+          "index": 4,
+          "beatmapId": 881235
+        },
+        {
+          "mod": "HD",
+          "index": 5,
+          "beatmapId": 56
+        },
+        {
+          "mod": "HD",
+          "index": 9,
+          "beatmapId": 97
+        },
+        {
+          "mod": "HD",
+          "index": 40,
+          "beatmapId": 25246
+        },
+        {
+          "mod": "HR",
+          "index": 5,
+          "beatmapId": 711216
+        },
+        {
+          "mod": "HR",
+          "index": 8,
+          "beatmapId": 2883798
+        },
+        {
+          "mod": "DT",
+          "index": 1,
+          "beatmapId": 4684626
+        },
+        {
+          "mod": "DT",
+          "index": 6,
+          "beatmapId": 62
+        },
+        {
+          "mod": "DT",
+          "index": 7,
+          "beatmapId": 2131697417
+        },
+        {
+          "mod": "DT",
+          "index": 9,
+          "beatmapId": 2146302899
+        },
+        {
+          "mod": "𝒜",
+          "index": 2,
+          "beatmapId": 4
+        },
+        {
+          "mod": "𝒜",
+          "index": 4,
+          "beatmapId": 2031419124
+        },
+        {
+          "mod": "FM",
+          "index": 3,
+          "beatmapId": 43
+        },
+        {
+          "mod": "FM",
+          "index": 6,
+          "beatmapId": 61
+        },
+        {
+          "mod": "FM",
+          "index": 7,
+          "beatmapId": 682056
+        },
+        {
+          "mod": "FM",
+          "index": 9,
+          "beatmapId": 92
+        },
+        {
+          "mod": "FM",
+          "index": 78,
+          "beatmapId": 3334553
+        },
+        {
+          "mod": "TB",
+          "index": 1,
+          "beatmapId": 2096019
+        },
+        {
+          "mod": "TB",
+          "index": 3,
+          "beatmapId": 2014041335
+        },
+        {
+          "mod": "TB",
+          "index": 4,
+          "beatmapId": 84
+        },
+        {
+          "mod": "TB",
+          "index": 9,
+          "beatmapId": 2090981246
+        }
+      ],
+      "buckets": [
+        {
+          "code": "NM"
+        },
+        {
+          "code": "HD"
+        },
+        {
+          "code": "HR"
+        },
+        {
+          "code": "DT"
+        },
+        {
+          "code": "𝒜",
+          "color": 3,
+          "mods": {
+            "kind": "free"
+          }
+        },
+        {
+          "code": "FM"
+        },
+        {
+          "code": "TB"
+        }
+      ]
+    }
+  }
+]

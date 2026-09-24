@@ -1,0 +1,72 @@
+/**
+ * @file src/components/admin/AdminScreen.tsx
+ * @desc /admin body: All / Hidden tabs, a name filter (plain GET form), the table, paging.
+ * @author David @dvhsh (https://dvh.sh)
+ * @created Tue Sep 22, 2026
+ * @modified Tue Sep 22, 2026
+ */
+
+import Link from "next/link";
+import { AdminPackTable } from "@/components/admin/AdminPackTable";
+import { Pagination } from "@/components/packs/Pagination";
+import { Button } from "@/components/ui/Button";
+import { fieldClasses } from "@/components/ui/fieldStyles";
+import { PageHeader } from "@/components/ui/PageHeader";
+import type { AdminPackPage } from "@/schemas/public-pack";
+import { cn } from "@/utils/cn";
+import { adminHref } from "@/utils/paging";
+
+type AdminScreenProps = AdminPackPage & { hiddenOnly: boolean; query: string };
+
+const tabClasses = (active: boolean): string =>
+  cn(
+    "rounded-full px-3 py-1 font-bold text-sm transition-colors",
+    active ? "bg-b3 text-c1" : "text-c3 hover:text-c1",
+  );
+
+export function AdminScreen({ rows, page, pageCount, total, hiddenOnly, query }: AdminScreenProps) {
+  return (
+    <div className="flex flex-col gap-6">
+      <PageHeader title="Admin" lead="Public and unlisted packs. Private packs never show here." />
+      <nav aria-label="Filter" className="flex gap-2">
+        <Link
+          href={adminHref({ query })}
+          aria-current={hiddenOnly ? undefined : "page"}
+          className={tabClasses(!hiddenOnly)}
+        >
+          All
+        </Link>
+        <Link
+          href={adminHref({ hiddenOnly: true, query })}
+          aria-current={hiddenOnly ? "page" : undefined}
+          className={tabClasses(hiddenOnly)}
+        >
+          Hidden
+        </Link>
+      </nav>
+      <search>
+        <form action="/admin" method="get" className="flex flex-wrap items-end gap-2">
+          {hiddenOnly ? <input type="hidden" name="show" value="hidden" /> : null}
+          <div className="flex min-w-48 flex-1 flex-col gap-1">
+            <label htmlFor="admin-query" className="font-bold text-c3 text-sm">
+              Pack name
+            </label>
+            <input id="admin-query" name="q" defaultValue={query} className={fieldClasses()} />
+          </div>
+          <Button type="submit" variant="secondary">
+            Filter
+          </Button>
+        </form>
+      </search>
+      <p className="text-c4 text-sm">
+        {total} {total === 1 ? "pack" : "packs"}
+      </p>
+      <AdminPackTable rows={rows} />
+      <Pagination
+        page={page}
+        pageCount={pageCount}
+        href={(n) => adminHref({ page: n, hiddenOnly, query })}
+      />
+    </div>
+  );
+}

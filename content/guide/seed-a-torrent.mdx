@@ -1,0 +1,21 @@
+To seed an osu! mappool torrent, make the torrent on your pack's page, unzip the same pack's zip, and open the `.torrent` in qBittorrent with the unzipped folder's parent as the save location. qBittorrent finds every file already there and starts seeding. packs builds the torrent in your browser; your computer does the sharing.
+
+## Steps
+
+1. **Download the maps.** Open your pack ([New pack](/new), a pack key, or a saved pack) and in the "Download" card press "Download maps". Wait until every map is ready.
+2. **Save and unzip the zip.** Press "Save .zip" and unzip it. You get one folder named after the pack, for example `Spring Cup 2026 Quarterfinals`, holding the numbered `.osz` files and `pack.txt`.
+3. **Make the torrent.** Press "Make torrent". Your browser fingerprints every file, which takes a few seconds for a small pack and up to a minute for a big one. Then press "Save .torrent" and copy the magnet link.
+4. **Open it in qBittorrent.** Open the `.torrent` file. Set the save location to the folder that holds the pack folder (not the pack folder itself), and keep "Skip hash check" off. qBittorrent checks the files, shows 100%, and starts seeding.
+5. **Share the magnet link.** Post the magnet link or the `.torrent` file wherever your players are. On a saved pack, press "Add magnet link to this pack" so it shows on the pack page for everyone.
+6. **Keep seeding.** Leave qBittorrent running until players have the pack. Every player who finishes can seed it too.
+
+To download a pack someone else is seeding, see [Download a pack with a torrent](/guide/download-a-torrent).
+
+## Tips
+
+- Make the zip and the torrent in the same browser, right after each other. They come from the same downloaded files, so they match exactly.
+- If you change the pack's name or maps, make a new torrent. The old one no longer matches, and a saved pack drops its old magnet links when you save those changes.
+- If the mirror updates a map later, a new torrent of the same pack gets a different magnet link.
+- Changing the download options (videos, backgrounds) gives different files, so a different torrent and magnet link.
+- Some networks block torrents. If nobody can connect, try seeding from another network.
+- Browser torrent apps can join through the WebSocket trackers, but desktop apps like qBittorrent are the reliable choice.
