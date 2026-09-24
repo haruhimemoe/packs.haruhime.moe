@@ -384,6 +384,23 @@ describe("PublicPackBrowser", () => {
     ).toBeInTheDocument();
   });
 
+  it("says to tick a source when both Source chips are off", async () => {
+    openUrl("/packs?source=none");
+    setup();
+    expect(
+      await screen.findByText("Tick Community or Archive under Source to see packs."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/wider range/)).not.toBeInTheDocument();
+  });
+
+  it("says to tick a source even with a search, before suggesting other words", async () => {
+    openUrl("/packs?q=zzzz&source=none");
+    setup();
+    expect(
+      await screen.findByText("Tick Community or Archive under Source to see packs."),
+    ).toBeInTheDocument();
+  });
+
   it("says the stats are still being worked out when every match is hidden for them", async () => {
     openUrl("/packs?mods=FL");
     setup();
