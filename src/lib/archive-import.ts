@@ -141,6 +141,11 @@ export const runArchiveImport = async (
     log(formatImportReport(result.plan, { read: listed, dryRun, source }));
     if (!dryRun) {
       log(`\nWrote ${result.created} new packs and new sources on ${result.updated} packs.`);
+      if (result.unlisted > 0) {
+        log(
+          `Unlisted ${result.unlisted} old ${result.unlisted === 1 ? "pack" : "packs"} whose every source changed.`,
+        );
+      }
     }
     if (result.usage) {
       const { beatmaps, written: changed, removed } = result.usage;
@@ -148,7 +153,7 @@ export const runArchiveImport = async (
         `Map usage: ${beatmaps} maps used in archive pools; ${changed} updated, ${removed} removed.`,
       );
     }
-    written = result.created + result.updated;
+    written = result.created + result.updated + result.unlisted;
   } catch (error) {
     warn(`archive:import stopped: ${messageOf(error)}`);
     return 1;

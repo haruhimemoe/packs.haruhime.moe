@@ -50,6 +50,8 @@ const stored = (slug: string, from: NormalizedPool, ...sources: ArchiveSourceRef
     name: from.input.name,
     fingerprint: from.fingerprint,
     sources: (sources.length > 0 ? sources : [from.source]).map(({ kind, id }) => ({ kind, id })),
+    visibility: "public",
+    hidden: false,
   }) satisfies ExistingArchivePack;
 
 const SKIPPED: SkippedPool = { kind: "otdb", id: "9", name: "Bad Cup", reason: "No maps." };
@@ -68,6 +70,7 @@ describe("planArchiveImport", () => {
       unchanged: [],
       merged: [],
       changed: [],
+      unlist: [],
       skipped: [SKIPPED],
     });
   });
@@ -107,7 +110,7 @@ describe("planArchiveImport", () => {
     ]);
   });
 
-  it("flags a source whose pool changed: a new pack, and the old one stays", () => {
+  it("flags a source whose pool changed: a new pack, and the old one unlisted", () => {
     const before = pool(otdbSource(5), "C Cup Finals", 1, 2);
     const after = pool(otdbSource(5), "C Cup Finals", 1, 3);
     const plan = planArchiveImport([after], [], [stored("cccccccccc", before)]);
@@ -117,6 +120,54 @@ describe("planArchiveImport", () => {
         source: after.source,
         from: { slug: "cccccccccc", name: "C Cup Finals" },
         to: { slug: null, name: "C Cup Finals" },
+      },
+    ]);
+    // Off /packs and out of map usage, so the pool counts once; its link still works.
+    expect(plan.unlist).toEqual([{ slug: "cccccccccc", name: "C Cup Finals" }]);
+  });
+
+  it("keeps the old pack listed while another of its sources still has its pool", () => {
+    const before = pool(otdbSource(5), "C Cup Finals", 1, 2);
+    const after = pool(otdbSource(5), "C Cup Finals", 1, 3);
+    const plan = planArchiveImport(
+      [after],
+      [],
+      [stored("cccccccccc", before, before.source, otr("9"))],
+    );
+    expect(plan.changed).toHaveLength(1);
+    expect(plan.unlist).toEqual([]);
+  });
+
+  it("leaves an old pack that isn't public as it is", () => {
+    const before = pool(otdbSource(5), "C Cup Finals", 1, 2);
+    const after = pool(otdbSource(5), "C Cup Finals", 1, 3);
+    const plan = planArchiveImport(
+      [after],
+      [],
+      [{ ...stored("cccccccccc", before), visibility: "unlisted" }],
+    );
+    expect(plan.create).toHaveLength(1);
+    expect(plan.unlist).toEqual([]);
+  });
+
+  it("never brings back a pool an admin hid: its changed pool is skipped", () => {
+    const before = pool(otdbSource(5), "C Cup Finals", 1, 2);
+    const after = pool(otdbSource(5), "C Cup Finals", 1, 3);
+    const plan = planArchiveImport(
+      [after],
+      [],
+      [{ ...stored("cccccccccc", before), hidden: true }],
+    );
+    expect(plan.create).toEqual([]);
+    expect(plan.changed).toEqual([]);
+    expect(plan.unlist).toEqual([]);
+    expect(plan.skipped).toEqual([
+      {
+        kind: "otdb",
+        id: "5",
+        name: "C Cup Finals",
+        reason:
+          "Its pool changed, but an admin hid its pack (cccccccccc), so it isn't imported again.",
       },
     ]);
   });
@@ -140,6 +191,7 @@ describe("planArchiveImport", () => {
         to: { slug: "dddddddddd", name: "D Cup Finals" },
       },
     ]);
+    expect(plan.unlist).toEqual([{ slug: "cccccccccc", name: "C Cup Finals" }]);
   });
 
   it("doesn't flag a changed pool again once its new pack has the source", () => {
@@ -152,6 +204,7 @@ describe("planArchiveImport", () => {
     );
     expect(plan.unchanged).toHaveLength(1);
     expect(plan.changed).toEqual([]);
+    expect(plan.unlist).toEqual([]);
   });
 
   it("keys sources by kind and id", () => {
@@ -247,6 +300,7 @@ describe("formatImportReport", () => {
         "  Unchanged                 0",
         "  Same pool twice           1",
         "  Changed pools             1",
+        "  Unlisted old packs        1",
         "  Skipped                   1",
         "",
         "Skipped:",
@@ -255,11 +309,14 @@ describe("formatImportReport", () => {
         "Same pool twice in this import (one pack with both sources):",
         "  otdb #418 is the same pool as otdb #71 (United States Cup 2017 Quarter Finals)",
         "",
-        "Changed pools (the old pack stays):",
+        "Changed pools:",
         "  otdb #5  was cccccccccc (C Cup Finals), now a new pack (C Cup Finals)",
         "",
         "New sources on stored packs:",
         "  dddddddddd (D Cup Finals) gains otdb #6",
+        "",
+        "Unlisted (every source of theirs now has another pack):",
+        "  cccccccccc (C Cup Finals)",
       ].join("\n"),
     );
   });
@@ -269,7 +326,7 @@ describe("formatImportReport", () => {
     const report = formatImportReport(plan, { read: 1, dryRun: false, source: "otdb" });
     expect(report.split("\n")[0]).toBe("otdb: 1 pool read.");
     expect(report).not.toContain("Skipped:");
-    expect(report.split("\n")).toHaveLength(8);
+    expect(report.split("\n")).toHaveLength(9);
   });
 
   it("names a changed pool's stored pack when it went to one", () => {

@@ -7,8 +7,9 @@
  *       importArchive plans normalized pools against the stored archive packs (hidden ones
  *       included, so a pool an admin hid is never imported again) and, unless it's a dry run,
  *       writes the plan: new public packs with their seeded stats (always incomplete, so the
- *       stats job looks every rating up on osu! once) and archive details, and new
- *       sources on stored packs (through the driver, so `updatedAt` never moves), then rebuilds
+ *       stats job looks every rating up on osu! once) and archive details, new sources on stored
+ *       packs, and old packs unlisted once every source of them changed (both through the
+ *       driver, so `updatedAt` never moves), then rebuilds
  *       map usage for every map (src/services/map-usage.ts). A dry run writes nothing, the account
  *       and map usage included. Revalidating the live site is the runner's job
  *       (src/lib/archive-import.ts): this code also runs outside Next.
@@ -24,6 +25,7 @@ import { nanoid } from "nanoid";
 import { ARCHIVE_ACCOUNT, type ArchiveSourceKind } from "@/constants/archive";
 import { SLUG_LENGTH } from "@/constants/pack";
 import { connectedDb } from "@/lib/db";
+import { UNPIN } from "@/models/Pack";
 import { rebuildMapUsage, type UsageRebuild } from "@/services/map-usage";
 import { connectedPackModel } from "@/services/packs";
 import {
@@ -65,14 +67,24 @@ export const ensureArchiveAccount = async (now: Date = new Date()): Promise<stri
 /**
  * @function listArchivePacks
  * @returns {Promise<ExistingArchivePack[]>} every stored archive pack (any visibility, hidden ones
- *          included) with its fingerprint and sources. Reads only: no index is built for it.
+ *          included) with its fingerprint, sources, visibility and whether an admin hid it.
+ *          Reads only: no index is built for it.
  */
 export const listArchivePacks = async (): Promise<ExistingArchivePack[]> => {
   const packs = (await connectedDb()).collection("packs");
   const docs = await packs
     .find(
       { "archive.fingerprint": { $exists: true } },
-      { projection: { slug: 1, name: 1, "archive.fingerprint": 1, "archive.sources": 1 } },
+      {
+        projection: {
+          slug: 1,
+          name: 1,
+          visibility: 1,
+          hiddenAt: 1,
+          "archive.fingerprint": 1,
+          "archive.sources": 1,
+        },
+      },
     )
     .toArray();
   return docs.map((doc) => ({
@@ -85,6 +97,8 @@ export const listArchivePacks = async (): Promise<ExistingArchivePack[]> => {
         id: String(source.id),
       }),
     ),
+    visibility: String(doc.visibility),
+    hidden: doc.hiddenAt !== undefined && doc.hiddenAt !== null,
   }));
 };
 
@@ -112,17 +126,18 @@ type StoredSource = { kind: ArchiveSourceKind; id: string; url: string; imported
 const stamped = (sources: readonly ArchiveSourceRef[], now: Date): StoredSource[] =>
   sources.map(({ kind, id, url }) => ({ kind, id, url, importedAt: now }));
 
-export type ArchiveWrites = { created: number; updated: number };
+export type ArchiveWrites = { created: number; updated: number; unlisted: number };
 
 /**
  * @function applyArchivePlan
  * @param plan {ArchivePlan} what to write
  * @param options {{ ownerId: string; now?: Date; makeSlug?: () => string }} the archive account,
  *        the import time, and the slug source (tests)
- * @returns {Promise<ArchiveWrites>} how many packs were created, and how many stored packs gained
- *          a source. A pool another import created meanwhile gets the sources instead of a
- *          second pack (the fingerprint index refuses it), and a source a pack already has is
- *          never added twice.
+ * @returns {Promise<ArchiveWrites>} how many packs were created, how many stored packs gained a
+ *          source, and how many old packs were unlisted (still public and not hidden when
+ *          written; their pin goes with it). A pool another import created meanwhile gets the
+ *          sources instead of a second pack (the fingerprint index refuses it), and a source a
+ *          pack already has is never added twice.
  */
 export const applyArchivePlan = async (
   plan: ArchivePlan,
@@ -186,7 +201,15 @@ export const applyArchivePlan = async (
   for (const update of plan.update) {
     if (await addSources({ slug: update.slug }, update.sources)) updated++;
   }
-  return { created, updated };
+  let unlisted = 0;
+  for (const { slug } of plan.unlist) {
+    const result = await model.collection.updateOne(
+      { slug, visibility: "public", hiddenAt: null, "archive.fingerprint": { $exists: true } },
+      { $set: { visibility: "unlisted" }, $unset: UNPIN },
+    );
+    unlisted += result.modifiedCount;
+  }
+  return { created, updated, unlisted };
 };
 
 export type ArchiveImport = ArchiveWrites & {
@@ -210,7 +233,7 @@ export const importArchive = async (
   { dryRun, now = new Date(), makeSlug }: { dryRun: boolean; now?: Date; makeSlug?: () => string },
 ): Promise<ArchiveImport> => {
   const plan = planArchiveImport(pools, skipped, await listArchivePacks());
-  if (dryRun) return { plan, created: 0, updated: 0, usage: null };
+  if (dryRun) return { plan, created: 0, updated: 0, unlisted: 0, usage: null };
   const ownerId = await ensureArchiveAccount(now);
   const writes = await applyArchivePlan(plan, { ownerId, now, makeSlug });
   return { plan, ...writes, usage: await rebuildMapUsage(undefined, now) };

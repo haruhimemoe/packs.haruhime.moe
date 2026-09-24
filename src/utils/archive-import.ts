@@ -5,7 +5,9 @@
  *       pack; a stored one gains the source if it doesn't have it yet, and is unchanged if it
  *       does; the same pool twice in one import is one new pack with both sources. A source
  *       whose pool changed (a new fingerprint for a source id a stored pack already has) gets its
- *       own pack, the old one stays, and the plan flags the pair. Also the runner's arguments and
+ *       own pack and the plan flags the pair; the old pack is unlisted once every source of it
+ *       changed, so the pool counts once, and a changed pool whose old pack an admin hid is
+ *       skipped, so the hide holds. Also the runner's arguments and
  *       the summary it prints, where every piece of source text (names, labels in reasons) has
  *       its control characters replaced and is cut short, so an export can't drive the admin's
  *       terminal. Pure.
@@ -23,6 +25,9 @@ export type ExistingArchivePack = {
   name: string;
   fingerprint: string;
   sources: readonly { kind: string; id: string }[];
+  visibility: string;
+  /** An admin hid it: its pool, changed or not, is never imported again. */
+  hidden: boolean;
 };
 
 /** A pack to create: the first source's pool, and every source it came from in this import. */
@@ -33,7 +38,7 @@ export type PlannedUpdate = { slug: string; name: string; sources: ArchiveSource
 export type UnchangedPool = { slug: string; name: string; source: ArchiveSourceRef };
 /** A pool seen twice in this import: `source` joins the pack planned for `into`. */
 export type MergedPool = { source: ArchiveSourceRef; into: ArchiveSourceRef; name: string };
-/** A source whose pool changed: its old pack stays, and it now belongs to another pack. */
+/** A source whose pool changed: it now belongs to another pack. */
 export type ChangedPool = {
   source: ArchiveSourceRef;
   from: { slug: string; name: string };
@@ -41,12 +46,16 @@ export type ChangedPool = {
   to: { slug: string | null; name: string };
 };
 
+/** A public stored pack every source of which changed: unlisted, so the pool counts once. */
+export type UnlistedPack = { slug: string; name: string };
+
 export type ArchivePlan = {
   create: PlannedCreate[];
   update: PlannedUpdate[];
   unchanged: UnchangedPool[];
   merged: MergedPool[];
   changed: ChangedPool[];
+  unlist: UnlistedPack[];
   skipped: SkippedPool[];
 };
 
@@ -64,7 +73,10 @@ export const sourceKey = (source: { kind: string; id: string }): string =>
  * @param skipped {readonly SkippedPool[]} pools already left out, carried into the plan
  * @param existing {readonly ExistingArchivePack[]} the archive packs stored now
  * @returns {ArchivePlan} what to create, which stored packs gain sources, what's unchanged,
- *          merged within the import, changed at its source, and skipped
+ *          merged within the import, changed at its source, which old packs to unlist (public
+ *          ones every source of which changed: off /packs and map usage, their links still
+ *          work), and skipped (a changed pool whose old pack an admin hid is skipped too, so a
+ *          hide always holds)
  */
 export const planArchiveImport = (
   pools: readonly NormalizedPool[],
@@ -87,10 +99,23 @@ export const planArchiveImport = (
     unchanged: [],
     merged: [],
     changed: [],
+    unlist: [],
     skipped: [...skipped],
   };
   for (const pool of pools) {
     const key = sourceKey(pool.source);
+    const hid = (bySource.get(key) ?? []).find(
+      (old) => old.hidden && old.fingerprint !== pool.fingerprint,
+    );
+    if (hid) {
+      plan.skipped.push({
+        kind: pool.source.kind,
+        id: pool.source.id,
+        name: pool.input.name,
+        reason: `Its pool changed, but an admin hid its pack (${hid.slug}), so it isn't imported again.`,
+      });
+      continue;
+    }
     const stored = byFingerprint.get(pool.fingerprint);
     let to: ChangedPool["to"];
     if (stored) {
@@ -129,6 +154,18 @@ export const planArchiveImport = (
   }
   plan.create = [...creates.values()];
   plan.update = [...updates.values()];
+  const moved = new Set(
+    plan.changed.map((change) => `${change.from.slug} ${sourceKey(change.source)}`),
+  );
+  plan.unlist = existing
+    .filter(
+      (pack) =>
+        pack.visibility === "public" &&
+        !pack.hidden &&
+        pack.sources.length > 0 &&
+        pack.sources.every((source) => moved.has(`${pack.slug} ${sourceKey(source)}`)),
+    )
+    .map(({ slug, name }) => ({ slug, name }));
   return plan;
 };
 
@@ -208,8 +245,9 @@ const label = (source: { kind: ArchiveSourceKind; id: string }): string =>
  * @param options {{ read: number; dryRun: boolean; source: ArchiveSourceKind }} how many pools
  *        the source listed, whether this was a dry run, and the source
  * @returns {string} the summary the runner prints: a count table (new, updated, unchanged,
- *          merged, changed, skipped), then each skipped pool with its reason, each pool merged
- *          within the import, each changed pool, and each stored pack that gains a source
+ *          merged, changed, unlisted, skipped), then each skipped pool with its reason, each
+ *          pool merged within the import, each changed pool, each stored pack that gains a
+ *          source, and each old pack unlisted
  */
 export const formatImportReport = (
   plan: ArchivePlan,
@@ -221,6 +259,7 @@ export const formatImportReport = (
     ["Unchanged", plan.unchanged.length],
     ["Same pool twice", plan.merged.length],
     ["Changed pools", plan.changed.length],
+    ["Unlisted old packs", plan.unlist.length],
     ["Skipped", plan.skipped.length],
   ];
   const width = Math.max(...rows.map(([name]) => name.length));
@@ -248,7 +287,7 @@ export const formatImportReport = (
     ),
   );
   section(
-    "Changed pools (the old pack stays):",
+    "Changed pools:",
     plan.changed.map(
       (pool) =>
         `${label(pool.source)}  was ${pool.from.slug} (${reportText(pool.from.name)}), now ${
@@ -262,6 +301,10 @@ export const formatImportReport = (
       (pack) =>
         `${pack.slug} (${reportText(pack.name)}) gains ${pack.sources.map(label).join(", ")}`,
     ),
+  );
+  section(
+    "Unlisted (every source of theirs now has another pack):",
+    plan.unlist.map((pack) => `${pack.slug} (${reportText(pack.name)})`),
   );
   return lines.join("\n");
 };

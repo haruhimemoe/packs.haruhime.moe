@@ -198,7 +198,7 @@ describe("archive:import", () => {
     expect(await archivePacks()).toHaveLength(17);
   });
 
-  it("gives a changed pool its own pack, keeps the old one, and flags the pair", async () => {
+  it("gives a changed pool its own pack, unlists the old one, and flags the pair", async () => {
     await withSample(["otdb"]);
     const [first] = SAMPLE();
     if (!first) throw new Error("empty sample");
@@ -222,9 +222,52 @@ describe("archive:import", () => {
     const { out } = await withSample(["otdb"], {}, JSON.stringify(changed));
     expect(out).toMatch(/New packs\s+1/);
     expect(out).toMatch(/Changed pools\s+1/);
+    expect(out).toMatch(/Unlisted old packs\s+1/);
     expect(out).toMatch(/otdb #58 {2}was [\w-]{10} \(Cindelluna's .*\), now a new pack/);
-    const both = await getPackModel().find({ "archive.sources.id": "58" }).lean();
-    expect(both).toHaveLength(2);
+    expect(out).toContain("Unlisted 1 old pack whose every source changed.");
+    const both = await getPackModel().find({ "archive.sources.id": "58" }).sort({ _id: 1 }).lean();
+    expect(both.map((pack) => pack.visibility)).toEqual(["unlisted", "public"]);
+    // The pool counts once in map usage: the new version only.
+    const [usage] = await getMapUsage([4242]);
+    expect(usage?.entries.map((entry) => entry.slug)).toEqual([both[1]?.slug]);
+    // A map both versions share lists only the new one.
+    const sharedId = rest[0]?.beatmap.beatmap_metadata.id;
+    if (sharedId === undefined) throw new Error("one-map pool");
+    const [shared] = await getMapUsage([sharedId]);
+    expect(shared?.entries.map((entry) => entry.slug)).toContain(both[1]?.slug);
+    expect(shared?.entries.map((entry) => entry.slug)).not.toContain(both[0]?.slug);
+  });
+
+  it("never brings back a pool an admin hid, even once it changed", async () => {
+    await withSample(["otdb"]);
+    const [first] = SAMPLE();
+    if (!first) throw new Error("empty sample");
+    const hidden = await getPackModel()
+      .findOne({ "archive.sources.id": String(first.id) })
+      .lean();
+    if (!hidden) throw new Error("nothing imported");
+    await setPackHidden(hidden.slug, new ObjectId().toHexString(), true);
+    const [connection, ...rest] = first.beatmap_connections;
+    if (!connection) throw new Error("empty pool");
+    const changed = [
+      {
+        ...first,
+        beatmap_connections: [
+          {
+            ...connection,
+            beatmap: {
+              ...connection.beatmap,
+              beatmap_metadata: { ...connection.beatmap.beatmap_metadata, id: 4242 },
+            },
+          },
+          ...rest,
+        ],
+      },
+    ];
+    const { out } = await withSample(["otdb"], {}, JSON.stringify(changed));
+    expect(out).toMatch(/New packs\s+0/);
+    expect(out).toContain("an admin hid its pack");
+    expect(await getPackModel().countDocuments({ "archive.sources.id": String(first.id) })).toBe(1);
   });
 
   it("never imports a pool again after an admin hid its pack", async () => {

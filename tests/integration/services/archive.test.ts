@@ -80,6 +80,7 @@ describe("applyArchivePlan", () => {
     expect(await applyArchivePlan(plan, { ownerId, now: NOW, makeSlug })).toEqual({
       created: 2,
       updated: 0,
+      unlisted: 0,
     });
     const stored = await getPackModel().find({}).sort({ _id: 1 }).lean();
     expect(stored.map((pack) => pack.slug)).toEqual(["aaaaaaaaaa", "bbbbbbbbbb"]);
@@ -96,10 +97,12 @@ describe("applyArchivePlan", () => {
     expect(await applyArchivePlan(racing, { ownerId, now: NOW })).toEqual({
       created: 0,
       updated: 1,
+      unlisted: 0,
     });
     expect(await applyArchivePlan(racing, { ownerId, now: NOW })).toEqual({
       created: 0,
       updated: 0,
+      unlisted: 0,
     });
     const [stored] = await listArchivePacks();
     expect(stored?.sources).toEqual([
