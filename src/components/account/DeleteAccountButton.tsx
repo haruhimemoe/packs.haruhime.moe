@@ -4,13 +4,13 @@
  *       showing the old session.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Wed Sep 23, 2026
  */
 
 "use client";
 
+import { Button } from "@haruhimemoe/ui";
 import { useState } from "react";
-import { Button } from "@/components/ui/Button";
 import { markSignedOut } from "@/hooks/useAccount";
 import { PacksApiError, packsApi } from "@/lib/packs-api";
 

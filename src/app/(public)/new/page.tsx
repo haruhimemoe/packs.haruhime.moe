@@ -3,12 +3,12 @@
  * @desc /new: the anonymous pack builder.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Wed Sep 23, 2026
  */
 
+import { PageHeader } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { PackBuilder } from "@/components/pack/PackBuilder";
-import { PageHeader } from "@/components/ui/PageHeader";
 
 export const metadata: Metadata = {
   title: "New pack",

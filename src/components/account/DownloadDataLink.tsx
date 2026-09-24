@@ -4,10 +4,10 @@
  *       next/link: it's a file from an API route, never a page to prefetch or route to.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Wed Sep 23, 2026
  */
 
-import { buttonClasses } from "@/components/ui/buttonStyles";
+import { buttonClasses } from "@haruhimemoe/ui";
 
 export const ACCOUNT_EXPORT_PATH = "/api/me/export";
 

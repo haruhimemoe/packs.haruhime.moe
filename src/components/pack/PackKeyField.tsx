@@ -3,14 +3,13 @@
  * @desc Shows a pack key with copy buttons for the key and a /k#<key> share link.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Wed Sep 23, 2026
  */
 
 "use client";
 
+import { Button, fieldClasses } from "@haruhimemoe/ui";
 import { useId, useState } from "react";
-import { Button } from "@/components/ui/Button";
-import { fieldClasses } from "@/components/ui/fieldStyles";
 
 type Copied = "key" | "link" | "failed" | null;
 

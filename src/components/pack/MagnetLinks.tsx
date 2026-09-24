@@ -11,10 +11,9 @@
 
 "use client";
 
+import { Button, buttonClasses } from "@haruhimemoe/ui";
 import Link from "next/link";
 import { useId, useState } from "react";
-import { Button } from "@/components/ui/Button";
-import { buttonClasses } from "@/components/ui/buttonStyles";
 import { PacksApiError } from "@/lib/packs-api";
 import type { PackExport } from "@/schemas/pack-export";
 import { formatShortDate } from "@/utils/date";

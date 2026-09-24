@@ -120,6 +120,19 @@ describe("BucketManager", () => {
     expect(screen.queryByLabelText("New code for EZ")).not.toBeInTheDocument();
   });
 
+  it("cancels a rename without submitting the form", async () => {
+    const { onRename, user } = setup();
+    await user.click(within(row("EZ")).getByRole("button", { name: "Rename EZ" }));
+    const input = screen.getByLabelText("New code for EZ");
+    await user.clear(input);
+    await user.type(input, "Easy");
+    const cancel = screen.getByRole("button", { name: "Cancel" });
+    expect(cancel).toHaveAttribute("type", "button");
+    await user.click(cancel);
+    expect(onRename).not.toHaveBeenCalled();
+    expect(screen.queryByLabelText("New code for EZ")).not.toBeInTheDocument();
+  });
+
   it("deletes an empty custom bucket; one with maps says why it can't", async () => {
     const { onRemove, user } = setup();
     await user.click(within(row("EZ")).getByRole("button", { name: "Delete EZ" }));

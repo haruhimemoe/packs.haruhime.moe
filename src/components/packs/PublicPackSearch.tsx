@@ -5,14 +5,14 @@
  *       if the index can't load, the server-rendered list (children) shows instead.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Wed Sep 23, 2026
  */
 
 "use client";
 
+import { fieldClasses } from "@haruhimemoe/ui";
 import { type ReactNode, useId, useMemo, useRef, useState } from "react";
 import { PublicPackList } from "@/components/packs/PublicPackList";
-import { fieldClasses } from "@/components/ui/fieldStyles";
 import { fetchSearchIndex, indexEntryToCard } from "@/lib/search-index";
 import type { SearchIndex } from "@/schemas/public-pack";
 import { prepareSearchIndex, searchPrepared } from "@/utils/search";

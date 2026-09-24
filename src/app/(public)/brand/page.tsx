@@ -7,10 +7,8 @@
  * @modified Wed Sep 23, 2026
  */
 
+import { Card, JsonLd, PageHeader } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
-import { Card } from "@/components/ui/Card";
-import { JsonLd } from "@/components/ui/JsonLd";
-import { PageHeader } from "@/components/ui/PageHeader";
 import { BRAND_ASSETS, BRAND_COLORS } from "@/constants/brand";
 import { SITE } from "@/constants/site";
 import { cn } from "@/utils/cn";

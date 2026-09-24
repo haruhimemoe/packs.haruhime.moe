@@ -17,9 +17,8 @@ import {
   type SlotLineError,
   slotLabel,
 } from "@haruhimemoe/pool";
+import { Button, fieldClasses } from "@haruhimemoe/ui";
 import { type FormEvent, useId, useState } from "react";
-import { Button } from "@/components/ui/Button";
-import { fieldClasses } from "@/components/ui/fieldStyles";
 import { MAX_SLOTS } from "@/constants/pack";
 import type { BucketEntry, CustomBucket, PoolSlot } from "@/schemas/pack";
 

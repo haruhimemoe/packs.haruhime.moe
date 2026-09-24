@@ -3,15 +3,13 @@
  * @desc /admin body: All / Hidden tabs, a name filter (plain GET form), the table, paging.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Wed Sep 23, 2026
  */
 
+import { Button, fieldClasses, PageHeader } from "@haruhimemoe/ui";
 import Link from "next/link";
 import { AdminPackTable } from "@/components/admin/AdminPackTable";
 import { Pagination } from "@/components/packs/Pagination";
-import { Button } from "@/components/ui/Button";
-import { fieldClasses } from "@/components/ui/fieldStyles";
-import { PageHeader } from "@/components/ui/PageHeader";
 import type { AdminPackPage } from "@/schemas/public-pack";
 import { cn } from "@/utils/cn";
 import { adminHref } from "@/utils/paging";

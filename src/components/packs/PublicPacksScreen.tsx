@@ -3,13 +3,13 @@
  * @desc /packs body (server-rendered): heading, search over the server list, paging.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Wed Sep 23, 2026
  */
 
+import { PageHeader } from "@haruhimemoe/ui";
 import { Pagination } from "@/components/packs/Pagination";
 import { PublicPackList } from "@/components/packs/PublicPackList";
 import { PublicPackSearch } from "@/components/packs/PublicPackSearch";
-import { PageHeader } from "@/components/ui/PageHeader";
 import type { PublicPackPage } from "@/schemas/public-pack";
 import { publicPageHref } from "@/utils/paging";
 

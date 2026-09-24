@@ -6,12 +6,10 @@
  * @modified Wed Sep 23, 2026
  */
 
+import { JsonLd, PageHeader, Prose } from "@haruhimemoe/ui";
 import type { MDXContent } from "mdx/types";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { JsonLd } from "@/components/ui/JsonLd";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { Prose } from "@/components/ui/Prose";
 import { GUIDE_DOCS, GUIDE_SLUGS, type GuideSlug, isGuideSlug } from "@/constants/guide";
 import { formatIsoDate } from "@/utils/date";
 

@@ -3,14 +3,13 @@
  * @desc Legal document route. Static params come from the registry; unknown slugs 404.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Wed Sep 23, 2026
  */
 
+import { PageHeader, Prose } from "@haruhimemoe/ui";
 import type { MDXContent } from "mdx/types";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { Prose } from "@/components/ui/Prose";
 import { isLegalSlug, LEGAL_DOCS, LEGAL_SLUGS, type LegalSlug } from "@/constants/legal";
 import { formatIsoDate } from "@/utils/date";
 

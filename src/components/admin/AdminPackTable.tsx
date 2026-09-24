@@ -4,15 +4,15 @@
  *       inline). Refreshes the server page after each action.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Wed Sep 23, 2026
  */
 
 "use client";
 
+import { Button } from "@haruhimemoe/ui";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/Button";
 import { VISIBILITY_OPTIONS } from "@/constants/visibility";
 import { PacksApiError, packsApi } from "@/lib/packs-api";
 import type { AdminPackRow } from "@/schemas/public-pack";

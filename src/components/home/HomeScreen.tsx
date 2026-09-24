@@ -7,13 +7,10 @@
  * @modified Wed Sep 23, 2026
  */
 
+import { ButtonLink, Card, JsonLd, PageHeader } from "@haruhimemoe/ui";
 import Link from "next/link";
 import { KeyPasteForm } from "@/components/pack/KeyPasteForm";
 import { PublicPackList } from "@/components/packs/PublicPackList";
-import { ButtonLink } from "@/components/ui/ButtonLink";
-import { Card } from "@/components/ui/Card";
-import { JsonLd } from "@/components/ui/JsonLd";
-import { PageHeader } from "@/components/ui/PageHeader";
 import { SITE } from "@/constants/site";
 import type { PublicPackCard } from "@/schemas/public-pack";
 

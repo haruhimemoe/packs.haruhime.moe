@@ -7,12 +7,11 @@
  * @modified Wed Sep 23, 2026
  */
 
+import { PageHeader, Prose } from "@haruhimemoe/ui";
 import type { MDXContent } from "mdx/types";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CopyMarkdownButton } from "@/components/docs/CopyMarkdownButton";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { Prose } from "@/components/ui/Prose";
 import { DOC_DOCS, DOC_SLUGS, type DocSlug, isDocSlug } from "@/constants/docs";
 import { readDocMarkdown } from "@/lib/docs";
 import { formatIsoDate } from "@/utils/date";

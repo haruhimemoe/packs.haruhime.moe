@@ -3,13 +3,12 @@
  * @desc /guide: every guide, with its description and last update. Static.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Wed Sep 23, 2026
  */
 
+import { Card, PageHeader } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Card } from "@/components/ui/Card";
-import { PageHeader } from "@/components/ui/PageHeader";
 import { GUIDE_DOCS, GUIDE_SLUGS } from "@/constants/guide";
 import { formatIsoDate } from "@/utils/date";
 

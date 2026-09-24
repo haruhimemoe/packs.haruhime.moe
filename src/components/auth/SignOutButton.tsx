@@ -3,14 +3,14 @@
  * @desc Signs out, returns home, and refreshes server components.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Wed Sep 23, 2026
  */
 
 "use client";
 
+import { Button } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button } from "@/components/ui/Button";
 import { markSignedOut } from "@/hooks/useAccount";
 import { authClient } from "@/lib/auth-client";
 

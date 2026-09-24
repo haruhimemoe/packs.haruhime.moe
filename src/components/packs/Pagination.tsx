@@ -3,10 +3,10 @@
  * @desc Newer / Older links with "Page X of Y". Renders nothing for a single page.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Wed Sep 23, 2026
  */
 
-import { ButtonLink } from "@/components/ui/ButtonLink";
+import { ButtonLink } from "@haruhimemoe/ui";
 
 type PaginationProps = {
   page: number;

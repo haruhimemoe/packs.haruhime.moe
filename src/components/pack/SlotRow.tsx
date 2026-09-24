@@ -11,14 +11,13 @@
 
 import { beatmapUrl, coverUrl } from "@haruhimemoe/osu/shapes";
 import { type SlotMods, slotTitle } from "@haruhimemoe/pool";
+import { Button, fieldClasses } from "@haruhimemoe/ui";
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { Fragment, useState } from "react";
 import { BeatmapStats } from "@/components/beatmap/BeatmapStats";
 import { StarRating } from "@/components/beatmap/StarRating";
 import { ModBadge } from "@/components/pack/ModBadge";
-import { Button } from "@/components/ui/Button";
-import { fieldClasses } from "@/components/ui/fieldStyles";
 import { NO_SLOT_VALUE } from "@/constants/mods";
 import type { MetaState } from "@/hooks/beatmapMetaState";
 import type { BucketEntry, PoolSlot, SlotBucket } from "@/schemas/pack";

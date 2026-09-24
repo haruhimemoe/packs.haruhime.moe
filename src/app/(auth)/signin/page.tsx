@@ -3,14 +3,14 @@
  * @desc /signin?next=: osu! sign-in. Signed-in visitors go straight to `next`.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Wed Sep 23, 2026
  */
 
+import { PageHeader } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { RestoreSignedIn } from "@/components/auth/RestoreSignedIn";
 import { SignInWithOsu } from "@/components/auth/SignInWithOsu";
-import { PageHeader } from "@/components/ui/PageHeader";
 import { getCurrentUser } from "@/lib/auth-session";
 import { safeNextPath } from "@/utils/safe-next";
 

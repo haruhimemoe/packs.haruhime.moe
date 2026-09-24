@@ -15,9 +15,8 @@ import {
   NO_SLOT_NAME,
   parseBeatmapRef,
 } from "@haruhimemoe/pool";
+import { Button, fieldClasses } from "@haruhimemoe/ui";
 import { type FormEvent, useId, useState } from "react";
-import { Button } from "@/components/ui/Button";
-import { fieldClasses } from "@/components/ui/fieldStyles";
 import { NO_SLOT_VALUE } from "@/constants/mods";
 import type { BucketEntry, SlotBucket } from "@/schemas/pack";
 

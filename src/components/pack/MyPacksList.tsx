@@ -6,8 +6,8 @@
  * @modified Wed Sep 23, 2026
  */
 
+import { ButtonLink } from "@haruhimemoe/ui";
 import Link from "next/link";
-import { ButtonLink } from "@/components/ui/ButtonLink";
 import { VISIBILITY_OPTIONS } from "@/constants/visibility";
 import type { SavedPackSummary } from "@/schemas/saved-pack";
 import { formatShortDate } from "@/utils/date";

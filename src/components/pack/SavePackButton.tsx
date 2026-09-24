@@ -9,9 +9,9 @@
 
 "use client";
 
+import { Button } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { Button } from "@/components/ui/Button";
 import { DEFAULT_PACK_NAME } from "@/constants/pack";
 import { useAccount } from "@/hooks/useAccount";
 import { PacksApiError, packsApi } from "@/lib/packs-api";

@@ -4,14 +4,13 @@
  *       one after mount, so previews and localhost show links that work there.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Wed Sep 23, 2026
  */
 
 "use client";
 
+import { Button, fieldClasses } from "@haruhimemoe/ui";
 import { useEffect, useId, useState } from "react";
-import { Button } from "@/components/ui/Button";
-import { fieldClasses } from "@/components/ui/fieldStyles";
 import { SITE } from "@/constants/site";
 
 export function ShortLinkField({ slug }: { slug: string }) {

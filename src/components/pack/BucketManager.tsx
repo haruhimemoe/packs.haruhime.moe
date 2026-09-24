@@ -19,12 +19,11 @@ import {
   nextFreeColor,
   type SlotMods,
 } from "@haruhimemoe/pool";
+import { Button, fieldClasses } from "@haruhimemoe/ui";
 import { type FormEvent, useId, useState } from "react";
 import { ColorPicker } from "@/components/pack/ColorPicker";
 import { ModBadge } from "@/components/pack/ModBadge";
 import { ModsField } from "@/components/pack/ModsField";
-import { Button } from "@/components/ui/Button";
-import { fieldClasses } from "@/components/ui/fieldStyles";
 import type { BucketEntry, PoolSlot } from "@/schemas/pack";
 
 type BucketManagerProps = {

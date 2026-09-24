@@ -3,13 +3,13 @@
  * @desc Saved pack description textarea with a live character count.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Wed Sep 23, 2026
  */
 
 "use client";
 
+import { fieldClasses } from "@haruhimemoe/ui";
 import { useId } from "react";
-import { fieldClasses } from "@/components/ui/fieldStyles";
 import { MAX_DESCRIPTION_LENGTH } from "@/constants/pack";
 
 type DescriptionFieldProps = {

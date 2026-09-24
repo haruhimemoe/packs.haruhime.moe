@@ -10,8 +10,8 @@
 
 "use client";
 
+import { Button } from "@haruhimemoe/ui";
 import { useState } from "react";
-import { Button } from "@/components/ui/Button";
 
 export function CopyMarkdownButton({ markdown, href }: { markdown: string; href: string }) {
   const [copied, setCopied] = useState<"copied" | "failed" | null>(null);

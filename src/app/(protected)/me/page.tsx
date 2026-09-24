@@ -7,6 +7,7 @@
  * @modified Wed Sep 23, 2026
  */
 
+import { ButtonLink, Card, PageHeader } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { ApiKeyCard } from "@/components/account/ApiKeyCard";
 import { DeleteAccountButton } from "@/components/account/DeleteAccountButton";
@@ -15,9 +16,6 @@ import { RestoreSignedIn } from "@/components/auth/RestoreSignedIn";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { MyPacksList } from "@/components/pack/MyPacksList";
 import { Pagination } from "@/components/packs/Pagination";
-import { ButtonLink } from "@/components/ui/ButtonLink";
-import { Card } from "@/components/ui/Card";
-import { PageHeader } from "@/components/ui/PageHeader";
 import { MAX_SAVED_PACKS } from "@/constants/pack";
 import { requireUser } from "@/lib/auth-session";
 import { getApiKeyInfo } from "@/services/api-keys";

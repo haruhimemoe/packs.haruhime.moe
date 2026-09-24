@@ -10,12 +10,12 @@
 "use client";
 
 import { encodePackKey } from "@haruhimemoe/pool";
+import { Card } from "@haruhimemoe/ui";
 import { useMemo } from "react";
 import { ExportPanel } from "@/components/export/ExportPanel";
 import { PackEditor } from "@/components/pack/PackEditor";
 import { PackKeyField } from "@/components/pack/PackKeyField";
 import { SavePackButton } from "@/components/pack/SavePackButton";
-import { Card } from "@/components/ui/Card";
 import { DEFAULT_PACK_NAME } from "@/constants/pack";
 import { useBeatmapMeta } from "@/hooks/useBeatmapMeta";
 import { usePackDraft } from "@/hooks/usePackDraft";

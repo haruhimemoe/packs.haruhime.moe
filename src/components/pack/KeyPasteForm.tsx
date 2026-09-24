@@ -14,10 +14,9 @@ import {
   PACK_KEY_ERROR_MESSAGES,
   PackKeyError,
 } from "@haruhimemoe/pool";
+import { Button, fieldClasses } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useId, useState } from "react";
-import { Button } from "@/components/ui/Button";
-import { fieldClasses } from "@/components/ui/fieldStyles";
 
 export function KeyPasteForm() {
   const router = useRouter();

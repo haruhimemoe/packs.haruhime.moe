@@ -3,11 +3,10 @@
  * @desc 404 page.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Wed Sep 23, 2026
  */
 
-import { ButtonLink } from "@/components/ui/ButtonLink";
-import { PageHeader } from "@/components/ui/PageHeader";
+import { ButtonLink, PageHeader } from "@haruhimemoe/ui";
 
 export default function NotFound() {
   return (
