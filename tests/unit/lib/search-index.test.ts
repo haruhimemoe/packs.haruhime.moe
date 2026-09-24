@@ -57,6 +57,15 @@ describe("fetchSearchIndex", () => {
     );
     await expect(fetchSearchIndex(async () => Response.json({ v: 2 }))).rejects.toThrow();
   });
+
+  it("still reads an index built while archive keys existed, and drops them", async () => {
+    const [first] = INDEX.packs;
+    const old = {
+      v: 1,
+      packs: [{ ...first, x: 1, xk: "otdb", xu: "https://otdb.sheppsu.me/db/mappools/1/" }],
+    };
+    expect(await fetchSearchIndex(async () => Response.json(old))).toEqual(INDEX);
+  });
 });
 
 describe("indexEntryToCard", () => {
@@ -91,16 +100,6 @@ describe("indexEntryToCard", () => {
       excerpt: "Quals",
       updatedAt: "2026-09-22T00:00:00.000Z",
     });
-  });
-
-  it("carries an archive pack's source link, and nothing without both keys", () => {
-    const entry = INDEX.packs[0] as (typeof INDEX.packs)[number];
-    const url = "https://otdb.sheppsu.me/db/mappools/657/";
-    expect(indexEntryToCard({ ...entry, x: 1, xk: "otdb", xu: url }).archiveSource).toEqual({
-      kind: "otdb",
-      url,
-    });
-    expect(indexEntryToCard({ ...entry, x: 1 })).not.toHaveProperty("archiveSource");
   });
 
   it("carries the creation date when the entry has one", () => {

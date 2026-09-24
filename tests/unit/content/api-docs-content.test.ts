@@ -2,8 +2,8 @@
  * @file tests/unit/content/api-docs-content.test.ts
  * @desc content/docs/api.mdx documents every endpoint in the OpenAPI route table, the real
  *       limits, the headers, every error code the API sends, what PUT does to fields left out,
- *       pins and hidden packs, the owner name, pack stats and every index key, archive packs, and
- *       the Claude Code plugin;
+ *       pins and hidden packs, the owner name, pack stats and every index key, and the Claude
+ *       Code plugin;
  *       every doc stays plain Markdown so /docs/<slug>.md can serve it as is.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
@@ -25,7 +25,6 @@ import {
 import { SEARCH_INDEX_LIMIT } from "@/constants/public-packs";
 import { errorCodeFor } from "@/lib/api";
 import { API_OPERATIONS } from "@/lib/openapi";
-import { archiveSourceSchema, packArchiveSchema } from "@/schemas/archive";
 import { packStatsSchema } from "@/schemas/pack-stats";
 
 const text = () => readFileSync(path.join(process.cwd(), "content", "docs", "api.mdx"), "utf8");
@@ -79,9 +78,7 @@ describe("content/docs/api.mdx", () => {
 
   it("says what /packs/index.json holds, and points to the API for a pack's maps", () => {
     expect(text()).toContain(`up to ${SEARCH_INDEX_LIMIT.toLocaleString("en-US")} packs`);
-    expect(text()).toContain(
-      "community packs newest created first, then archive packs newest created first",
-    );
+    expect(text()).toContain("Entries are newest created first.");
     expect(text()).toContain("GET /api/v1/packs/{slug}");
     expect(text()).not.toContain("read every public pack");
   });
@@ -126,21 +123,21 @@ describe("pack stats", () => {
     "`m`",
     "`g`",
     "`k`",
-    "`x`",
-    "`xk`",
-    "`xu`",
   ])("documents the index key %s", (key) => {
     expect(text()).toContain(key);
+  });
+
+  it("lists no archive keys for the index", () => {
+    const pagination = text().slice(
+      text().indexOf("## Pagination"),
+      text().indexOf("## Pack keys"),
+    );
+    for (const key of ["`x`", "`xk`", "`xu`"]) expect(pagination).not.toContain(key);
   });
 
   it("says stats arrive after a save", () => {
     expect(text()).toContain("a few seconds after each save");
     expect(text()).toContain("- 2026-09-24: pack objects carry `stats`");
-  });
-
-  it("says archive packs start with otdb's numbers, always incomplete", () => {
-    expect(text()).toContain("Archive packs start with `complete` false and otdb's numbers");
-    expect(text()).toContain("archive packs last, so that can take many days");
   });
 
   it("says a cut description excerpt ends in an ellipsis", () => {
@@ -153,20 +150,6 @@ describe("pack stats", () => {
     expect(text()).toContain(
       "A map osu! says doesn't exist (deleted, say) is left out of the numbers and doesn't make `complete` false.",
     );
-  });
-});
-
-describe("archive packs", () => {
-  it.each([...Object.keys(packArchiveSchema.shape), ...Object.keys(archiveSourceSchema.shape)])(
-    "documents archive field %s",
-    (field) => {
-      expect(text()).toContain(`\`${field}\``);
-    },
-  );
-
-  it("says nobody can set it, and dates the change", () => {
-    expect(text()).toContain("Nobody can set or change it: `POST` and `PUT` ignore it.");
-    expect(text()).toContain("- 2026-09-24: archive packs (past tournament pools) carry `archive`");
   });
 });
 

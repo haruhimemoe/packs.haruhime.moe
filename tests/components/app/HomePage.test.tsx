@@ -77,7 +77,7 @@ describe("HomeScreen", () => {
     expect(screen.getByText(/range overlaps the range you set/)).toBeInTheDocument();
     expect(screen.getByText(/every mod and mode you tick/)).toBeInTheDocument();
     expect(screen.getByText(/its map count is in range/)).toBeInTheDocument();
-    expect(screen.getByText(/community packs, archived pools, or both/)).toBeInTheDocument();
+    expect(screen.queryByText(/archived pools|community packs first/)).toBeNull();
   });
 
   it("says how public packs sort, and where pinned packs go", () => {

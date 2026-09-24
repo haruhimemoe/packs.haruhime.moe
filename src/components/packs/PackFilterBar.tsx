@@ -1,9 +1,8 @@
 /**
  * @file src/components/packs/PackFilterBar.tsx
  * @desc The /packs filter bar, laid out like the osu! beatmap listing: the search box and sort on
- *       top, then a panel of labeled rows (star rating, mods, length, BPM, mode, map count,
- *       source: community and archive packs, both on by default) with the live result count and
- *       "Clear filters". Controlled: it shows `filters` and reports
+ *       top, then a panel of labeled rows (star rating, mods, length, BPM, mode, map count) with
+ *       the live result count and "Clear filters". Controlled: it shows `filters` and reports
  *       every change. On phones the rows start open when a filter is set (a shared link, Back),
  *       and open again whenever filters arrive from the URL. Built from the @haruhimemoe/ui
  *       filter components.
@@ -33,9 +32,6 @@ import {
   MODE_LABELS,
   PACK_SORT_LABELS,
   PACK_SORTS,
-  PACK_SOURCE_LABELS,
-  PACK_SOURCES,
-  type PackSource,
   STAR_RANGE,
 } from "@/constants/pack-filters";
 import { STAT_MOD_CODES, type StatModCode } from "@/constants/pack-stats";
@@ -56,11 +52,6 @@ const MOD_OPTIONS: readonly ChipOption[] = STAT_MOD_CODES.map((code) => ({
 const MODE_OPTIONS: readonly ChipOption[] = RULESETS.map((ruleset) => ({
   value: ruleset,
   label: MODE_LABELS[ruleset],
-}));
-
-const SOURCE_OPTIONS: readonly ChipOption[] = PACK_SOURCES.map((source) => ({
-  value: source,
-  label: PACK_SOURCE_LABELS[source],
 }));
 
 type RangeKey = "sr" | "len" | "bpm" | "maps";
@@ -210,15 +201,6 @@ export function PackFilterBar({
           />
         </FilterRow>
         {rangeRow(MAPS_ROW)}
-        <FilterRow label="Source">
-          <ChipGroup
-            label="Source"
-            hideLabel
-            options={SOURCE_OPTIONS}
-            value={filters.source}
-            onChange={(value) => set({ source: pick<PackSource>(value, PACK_SOURCES) })}
-          />
-        </FilterRow>
       </FilterPanel>
     </div>
   );

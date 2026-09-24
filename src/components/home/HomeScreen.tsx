@@ -51,12 +51,12 @@ export const HOME_FAQ = [
   {
     question: "How do the public pack filters match?",
     answer:
-      "A pack matches when its star rating, length or BPM range overlaps the range you set, when it has every mod and mode you tick, when its map count is in range, and when it comes from a source you tick (community packs, archived pools, or both). While a star rating, length, BPM, mod or mode filter is set, packs whose stats aren't ready yet are hidden, and the list says how many.",
+      "A pack matches when its star rating, length or BPM range overlaps the range you set, when it has every mod and mode you tick, and when its map count is in range. While a star rating, length, BPM, mod or mode filter is set, packs whose stats aren't ready yet are hidden, and the list says how many.",
   },
   {
     question: "How can I sort public packs?",
     answer:
-      "By newest (the default, community packs first), recently updated, star rating low to high or high to low, most maps, or name. Pinned packs sit above the list until you search, filter or sort.",
+      "By newest (the default), recently updated, star rating low to high or high to low, most maps, or name. Pinned packs sit above the list until you search, filter or sort.",
   },
   {
     question: "How do I copy a map's ID for !mp map?",

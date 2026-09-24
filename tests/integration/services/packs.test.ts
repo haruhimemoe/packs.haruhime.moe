@@ -421,4 +421,8 @@ describe("indexes", () => {
   it("never indexes packs by beatmap id (map usage is gone)", () => {
     expect(keys()).not.toContain("slots.beatmapId");
   });
+
+  it("keeps no archive fingerprint index", () => {
+    expect(keys()).not.toContain("archive.fingerprint");
+  });
 });

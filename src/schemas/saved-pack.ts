@@ -3,8 +3,6 @@
  * @desc Saved packs (accounts): visibility, slug, the body POST/PUT accept, and the DTOs the API
  *       and pages pass around. Identity only; beatmap metadata is always fetched fresh. The only
  *       derived field is `stats` (filters), which the server computes and bodies never carry.
- *       Archive packs also carry `archive` (the tournament pool they were imported from), which
- *       only the importer writes.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -12,7 +10,6 @@
 
 import { z } from "zod";
 import { MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH, SLUG_LENGTH } from "@/constants/pack";
-import { packArchiveSchema } from "@/schemas/archive";
 import { checkPoolBuckets, poolFields } from "@/schemas/pack";
 import { packExportsSchema } from "@/schemas/pack-export";
 import { packStatsSchema } from "@/schemas/pack-stats";
@@ -89,8 +86,6 @@ export const savedPackSchema = poolFields
     hiddenAt: z.string().optional(),
     /** Filter stats, once the server has computed them (a few seconds after a save). */
     stats: packStatsSchema.optional(),
-    /** Archive packs only: the tournament pool the importer made this pack from. */
-    archive: packArchiveSchema.optional(),
     createdAt: z.string(),
     updatedAt: z.string(),
   })

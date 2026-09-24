@@ -4,8 +4,7 @@
  *       ranges overlap, every ticked mod and mode must be there, the map count sits inside its
  *       range, ends are inclusive and an end at the slider's edge is open; packs without the
  *       stats a filter needs, or with incomplete stats a range or mode misses, are hidden and
- *       counted; the Source filter (community, archive: `x: 1`); sorts keep ties in index order;
- *       the URL
+ *       counted; sorts keep ties in index order; the URL
  *       form parses and serializes (bad params ignored, lone surrogates replaced, also where
  *       String.prototype.toWellFormed is missing) and survives a round trip.
  * @author David @dvhsh (https://dvh.sh)
@@ -20,7 +19,6 @@ import {
   LENGTH_RANGE,
   MAP_COUNT_RANGE,
   PACK_SORTS,
-  PACK_SOURCES,
   STAR_RANGE,
 } from "@/constants/pack-filters";
 import { STAT_MOD_CODES } from "@/constants/pack-stats";
@@ -32,7 +30,6 @@ import {
   filtersHref,
   formatLengthText,
   hasFilters,
-  hasSourceFilter,
   hasStatFilters,
   isBrowsing,
   normalizeRange,
@@ -262,41 +259,6 @@ describe("packs with incomplete stats", () => {
   });
 });
 
-describe("source", () => {
-  const packs = [
-    rated("Community Cup"),
-    rated("OWC 2023 Finals", { x: 1, xk: "otdb", xu: "https://otdb.sheppsu.me/db/mappools/657/" }),
-    entry("Bare archive", { x: 1 }),
-  ];
-
-  it("shows community and archive packs by default", () => {
-    expect(EMPTY_FILTERS.source).toEqual(["community", "archive"]);
-    expect(names(packs, {})).toEqual(["Community Cup", "OWC 2023 Finals", "Bare archive"]);
-  });
-
-  it("shows only the ticked source, as a plain miss (never counted as hidden)", () => {
-    expect(run(packs, { source: ["archive"] })).toEqual({
-      slugs: ["OWC 2023 Finals", "Bare archive"],
-      hidden: 0,
-    });
-    expect(run(packs, { source: ["community"] })).toEqual({ slugs: ["Community Cup"], hidden: 0 });
-    expect(run(packs, { source: [] })).toEqual({ slugs: [], hidden: 0 });
-  });
-
-  it("writes a source only when one is off, and none as none", () => {
-    expect(serializeFilters({ ...EMPTY_FILTERS, source: ["community", "archive"] })).toBe("");
-    expect(serializeFilters({ ...EMPTY_FILTERS, source: ["community"] })).toBe("source=community");
-    expect(serializeFilters({ ...EMPTY_FILTERS, source: [] })).toBe("source=none");
-  });
-
-  it("combines with the other filters", () => {
-    expect(run(packs, { source: ["archive"], sr: [5, 6] })).toEqual({
-      slugs: ["OWC 2023 Finals"],
-      hidden: 1,
-    });
-  });
-});
-
 describe("text and filters together", () => {
   it("needs both, and isn't capped", () => {
     const packs = Array.from({ length: 80 }, (_, i) => rated(`Cup ${i}`, { c: i + 1 }));
@@ -329,17 +291,6 @@ describe("sortPacks", () => {
 
   it("puts the newest created first, using the update date when an entry has no creation date", () => {
     expect(order("new")).toEqual(["Delta", "bravo", "Charlie", "Alpha"]);
-  });
-
-  it("puts community packs before archive packs when newest first, as the plain list does", () => {
-    const archived = entry("Archived", { t: "2026-09-24T00:00:00.000Z", x: 1 });
-    expect(order("new", [a, archived, b, c, d])).toEqual([
-      "Delta",
-      "bravo",
-      "Charlie",
-      "Alpha",
-      "Archived",
-    ]);
   });
 
   it("puts the most recently updated first", () => {
@@ -392,16 +343,6 @@ describe("filter state", () => {
     expect(isBrowsing({ ...EMPTY_FILTERS, q: "   " })).toBe(false);
     const counted = { ...EMPTY_FILTERS, maps: [5, 10] as const };
     expect([hasFilters(counted), hasStatFilters(counted)]).toEqual([true, false]);
-    for (const source of [["archive"], ["community"], []] as const) {
-      const filtered = { ...EMPTY_FILTERS, source };
-      expect([
-        isBrowsing(filtered),
-        hasFilters(filtered),
-        hasStatFilters(filtered),
-        hasSourceFilter(filtered),
-      ]).toEqual([true, true, false, true]);
-    }
-    expect(hasSourceFilter({ ...EMPTY_FILTERS, source: ["archive", "community"] })).toBe(false);
     for (const set of [
       { sr: [5, 6] as const },
       { len: [60, 120] as const },
@@ -427,7 +368,6 @@ describe("filter state", () => {
       bpm: [150, null],
       mode: ["osu"],
       maps: [5, 10],
-      source: ["archive"],
       sort: "sr-desc",
     };
     expect(clearFilters(filters)).toEqual({ ...EMPTY_FILTERS, q: "cup", sort: "sr-desc" });
@@ -461,7 +401,7 @@ describe("parseFilters", () => {
   it("reads every param", () => {
     expect(
       parseFilters(
-        "?sr=5.5-6.5&mods=HR,DT&len=90-180&bpm=180-&mode=osu,mania&maps=10-20&source=archive&sort=sr-asc&q=spring+cup",
+        "?sr=5.5-6.5&mods=HR,DT&len=90-180&bpm=180-&mode=osu,mania&maps=10-20&sort=sr-asc&q=spring+cup",
       ),
     ).toEqual({
       q: "spring cup",
@@ -471,7 +411,6 @@ describe("parseFilters", () => {
       bpm: [180, null],
       mode: ["osu", "mania"],
       maps: [10, 20],
-      source: ["archive"],
       sort: "sr-asc",
     });
   });
@@ -515,17 +454,16 @@ describe("parseFilters", () => {
     expect(parseFilters("sr=%E0%A4%A").sr).toBeNull();
   });
 
-  it("reads sources in chip order, none as none, and anything unreadable as every source", () => {
-    expect(parseFilters("source=Archive,community").source).toEqual(PACK_SOURCES);
-    expect(parseFilters("source=community").source).toEqual(["community"]);
-    expect(parseFilters("source=none").source).toEqual([]);
-    expect(parseFilters("source=NONE").source).toEqual([]);
-    expect(parseFilters("source=elsewhere").source).toEqual(PACK_SOURCES);
-    expect(parseFilters("source=").source).toEqual(PACK_SOURCES);
-  });
-
   it("uses the first of a repeated param", () => {
     expect(parseFilters("sort=name&sort=maps").sort).toBe("name");
+  });
+
+  it("ignores source= from links made while the Source filter existed", () => {
+    for (const source of ["archive", "community", "none", "community,archive"]) {
+      expect(parseFilters(`source=${source}`)).toEqual(EMPTY_FILTERS);
+      expect(parseFilters(`sr=6-7&source=${source}`)).toEqual(parseFilters("sr=6-7"));
+      expect(serializeFilters(parseFilters(`source=${source}`))).toBe("");
+    }
   });
 });
 
@@ -541,11 +479,10 @@ describe("serializeFilters", () => {
         bpm: [180, null],
         mode: ["osu", "mania"],
         maps: [10, 20],
-        source: ["archive"],
         sort: "sr-asc",
       }),
     ).toBe(
-      "sr=5.5-6.5&mods=HR,DT&len=90-180&bpm=180-&mode=osu,mania&maps=10-20&source=archive&sort=sr-asc&q=spring%20cup%20%26%20more",
+      "sr=5.5-6.5&mods=HR,DT&len=90-180&bpm=180-&mode=osu,mania&maps=10-20&sort=sr-asc&q=spring%20cup%20%26%20more",
     );
   });
 
@@ -620,7 +557,6 @@ describe("URL round trip", () => {
       bpm: fc.option(range(BPM_RANGE, 0)),
       mode: subset(["osu", "taiko", "fruits", "mania"] as const),
       maps: fc.option(range(MAP_COUNT_RANGE, 0)),
-      source: subset(PACK_SOURCES),
       sort: fc.constantFrom(...PACK_SORTS),
     })
     .map(

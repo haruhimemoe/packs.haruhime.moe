@@ -61,14 +61,7 @@ const describeResults = (count: number, hidden: number, q: string, filtered: boo
 };
 
 /** What to try when nothing matches, or null when nothing would help (a sort alone). */
-const noMatchHint = (
-  hidden: number,
-  q: string,
-  filtered: boolean,
-  noSource: boolean,
-): string | null => {
-  // With no source ticked nothing can match, whatever else is set.
-  if (noSource) return "Tick Community or Archive under Source to see packs.";
+const noMatchHint = (hidden: number, q: string, filtered: boolean): string | null => {
   if (hidden > 0) {
     return hidden === 1
       ? "That pack's stats are still being worked out. Clear the star rating, mod, length, BPM and mode filters to see it."
@@ -128,9 +121,8 @@ export function PublicPackBrowser({ children, loadIndex }: PublicPackBrowserProp
 
   useEffect(() => {
     if (focusFrom.current === null) return;
-    // Each card's first link is its name (an archive card also links its source).
-    const cards = list.current?.querySelectorAll("li");
-    cards?.[focusFrom.current]?.querySelector<HTMLAnchorElement>("a")?.focus();
+    const links = list.current?.querySelectorAll<HTMLAnchorElement>("li a");
+    links?.[focusFrom.current]?.focus();
     focusFrom.current = null;
   });
 
@@ -148,7 +140,7 @@ export function PublicPackBrowser({ children, loadIndex }: PublicPackBrowserProp
     if (result === null) {
       body = <p className="text-c4 text-sm">Loading packs…</p>;
     } else if (result.entries.length === 0) {
-      const hint = noMatchHint(result.hidden, q, filtered, filters.source.length === 0);
+      const hint = noMatchHint(result.hidden, q, filtered);
       body = hint ? <p className="text-c3">{hint}</p> : null;
     } else {
       body = (

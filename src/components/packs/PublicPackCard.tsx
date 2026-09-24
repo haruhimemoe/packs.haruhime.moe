@@ -1,9 +1,8 @@
 /**
  * @file src/components/packs/PublicPackCard.tsx
- * @desc One public pack in the /packs grid: name, an "Archived pool" badge linking the source
- *       pool (archive packs), host, size, star and length ranges (once the pack's stats are in),
- *       description excerpt, and a date: when it was added (the list's default order), or when it
- *       was last updated for lists sorted that way.
+ * @desc One public pack in the /packs grid: name, host, size, star and length ranges (once the
+ *       pack's stats are in), description excerpt, and a date: when it was added (the list's
+ *       default order), or when it was last updated for lists sorted that way.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -11,7 +10,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArchiveBadge } from "@/components/pack/ArchiveBadge";
 import type { PublicPackCard as PublicPack } from "@/schemas/public-pack";
 import { formatShortDate } from "@/utils/date";
 import { formatDuration, formatRange, formatStars } from "@/utils/format";
@@ -38,7 +36,6 @@ export function PublicPackCard({ pack, date = "added" }: PublicPackCardProps) {
       >
         {pack.name}
       </Link>
-      {pack.archiveSource ? <ArchiveBadge source={pack.archiveSource} /> : null}
       <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-c3 text-sm">
         {pack.ownerAvatarUrl ? (
           <Image src={pack.ownerAvatarUrl} alt="" width={20} height={20} className="rounded-full" />

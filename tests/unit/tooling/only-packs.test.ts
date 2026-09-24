@@ -33,6 +33,8 @@ describe("removed for good", () => {
     "src/utils/map-usage.ts",
     "src/hooks/useMapUsage.ts",
     "src/components/pack/MapUsage.tsx",
+    "src/schemas/archive.ts",
+    "src/components/pack/ArchiveBadge.tsx",
   ])("%s is gone", (file) => {
     expect(existsSync(at(file))).toBe(false);
   });

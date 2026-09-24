@@ -106,8 +106,7 @@ Every error has the same shape:
 - `packKey` is the pack's [pack key](/guide/pack-key). Anyone can open it at `https://packs.haruhime.moe/k#` followed by the key.
 - `exports` lists the magnet links the owner recorded, newest first.
 - `hiddenAt` shows up only on your own packs, when a moderator has hidden one.
-- `stats` sums up the pack's maps. We work it out a few seconds after each save, so it's missing from the answer to `POST` and to a `PUT` that changes the maps or slots; read the pack again a little later. It's also missing for a pack whose stats we haven't worked out yet. Archive packs start with numbers from otdb instead: see `complete`.
-- `archive` shows up only on archive packs: past tournament pools we imported, hosted by `haruhime archive`. See Archive packs below. Nobody can set or change it: `POST` and `PUT` ignore it.
+- `stats` sums up the pack's maps. We work it out a few seconds after each save, so it's missing from the answer to `POST` and to a `PUT` that changes the maps or slots; read the pack again a little later. It's also missing for a pack whose stats we haven't worked out yet.
 
 ### Pack stats
 
@@ -116,28 +115,8 @@ Every error has the same shape:
 - `mods`: the pack's built-in slots (`NM`, `HD`, `HR`, `DT`, `FM`, `TB`) and the mods its custom slots force (`EZ`, `HD`, `HR`, `DT`, `HT`, `FL`; a custom free mod slot counts as `FM`), in that order.
 - `modes`: the rulesets of its maps (`osu`, `taiko`, `fruits`, `mania`).
 - `count`: the number of maps.
-- `complete`: `false` when we couldn't look up a map or a rating with mods. The numbers then cover the maps we could, and we try again later. A map osu! says doesn't exist (deleted, say) is left out of the numbers and doesn't make `complete` false. A range is `null` when no map gave a value. Archive packs start with `complete` false and otdb's numbers (star ratings without mods, length and BPM), even when otdb had every map. A daily job then works their stats out like any other pack's, archive packs last, so that can take many days.
-- `computedAt`: when we worked the stats out, or, for otdb's numbers, when we imported the pool.
-
-### Archive packs
-
-```json
-"archive": {
-  "tournament": "osu! World Cup 2023",
-  "round": "Grand Finals",
-  "year": 2023,
-  "badged": null,
-  "fingerprint": "5e0c…",
-  "sources": [
-    { "kind": "otdb", "id": "657", "url": "https://otdb.sheppsu.me/db/mappools/657/", "importedAt": "2026-09-24T12:00:00.000Z" }
-  ]
-}
-```
-
-- `tournament`, `round`, `year`: read from the pool's name at its source. `round` is `null` when the name has no round we know, and `year` when it has no year.
-- `badged`: whether the tournament was badged. `null` until a source tells us.
-- `fingerprint`: the pool's identity, a sha256 of its sorted `beatmapId:mods` entries. The same pool from two sources is one pack with two sources. A pool that changed maps at its source is a new pack, and the old pack becomes unlisted once every source of it changed: its link still works, but it leaves the public list and map usage.
-- `sources`: where the pool came from, first import first: `kind` (`otdb`, `otr` or `wybin`; every pool so far comes from `otdb`), the pool's `id` there, its `url`, and `importedAt`.
+- `complete`: `false` when we couldn't look up a map or a rating with mods. The numbers then cover the maps we could, and we try again later. A map osu! says doesn't exist (deleted, say) is left out of the numbers and doesn't make `complete` false. A range is `null` when no map gave a value.
+- `computedAt`: when we worked the stats out.
 
 ## Endpoints
 
@@ -151,7 +130,7 @@ The key's owner.
 
 ### `GET /api/v1/packs`
 
-Public packs, most recently updated first, 50 per page, archive packs included. Takes `?page=` (see Pagination). Each entry in `packs` is a full pack object, shortened here. Pinned packs aren't marked or moved up here; the Pinned row is only on the site.
+Public packs, most recently updated first, 50 per page. Takes `?page=` (see Pagination). Each entry in `packs` is a full pack object, shortened here. Pinned packs aren't marked or moved up here; the Pinned row is only on the site.
 
 ```json
 { "packs": [{ "slug": "V1StGXR8_Z", "name": "Spring Cup Finals", "packKey": "pk1.…" }], "page": 1, "pageCount": 3, "total": 131 }
@@ -198,7 +177,7 @@ Delete one of your packs. Answers `204` with no body.
 
 `page` starts at 1 and goes up to 999999. Responses include `page`, `pageCount`, and `total`. A page past the end comes back with an empty `packs` list.
 
-To list public packs without a key, use the static search index at [/packs/index.json](https://packs.haruhime.moe/packs/index.json) (up to 5,000 packs). It doesn't count toward any limit, and it updates shortly after a public pack changes. Entries list community packs newest created first, then archive packs newest created first. Each entry has `s` (slug), `n` (name), `o` (the owner's osu! username), `c` (map count), `d` (the start of the description: up to 140 characters, plus `…` when it's cut), `u` (last updated) and `t` (created; an archive pack's is when we imported it). Each entry also carries the pack's stats in short form once we have them: `r` star rating range, `a` average stars, `l` length range in seconds, `b` BPM range, `m` mods and `g` rulesets (comma-separated), and `k` for `complete`. Archive packs also carry `x` (always `1`), `xk` (the source: `otdb`, `otr` or `wybin`) and `xu` (the pool's page there). For a pack's maps, call `GET /api/v1/packs/{slug}`.
+To list public packs without a key, use the static search index at [/packs/index.json](https://packs.haruhime.moe/packs/index.json) (up to 5,000 packs). It doesn't count toward any limit, and it updates shortly after a public pack changes. Entries are newest created first. Each entry has `s` (slug), `n` (name), `o` (the owner's osu! username), `c` (map count), `d` (the start of the description: up to 140 characters, plus `…` when it's cut), `u` (last updated) and `t` (created). Each entry also carries the pack's stats in short form once we have them: `r` star rating range, `a` average stars, `l` length range in seconds, `b` BPM range, `m` mods and `g` rulesets (comma-separated), and `k` for `complete`. For a pack's maps, call `GET /api/v1/packs/{slug}`.
 
 ## Pack keys
 

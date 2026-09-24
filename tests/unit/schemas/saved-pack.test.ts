@@ -202,3 +202,9 @@ describe("descriptions", () => {
     ).toBe(true);
   });
 });
+
+describe("savedPackSchema without archives", () => {
+  it("has no archive field: a pack is a pack", () => {
+    expect(Object.keys(savedPackSchema.shape)).not.toContain("archive");
+  });
+});

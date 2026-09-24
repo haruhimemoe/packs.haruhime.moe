@@ -1,7 +1,7 @@
 /**
  * @file tests/unit/utils/llms-txt.test.ts
  * @desc llms.txt follows the llmstxt.org shape, opens with the notes a reader needs first (no
- *       file hosting, pack keys, archived pools), is built from the registries (every guide and
+ *       file hosting, pack keys), is built from the registries (every guide and
  *       legal doc appears, docs by their .md copy), spells out the /packs query string and the
  *       index keys, and every link is absolute and on one line.
  * @author David @dvhsh (https://dvh.sh)
@@ -33,9 +33,12 @@ describe("buildLlmsTxt", () => {
   it.each([
     "packs doesn't host beatmap files.",
     `opens at ${SITE.url}/k# followed by the key, with no account.`,
-    "Archived pools are past osu! tournament mappools imported from otdb",
   ])("notes %j", (phrase) => {
     expect(text).toContain(phrase);
+  });
+
+  it("has no note about archived pools", () => {
+    expect(LLMS_NOTES.join(" ")).not.toMatch(/archive/i);
   });
 
   it("has the Pages, Guides, Data, API, and Legal sections in that order", () => {
@@ -73,29 +76,17 @@ describe("buildLlmsTxt", () => {
     expect(text).toContain("newest created first");
     expect(text).toContain("r: [min, max] star rating");
     expect(text).toContain("k: stats complete");
-    expect(text).toContain("xk: source (otdb, otr, wybin)");
     expect(text).toContain("characters, plus … when cut)");
-    expect(text).toContain("they start with otdb's stats and k: false");
-    expect(text).toContain(
-      "community packs newest created first, then archive packs newest created first",
-    );
+    expect(text).toContain("packs, newest created first. No key needed.");
+    expect(text).not.toMatch(/\bxk\b|\bxu\b|x: 1/);
   });
 
   it("spells out the /packs query string", () => {
     const line = text.split("\n").find((l) => l.startsWith("- [Public packs]")) ?? "";
-    for (const param of [
-      "q (",
-      "sr (",
-      "len (",
-      "bpm",
-      "maps (",
-      "mods (",
-      "mode (",
-      "source (",
-      "sort (",
-    ]) {
+    for (const param of ["q (", "sr (", "len (", "bpm", "maps (", "mods (", "mode (", "sort ("]) {
       expect(line).toContain(param);
     }
+    expect(line).not.toContain("source");
     expect(line).toContain("new, updated, sr-asc, sr-desc, maps, name");
   });
 

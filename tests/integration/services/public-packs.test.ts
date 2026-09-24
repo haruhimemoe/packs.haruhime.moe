@@ -3,9 +3,8 @@
  * @desc The cached public list and search index: only public, visible packs, newest created
  *       first (an edit doesn't move a pack up), with the host's osu! name; paging; the index shape
  *       (creation date included) and cap; pack stats in compact form on index entries and cards
- *       (left out when a pack has none); archive packs' source links on cards and x, xk, xu in the
- *       index; the pinned row (public, visible, in pin order, the same cards); no database under
- *       CI builds.
+ *       (left out when a pack has none); the pinned row (public, visible, in pin order, the same
+ *       cards); no database under CI builds, and the system account's packs listed like any other.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -19,12 +18,7 @@ import type { PackInput } from "@/schemas/saved-pack";
 import { ensureArchiveAccount } from "@/services/archive";
 import { createPack } from "@/services/packs";
 import { pinPack, reorderPins } from "@/services/pins";
-import {
-  buildSearchIndex,
-  listPinnedPacks,
-  listPublicPacks,
-  listRecentPacks,
-} from "@/services/public-packs";
+import { buildSearchIndex, listPinnedPacks, listPublicPacks } from "@/services/public-packs";
 import { createTestUser } from "../../helpers/auth";
 import { setupTestDb } from "../../helpers/db";
 
@@ -143,129 +137,6 @@ describe("public cards", () => {
       k: true,
     });
     expect(cards.find((card) => card.slug === none.slug)).not.toHaveProperty("stats");
-  });
-});
-
-/** Makes a pack an archive pack, the way the importer stores it. */
-const archive = (
-  slug: string,
-  url = "https://otdb.sheppsu.me/db/mappools/657/",
-  fingerprint = "c".repeat(64),
-) =>
-  getPackModel().collection.updateOne(
-    { slug },
-    {
-      $set: {
-        archive: {
-          tournament: "osu! World Cup 2023",
-          round: "Grand Finals",
-          year: 2023,
-          badged: null,
-          fingerprint,
-          sources: [{ kind: "otdb", id: "657", url, importedAt: new Date() }],
-        },
-      },
-    },
-  );
-
-describe("archive packs on the list and in the index", () => {
-  it("link their first source on cards, and carry x, xk and xu in the index", async () => {
-    const host = await createTestUser({ username: "host" });
-    const archiveId = await ensureArchiveAccount();
-    const community = await createPack(host.id, input({ name: "Community Cup" }));
-    const archived = await createPack(archiveId, input({ name: "OWC 2023 GF" }), {
-      unlimited: true,
-    });
-    await archive(archived.slug);
-
-    const cards = (await listPublicPacks(1)).packs;
-    expect(cards.find((card) => card.slug === archived.slug)).toMatchObject({
-      ownerName: "haruhime archive",
-      ownerAvatarUrl: "https://packs.haruhime.moe/brand/packs-icon.svg",
-      archiveSource: { kind: "otdb", url: "https://otdb.sheppsu.me/db/mappools/657/" },
-    });
-    expect(cards.find((card) => card.slug === community.slug)).not.toHaveProperty("archiveSource");
-
-    const index = await buildSearchIndex();
-    expect(index.packs.find((entry) => entry.s === archived.slug)).toMatchObject({
-      x: 1,
-      xk: "otdb",
-      xu: "https://otdb.sheppsu.me/db/mappools/657/",
-    });
-    const plain = index.packs.find((entry) => entry.s === community.slug);
-    expect(plain).not.toHaveProperty("x");
-    expect(plain).not.toHaveProperty("xk");
-  });
-
-  it("keep x but drop a source link that isn't https, so the index still parses", async () => {
-    const archiveId = await ensureArchiveAccount();
-    const archived = await createPack(archiveId, input(), { unlimited: true });
-    await archive(archived.slug, "javascript:alert(1)");
-    const [card] = (await listPublicPacks(1)).packs;
-    expect(card).not.toHaveProperty("archiveSource");
-    const [entry] = (await buildSearchIndex()).packs;
-    expect(entry).toMatchObject({ x: 1 });
-    expect(entry).not.toHaveProperty("xu");
-  });
-});
-
-describe("community packs before archive packs", () => {
-  it("lists community packs first and archive packs after them, each newest first", async () => {
-    const host = await createTestUser();
-    const archiveId = await ensureArchiveAccount();
-    const community = (name: string) => createPack(host.id, input({ name }));
-    const archived = async (name: string, n: number) => {
-      const pack = await createPack(archiveId, input({ name }), { unlimited: true });
-      await archive(pack.slug, undefined, n.toString(16).padStart(64, "0"));
-    };
-    await community("Old community");
-    await archived("Archive 1", 1);
-    await archived("Archive 2", 2);
-    for (let i = 0; i < 22; i++) await community(`Community ${i}`);
-
-    const first = await listPublicPacks(1);
-    expect(first).toMatchObject({ total: 25, pageCount: 2 });
-    expect(first.packs.map((card) => card.name).slice(0, 2)).toEqual([
-      "Community 21",
-      "Community 20",
-    ]);
-    expect(first.packs.map((card) => card.name).slice(-2)).toEqual(["Old community", "Archive 2"]);
-    expect((await listPublicPacks(2)).packs.map((card) => card.name)).toEqual(["Archive 1"]);
-
-    const index = (await buildSearchIndex()).packs.map((entry) => entry.n);
-    expect(index).toHaveLength(25);
-    expect(index.slice(-3)).toEqual(["Old community", "Archive 2", "Archive 1"]);
-    // The cap drops archive packs before community ones.
-    expect((await buildSearchIndex({ limit: 23 })).packs.at(-1)?.n).toBe("Old community");
-  });
-});
-
-describe("listRecentPacks", () => {
-  it("lists the newest public community packs only, as the same cards", async () => {
-    const host = await createTestUser({ username: "Chiyo" });
-    const archiveId = await ensureArchiveAccount();
-    await createPack(host.id, input({ name: "Older" }));
-    await createPack(host.id, input({ name: "Unlisted", visibility: "unlisted" }));
-    const newer = await createPack(host.id, input({ name: "Newer" }));
-    const archived = await createPack(archiveId, input({ name: "Archived" }), { unlimited: true });
-    await archive(archived.slug);
-
-    const recent = await listRecentPacks(6);
-
-    expect(recent.map((card) => card.name)).toEqual(["Newer", "Older"]);
-    expect(recent[0]).toEqual(
-      (await listPublicPacks(1)).packs.find((card) => card.slug === newer.slug),
-    );
-    expect((await listRecentPacks(1)).map((card) => card.name)).toEqual(["Newer"]);
-  });
-
-  it("is empty without a database query in CI builds", async () => {
-    vi.stubEnv("SKIP_ENV_VALIDATION", "true");
-    try {
-      expect(await listRecentPacks(6)).toEqual([]);
-    } finally {
-      vi.stubEnv("SKIP_ENV_VALIDATION", "");
-    }
   });
 });
 
@@ -409,5 +280,28 @@ describe("listPinnedPacks", () => {
     } finally {
       vi.stubEnv("SKIP_ENV_VALIDATION", "");
     }
+  });
+});
+
+describe("the system account's packs", () => {
+  it("list and index like any other pack: newest first, no extra keys", async () => {
+    const host = await createTestUser({ username: "Chiyo" });
+    const systemId = await ensureArchiveAccount();
+    const community = await createPack(host.id, input({ name: "Community" }));
+    const imported = await createPack(systemId, input({ name: "OWC 2023 Finals" }), {
+      unlimited: true,
+    });
+    // A leftover archive subdocument in the database changes nothing.
+    await getPackModel().collection.updateOne(
+      { slug: imported.slug },
+      { $set: { archive: { tournament: "OWC", fingerprint: "a".repeat(64), sources: [] } } },
+    );
+    const page = await listPublicPacks(1);
+    expect(page.packs.map((card) => card.name)).toEqual(["OWC 2023 Finals", "Community"]);
+    // No key on any card starts with "archive" (the owner's name may still say archive).
+    expect(JSON.stringify(page)).not.toContain('"archive');
+    const index = await buildSearchIndex();
+    expect(index.packs.map((entry) => entry.s)).toEqual([imported.slug, community.slug]);
+    expect(Object.keys(index.packs[0] ?? {}).sort()).toEqual(["c", "d", "n", "o", "s", "t", "u"]);
   });
 });

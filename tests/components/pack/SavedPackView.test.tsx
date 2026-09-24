@@ -162,50 +162,6 @@ describe("SavedPackView", () => {
     expect(text).toHaveClass("whitespace-pre-line");
   });
 
-  it("badges an archive pack and links its pool, on the badge and in the description", () => {
-    const url = "https://otdb.sheppsu.me/db/mappools/58/";
-    render(
-      <SavedPackView
-        pack={{
-          ...PACK,
-          visibility: "public",
-          description: `Archived from otdb pool #58: ${url}`,
-          archive: {
-            tournament: "Ricma 2",
-            round: "Quarterfinals",
-            year: null,
-            badged: null,
-            fingerprint: "a".repeat(64),
-            sources: [{ kind: "otdb", id: "58", url, importedAt: "2026-09-24T12:00:00.000Z" }],
-          },
-        }}
-        isOwner={false}
-      />,
-    );
-    const badge = screen.getByRole("link", { name: "Archived pool from otdb" });
-    expect(badge).toHaveAttribute("href", url);
-    expect(badge).toHaveAttribute("target", "_blank");
-    expect(badge).toHaveAttribute("rel", "noopener noreferrer");
-    expect(precedes(screen.getByRole("heading", { level: 1, name: "SPC Finals" }), badge)).toBe(
-      true,
-    );
-    const inDescription = screen.getByRole("link", { name: url });
-    expect(inDescription).toHaveAttribute("href", url);
-    expect(inDescription).toHaveAttribute("rel", "noopener noreferrer");
-    expect(inDescription.closest("p")).toHaveTextContent(`Archived from otdb pool #58: ${url}`);
-  });
-
-  it("shows no archive badge and no links in a community pack's description", () => {
-    render(
-      <SavedPackView
-        pack={{ ...PACK, description: "See https://example.com/pool" }}
-        isOwner={false}
-      />,
-    );
-    expect(screen.queryByText(/Archived pool/)).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "https://example.com/pool" })).toBeNull();
-  });
-
   it("shows the moderation notice on a hidden pack", () => {
     render(<SavedPackView pack={{ ...PACK, hiddenAt: "2026-09-22T12:00:00.000Z" }} isOwner />);
     expect(screen.getByText(/A moderator hid this pack/)).toHaveTextContent("contact@haruhime.moe");

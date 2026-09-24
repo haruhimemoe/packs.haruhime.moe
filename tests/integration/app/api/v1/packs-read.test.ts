@@ -1,7 +1,7 @@
 /**
  * @file tests/integration/app/api/v1/packs-read.test.ts
  * @desc GET /api/v1/packs (public, paged), /api/v1/packs/{slug} (visibility, hidden, never
- *       admin, archive details on archive packs), and /api/v1/me/packs (every own pack, paged).
+ *       admin, the system account's packs like any other), and /api/v1/me/packs (every own pack, paged).
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
  * @modified Thu Sep 24, 2026
@@ -204,46 +204,25 @@ describe("GET /api/v1/packs/{slug}", () => {
     );
   });
 
-  it("shows an archive pack's archive details, and leaves a corrupt one out", async () => {
-    const reader = await createTestUser();
-    const key = await createTestApiKey(reader.id);
-    const archiveId = await ensureArchiveAccount();
-    const { slug } = await createPack(archiveId, INPUT, { unlimited: true });
-    const importedAt = new Date("2026-09-24T12:00:00.000Z");
-    const archive = {
-      tournament: "osu! World Cup 2023",
-      round: "Grand Finals",
-      year: 2023,
-      badged: null,
-      fingerprint: "b".repeat(64),
-      sources: [
-        { kind: "otdb", id: "657", url: "https://otdb.sheppsu.me/db/mappools/657/", importedAt },
-      ],
-    };
-    await getPackModel().collection.updateOne({ slug }, { $set: { archive } });
-    const pack = apiPackResponseSchema.parse(await (await one(key, slug)).json()).pack;
-    expect(pack).toMatchObject({
-      ownerName: "haruhime archive",
-      archive: {
-        ...archive,
-        sources: [{ ...archive.sources[0], importedAt: importedAt.toISOString() }],
-      },
-    });
-
-    await getPackModel().collection.updateOne(
-      { slug },
-      { $set: { "archive.sources.0.url": "javascript:alert(1)" } },
-    );
-    const corrupt = apiPackResponseSchema.parse(await (await one(key, slug)).json()).pack;
-    expect(corrupt).not.toHaveProperty("archive");
-    expect(corrupt.slug).toBe(slug);
-  });
-
   it("answers 404 to a malformed or unknown slug", async () => {
     const user = await createTestUser();
     const key = await createTestApiKey(user.id);
     expect((await one(key, "nope")).status).toBe(404);
     expect((await one(key, "zzzzzzzzzz")).status).toBe(404);
+  });
+
+  it("reads a pack the system account owns like any other, with no archive field", async () => {
+    const reader = await createTestUser();
+    const key = await createTestApiKey(reader.id);
+    const systemId = await ensureArchiveAccount();
+    const { slug } = await createPack(systemId, INPUT, { unlimited: true });
+    await getPackModel().collection.updateOne(
+      { slug },
+      { $set: { archive: { tournament: "OWC", fingerprint: "b".repeat(64), sources: [] } } },
+    );
+    const body = (await (await one(key, slug)).json()) as { pack: Record<string, unknown> };
+    expect(body.pack).toMatchObject({ slug, ownerName: "haruhime archive" });
+    expect(body.pack).not.toHaveProperty("archive");
   });
 });
 

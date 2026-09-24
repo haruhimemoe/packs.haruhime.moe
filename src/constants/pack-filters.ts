@@ -1,7 +1,7 @@
 /**
  * @file src/constants/pack-filters.ts
- * @desc The /packs filter bar: slider bounds, sort options, mode and source chip
- *       labels, how many filtered cards show at a time, how long a loaded index is kept, how often the place
+ * @desc The /packs filter bar: slider bounds, sort options, mode chip labels, how
+ *       many filtered cards show at a time, how long a loaded index is kept, how often the place
  *       in the results is saved for Back, and the timings that keep screen readers and the
  *       browser's history calm while someone drags a slider or types.
  * @author David @dvhsh (https://dvh.sh)
@@ -75,22 +75,6 @@ export const MODE_LABELS: Readonly<Record<Ruleset, string>> = Object.freeze({
   fruits: "catch",
   mania: "mania",
 });
-
-/**
- * Where a public pack comes from: saved by someone (community), or a past tournament pool we
- * imported (archive). Both are shown by default.
- */
-export const PACK_SOURCES = ["community", "archive"] as const;
-
-export type PackSource = (typeof PACK_SOURCES)[number];
-
-export const PACK_SOURCE_LABELS: Readonly<Record<PackSource, string>> = Object.freeze({
-  community: "Community",
-  archive: "Archive",
-});
-
-/** `?source=` when every source chip is off. */
-export const NO_SOURCE_PARAM = "none";
 
 /** Filtered cards shown at first, and added by each "Show more". */
 export const FILTER_RESULTS_STEP = 50;
