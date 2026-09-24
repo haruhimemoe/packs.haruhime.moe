@@ -2,7 +2,8 @@
  * @file tests/components/pack/SavedPackView.test.tsx
  * @desc /p/[slug] view: Download card first (recorded magnet links, then the mirror), pool,
  *       owner-only controls, admins removing a magnet link and pinning a public pack to the top
- *       of /packs, short link + key sharing, and Copy ID per map.
+ *       of /packs, short link + key sharing, Copy ID per map, and https links in the description
+ *       (same tab).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -160,6 +161,38 @@ describe("SavedPackView", () => {
       (_, element) => element?.tagName === "P" && element.textContent === "Quals pool\nBo9",
     );
     expect(text).toHaveClass("whitespace-pre-line");
+  });
+
+  it("links https URLs in the description, in the same tab, and leaves other text alone", () => {
+    const url = "https://pools.haruhime.moe/pools/otdb-58";
+    render(
+      <SavedPackView
+        pack={{
+          ...PACK,
+          description: `Ricma 2 Quarterfinals. Pool details and sources: ${url}\nAlso http://example.com and javascript:alert(1).`,
+        }}
+        isOwner={false}
+      />,
+    );
+    const link = screen.getByRole("link", { name: url });
+    expect(link).toHaveAttribute("href", url);
+    expect(link).toHaveAttribute("rel", "nofollow ugc noopener");
+    expect(link).not.toHaveAttribute("target");
+    expect(screen.queryByRole("link", { name: /example\.com/ })).toBeNull();
+    expect(screen.queryByRole("link", { name: /javascript/ })).toBeNull();
+    expect(link.closest("p")).toHaveTextContent("Also http://example.com and javascript:alert(1).");
+  });
+
+  it("keeps the punctuation after a link out of it", () => {
+    render(
+      <SavedPackView
+        pack={{ ...PACK, description: "Mirror: (see https://x.example/a)." }}
+        isOwner={false}
+      />,
+    );
+    const link = screen.getByRole("link", { name: "https://x.example/a" });
+    expect(link).toHaveAttribute("href", "https://x.example/a");
+    expect(link.closest("p")).toHaveTextContent("Mirror: (see https://x.example/a).");
   });
 
   it("shows the moderation notice on a hidden pack", () => {

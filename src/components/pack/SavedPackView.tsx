@@ -1,10 +1,11 @@
 /**
  * @file src/components/pack/SavedPackView.tsx
  * @desc /p/[slug]: the Download card at the top (the recorded magnet links first, then the
- *       mirror, and the retry when map info fails), the saved pool with live metadata and star ratings with mods, and sharing. The
- *       owner also sees its visibility, an Edit link, and can add or remove magnet links; an admin
- *       can remove a magnet link from a public or unlisted pack, and pin a public pack that isn't
- *       hidden to the top of /packs (or unpin it).
+ *       mirror, and the retry when map info fails), the saved pool with live metadata and star
+ *       ratings with mods, and sharing. Every https:// link in the description can be followed
+ *       (same tab, rel nofollow ugc noopener). The owner also sees its visibility, an Edit link,
+ *       and can add or remove magnet links; an admin can remove a magnet link from a public or
+ *       unlisted pack, and pin a public pack that isn't hidden to the top of /packs (or unpin it).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -14,7 +15,7 @@
 
 import { encodePackKey } from "@haruhimemoe/pool";
 import { ButtonLink, Card, PageHeader } from "@haruhimemoe/ui";
-import { useId, useMemo, useState } from "react";
+import { Fragment, type ReactNode, useId, useMemo, useState } from "react";
 import { ExportPanel } from "@/components/export/ExportPanel";
 import type { MagnetTarget } from "@/components/export/TorrentExport";
 import { HiddenNotice } from "@/components/pack/HiddenNotice";
@@ -32,8 +33,26 @@ import { packsApi } from "@/lib/packs-api";
 import type { Pool } from "@/schemas/pack";
 import type { PackExport } from "@/schemas/pack-export";
 import type { SavedPack } from "@/schemas/saved-pack";
+import { descriptionParts } from "@/utils/description-links";
 import { infohashOf } from "@/utils/magnet";
 import { isPinnable } from "@/utils/pins";
+
+/** A description as text, with every https:// link in it made a real link. */
+const describe = (description: string): ReactNode =>
+  descriptionParts(description).map((part) =>
+    part.kind === "link" ? (
+      <a
+        key={part.at}
+        href={part.href}
+        rel="nofollow ugc noopener"
+        className="text-h1 underline-offset-2 hover:underline"
+      >
+        {part.href}
+      </a>
+    ) : (
+      <Fragment key={part.at}>{part.text}</Fragment>
+    ),
+  );
 
 export type PackViewApi = PinApi & {
   get: (
@@ -117,7 +136,9 @@ export function SavedPackView({
       />
       {canPin ? <PinButton slug={pack.slug} pinned={pinned} api={api} /> : null}
       {pack.description ? (
-        <p className="wrap-anywhere max-w-3xl whitespace-pre-line text-c2">{pack.description}</p>
+        <p className="wrap-anywhere max-w-3xl whitespace-pre-line text-c2">
+          {describe(pack.description)}
+        </p>
       ) : null}
       <ExportPanel
         pack={ref}
