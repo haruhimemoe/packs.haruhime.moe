@@ -121,8 +121,9 @@ export function PublicPackBrowser({ children, loadIndex }: PublicPackBrowserProp
 
   useEffect(() => {
     if (focusFrom.current === null) return;
-    const links = list.current?.querySelectorAll<HTMLAnchorElement>("li a");
-    links?.[focusFrom.current]?.focus();
+    // Each card's first link is its name (an archive card also links its source).
+    const cards = list.current?.querySelectorAll("li");
+    cards?.[focusFrom.current]?.querySelector<HTMLAnchorElement>("a")?.focus();
     focusFrom.current = null;
   });
 

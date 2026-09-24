@@ -7,7 +7,9 @@
  *       CI builds (SKIP_ENV_VALIDATION) get empty results instead of a database. The API's page
  *       (listPublicPacksFull) lists full pack objects, most recently updated first, and keeps a
  *       pack whose owner has no username or no record (as UNKNOWN_OWNER_NAME), so its total is
- *       exact. Cards and index entries carry the pack's stats in compact form when it has them.
+ *       exact. Cards and index entries carry the pack's stats in compact form when it has them;
+ *       an archive pack's card links its first source, and its index entry carries x: 1 (the
+ *       Source filter) and that link (xk, xu).
  *       The "Pinned" row (listPinnedPacks) is the same cards for the packs admins pinned, in pin
  *       order.
  * @author David @dvhsh (https://dvh.sh)
@@ -21,6 +23,7 @@ import { UNKNOWN_OWNER_NAME } from "@/constants/api";
 import { DESCRIPTION_EXCERPT_LENGTH } from "@/constants/pack";
 import { MAX_PINNED_PACKS, PUBLIC_PAGE_SIZE, SEARCH_INDEX_LIMIT } from "@/constants/public-packs";
 import { isEnvValidationSkipped } from "@/env";
+import { type ArchiveSourceLink, archiveSourceLinkSchema } from "@/schemas/archive";
 import type { IndexStats } from "@/schemas/pack-stats";
 import {
   type PublicPackCard,
@@ -46,6 +49,8 @@ type ListedRow = {
   createdAt: Date;
   updatedAt: Date;
   stats?: PackRecord["stats"];
+  /** Archive packs only: their first source. */
+  source?: { kind?: unknown; url?: unknown } | null;
   owner: { username: string; avatarUrl?: string | null };
 };
 
@@ -62,6 +67,7 @@ const cardStages: PipelineStage[] = [
       createdAt: 1,
       updatedAt: 1,
       stats: 1,
+      source: { $arrayElemAt: ["$archive.sources", 0] },
       slotCount: { $size: "$slots" },
       owner: { username: "$owner.username", avatarUrl: "$owner.avatarUrl" },
     },
@@ -86,8 +92,16 @@ const compactStats = (row: ListedRow): { stats?: IndexStats } => {
   return stats ? { stats: toIndexStats(stats) } : {};
 };
 
-const toCard = (row: ListedRow): PublicPackCard =>
-  publicPackCardSchema.parse({
+/** An archive pack's link to its first source, when it's a link we can show. */
+const sourceLink = (row: ListedRow): ArchiveSourceLink | undefined => {
+  if (!row.source) return undefined;
+  const parsed = archiveSourceLinkSchema.safeParse({ kind: row.source.kind, url: row.source.url });
+  return parsed.success ? parsed.data : undefined;
+};
+
+const toCard = (row: ListedRow): PublicPackCard => {
+  const link = sourceLink(row);
+  return publicPackCardSchema.parse({
     slug: row.slug,
     name: row.name,
     ownerName: row.owner.username,
@@ -97,7 +111,9 @@ const toCard = (row: ListedRow): PublicPackCard =>
     updatedAt: row.updatedAt.toISOString(),
     createdAt: row.createdAt.toISOString(),
     ...compactStats(row),
+    ...(link ? { archiveSource: link } : {}),
   });
+};
 
 /**
  * @function listPublicPacks
@@ -151,16 +167,21 @@ export const buildSearchIndex = async ({
   const rows = await model.aggregate<ListedRow>(listedStages(0, limit));
   return searchIndexSchema.parse({
     v: 1,
-    packs: rows.map((row) => ({
-      s: row.slug,
-      n: row.name,
-      o: row.owner.username,
-      c: row.slotCount,
-      d: describe(row),
-      u: row.updatedAt.toISOString(),
-      t: row.createdAt.toISOString(),
-      ...compactStats(row).stats,
-    })),
+    packs: rows.map((row) => {
+      const link = sourceLink(row);
+      return {
+        s: row.slug,
+        n: row.name,
+        o: row.owner.username,
+        c: row.slotCount,
+        d: describe(row),
+        u: row.updatedAt.toISOString(),
+        t: row.createdAt.toISOString(),
+        ...compactStats(row).stats,
+        ...(row.source ? { x: 1 } : {}),
+        ...(link ? { xk: link.kind, xu: link.url } : {}),
+      };
+    }),
   });
 };
 

@@ -3,8 +3,9 @@
  * @desc The cached public list and search index: only public, visible packs, newest created
  *       first (an edit doesn't move a pack up), with the host's osu! name; paging; the index shape
  *       (creation date included) and cap; pack stats in compact form on index entries and cards
- *       (left out when a pack has none); the pinned row (public, visible, in pin order, the same
- *       cards); no database under CI builds.
+ *       (left out when a pack has none); archive packs' source links on cards and x, xk, xu in the
+ *       index; the pinned row (public, visible, in pin order, the same cards); no database under
+ *       CI builds.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -15,6 +16,7 @@ import { describe, expect, it, vi } from "vitest";
 import { getPackModel } from "@/models/Pack";
 import { searchIndexSchema } from "@/schemas/public-pack";
 import type { PackInput } from "@/schemas/saved-pack";
+import { ensureArchiveAccount } from "@/services/archive";
 import { createPack } from "@/services/packs";
 import { pinPack, reorderPins } from "@/services/pins";
 import { buildSearchIndex, listPinnedPacks, listPublicPacks } from "@/services/public-packs";
@@ -136,6 +138,65 @@ describe("public cards", () => {
       k: true,
     });
     expect(cards.find((card) => card.slug === none.slug)).not.toHaveProperty("stats");
+  });
+});
+
+/** Makes a pack an archive pack, the way the importer stores it. */
+const archive = (slug: string, url = "https://otdb.sheppsu.me/mappool/657") =>
+  getPackModel().collection.updateOne(
+    { slug },
+    {
+      $set: {
+        archive: {
+          tournament: "osu! World Cup 2023",
+          round: "Grand Finals",
+          year: 2023,
+          badged: null,
+          fingerprint: "c".repeat(64),
+          sources: [{ kind: "otdb", id: "657", url, importedAt: new Date() }],
+        },
+      },
+    },
+  );
+
+describe("archive packs on the list and in the index", () => {
+  it("link their first source on cards, and carry x, xk and xu in the index", async () => {
+    const host = await createTestUser({ username: "host" });
+    const archiveId = await ensureArchiveAccount();
+    const community = await createPack(host.id, input({ name: "Community Cup" }));
+    const archived = await createPack(archiveId, input({ name: "OWC 2023 GF" }), {
+      unlimited: true,
+    });
+    await archive(archived.slug);
+
+    const cards = (await listPublicPacks(1)).packs;
+    expect(cards.find((card) => card.slug === archived.slug)).toMatchObject({
+      ownerName: "haruhime archive",
+      ownerAvatarUrl: "https://packs.haruhime.moe/brand/packs-icon.svg",
+      archiveSource: { kind: "otdb", url: "https://otdb.sheppsu.me/mappool/657" },
+    });
+    expect(cards.find((card) => card.slug === community.slug)).not.toHaveProperty("archiveSource");
+
+    const index = await buildSearchIndex();
+    expect(index.packs.find((entry) => entry.s === archived.slug)).toMatchObject({
+      x: 1,
+      xk: "otdb",
+      xu: "https://otdb.sheppsu.me/mappool/657",
+    });
+    const plain = index.packs.find((entry) => entry.s === community.slug);
+    expect(plain).not.toHaveProperty("x");
+    expect(plain).not.toHaveProperty("xk");
+  });
+
+  it("keep x but drop a source link that isn't https, so the index still parses", async () => {
+    const archiveId = await ensureArchiveAccount();
+    const archived = await createPack(archiveId, input(), { unlimited: true });
+    await archive(archived.slug, "javascript:alert(1)");
+    const [card] = (await listPublicPacks(1)).packs;
+    expect(card).not.toHaveProperty("archiveSource");
+    const [entry] = (await buildSearchIndex()).packs;
+    expect(entry).toMatchObject({ x: 1 });
+    expect(entry).not.toHaveProperty("xu");
   });
 });
 

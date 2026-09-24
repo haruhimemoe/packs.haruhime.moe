@@ -1,7 +1,8 @@
 /**
  * @file src/lib/search-index.ts
  * @desc Browser side of public search: fetch and validate /packs/index.json (served from the CDN
- *       cache), and turn index entries into cards (stats included when the entry has them).
+ *       cache), and turn index entries into cards (stats included when the entry has them, and an
+ *       archive pack's source link).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -49,7 +50,7 @@ const statsOf = ({ r, a, l, b, m, g, k }: SearchIndexEntry): IndexStats | undefi
  * @function indexEntryToCard
  * @param entry {SearchIndexEntry} compact index entry
  * @returns {PublicPackCard} the card shape (no avatar: the index leaves it out to stay small),
- *          with the entry's creation date and stats when it has them
+ *          with the entry's creation date, stats and archive source link when it has them
  */
 export const indexEntryToCard = (entry: SearchIndexEntry): PublicPackCard => {
   const stats = statsOf(entry);
@@ -63,5 +64,6 @@ export const indexEntryToCard = (entry: SearchIndexEntry): PublicPackCard => {
     updatedAt: entry.u,
     ...(entry.t ? { createdAt: entry.t } : {}),
     ...(stats ? { stats } : {}),
+    ...(entry.xk && entry.xu ? { archiveSource: { kind: entry.xk, url: entry.xu } } : {}),
   };
 };

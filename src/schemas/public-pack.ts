@@ -3,7 +3,8 @@
  * @desc Shapes for the public list (/packs cards), its search index (/packs/index.json), the
  *       admin table and moderation body, and pinned packs (the admin's list and the reorder
  *       body). Cards and index entries carry a pack's stats in the compact form
- *       (src/schemas/pack-stats.ts) when it has them.
+ *       (src/schemas/pack-stats.ts) when it has them, and an archive pack's link to its source
+ *       pool.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -11,6 +12,7 @@
 
 import { z } from "zod";
 import { MAX_PINNED_PACKS } from "@/constants/public-packs";
+import { archiveSourceLinkSchema } from "@/schemas/archive";
 import { indexStatsSchema } from "@/schemas/pack-stats";
 import { slugSchema, visibilitySchema } from "@/schemas/saved-pack";
 
@@ -26,6 +28,8 @@ export const publicPackCardSchema = z.object({
   createdAt: z.string().optional(),
   /** Absent until the pack's stats are computed. */
   stats: indexStatsSchema.optional(),
+  /** Archive packs only: the pool at its first source, for the "Archived pool" badge. */
+  archiveSource: archiveSourceLinkSchema.optional(),
 });
 
 export type PublicPackCard = z.infer<typeof publicPackCardSchema>;
@@ -40,7 +44,8 @@ export type PublicPackPage = {
 /**
  * Short keys keep the index small: slug, name, owner, count, description excerpt, updated,
  * created, then the pack's stats (r, a, l, b, m, g, k; see indexStatsSchema), all left out when
- * it has none. `t` is optional so an index cached before it existed still parses.
+ * it has none. `t` is optional so an index cached before it existed still parses. Archive packs
+ * also carry x (always 1), xk (the source) and xu (the pool's page there).
  */
 export const searchIndexEntrySchema = z.object({
   s: slugSchema,
@@ -51,6 +56,9 @@ export const searchIndexEntrySchema = z.object({
   u: z.string(),
   t: z.string().optional(),
   ...indexStatsSchema.partial().shape,
+  x: z.literal(1).optional(),
+  xk: archiveSourceLinkSchema.shape.kind.optional(),
+  xu: archiveSourceLinkSchema.shape.url.optional(),
 });
 
 export type SearchIndexEntry = z.infer<typeof searchIndexEntrySchema>;

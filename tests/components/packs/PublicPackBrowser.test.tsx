@@ -5,7 +5,8 @@
  *       with replaceState, even without String.prototype.toWellFormed, read back on load, on
  *       back/forward and when a link changes the page's URL), the count shows at once and is announced once changes settle, packs
  *       hidden for missing stats are counted, an empty result says what might help, cards are
- *       dated by the sort, results come 50 at a time, coming back with Back finds the results
+ *       dated by the sort, the Source filter keeps community or archive packs (archive cards
+ *       link their pool), results come 50 at a time, coming back with Back finds the results
  *       and the place as they were, and a failed index load keeps the server list, says so once,
  *       and retries only on request.
  * @author David @dvhsh (https://dvh.sh)
@@ -498,6 +499,59 @@ describe("PublicPackBrowser", () => {
     expect(cardNames()).toHaveLength(60);
     expect(screen.getByRole("link", { name: "Cup 9" })).toHaveFocus();
     expect(screen.queryByRole("button", { name: "Show more" })).not.toBeInTheDocument();
+  });
+
+  it("keeps only the ticked source, from the URL too, and links archive pools", async () => {
+    const archived: SearchIndexEntry = {
+      s: "archive000",
+      n: "osu! World Cup 2023 Grand Finals",
+      o: "haruhime archive",
+      c: 20,
+      d: "",
+      u: "2026-09-24T00:00:00.000Z",
+      x: 1,
+      xk: "otdb",
+      xu: "https://otdb.sheppsu.me/mappool/657",
+    };
+    openUrl("/packs?source=archive");
+    const { user } = setup(async () => ({ v: 1, packs: [...INDEX.packs, archived] }));
+    expect(screen.getByRole("button", { name: "Community" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+    const list = await screen.findByRole("list");
+    await waitFor(() =>
+      expect(within(list).getByRole("link", { name: "Archived pool from otdb" })).toHaveAttribute(
+        "href",
+        "https://otdb.sheppsu.me/mappool/657",
+      ),
+    );
+    expect(within(list).getAllByRole("listitem")).toHaveLength(1);
+    await user.click(screen.getByRole("button", { name: "Community" }));
+    await user.click(screen.getByRole("button", { name: "Archive" }));
+    await waitFor(() =>
+      expect(within(screen.getByRole("list")).getAllByRole("listitem")).toHaveLength(
+        INDEX.packs.length,
+      ),
+    );
+    expect(screen.queryByRole("link", { name: "Archived pool from otdb" })).not.toBeInTheDocument();
+    await waitFor(() => expect(window.location.search).toBe("?source=community"));
+  });
+
+  it("moves focus to the next card's name after Show more, archive cards included", async () => {
+    const archived = MANY.map((entry) => ({
+      ...entry,
+      x: 1 as const,
+      xk: "otdb" as const,
+      xu: "https://otdb.sheppsu.me/mappool/1",
+    }));
+    const { user } = setup(async () => ({ v: 1, packs: archived }));
+    await user.type(screen.getByRole("searchbox", { name: "Search public packs" }), "cup");
+    await waitFor(() =>
+      expect(within(screen.getByRole("list")).getAllByRole("listitem")).toHaveLength(50),
+    );
+    await user.click(screen.getByRole("button", { name: "Show more" }));
+    expect(screen.getByRole("link", { name: "Cup 9" })).toHaveFocus();
   });
 
   describe("coming back", () => {

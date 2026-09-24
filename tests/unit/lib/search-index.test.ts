@@ -93,6 +93,16 @@ describe("indexEntryToCard", () => {
     });
   });
 
+  it("carries an archive pack's source link, and nothing without both keys", () => {
+    const entry = INDEX.packs[0] as (typeof INDEX.packs)[number];
+    const url = "https://otdb.sheppsu.me/mappool/657";
+    expect(indexEntryToCard({ ...entry, x: 1, xk: "otdb", xu: url }).archiveSource).toEqual({
+      kind: "otdb",
+      url,
+    });
+    expect(indexEntryToCard({ ...entry, x: 1 })).not.toHaveProperty("archiveSource");
+  });
+
   it("carries the creation date when the entry has one", () => {
     const entry = INDEX.packs[0] as (typeof INDEX.packs)[number];
     expect(indexEntryToCard({ ...entry, t: "2026-08-03T00:00:00.000Z" }).createdAt).toBe(

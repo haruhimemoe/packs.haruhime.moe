@@ -2,8 +2,8 @@
  * @file tests/components/packs/PackFilterBar.test.tsx
  * @desc The /packs filter bar: every control is labeled, chips and sliders work from the
  *       keyboard with ARIA values, typed values stay exact (no snapping to a coarse step),
- *       lengths take m:ss, the sort select, the phone fold (open when filters come set or arrive
- *       from the URL), "Clear filters" (and
+ *       lengths take m:ss, the sort select, the Source chips (both on by default), the phone fold
+ *       (open when filters come set or arrive from the URL), "Clear filters" (and
  *       where focus goes after it), and the result count in a live region.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
@@ -69,7 +69,7 @@ describe("PackFilterBar", () => {
       "Name, A to Z",
     ]);
     expect(screen.getByRole("region", { name: "Filters" })).toBeInTheDocument();
-    for (const row of ["Star rating", "Mods", "Length", "BPM", "Mode", "Maps"]) {
+    for (const row of ["Star rating", "Mods", "Length", "BPM", "Mode", "Maps", "Source"]) {
       expect(screen.getByRole("group", { name: row })).toBeInTheDocument();
     }
     for (const end of ["star rating", "length", "BPM", "maps"]) {
@@ -90,6 +90,28 @@ describe("PackFilterBar", () => {
         .getAllByRole("button")
         .map((b) => b.textContent),
     ).toEqual(["osu!", "taiko", "catch", "mania"]);
+    const sources = screen.getByRole("group", { name: "Source" });
+    expect(
+      within(sources)
+        .getAllByRole("button")
+        .map((b) => [b.textContent, b.getAttribute("aria-pressed")]),
+    ).toEqual([
+      ["Community", "true"],
+      ["Archive", "true"],
+    ]);
+  });
+
+  it("turns sources off and on, and Clear filters shows both again", async () => {
+    const { user, last } = setup();
+    await user.click(screen.getByRole("button", { name: "Community" }));
+    expect(last()?.source).toEqual(["archive"]);
+    await user.click(screen.getByRole("button", { name: "Archive" }));
+    expect(last()?.source).toEqual([]);
+    await user.click(screen.getByRole("button", { name: "Community" }));
+    expect(last()?.source).toEqual(["community"]);
+    await user.click(screen.getByRole("button", { name: "Clear filters" }));
+    expect(last()?.source).toEqual(["community", "archive"]);
+    expect(screen.getByRole("button", { name: "Archive" })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("shows open-ended sliders at their full span", () => {
@@ -247,6 +269,7 @@ describe("PackFilterBar", () => {
         mods: ["DT"],
         mode: ["osu"],
         maps: [5, 20],
+        source: ["archive"],
       },
     });
     const clear = screen.getByRole("button", { name: "Clear filters" });

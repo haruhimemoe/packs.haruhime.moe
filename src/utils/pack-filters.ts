@@ -2,12 +2,14 @@
  * @file src/utils/pack-filters.ts
  * @desc Filters and sorting for public packs, run in the browser over the search index (filters
  *       spec). Star rating, length and BPM match when the pack's range overlaps the chosen one;
- *       a pack needs every ticked mod and mode; its map count must sit inside the count range.
+ *       a pack needs every ticked mod and mode; its map count must sit inside the count range;
+ *       it must come from a ticked source (community, or archive for entries with `x: 1`; both
+ *       by default).
  *       Ends are inclusive, and an end at the slider's edge is open. A pack without the stats a
  *       filter needs is left out and counted as hidden, and so is a pack with incomplete stats
  *       that a range or mode rules out (the maps not looked up yet might match). Also the URL
  *       form of the filters
- *       (`?sr=5.5-6.5&mods=HR,DT&...`), where anything unreadable is ignored. Pure.
+ *       (`?sr=5.5-6.5&mods=HR,DT&...&source=archive`), where anything unreadable is ignored. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -20,8 +22,11 @@ import {
   type FilterBounds,
   LENGTH_RANGE,
   MAP_COUNT_RANGE,
+  NO_SOURCE_PARAM,
   PACK_SORTS,
+  PACK_SOURCES,
   type PackSort,
+  type PackSource,
   STAR_RANGE,
 } from "@/constants/pack-filters";
 import { STAT_MOD_CODES, type StatModCode } from "@/constants/pack-stats";
@@ -41,6 +46,8 @@ export type PackFilters = {
   bpm: FilterRange | null;
   mode: readonly Ruleset[];
   maps: FilterRange | null;
+  /** The sources shown, in PACK_SOURCES order. Unlike the other lists, all of them by default. */
+  source: readonly PackSource[];
   sort: PackSort;
 };
 
@@ -52,6 +59,7 @@ export const EMPTY_FILTERS: PackFilters = Object.freeze({
   bpm: null,
   mode: [],
   maps: null,
+  source: PACK_SOURCES,
   sort: DEFAULT_PACK_SORT,
 });
 
@@ -97,12 +105,20 @@ export const hasStatFilters = (filters: PackFilters): boolean =>
   filters.mode.length > 0;
 
 /**
+ * @function hasSourceFilter
+ * @param filters {PackFilters} the filters
+ * @returns {boolean} whether a source chip is off
+ */
+export const hasSourceFilter = (filters: PackFilters): boolean =>
+  PACK_SOURCES.some((source) => !filters.source.includes(source));
+
+/**
  * @function hasFilters
  * @param filters {PackFilters} the filters
  * @returns {boolean} whether any filter row is set (what "Clear filters" clears)
  */
 export const hasFilters = (filters: PackFilters): boolean =>
-  hasStatFilters(filters) || filters.maps !== null;
+  hasStatFilters(filters) || filters.maps !== null || hasSourceFilter(filters);
 
 /**
  * @function isBrowsing
@@ -163,6 +179,10 @@ const countInside = (count: number, range: FilterRange | null): Verdict => {
   return aboveLow && belowHigh ? "match" : "fail";
 };
 
+/** Is the entry's source ticked? Archive packs carry `x: 1`; every other pack is community. */
+const fromSource = (entry: SearchIndexEntry, picked: readonly PackSource[]): Verdict =>
+  picked.includes(entry.x === 1 ? "archive" : "community") ? "match" : "fail";
+
 /**
  * With incomplete stats, a star rating, length, BPM or mode miss may only mean the maps that
  * weren't looked up yet are missing from the numbers: count it as missing data, not a miss.
@@ -183,6 +203,7 @@ const judge = (entry: SearchIndexEntry, filters: PackFilters): Verdict => {
     // No rulesets with stats means no map's details came back: as good as no stats.
     unsure(hasEvery(hasStats ? (entry.g ?? "") : undefined, filters.mode, true), incomplete),
     countInside(entry.c, filters.maps),
+    fromSource(entry, filters.source),
   ].reduce(worse, "match");
 };
 
@@ -304,11 +325,20 @@ const pickList = <T extends string>(
 
 const MODE_ALIASES: Readonly<Record<string, string>> = { catch: "fruits" };
 
+/** Every source when the param is missing or unreadable; none for NO_SOURCE_PARAM. */
+const parseSources = (raw: string | null): readonly PackSource[] => {
+  if (raw === null) return PACK_SOURCES;
+  if (raw.trim().toLowerCase() === NO_SOURCE_PARAM) return [];
+  const picked = pickList(raw, PACK_SOURCES, (value) => value.toLowerCase());
+  return picked.length === 0 ? PACK_SOURCES : picked;
+};
+
 /**
  * @function parseFilters
  * @param search {string} a query string, with or without its "?"
- * @returns {PackFilters} the filters it holds (q, sr, mods, len, bpm, mode, maps, sort); a param
- *          that is missing or can't be read counts as unset, and unknown params are ignored
+ * @returns {PackFilters} the filters it holds (q, sr, mods, len, bpm, mode, maps, source, sort);
+ *          a param that is missing or can't be read counts as unset (for source: every source),
+ *          and unknown params are ignored
  */
 export const parseFilters = (search: string): PackFilters => {
   const params = new URLSearchParams(search);
@@ -324,6 +354,7 @@ export const parseFilters = (search: string): PackFilters => {
       return MODE_ALIASES[lower] ?? lower;
     }),
     maps: parseRange(params.get("maps"), MAP_COUNT_RANGE),
+    source: parseSources(params.get("source")),
     sort: (PACK_SORTS as readonly string[]).includes(sort ?? "")
       ? (sort as PackSort)
       : DEFAULT_PACK_SORT,
@@ -346,8 +377,9 @@ const wellFormed = (text: string): string =>
  * @function serializeFilters
  * @param filters {PackFilters} the filters
  * @returns {string} the query string without "?" (empty for the defaults): only what is set, in
- *          the order sr, mods, len, bpm, mode, maps, sort, q, with commas left readable and each
- *          lone surrogate in the text written as U+FFFD. Never throws.
+ *          the order sr, mods, len, bpm, mode, maps, source (NO_SOURCE_PARAM for none), sort, q,
+ *          with commas left readable and each lone surrogate in the text written as U+FFFD.
+ *          Never throws.
  */
 export const serializeFilters = (filters: PackFilters): string => {
   const parts: string[] = [];
@@ -357,6 +389,11 @@ export const serializeFilters = (filters: PackFilters): string => {
   if (filters.bpm) parts.push(`bpm=${rangeText(filters.bpm)}`);
   if (filters.mode.length > 0) parts.push(`mode=${filters.mode.join(",")}`);
   if (filters.maps) parts.push(`maps=${rangeText(filters.maps)}`);
+  if (hasSourceFilter(filters)) {
+    parts.push(
+      `source=${filters.source.length === 0 ? NO_SOURCE_PARAM : filters.source.join(",")}`,
+    );
+  }
   if (filters.sort !== DEFAULT_PACK_SORT) parts.push(`sort=${filters.sort}`);
   // encodeURIComponent throws on a lone surrogate.
   const q = wellFormed(filters.q).trim();

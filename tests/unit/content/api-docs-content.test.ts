@@ -82,7 +82,7 @@ describe("pack stats", () => {
     expect(text()).toContain(`\`${field}\``);
   });
 
-  it.each(["`t`", "`r`", "`a`", "`l`", "`b`", "`m`", "`g`", "`k`"])(
+  it.each(["`t`", "`r`", "`a`", "`l`", "`b`", "`m`", "`g`", "`k`", "`x`", "`xk`", "`xu`"])(
     "documents the index key %s",
     (key) => {
       expect(text()).toContain(key);
