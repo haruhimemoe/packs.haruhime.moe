@@ -95,7 +95,7 @@ describe("indexEntryToCard", () => {
 
   it("carries an archive pack's source link, and nothing without both keys", () => {
     const entry = INDEX.packs[0] as (typeof INDEX.packs)[number];
-    const url = "https://otdb.sheppsu.me/mappool/657";
+    const url = "https://otdb.sheppsu.me/db/mappools/657/";
     expect(indexEntryToCard({ ...entry, x: 1, xk: "otdb", xu: url }).archiveSource).toEqual({
       kind: "otdb",
       url,

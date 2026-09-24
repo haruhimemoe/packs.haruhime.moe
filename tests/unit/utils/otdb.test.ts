@@ -40,11 +40,13 @@ const connection = (slot: string, osuId: number, starRating: number, mods: strin
 
 describe("otdb links", () => {
   it("builds a pool's link and source", () => {
-    expect(otdbPoolUrl(58)).toBe("https://otdb.sheppsu.me/mappool/58");
+    // otdb's pool page (database/urls.py: "db/" + "mappools/<int:id>/"); /mappool/58 is a 404.
+    expect(otdbPoolUrl(58)).toBe("https://otdb.sheppsu.me/db/mappools/58/");
+    expect(otdbPoolUrl("657")).toBe("https://otdb.sheppsu.me/db/mappools/657/");
     expect(otdbSource(58)).toEqual({
       kind: "otdb",
       id: "58",
-      url: "https://otdb.sheppsu.me/mappool/58",
+      url: "https://otdb.sheppsu.me/db/mappools/58/",
     });
   });
 });

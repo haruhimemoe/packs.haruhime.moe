@@ -107,7 +107,7 @@ describe("archive:import", () => {
     expect(packs[0]?.archive?.sources.map((source) => source.id)).toEqual(["58"]);
     const owc = packs.find((pack) => pack.name === "osu! World Cup 2023 Grand Finals");
     expect(owc).toMatchObject({
-      description: "Archived from otdb pool #657: https://otdb.sheppsu.me/mappool/657",
+      description: "Archived from otdb pool #657: https://otdb.sheppsu.me/db/mappools/657/",
       archive: {
         tournament: "osu! World Cup 2023",
         round: "Grand Finals",
@@ -115,7 +115,12 @@ describe("archive:import", () => {
         badged: null,
         fingerprint: expect.stringMatching(/^[0-9a-f]{64}$/),
         sources: [
-          { kind: "otdb", id: "657", url: "https://otdb.sheppsu.me/mappool/657", importedAt: NOW },
+          {
+            kind: "otdb",
+            id: "657",
+            url: "https://otdb.sheppsu.me/db/mappools/657/",
+            importedAt: NOW,
+          },
         ],
       },
       stats: { count: 20, modes: ["osu"], complete: false, attempts: 1, retryAt: NOW },

@@ -217,7 +217,7 @@ describe("GET /api/v1/packs/{slug}", () => {
       badged: null,
       fingerprint: "b".repeat(64),
       sources: [
-        { kind: "otdb", id: "657", url: "https://otdb.sheppsu.me/mappool/657", importedAt },
+        { kind: "otdb", id: "657", url: "https://otdb.sheppsu.me/db/mappools/657/", importedAt },
       ],
     };
     await getPackModel().collection.updateOne({ slug }, { $set: { archive } });

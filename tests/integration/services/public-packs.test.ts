@@ -142,7 +142,7 @@ describe("public cards", () => {
 });
 
 /** Makes a pack an archive pack, the way the importer stores it. */
-const archive = (slug: string, url = "https://otdb.sheppsu.me/mappool/657") =>
+const archive = (slug: string, url = "https://otdb.sheppsu.me/db/mappools/657/") =>
   getPackModel().collection.updateOne(
     { slug },
     {
@@ -173,7 +173,7 @@ describe("archive packs on the list and in the index", () => {
     expect(cards.find((card) => card.slug === archived.slug)).toMatchObject({
       ownerName: "haruhime archive",
       ownerAvatarUrl: "https://packs.haruhime.moe/brand/packs-icon.svg",
-      archiveSource: { kind: "otdb", url: "https://otdb.sheppsu.me/mappool/657" },
+      archiveSource: { kind: "otdb", url: "https://otdb.sheppsu.me/db/mappools/657/" },
     });
     expect(cards.find((card) => card.slug === community.slug)).not.toHaveProperty("archiveSource");
 
@@ -181,7 +181,7 @@ describe("archive packs on the list and in the index", () => {
     expect(index.packs.find((entry) => entry.s === archived.slug)).toMatchObject({
       x: 1,
       xk: "otdb",
-      xu: "https://otdb.sheppsu.me/mappool/657",
+      xu: "https://otdb.sheppsu.me/db/mappools/657/",
     });
     const plain = index.packs.find((entry) => entry.s === community.slug);
     expect(plain).not.toHaveProperty("x");

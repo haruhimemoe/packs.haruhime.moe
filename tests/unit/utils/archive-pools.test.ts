@@ -211,7 +211,7 @@ describe("normalizePool", () => {
         { mod: "DT", index: 1, beatmapId: 1001 },
       ],
       visibility: "public",
-      description: "Archived from otdb pool #657: https://otdb.sheppsu.me/mappool/657",
+      description: "Archived from otdb pool #657: https://otdb.sheppsu.me/db/mappools/657/",
     });
     expect(pool.archive).toEqual({
       tournament: "osu! World Cup 2023",

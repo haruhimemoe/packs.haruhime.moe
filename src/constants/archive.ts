@@ -26,10 +26,10 @@ export const ARCHIVE_SOURCE_LABELS: Readonly<Record<ArchiveSourceKind, string>> 
 export const OTDB_EXPORT_URL = "https://otdb.sheppsu.me/static/mappools-export.json";
 
 /**
- * otdb's page for one pool is this plus the pool id. The export has no links, so this shape
- * wasn't checked against the live site: fix it here if otdb uses another one.
+ * otdb's page for one pool is this, the pool id and a slash (its routes: "db/" +
+ * "mappools/<int:id>/"; without the slash it redirects there).
  */
-export const OTDB_POOL_URL_PREFIX = "https://otdb.sheppsu.me/mappool/";
+export const OTDB_POOL_URL_PREFIX = "https://otdb.sheppsu.me/db/mappools/";
 
 /**
  * The system account that owns archive packs: a users record with `system: true` and no linked

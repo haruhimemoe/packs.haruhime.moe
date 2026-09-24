@@ -18,7 +18,7 @@ const PACK: PublicPack = {
   ownerName: "haruhime archive",
   ownerAvatarUrl: null,
   slotCount: 20,
-  excerpt: "Archived from otdb pool #657: https://otdb.sheppsu.me/mappool/657",
+  excerpt: "Archived from otdb pool #657: https://otdb.sheppsu.me/db/mappools/657/",
   updatedAt: "2026-09-24T12:00:00.000Z",
   createdAt: "2026-09-24T12:00:00.000Z",
 };
@@ -34,10 +34,10 @@ describe("PublicPackCard", () => {
   it("shows an archive pack's badge, linking its source pool in a new tab", () => {
     renderCard({
       ...PACK,
-      archiveSource: { kind: "otdb", url: "https://otdb.sheppsu.me/mappool/657" },
+      archiveSource: { kind: "otdb", url: "https://otdb.sheppsu.me/db/mappools/657/" },
     });
     const badge = screen.getByRole("link", { name: "Archived pool from otdb" });
-    expect(badge).toHaveAttribute("href", "https://otdb.sheppsu.me/mappool/657");
+    expect(badge).toHaveAttribute("href", "https://otdb.sheppsu.me/db/mappools/657/");
     expect(badge).toHaveAttribute("target", "_blank");
     expect(badge).toHaveAttribute("rel", "noopener noreferrer");
     expect(badge).toHaveTextContent("Archived pool · from otdb");

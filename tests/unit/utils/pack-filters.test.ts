@@ -265,7 +265,7 @@ describe("packs with incomplete stats", () => {
 describe("source", () => {
   const packs = [
     rated("Community Cup"),
-    rated("OWC 2023 Finals", { x: 1, xk: "otdb", xu: "https://otdb.sheppsu.me/mappool/657" }),
+    rated("OWC 2023 Finals", { x: 1, xk: "otdb", xu: "https://otdb.sheppsu.me/db/mappools/657/" }),
     entry("Bare archive", { x: 1 }),
   ];
 

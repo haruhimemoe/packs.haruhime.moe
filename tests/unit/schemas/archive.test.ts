@@ -21,7 +21,7 @@ const ARCHIVE = {
     {
       kind: "otdb",
       id: "657",
-      url: "https://otdb.sheppsu.me/mappool/657",
+      url: "https://otdb.sheppsu.me/db/mappools/657/",
       importedAt: "2026-09-24T12:00:00.000Z",
     },
   ],
@@ -51,8 +51,10 @@ describe("packArchiveSchema", () => {
 describe("archiveSourceLinkSchema", () => {
   it("takes a kind and an https link only", () => {
     expect(
-      archiveSourceLinkSchema.safeParse({ kind: "otdb", url: "https://otdb.sheppsu.me/mappool/1" })
-        .success,
+      archiveSourceLinkSchema.safeParse({
+        kind: "otdb",
+        url: "https://otdb.sheppsu.me/db/mappools/1/",
+      }).success,
     ).toBe(true);
     expect(
       archiveSourceLinkSchema.safeParse({ kind: "otdb", url: "ftp://otdb.sheppsu.me/" }).success,

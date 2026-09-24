@@ -511,7 +511,7 @@ describe("PublicPackBrowser", () => {
       u: "2026-09-24T00:00:00.000Z",
       x: 1,
       xk: "otdb",
-      xu: "https://otdb.sheppsu.me/mappool/657",
+      xu: "https://otdb.sheppsu.me/db/mappools/657/",
     };
     openUrl("/packs?source=archive");
     const { user } = setup(async () => ({ v: 1, packs: [...INDEX.packs, archived] }));
@@ -523,7 +523,7 @@ describe("PublicPackBrowser", () => {
     await waitFor(() =>
       expect(within(list).getByRole("link", { name: "Archived pool from otdb" })).toHaveAttribute(
         "href",
-        "https://otdb.sheppsu.me/mappool/657",
+        "https://otdb.sheppsu.me/db/mappools/657/",
       ),
     );
     expect(within(list).getAllByRole("listitem")).toHaveLength(1);
@@ -543,7 +543,7 @@ describe("PublicPackBrowser", () => {
       ...entry,
       x: 1 as const,
       xk: "otdb" as const,
-      xu: "https://otdb.sheppsu.me/mappool/1",
+      xu: "https://otdb.sheppsu.me/db/mappools/1/",
     }));
     const { user } = setup(async () => ({ v: 1, packs: archived }));
     await user.type(screen.getByRole("searchbox", { name: "Search public packs" }), "cup");

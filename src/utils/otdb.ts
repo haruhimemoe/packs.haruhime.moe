@@ -25,7 +25,7 @@ const RATING_ACRONYMS: ReadonlySet<string> = new Set(["EZ", "HR", "DT", "NC", "H
  * @param id {number | string} an otdb pool id
  * @returns {string} that pool's page on otdb
  */
-export const otdbPoolUrl = (id: number | string): string => `${OTDB_POOL_URL_PREFIX}${id}`;
+export const otdbPoolUrl = (id: number | string): string => `${OTDB_POOL_URL_PREFIX}${id}/`;
 
 /**
  * @function otdbSource
