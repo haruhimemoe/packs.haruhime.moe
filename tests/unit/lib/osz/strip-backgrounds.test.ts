@@ -6,7 +6,7 @@
  *       exact name bytes, readable by fflate, refusals of damaged archives, abort.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { createHash } from "node:crypto";
@@ -268,7 +268,8 @@ describe("stripBackgrounds", () => {
     const output = await bytesOf(await stripBackgrounds(new Blob([input])));
     expect(names(output)).toEqual(["big.osu"]);
     expect(unzipSync(output)["big.osu"]).toEqual(unzipSync(input)["big.osu"]);
-  });
+    // About a second alone, but past the 5 s default on a busy CI runner with coverage on.
+  }, 30_000);
 
   it("stops when aborted", async () => {
     const controller = new AbortController();
