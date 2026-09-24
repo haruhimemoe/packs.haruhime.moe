@@ -2,7 +2,8 @@
  * @file tests/integration/services/pins.test.ts
  * @desc Pinned packs: pin (public and not hidden only, at most MAX_PINNED_PACKS, new pins last,
  *       racing pins never pass the limit), unpin, reorder, the admin list, and the pins a hide or
- *       a change away from public takes away. Pin writes never move updatedAt.
+ *       a change away from public takes away. Pin writes never move updatedAt. The pin queries
+ *       use the partial pin index, never a collection scan.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -19,6 +20,8 @@ import { createPack, updatePack } from "@/services/packs";
 import {
   isPackPinned,
   listPinnedForAdmin,
+  PIN_SORT,
+  PINNED,
   PinRefusedError,
   pinPack,
   reorderPins,
@@ -244,5 +247,54 @@ describe("what takes a pin away", () => {
     await pinPack(second.slug);
     await updatePack(first.slug, host.id, input({ name: "First, renamed" }));
     expect(await pinnedNames()).toEqual(["First, renamed", "Second"]);
+  });
+});
+
+describe("pin queries", () => {
+  /** The winning plan of an explain, as text: which stages and index it used. */
+  const planText = (explain: unknown): string => JSON.stringify(explain);
+  const PIN_INDEX = "pinOrder_1_pinnedAt_1__id_1";
+
+  it("find pinned packs through the partial pin index, in pin order, with no collection scan", async () => {
+    const model = getPackModel();
+    await model.init();
+    const ownerId = new ObjectId();
+    const now = new Date();
+    await model.collection.insertMany(
+      Array.from({ length: 40 }, (_, i) => ({
+        slug: `pinscan${String(i).padStart(3, "0")}`,
+        ownerId,
+        name: `Pack ${i}`,
+        slots: [{ mod: "NM", index: 1, beatmapId: 129891 }],
+        visibility: "public",
+        createdAt: now,
+        updatedAt: now,
+        ...(i < 3 ? { pinnedAt: now, pinOrder: 2 - i } : {}),
+      })),
+    );
+    const plans = [
+      await model.collection.find(PINNED).explain("executionStats"),
+      await model.collection.find(PINNED).sort(PIN_SORT).explain("executionStats"),
+      await model.collection
+        .aggregate([
+          { $match: { ...PINNED, visibility: "public", hiddenAt: null } },
+          { $sort: PIN_SORT },
+        ])
+        .explain("executionStats"),
+      await model.collection
+        .aggregate([{ $match: PINNED }, { $group: { _id: 1, n: { $sum: 1 } } }])
+        .explain("executionStats"),
+    ].map(planText);
+    for (const plan of plans) {
+      expect(plan).toContain(PIN_INDEX);
+      expect(plan).not.toContain('"COLLSCAN"');
+    }
+    expect(plans[1]).not.toContain('"SORT"');
+    expect(await model.collection.countDocuments(PINNED)).toBe(3);
+    expect((await listPinnedForAdmin()).map((pin) => pin.slug)).toEqual([
+      "pinscan002",
+      "pinscan001",
+      "pinscan000",
+    ]);
   });
 });

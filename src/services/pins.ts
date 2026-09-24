@@ -38,8 +38,12 @@ export class PinRefusedError extends Error {
   }
 }
 
-/** Every pinned pack. `$exists`, not `$ne: null`, so the partial index on pinOrder applies. */
-export const PINNED = { pinnedAt: { $exists: true } } as const;
+/**
+ * Every pinned pack (a pin sets pinnedAt and pinOrder together, and UNPIN unsets both).
+ * `$exists`, not `$ne: null`, so the partial pin index applies, and pinOrder is named so the
+ * planner considers that index even for queries that don't sort.
+ */
+export const PINNED = { pinnedAt: { $exists: true }, pinOrder: { $exists: true } } as const;
 
 /** Pin order; packs that share an order (two pins at once) fall back to when they were pinned. */
 export const PIN_SORT = { pinOrder: 1, pinnedAt: 1, _id: 1 } as const;

@@ -130,8 +130,13 @@ packSchema.index({ ownerId: 1, updatedAt: -1 });
 packSchema.index({ visibility: 1, updatedAt: -1 });
 // /packs and its search index: newest created first.
 packSchema.index({ visibility: 1, createdAt: -1 });
-// The pinned row and the admin's pin list: a handful of packs, found without a collection scan.
-packSchema.index({ pinOrder: 1 }, { partialFilterExpression: { pinnedAt: { $exists: true } } });
+// The pinned row and the admin's pin list: a handful of packs, found and sorted without a
+// collection scan. Its keys are PIN_SORT's (src/services/pins.ts), so it gives the order too, and
+// PINNED names pinOrder so the planner picks it.
+packSchema.index(
+  { pinOrder: 1, pinnedAt: 1, _id: 1 },
+  { partialFilterExpression: { pinnedAt: { $exists: true } } },
+);
 // One archive pack per pool: the importer finds packs by fingerprint, and a second import of the
 // same pool (from any source) can never make a duplicate.
 packSchema.index(
