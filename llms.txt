@@ -1,18 +1,18 @@
 # packs.haruhime.moe
 
-> Source for https://packs.haruhime.moe, a browser-first osu! mappool pack builder. Paste beatmap IDs, osu! links or spreadsheet rows, arrange the maps into slots, download the pool as one zip or a torrent built in the browser, and share it with a pack key or a saved short link. The site also lists public packs and archived tournament pools (from otdb), shows which archived pools used a map, and has a JSON API. It never hosts beatmap files. Next.js 16, React 19, TypeScript 7 and MongoDB, run with Bun. MIT license. The live site serves its own llms.txt at https://packs.haruhime.moe/llms.txt; that one is the canonical guide to the pages, guides, API and data. This file covers the repository.
+> Source for https://packs.haruhime.moe, a browser-first osu! mappool pack builder. Paste beatmap IDs, osu! links or spreadsheet rows, arrange the maps into slots, download the pool as one zip or a torrent built in the browser, and share it with a pack key or a saved short link. The site also lists public packs and has a JSON API. It never hosts beatmap files. Next.js 16, React 19, TypeScript 7 and MongoDB, run with Bun. MIT license. The live site serves its own llms.txt at https://packs.haruhime.moe/llms.txt; that one is the canonical guide to the pages, guides, API and data. This file covers the repository.
 
 ## Site
 
-- [llms.txt on the live site](https://packs.haruhime.moe/llms.txt): the canonical guide to the site's pages, guides, search index, map usage, API and legal pages, built from the same registries as the pages
+- [llms.txt on the live site](https://packs.haruhime.moe/llms.txt): the canonical guide to the site's pages, guides, search index, API and legal pages, built from the same registries as the pages
 - [packs.haruhime.moe](https://packs.haruhime.moe/): the live site
-- [API docs](https://packs.haruhime.moe/docs/api.md): the packs API as plain Markdown (keys, rate limits, errors, the pack object, map usage, every endpoint)
+- [API docs](https://packs.haruhime.moe/docs/api.md): the packs API as plain Markdown (keys, rate limits, errors, the pack object, every endpoint)
 - [OpenAPI document](https://packs.haruhime.moe/api/v1/openapi.json): OpenAPI 3.1 for every /api/v1 endpoint, built from the route handlers' zod schemas
 
 ## Docs
 
 - [README](https://github.com/haruhimemoe/packs.haruhime.moe#readme): what packs does, its features, stack and the shared packages it uses
-- [AGENTS.md](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/AGENTS.md): conventions, invariants (no file hosting, pack keys, accounts, public packs, archive packs, map usage, pack stats) and file layout for AI coding agents
+- [AGENTS.md](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/AGENTS.md): conventions, invariants (no file hosting, pack keys, accounts, public packs, the pools service endpoint, pack stats) and file layout for AI coding agents
 - [CONTRIBUTING.md](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/CONTRIBUTING.md): setup, environment variables, tests and the checks a PR must pass
 - [SECURITY.md](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/SECURITY.md): how to report a vulnerability
 

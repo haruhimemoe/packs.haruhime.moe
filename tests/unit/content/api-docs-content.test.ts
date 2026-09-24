@@ -82,6 +82,16 @@ describe("content/docs/api.mdx", () => {
     expect(text()).toContain("GET /api/v1/packs/{slug}");
     expect(text()).not.toContain("read every public pack");
   });
+
+  it("dates the removals first in Changes", () => {
+    expect(text()).toContain(
+      "- 2026-09-24: removed map usage (`GET /beatmaps/{id}/usage` and `GET /beatmaps/usage`), the `archive` field on pack objects, the index keys `x`, `xk` and `xu`, and the `source` filter on /packs (`source=`). They were live for about a day.",
+    );
+    const changes = text().slice(text().indexOf("## Changes"));
+    expect(changes.indexOf("removed map usage")).toBeLessThan(
+      changes.indexOf("list the archive pools a map was used in"),
+    );
+  });
 });
 
 describe("writes and the pack object", () => {

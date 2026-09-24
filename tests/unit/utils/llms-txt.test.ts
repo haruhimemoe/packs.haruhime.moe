@@ -1,9 +1,9 @@
 /**
  * @file tests/unit/utils/llms-txt.test.ts
  * @desc llms.txt follows the llmstxt.org shape, opens with the notes a reader needs first (no
- *       file hosting, pack keys), is built from the registries (every guide and
- *       legal doc appears, docs by their .md copy), spells out the /packs query string and the
- *       index keys, and every link is absolute and on one line.
+ *       file hosting, pack keys, the haruhime pools account), is built from the registries
+ *       (every guide and legal doc appears, docs by their .md copy), spells out the /packs query
+ *       string and the index keys, and every link is absolute and on one line.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -33,6 +33,7 @@ describe("buildLlmsTxt", () => {
   it.each([
     "packs doesn't host beatmap files.",
     `opens at ${SITE.url}/k# followed by the key, with no account.`,
+    "Packs owned by haruhime pools are past osu! tournament mappools published from pools.haruhime.moe",
   ])("notes %j", (phrase) => {
     expect(text).toContain(phrase);
   });

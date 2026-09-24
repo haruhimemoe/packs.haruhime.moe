@@ -2,7 +2,7 @@
  * @file tests/unit/tooling/only-packs.test.ts
  * @desc packs is only packs: tournament pool data lives in pools.haruhime.moe, so the pool
  *       importer, its otdb fixtures, the route it refreshed /packs through, and map usage with its
- *       per-IP limit are gone for good.
+ *       per-IP limit are gone for good, and the repo's own docs no longer describe them.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -50,4 +50,15 @@ describe("removed for good", () => {
   it("keeps no per-IP limit for map usage", () => {
     expect(Object.keys(RATE_LIMITS)).not.toContain("mapUsage");
   });
+});
+
+describe("the repo's own docs", () => {
+  it.each(["README.md", "llms.txt", "AGENTS.md", "SECURITY.md", ".env.example"])(
+    "%s no longer describes map usage, archived pools or the importer",
+    (file) => {
+      expect(readFileSync(at(file), "utf8")).not.toMatch(
+        /map usage|archived pools?|archive packs?|archive:import|revalidate-packs|Used in N pools/i,
+      );
+    },
+  );
 });

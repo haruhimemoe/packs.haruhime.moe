@@ -1,11 +1,11 @@
 /**
  * @file src/utils/llms-txt.ts
  * @desc /llms.txt (llmstxt.org): title, a one-paragraph summary, a few facts a reader needs
- *       first (no file hosting, pack keys), then link sections built from the page
- *       list and the guide, docs, and legal registries, so new docs appear on their own. Docs link
- *       their Markdown copy (/docs/<slug>.md), as llmstxt.org suggests. The public packs link
- *       spells out its query string, and Data covers the search index's keys (the read that needs
- *       no key), from the same constants the code uses.
+ *       first (no file hosting, pack keys, the haruhime pools account), then link sections built
+ *       from the page list and the guide, docs, and legal registries, so new docs appear on their
+ *       own. Docs link their Markdown copy (/docs/<slug>.md), as llmstxt.org suggests. The public
+ *       packs link spells out its query string, and Data covers the search index's keys (the read
+ *       that needs no key), from the same constants the code uses.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -34,6 +34,7 @@ const list = (values: readonly string[]): string => values.join(", ");
 export const LLMS_NOTES: readonly string[] = [
   "packs doesn't host beatmap files. The browser downloads each .osz from the beatmap mirror (mirror.hinamizawa.ai) and builds the zip and the torrent itself.",
   `A pack key (pk1., pk2. or pk3.) holds a whole pool in one line of text and opens at ${at("/k#")} followed by the key, with no account. Signed in with osu!, a host can also save a pack and get a short link, ${at("/p/")}{slug}.`,
+  "Packs owned by haruhime pools are past osu! tournament mappools published from pools.haruhime.moe, which credits where each one comes from.",
 ];
 
 /**
