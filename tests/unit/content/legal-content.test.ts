@@ -120,6 +120,9 @@ describe("privacy", () => {
     "gone when the server instance restarts",
     "/64 network",
     "Our server never forwards your IP address to osu!: the osu! API sees only our server.",
+    "**Map usage lookups.**",
+    "`/api/v1/beatmaps/usage`",
+    "The answers hold nothing about you.",
   ])("discloses every IP use: %j", (phrase) => {
     expect(text()).toContain(phrase);
   });
@@ -273,6 +276,7 @@ describe("API copy", () => {
 
   it.each([
     "Rate-limit counters for osu! lookups",
+    "Rate-limit counters for map usage lookups (which archived pools used a map), keyed by your IP address, signed in or not",
     "Sign-in rate-limit counts",
     "server memory only",
     "/64 network",
@@ -288,6 +292,7 @@ describe("API copy", () => {
       RATE_LIMITS.osuStarRatings,
       RATE_LIMITS.osuBeatmaps,
       RATE_LIMITS.authFail,
+      RATE_LIMITS.mapUsage,
       OSU_API_BUDGET_PER_IP,
     ]) {
       expect(rule.windowSeconds).toBe(60);

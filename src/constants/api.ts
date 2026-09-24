@@ -1,10 +1,11 @@
 /**
  * @file src/constants/api.ts
- * @desc Public API (/api/v1) settings: key format, page size, rate limits (the API's, and the
- *       per-IP and per-user limits on the app's own routes), and where the docs live.
+ * @desc Public API (/api/v1) settings: key format, page size, rate limits (the API's, the
+ *       per-IP limit on map usage, which needs no key, and the per-IP and per-user limits on the
+ *       app's own routes), and where the docs live.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 /** Can't be mistaken for a pack key (pk1.). */
@@ -39,6 +40,12 @@ export const RATE_LIMITS = {
   apiWrite: { scope: "api-write", limit: 10, windowSeconds: 60 },
   /** Missing, bad, or revoked keys, per IP. */
   authFail: { scope: "auth-fail", limit: 20, windowSeconds: 60 },
+  /**
+   * GET /api/v1/beatmaps/{id}/usage and GET /api/v1/beatmaps/usage, per IP: they need no key.
+   * The same 60 a minute as a key's reads. A pack page or the editor asks once per pool, and the
+   * CDN answers repeats without counting them.
+   */
+  mapUsage: { scope: "map-usage", limit: 60, windowSeconds: 60 },
   /** Create or regenerate on /me, per user. */
   keyCreate: { scope: "key-create", limit: 10, windowSeconds: 3600 },
   /**

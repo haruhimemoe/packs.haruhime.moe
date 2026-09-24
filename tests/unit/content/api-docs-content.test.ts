@@ -2,8 +2,8 @@
  * @file tests/unit/content/api-docs-content.test.ts
  * @desc content/docs/api.mdx documents every endpoint in the OpenAPI route table, the real
  *       limits, the headers, every error code the API sends, pack stats and their index keys,
- *       archive packs, and the Claude Code plugin; every doc stays plain Markdown so
- *       /docs/<slug>.md can serve it as is.
+ *       archive packs, map usage (no key, its fields, its cache), and the Claude Code plugin;
+ *       every doc stays plain Markdown so /docs/<slug>.md can serve it as is.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
  * @modified Thu Sep 24, 2026
@@ -14,10 +14,12 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { API_PAGE_SIZE, OPENAPI_PATH, RATE_LIMITS } from "@/constants/api";
 import { DOC_DOCS, DOC_SLUGS } from "@/constants/docs";
+import { MAX_USAGE_IDS } from "@/constants/map-usage";
 import { SEARCH_INDEX_LIMIT } from "@/constants/public-packs";
 import { errorCodeFor } from "@/lib/api";
 import { API_OPERATIONS } from "@/lib/openapi";
 import { archiveSourceSchema, packArchiveSchema } from "@/schemas/archive";
+import { beatmapUsageSchema, mapUsageEntrySchema } from "@/schemas/map-usage";
 import { packStatsSchema } from "@/schemas/pack-stats";
 
 const text = () => readFileSync(path.join(process.cwd(), "content", "docs", "api.mdx"), "utf8");
@@ -39,7 +41,9 @@ describe("content/docs/api.mdx", () => {
     `${RATE_LIMITS.apiWrite.limit} writes a minute`,
     `${RATE_LIMITS.authFail.limit} failed key attempts a minute`,
     `${RATE_LIMITS.keyCreate.limit} new keys an hour`,
+    `${RATE_LIMITS.mapUsage.limit} map usage requests a minute per IP address`,
     `${API_PAGE_SIZE} per page`,
+    `up to ${MAX_USAGE_IDS} maps at once`,
   ])("states %j", (phrase) => {
     expect(text()).toContain(phrase);
   });
@@ -112,6 +116,28 @@ describe("archive packs", () => {
   it("says nobody can set it, and dates the change", () => {
     expect(text()).toContain("Nobody can set or change it: `POST` and `PUT` ignore it.");
     expect(text()).toContain("- 2026-09-24: archive packs (past tournament pools) carry `archive`");
+  });
+});
+
+describe("map usage", () => {
+  it.each([...Object.keys(beatmapUsageSchema.shape), ...Object.keys(mapUsageEntrySchema.shape)])(
+    "documents usage field %s",
+    (field) => {
+      expect(text()).toContain(`\`${field}\``);
+    },
+  );
+
+  it.each([
+    "## Map usage",
+    "Every request needs your personal API key, except map usage, which needs none.",
+    "A pool with the map in two slots has two entries and counts once.",
+    "most recent `year` first",
+    "comes back with a `count` of 0 and no entries, never a 404",
+    "they carry `Cache-Control` and no rate-limit headers",
+    "answers can be up to an hour old",
+    "- 2026-09-24: `GET /beatmaps/{id}/usage` and `GET /beatmaps/usage` list the archive pools a map was used in. They need no key.",
+  ])("says %j", (phrase) => {
+    expect(text()).toContain(phrase);
   });
 });
 

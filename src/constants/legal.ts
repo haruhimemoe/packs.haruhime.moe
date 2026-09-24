@@ -35,7 +35,7 @@ export const LEGAL_DOCS: Record<
     title: "GDPR & CCPA",
     description:
       "Your rights over your data under the GDPR and the CCPA, what we hold and why, and how to use them.",
-    lastUpdated: "2026-09-23",
+    lastUpdated: "2026-09-24",
   },
   copyright: {
     title: "Copyright & Takedown",

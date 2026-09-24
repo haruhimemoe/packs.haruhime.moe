@@ -1,17 +1,20 @@
 /**
  * @file src/lib/api-auth.ts
- * @desc withApiKey(): wraps every /api/v1 handler. Reads the Bearer key, counts failures per IP
- *       (auth-fail), then counts the request per user (api, and api-write for writes). Every
- *       response gets RateLimit-* headers and Cache-Control: no-store, a thrown error included
- *       (a JSON 500), and a 401 says `WWW-Authenticate: Bearer`. No CORS headers, ever: the API
- *       is for servers and bots.
+ * @desc withApiKey(): wraps every /api/v1 handler that needs a key. Reads the Bearer key, counts
+ *       failures per IP (auth-fail), then counts the request per user (api, and api-write for
+ *       writes). Every response gets RateLimit-* headers and Cache-Control: no-store, a thrown
+ *       error included (a JSON 500), and a 401 says `WWW-Authenticate: Bearer`.
+ *       withPublicApi(): wraps the public reads that need no key (map usage). Counts each request
+ *       per IP; a success keeps the Cache-Control its handler set (the CDN may answer repeats, so
+ *       it carries no RateLimit-* headers), and everything else is no-store, a 429 with every
+ *       rate-limit header. No CORS headers, ever: the API is for servers and bots.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import "server-only";
-import { RATE_LIMITS } from "@/constants/api";
+import { RATE_LIMITS, type RateLimitRule } from "@/constants/api";
 import { jsonError } from "@/lib/api";
 import { bearerToken } from "@/lib/api-key";
 import {
@@ -94,4 +97,35 @@ export const withApiKey =
     } catch (error) {
       return serverError(error, shown);
     }
+  };
+
+type PublicRouteHandler<C> = (request: Request, context: C) => Promise<Response>;
+
+/**
+ * @function withPublicApi
+ * @param rule {RateLimitRule} the per-IP limit (IPv6 by its /64)
+ * @param handler {PublicRouteHandler<C>} the read; it sets Cache-Control on an answer the CDN may
+ *        keep
+ * @returns {(request: Request, context: C) => Promise<Response>} the route handler Next calls:
+ *          429 with Retry-After over the limit, a JSON 500 when the handler throws, and
+ *          Cache-Control: no-store on everything but a success that set its own
+ */
+export const withPublicApi =
+  <C = unknown>(rule: RateLimitRule, handler: PublicRouteHandler<C>) =>
+  async (request: Request, context: C): Promise<Response> => {
+    const limit = await hitRateLimit(rule, rateLimitSubject(clientIp(request.headers)));
+    if (!limit.allowed) {
+      return withHeaders(tooManyRequests(limit), { "Cache-Control": "no-store" });
+    }
+    let response: Response;
+    try {
+      response = await handler(request, context);
+    } catch (error) {
+      console.error("api: request failed", error);
+      response = jsonError(500, SERVER_ERROR);
+    }
+    if (!response.ok || !response.headers.has("Cache-Control")) {
+      response.headers.set("Cache-Control", "no-store");
+    }
+    return response;
   };

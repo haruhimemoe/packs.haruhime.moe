@@ -3,13 +3,16 @@
  * @desc The /api/v1 OpenAPI 3.1 document. Schemas come from the same zod schemas the handlers
  *       validate with and answer in (z.toJSONSchema, JSON Schema 2020-12, which OpenAPI 3.1 uses
  *       as-is); paths come from API_OPERATIONS. The published spec can't drift from the code.
+ *       Public operations (map usage) need no key (`security: []`), document their Cache-Control
+ *       instead of RateLimit-* headers, and can't answer 401.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { z } from "zod";
 import { API_DOCS_PATH, API_PAGE_SIZE, RATE_LIMITS } from "@/constants/api";
+import { MAP_USAGE_CACHE, MAX_USAGE_IDS } from "@/constants/map-usage";
 import { SITE } from "@/constants/site";
 import {
   apiErrorSchema,
@@ -17,6 +20,7 @@ import {
   apiPackPageResponseSchema,
   apiPackResponseSchema,
 } from "@/schemas/api";
+import { beatmapUsageListSchema, beatmapUsageSchema } from "@/schemas/map-usage";
 import { packInputSchema, slugSchema } from "@/schemas/saved-pack";
 
 type JsonObject = Record<string, unknown>;
@@ -28,6 +32,8 @@ export const API_SCHEMAS = {
   PackResponse: { schema: apiPackResponseSchema, io: "output" },
   PackPageResponse: { schema: apiPackPageResponseSchema, io: "output" },
   PackInput: { schema: packInputSchema, io: "input" },
+  BeatmapUsageResponse: { schema: beatmapUsageSchema, io: "output" },
+  BeatmapUsageListResponse: { schema: beatmapUsageListSchema, io: "output" },
   Error: { schema: apiErrorSchema, io: "output" },
 } as const satisfies Record<string, { schema: z.ZodType; io: Io }>;
 
@@ -41,7 +47,11 @@ export type ApiOperation = {
   /** Under /api/v1, in OpenAPI template syntax. */
   path: string;
   summary: string;
+  /** Needs no key: counted per IP, answers cacheable, never 401. */
+  public?: boolean;
   paged?: boolean;
+  /** Takes the required `?ids=` list (map usage). */
+  ids?: boolean;
   body?: ApiSchemaName;
   success: { status: 200 | 201 | 204; description: string; schema?: ApiSchemaName };
   /** Every operation can also answer 500; operation() adds it. */
@@ -109,10 +119,37 @@ export const API_OPERATIONS: readonly ApiOperation[] = [
     success: { status: 204, description: "Deleted." },
     errors: [401, 404, 429],
   },
+  {
+    operationId: "getBeatmapUsage",
+    method: "get",
+    path: "/beatmaps/{id}/usage",
+    summary: "The archive pools one beatmap was used in (no key needed)",
+    public: true,
+    success: {
+      status: 200,
+      description: "The map's usage, most recent year first.",
+      schema: "BeatmapUsageResponse",
+    },
+    errors: [400, 429],
+  },
+  {
+    operationId: "listBeatmapUsage",
+    method: "get",
+    path: "/beatmaps/usage",
+    summary: `The archive pools each of up to ${MAX_USAGE_IDS} beatmaps was used in (no key needed)`,
+    public: true,
+    ids: true,
+    success: {
+      status: 200,
+      description: "Each map's usage, in the order asked.",
+      schema: "BeatmapUsageListResponse",
+    },
+    errors: [400, 429],
+  },
 ];
 
 const ERROR_DESCRIPTIONS: Record<ErrorStatus, string> = {
-  400: "The body or a query parameter isn't valid.",
+  400: "The body, a path parameter or a query parameter isn't valid.",
   401: "No API key, or the key isn't valid (code unauthorized or invalid_api_key).",
   404: "The pack doesn't exist, or it's private or hidden and not yours.",
   409: "You already have the most packs one account can keep.",
@@ -140,12 +177,45 @@ const RATE_HEADERS = {
   "RateLimit-Reset": { $ref: "#/components/headers/RateLimit-Reset" },
 };
 
+const CACHE_HEADERS = { "Cache-Control": { $ref: "#/components/headers/Cache-Control" } };
+
+/** Headers on an error: rate-limit ones on every answer to a key, only on a 429 when public. */
+const errorHeaders = (op: ApiOperation, status: ErrorStatus) => {
+  if (status === 429) {
+    return { ...RATE_HEADERS, "Retry-After": { $ref: "#/components/headers/Retry-After" } };
+  }
+  return op.public ? {} : RATE_HEADERS;
+};
+
 const operation = (op: ApiOperation): JsonObject => ({
   operationId: op.operationId,
   summary: op.summary,
+  ...(op.public ? { security: [] } : {}),
   parameters: [
     ...(op.path.includes("{slug}")
       ? [{ name: "slug", in: "path", required: true, schema: jsonSchema(slugSchema, "output") }]
+      : []),
+    ...(op.path.includes("{id}")
+      ? [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            description: "A beatmap (difficulty) id.",
+            schema: { type: "integer", minimum: 1, maximum: 2147483647 },
+          },
+        ]
+      : []),
+    ...(op.ids
+      ? [
+          {
+            name: "ids",
+            in: "query",
+            required: true,
+            description: `1 to ${MAX_USAGE_IDS} beatmap (difficulty) ids, comma-separated. Each id is answered once, in the order sent.`,
+            schema: { type: "string", pattern: "^[0-9]+(,[0-9]+)*$" },
+          },
+        ]
       : []),
     ...(op.paged
       ? [
@@ -162,7 +232,7 @@ const operation = (op: ApiOperation): JsonObject => ({
   responses: {
     [op.success.status]: {
       description: op.success.description,
-      headers: RATE_HEADERS,
+      headers: op.public ? CACHE_HEADERS : RATE_HEADERS,
       ...(op.success.schema ? { content: json(op.success.schema) } : {}),
     },
     ...Object.fromEntries(
@@ -170,10 +240,7 @@ const operation = (op: ApiOperation): JsonObject => ({
         status,
         {
           description: ERROR_DESCRIPTIONS[status],
-          headers:
-            status === 429
-              ? { ...RATE_HEADERS, "Retry-After": { $ref: "#/components/headers/Retry-After" } }
-              : RATE_HEADERS,
+          headers: errorHeaders(op, status),
           content: json("Error"),
         },
       ]),
@@ -198,7 +265,7 @@ export const buildOpenApiDocument = () => {
     info: {
       title: `${SITE.title} API`,
       version: "1",
-      description: `Read public packs and manage your own with a personal API key. ${RATE_LIMITS.api.limit} requests and ${RATE_LIMITS.apiWrite.limit} writes a minute per account. Docs: ${SITE.url}${API_DOCS_PATH}`,
+      description: `Read public packs and manage your own with a personal API key. ${RATE_LIMITS.api.limit} requests and ${RATE_LIMITS.apiWrite.limit} writes a minute per account. Map usage needs no key: ${RATE_LIMITS.mapUsage.limit} requests a minute per IP address. Docs: ${SITE.url}${API_DOCS_PATH}`,
       contact: { email: SITE.contactEmail },
     },
     servers: [{ url: `${SITE.url}/api/v1` }],
@@ -220,6 +287,10 @@ export const buildOpenApiDocument = () => {
         "RateLimit-Remaining": integerHeader("Requests left in the current window."),
         "RateLimit-Reset": integerHeader("Seconds until the window starts over."),
         "Retry-After": integerHeader("Seconds to wait before trying again."),
+        "Cache-Control": {
+          description: `How long a CDN may keep the answer (${MAP_USAGE_CACHE}).`,
+          schema: { type: "string" },
+        },
       },
     },
   };

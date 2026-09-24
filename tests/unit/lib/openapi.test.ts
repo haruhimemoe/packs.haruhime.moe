@@ -2,7 +2,8 @@
  * @file tests/unit/lib/openapi.test.ts
  * @desc The OpenAPI document: 3.1, every v1 route present and backed by a handler, every $ref
  *       resolves, component schemas are the handlers' own zod schemas, pack objects document their
- *       optional stats (never part of a body), and both pack lists are paged.
+ *       optional stats (never part of a body), both pack lists are paged, and the map usage reads
+ *       need no key, take their id or ids, and document their cache header.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
  * @modified Thu Sep 24, 2026
@@ -12,6 +13,7 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { API_OPERATIONS, buildOpenApiDocument } from "@/lib/openapi";
 import { apiPackSchema } from "@/schemas/api";
+import { beatmapUsageListSchema, beatmapUsageSchema } from "@/schemas/map-usage";
 import { packInputSchema } from "@/schemas/saved-pack";
 
 const ROUTE_MODULES: Record<string, () => Promise<Record<string, unknown>>> = {
@@ -19,6 +21,8 @@ const ROUTE_MODULES: Record<string, () => Promise<Record<string, unknown>>> = {
   "/me/packs": () => import("@/app/api/v1/me/packs/route"),
   "/packs": () => import("@/app/api/v1/packs/route"),
   "/packs/{slug}": () => import("@/app/api/v1/packs/[slug]/route"),
+  "/beatmaps/{id}/usage": () => import("@/app/api/v1/beatmaps/[id]/usage/route"),
+  "/beatmaps/usage": () => import("@/app/api/v1/beatmaps/usage/route"),
 };
 
 const refsIn = (value: unknown): string[] => {
@@ -67,12 +71,14 @@ describe("buildOpenApiDocument", () => {
     expect(doc.components.securitySchemes.apiKey).toMatchObject({ type: "http", scheme: "bearer" });
   });
 
-  it("lists exactly the seven v1 operations", () => {
+  it("lists exactly the nine v1 operations", () => {
     const listed = Object.entries(doc.paths)
       .flatMap(([path, ops]) => Object.keys(ops).map((method) => `${method.toUpperCase()} ${path}`))
       .sort();
     expect(listed).toEqual([
       "DELETE /packs/{slug}",
+      "GET /beatmaps/usage",
+      "GET /beatmaps/{id}/usage",
       "GET /me",
       "GET /me/packs",
       "GET /packs",
@@ -139,14 +145,17 @@ describe("buildOpenApiDocument", () => {
     expect(text).not.toContain("$defs");
   });
 
-  it("gives every operation a unique id and documents 401, 429 and 500", () => {
+  it("gives every operation a unique id and documents 429 and 500, and 401 when it needs a key", () => {
     const ops = Object.values(doc.paths).flatMap((ops) => Object.values(ops)) as {
       operationId: string;
+      security?: unknown[];
       responses: Record<string, unknown>;
     }[];
     expect(new Set(ops.map((op) => op.operationId)).size).toBe(ops.length);
     for (const op of ops) {
-      expect(Object.keys(op.responses)).toEqual(expect.arrayContaining(["401", "429", "500"]));
+      expect(Object.keys(op.responses)).toEqual(expect.arrayContaining(["429", "500"]));
+      if (op.security?.length === 0) expect(op.responses).not.toHaveProperty("401");
+      else expect(op.responses).toHaveProperty("401");
       expect(op.responses["500"]).toMatchObject({
         content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
       });
@@ -165,6 +174,55 @@ describe("buildOpenApiDocument", () => {
       },
     });
     expect(Object.keys(op.responses)).toContain("400");
+  });
+
+  describe("map usage", () => {
+    type Operation = {
+      security?: unknown[];
+      parameters: { name: string; in: string; required: boolean }[];
+      responses: Record<string, { headers?: Record<string, unknown>; content?: unknown }>;
+    };
+    const op = (path: string) =>
+      (doc.paths[path] as Record<string, Operation> | undefined)?.get as Operation;
+
+    it.each(["/beatmaps/{id}/usage", "/beatmaps/usage"])("GET %s needs no key", (path) => {
+      expect(op(path).security).toEqual([]);
+      expect(Object.keys(op(path).responses).sort()).toEqual(["200", "400", "429", "500"]);
+    });
+
+    it("takes the id in the path, or the ids in the query", () => {
+      expect(op("/beatmaps/{id}/usage").parameters).toEqual([
+        expect.objectContaining({ name: "id", in: "path", required: true }),
+      ]);
+      expect(op("/beatmaps/usage").parameters).toEqual([
+        expect.objectContaining({ name: "ids", in: "query", required: true }),
+      ]);
+    });
+
+    it("documents Cache-Control instead of rate-limit headers on a success", () => {
+      const ok = op("/beatmaps/usage").responses["200"];
+      expect(ok?.headers).toEqual({
+        "Cache-Control": { $ref: "#/components/headers/Cache-Control" },
+      });
+      expect(op("/beatmaps/usage").responses["400"]?.headers).toEqual({});
+      expect(op("/beatmaps/usage").responses["429"]?.headers).toHaveProperty("Retry-After");
+    });
+
+    it("answers with the routes' own zod schemas", () => {
+      expect(doc.components.schemas.BeatmapUsageResponse).toEqual(
+        withoutDialect(beatmapUsageSchema, "output"),
+      );
+      expect(doc.components.schemas.BeatmapUsageListResponse).toEqual(
+        withoutDialect(beatmapUsageListSchema, "output"),
+      );
+      expect(op("/beatmaps/{id}/usage").responses["200"]?.content).toEqual({
+        "application/json": { schema: { $ref: "#/components/schemas/BeatmapUsageResponse" } },
+      });
+    });
+
+    it("says in the description that map usage needs no key", () => {
+      expect(doc.info.description).toContain("Map usage needs no key: 60 requests a minute per IP");
+    });
   });
 
   it("round-trips through JSON", () => {

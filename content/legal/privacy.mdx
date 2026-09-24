@@ -22,6 +22,7 @@ Every place packs uses your IP address:
 - **Sign-in sessions.** Our sign-in library stores the IP address you signed in from with each session, as listed above.
 - **osu! lookups.** While you build or view a pack, signed in or not, your browser asks our server for star ratings with mods (`/api/osu/star-ratings`) and for maps the mirror doesn't have (`/api/osu/beatmaps`). Our server counts these requests per IP address in short-lived counters, so one visitor can't use up the site's osu! API quota. The counters are deleted automatically within about two minutes.
 - **API requests without a valid key.** Counted per IP address for about 2 minutes, to stop key guessing.
+- **Map usage lookups.** Pack pages and the editor ask our server which archived tournament pools used each map (`/api/v1/beatmaps/usage`), signed in or not, and anyone can ask the API the same without a key. Our server counts these requests per IP address in short-lived counters, deleted automatically within about two minutes. The answers hold nothing about you.
 - **Sign-in rate limits.** Our sign-in library limits requests to its sign-in, sign-out and session endpoints per IP address. It keeps these counts in server memory only: they're never written to the database, they expire after about 10 seconds, and they're gone when the server instance restarts.
 - **Our host's request logs.** Vercel keeps standard request logs, including your IP address.
 
