@@ -1,7 +1,7 @@
 /**
  * @file tests/unit/utils/llms-txt-api.test.ts
  * @desc llms.txt carries an API section (each doc's Markdown copy and the OpenAPI document)
- *       before Legal, and its API doc line mentions map usage.
+ *       before Legal.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
  * @modified Thu Sep 24, 2026
@@ -27,11 +27,5 @@ describe("llms.txt API section", () => {
     expect(text).toContain(`[${DOC_DOCS.api.title}](${SITE.url}/docs/api.md)`);
     expect(text.indexOf("## API")).toBeGreaterThan(-1);
     expect(text.indexOf("## API")).toBeLessThan(text.indexOf("## Legal"));
-  });
-
-  it("says map usage is in the API and needs no key", () => {
-    expect(buildLlmsTxt()).toContain(
-      "and look up which archived pools used a map (no key needed).",
-    );
   });
 });

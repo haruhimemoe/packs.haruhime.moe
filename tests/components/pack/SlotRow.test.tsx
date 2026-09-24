@@ -1,8 +1,7 @@
 /**
  * @file tests/components/pack/SlotRow.test.tsx
- * @desc SlotRow in each metadata state, the optional remove control, Copy ID (the map's
- *       beatmap ID for "!mp map"), and "Used in N pools" in the map's stats line when other
- *       archive pools used the map (only once the map's details are shown).
+ * @desc SlotRow in each metadata state, the optional remove control, and Copy ID (the map's
+ *       beatmap ID for "!mp map").
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -297,7 +296,7 @@ describe("SlotRow Copy ID", () => {
     const wrapper = screen.getByRole("button", { name: "Copy ID 129891" }).parentElement;
     const actions = wrapper?.parentElement;
     const row = actions?.parentElement;
-    // The row inside the list item holds the map and the actions; usage goes in the stats line.
+    // The row inside the list item holds the map and the actions.
     expect(row?.parentElement).toBe(screen.getByRole("listitem"));
     expect(row).toHaveClass("flex-wrap", "sm:flex-nowrap");
     // Phones: a full-width line under the map, so the title keeps its room.
@@ -341,62 +340,5 @@ describe("SlotRow Copy ID", () => {
     const row = actions.parentElement;
     expect(row).toHaveClass("flex-wrap", "lg:flex-nowrap");
     expect(row).not.toHaveClass("sm:flex-nowrap");
-  });
-});
-
-describe("SlotRow map usage", () => {
-  const USED = {
-    slug: "aaaaaaaaaa",
-    tournament: "osu! World Cup 2023",
-    round: "Grand Finals",
-    year: 2023,
-    badged: null,
-    slot: "NM1",
-    mods: "NM",
-    fingerprint: "a".repeat(64),
-  };
-
-  it("shows Used in N pools in the map's stats line, so it adds no line of its own", () => {
-    inList(
-      <SlotRow
-        slot={SLOT}
-        entry={{ code: "NM" }}
-        state={{ status: "found", meta: META }}
-        usage={[USED]}
-      />,
-    );
-    const button = screen.getByRole("button", { name: "Used in 1 pool" });
-    // The line with the star rating and the map's stats (CS, AR, ... Length).
-    const statsLine = screen.getByText("4:18").closest("dl")?.parentElement;
-    expect(statsLine).toHaveClass("flex-wrap");
-    expect(statsLine?.contains(button)).toBe(true);
-    // The list opens under the stats, as a line of its own.
-    expect(document.getElementById(button.getAttribute("aria-controls") ?? "")).toHaveClass(
-      "basis-full",
-    );
-  });
-
-  it.each([
-    { status: "loading" } as const,
-    { status: "missing" } as const,
-    { status: "error", message: "Mirror is down." } as const,
-  ])("shows no usage until the map's details are shown ($status)", (state) => {
-    inList(<SlotRow slot={SLOT} entry={{ code: "NM" }} state={state} usage={[USED]} />);
-    expect(screen.queryByRole("button", { name: /^Used in/ })).toBeNull();
-  });
-
-  it.each([
-    ["no usage given", undefined],
-    ["no other pool", []],
-  ])("shows nothing with %s", (_label, usage) => {
-    inList(
-      <SlotRow
-        slot={SLOT}
-        entry={{ code: "NM" }}
-        state={{ status: "found", meta: META }}
-        {...(usage ? { usage } : {})}
-      />,
-    );
-    expect(screen.queryByRole("button", { name: /^Used in/ })).toBeNull();
   });
 });

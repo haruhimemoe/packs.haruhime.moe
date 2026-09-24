@@ -1,8 +1,8 @@
 /**
  * @file tests/helpers/hinai-server.ts
  * @desc MSW server for the hinai mirror: the batch endpoint from the recorded fixture (unknown ids
- *       omitted, like the real mirror), plus availability, downloads, our osu! fallback route, our
- *       star-ratings route, and our map usage route.
+ *       omitted, like the real mirror), plus availability, downloads, our osu! fallback route, and
+ *       our star-ratings route.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -33,14 +33,6 @@ export const starRatingsHandler = http.get("*/api/osu/star-ratings", () =>
   HttpResponse.json({ ratings: {}, pending: [] }),
 );
 
-/** Our map usage route: in component tests no archive pool used any map. */
-export const mapUsageHandler = http.get("*/api/v1/beatmaps/usage", ({ request }) => {
-  const ids = (new URL(request.url).searchParams.get("ids") ?? "").split(",").filter(Boolean);
-  return HttpResponse.json({
-    beatmaps: ids.map((id) => ({ beatmapId: Number(id), count: 0, entries: [] })),
-  });
-});
-
 /**
  * @function setupHinaiServer
  * @returns {SetupServer} server with the batch handler; lifecycle hooks registered
@@ -50,7 +42,6 @@ export const setupHinaiServer = (): SetupServer => {
     hinaiBatchHandler,
     osuFallbackHandler,
     starRatingsHandler,
-    mapUsageHandler,
     ...hinaiDownloadHandlers,
   );
   beforeAll(() => server.listen({ onUnhandledRequest: "error" }));

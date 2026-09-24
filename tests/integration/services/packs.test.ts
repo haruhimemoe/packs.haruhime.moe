@@ -1,10 +1,11 @@
 /**
  * @file tests/integration/services/packs.test.ts
  * @desc Packs service on in-memory Mongo: create, visibility rules, owner-only edits, list order,
- *       the per-account cap (none for admins), paging, and slug collision retries.
+ *       the per-account cap (none for admins), paging, slug collision retries, and the model's
+ *       indexes.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { ObjectId } from "mongodb";
@@ -408,5 +409,16 @@ describe("listPacks paging", () => {
     const slugs = [...first.packs, ...second.packs].map((pack) => pack.slug);
     expect(new Set(slugs).size).toBe(OWN_PAGE_SIZE + 7);
     expect(first.packs[0]?.name).toBe("P0");
+  });
+});
+
+describe("indexes", () => {
+  const keys = () =>
+    getPackModel()
+      .schema.indexes()
+      .map(([key]) => Object.keys(key).join(","));
+
+  it("never indexes packs by beatmap id (map usage is gone)", () => {
+    expect(keys()).not.toContain("slots.beatmapId");
   });
 });

@@ -17,7 +17,7 @@ export const DOC_DOCS: Record<
   api: {
     title: "packs API",
     description:
-      "Read public packs and manage your own from scripts and bots with a personal API key, and look up which archived pools used a map (no key needed).",
+      "Read public packs and manage your own from scripts and bots, with a personal API key.",
     lastUpdated: "2026-09-24",
   },
 };

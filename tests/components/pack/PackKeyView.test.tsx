@@ -1,9 +1,7 @@
 /**
  * @file tests/components/pack/PackKeyView.test.tsx
  * @desc /k view: decodes the fragment, loads metadata, Download card before the pool, reacts to
- *       hash changes, saves a copy, retries map info from the Download card, Copy ID per map, and
- *       the archive pools each map was used in (one request for the pool; the pool itself left
- *       out by its fingerprint).
+ *       hash changes, saves a copy, retries map info from the Download card, and Copy ID per map.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -52,34 +50,6 @@ describe("PackKeyView", () => {
     server.use(hinaiBatchHandler);
     await user.click(retry);
     expect(await screen.findByRole("link", { name: "xi - FREEDOM DiVE" })).toBeInTheDocument();
-  });
-
-  it("shows which archive pools used each map", async () => {
-    const fetchUsage = vi.fn(async (ids: readonly number[]) => ({
-      beatmaps: ids.map((beatmapId) => ({
-        beatmapId,
-        count: beatmapId === 1872396 ? 1 : 0,
-        entries:
-          beatmapId === 1872396
-            ? [
-                {
-                  slug: "aaaaaaaaaa",
-                  tournament: "osu! World Cup 2023",
-                  round: "Grand Finals",
-                  year: 2023,
-                  badged: null,
-                  slot: "TB1",
-                  mods: "TB",
-                  fingerprint: "a".repeat(64),
-                },
-              ]
-            : [],
-      })),
-    }));
-    openHash(`#${KEY}`);
-    render(<PackKeyView fetchUsage={fetchUsage} />);
-    expect(await screen.findByRole("button", { name: "Used in 1 pool" })).toBeInTheDocument();
-    expect(fetchUsage.mock.calls).toEqual([[[129891, 1872396]]]);
   });
 
   it("renders the pack from the fragment with live metadata", async () => {

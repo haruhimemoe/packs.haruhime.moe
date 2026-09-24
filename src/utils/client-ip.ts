@@ -2,7 +2,7 @@
  * @file src/utils/client-ip.ts
  * @desc The caller's IP as Vercel reports it (x-real-ip, then the first x-forwarded-for entry),
  *       and the subject every per-IP counter keys on (failed API keys, star ratings, fallback
- *       lookups, map usage, the per-IP share of osu! calls): an IPv4 address whole, an IPv6 address by its
+ *       lookups, the per-IP share of osu! calls): an IPv4 address whole, an IPv6 address by its
  *       /64, since one host usually gets a whole /64. Vercel's edge overwrites both headers with
  *       the connecting client's IP (it never appends a client-sent value), so neither can be
  *       spoofed in production. That holds only while Vercel is the first hop: behind another

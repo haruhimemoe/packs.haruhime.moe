@@ -58,8 +58,7 @@ export const packInputSchema = poolFields
       .optional(),
   })
   .superRefine(checkPoolBuckets)
-  // Slot codes show wherever the pack's slots do, and map usage shows an archive pack's slot
-  // labels on other people's packs: they go through the blocklist like the name.
+  // Slot codes show wherever the pack's slots do: they go through the blocklist like the name.
   .superRefine((pack, ctx) => {
     for (const [i, bucket] of (pack.buckets ?? []).entries()) {
       if (hasBlockedLanguage(bucket.code)) {

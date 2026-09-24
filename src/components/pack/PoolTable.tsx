@@ -1,9 +1,8 @@
 /**
  * @file src/components/pack/PoolTable.tsx
  * @desc Pool grouped by bucket: no-slot maps first, then the pack's buckets in order, one labelled
- *       section per non-empty group. Editable pools add Remove and "Move to" per row. Given map
- *       usage, each row shows the other archive pools that used its map. Only the row whose ID
- *       was copied last says "Copied.": a press starts every other row's Copy ID over.
+ *       section per non-empty group. Editable pools add Remove and "Move to" per row. Only the row
+ *       whose ID was copied last says "Copied.": a press starts every other row's Copy ID over.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -28,7 +27,6 @@ import { NO_SLOT_VALUE } from "@/constants/mods";
 import { MAX_SLOT_INDEX } from "@/constants/pack";
 import type { MetaState } from "@/hooks/beatmapMetaState";
 import type { ModdedStarRatings } from "@/hooks/useModdedStarRatings";
-import type { MapUsageEntry } from "@/schemas/map-usage";
 import { type BucketEntry, type PoolSlot, type SlotBucket, slotKey } from "@/schemas/pack";
 
 type PoolTableProps = {
@@ -41,8 +39,6 @@ type PoolTableProps = {
   modsBySlot?: ReadonlyMap<string, SlotMods>;
   /** slotKey -> ratings with mods, from usePoolStarRatings. */
   ratings?: ModdedStarRatings;
-  /** Beatmap id -> other archive pools that used it, from useMapUsage. */
-  usageOf?: (beatmapId: number) => readonly MapUsageEntry[];
 };
 
 /**
@@ -62,7 +58,6 @@ export function PoolTable({
   onMove,
   modsBySlot,
   ratings,
-  usageOf,
 }: PoolTableProps) {
   const [lastCopy, setLastCopy] = useState<LastCopy>({ slot: null, key: 0, fresh: 0 });
   const copied = (slot: string) =>
@@ -125,7 +120,6 @@ export function PoolTable({
                   onMove={onMove ? (to) => onMove(slot, to) : undefined}
                   slotMods={modsBySlot?.get(slotKey(slot))}
                   ratings={ratings?.get(slotKey(slot))}
-                  usage={usageOf?.(slot.beatmapId)}
                   copyKey={copyKeyOf(lastCopy, slotKey(slot))}
                   onCopy={() => copied(slotKey(slot))}
                 />

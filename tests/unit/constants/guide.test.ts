@@ -1,7 +1,7 @@
 /**
  * @file tests/unit/constants/guide.test.ts
  * @desc Guide registry, slug guard, the pack key doc staying in sync with the codec, the
- *       make-a-pack tips (Copy ID, Used in N pools), and the archived pools guide (what they are,
+ *       make-a-pack tips (Copy ID), and the archived pools guide (what they are,
  *       otdb as the source, what happens when a pool changes, finding them, map usage, how to
  *       report a wrong one).
  * @author David @dvhsh (https://dvh.sh)
@@ -129,10 +129,9 @@ describe("make-a-pack guide", () => {
     }
   });
 
-  it("points to Copy ID and to Used in N pools", () => {
+  it("points to Copy ID", () => {
     expect(text()).toContain('Every map row has a "Copy ID" button that copies its beatmap ID');
-    expect(text()).toContain('says "Used in N pools" in its row');
-    expect(text()).toContain("(/guide/archived-pools)");
+    expect(text()).not.toContain("Used in N pools");
     expect(GUIDE_DOCS["make-a-pack"].lastUpdated).toBe("2026-09-24");
   });
 

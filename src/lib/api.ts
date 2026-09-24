@@ -1,8 +1,8 @@
 /**
  * @file src/lib/api.ts
  * @desc Shared pieces for our JSON route handlers: { error: { code, message } } responses, body
- *       parsing, the `?ids=` list the osu! routes take (and the map usage routes' messages), and
- *       the same-origin guard for cookie mutations without a body. Bodies must be application/json (a cross-site form can't send
+ *       parsing, the `?ids=` list the osu! routes take, and the same-origin guard for cookie
+ *       mutations without a body. Bodies must be application/json (a cross-site form can't send
  *       that without a CORS preflight) and small.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
@@ -10,7 +10,6 @@
  */
 
 import type { z } from "zod";
-import { MAX_USAGE_IDS } from "@/constants/map-usage";
 import { MAX_SLOTS } from "@/constants/pack";
 import { SITE } from "@/constants/site";
 import type { ApiErrorBody } from "@/schemas/api";
@@ -22,8 +21,6 @@ export const SIGN_IN_REQUIRED = "Sign in with osu! to save packs.";
 export const PACK_NOT_FOUND = "Pack not found.";
 export const BAD_PAGE = "Use a page number from 1 to 999999.";
 export const BAD_BEATMAP_IDS = `Pass 1 to ${MAX_SLOTS} beatmap ids as ?ids=1,2,3.`;
-export const BAD_USAGE_ID = "Use a beatmap ID: a whole number from 1 to 2147483647.";
-export const BAD_USAGE_IDS = `Pass 1 to ${MAX_USAGE_IDS} beatmap IDs as ?ids=1,2,3.`;
 
 /** The longest valid id (2147483647, 10 digits) plus a comma; a longer ?ids= is refused unread. */
 const MAX_IDS_QUERY_LENGTH = MAX_SLOTS * 11;

@@ -3,7 +3,7 @@
  * @desc Saved pack schemas: API input defaults and limits, slug shape, response DTOs.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -78,7 +78,7 @@ describe("packInputSchema", () => {
 
   const BUILT_INS = ["NM", "HD", "HR", "DT", "FM", "TB"].map((code) => ({ code }));
 
-  it("refuses slurs in a custom slot's code, which map usage shows on other packs' pages", () => {
+  it("refuses slurs in a custom slot's code, which shows wherever the pack's slots do", () => {
     const result = packInputSchema.safeParse({
       name: "Finals",
       slots: [{ mod: "F4GG0T", index: 1, beatmapId: 129891 }],

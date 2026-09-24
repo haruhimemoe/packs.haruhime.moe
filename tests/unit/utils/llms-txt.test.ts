@@ -2,15 +2,14 @@
  * @file tests/unit/utils/llms-txt.test.ts
  * @desc llms.txt follows the llmstxt.org shape, opens with the notes a reader needs first (no
  *       file hosting, pack keys, archived pools), is built from the registries (every guide and
- *       legal doc appears, docs by their .md copy), spells out the /packs query string, the index
- *       keys and map usage, and every link is absolute and on one line.
+ *       legal doc appears, docs by their .md copy), spells out the /packs query string and the
+ *       index keys, and every link is absolute and on one line.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
  */
 
 import { describe, expect, it } from "vitest";
-import { RATE_LIMITS } from "@/constants/api";
 import { DOC_DOCS, DOC_SLUGS } from "@/constants/docs";
 import { GUIDE_DOCS, GUIDE_SLUGS } from "@/constants/guide";
 import { LEGAL_DOCS, LEGAL_SLUGS } from "@/constants/legal";
@@ -100,12 +99,8 @@ describe("buildLlmsTxt", () => {
     expect(line).toContain("new, updated, sr-asc, sr-desc, maps, name");
   });
 
-  it("lists map usage under Data, with its limit and no key", () => {
-    expect(text).toContain(`- [Map usage](${SITE.url}/api/v1/beatmaps/usage?ids=129891,75): `);
-    expect(text).toContain(`${SITE.url}/api/v1/beatmaps/{id}/usage answers for one map.`);
-    expect(text).toContain(
-      `No key needed: ${RATE_LIMITS.mapUsage.limit} requests a minute per IP address`,
-    );
+  it("has no map usage entry", () => {
+    expect(text).not.toMatch(/map usage|\/beatmaps\//i);
   });
 
   it("uses absolute links on our own site only", () => {

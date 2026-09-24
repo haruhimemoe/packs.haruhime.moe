@@ -1,8 +1,7 @@
 /**
  * @file src/components/pack/PackKeyView.tsx
  * @desc /k: decode the key in location.hash, show the Download card at the top, then the pool
- *       with live metadata, star ratings with mods and the other archive pools each map was used
- *       in; offer "Edit a copy" and saving to an account.
+ *       with live metadata and star ratings with mods; offer "Edit a copy" and saving to an account.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -27,7 +26,6 @@ import { PackStats } from "@/components/pack/PackStats";
 import { PoolTable } from "@/components/pack/PoolTable";
 import { SavePackButton } from "@/components/pack/SavePackButton";
 import { useBeatmapMeta } from "@/hooks/useBeatmapMeta";
-import { type MapUsageFetcher, useMapUsage } from "@/hooks/useMapUsage";
 import { usePoolStarRatings } from "@/hooks/useModdedStarRatings";
 import { saveDraft } from "@/lib/storage/drafts";
 import type { Pool } from "@/schemas/pack";
@@ -53,12 +51,7 @@ const readHash = (): ViewState => {
   }
 };
 
-export function PackKeyView({
-  fetchUsage,
-}: {
-  /** Test seam. Default: our map usage route. */
-  fetchUsage?: MapUsageFetcher;
-} = {}) {
+export function PackKeyView() {
   const router = useRouter();
   const [state, setState] = useState<ViewState>({ status: "reading" });
   const [saving, setSaving] = useState(false);
@@ -75,11 +68,6 @@ export function PackKeyView({
   const ids = useMemo(() => pack?.slots.map((s) => s.beatmapId) ?? [], [pack]);
   const meta = useBeatmapMeta(ids);
   const stars = usePoolStarRatings(pack ?? NO_POOL, meta.get);
-  // A key of an archive pool is that pool: its entries are left out by fingerprint.
-  const usageOf = useMapUsage(ids, {
-    ...(pack ? { pool: pack } : {}),
-    ...(fetchUsage ? { fetchUsage } : {}),
-  });
 
   if (state.status === "reading") {
     return <PageHeader title="Opening pack…" />;
@@ -134,7 +122,6 @@ export function PackKeyView({
           getState={meta.get}
           modsBySlot={stars.modsBySlot}
           ratings={stars.ratings}
-          usageOf={usageOf}
         />
       </section>
       <Card title="Save">

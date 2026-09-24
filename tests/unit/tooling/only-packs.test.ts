@@ -1,7 +1,8 @@
 /**
  * @file tests/unit/tooling/only-packs.test.ts
  * @desc packs is only packs: tournament pool data lives in pools.haruhime.moe, so the pool
- *       importer, its otdb fixtures and the route it refreshed /packs through are gone for good.
+ *       importer, its otdb fixtures, the route it refreshed /packs through, and map usage with its
+ *       per-IP limit are gone for good.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -10,6 +11,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { RATE_LIMITS } from "@/constants/api";
 
 const at = (file: string) => path.join(process.cwd(), file);
 
@@ -24,6 +26,13 @@ describe("removed for good", () => {
     "src/schemas/otdb.ts",
     "src/app/api/cron/revalidate-packs",
     "tests/fixtures/otdb",
+    "src/app/api/v1/beatmaps",
+    "src/constants/map-usage.ts",
+    "src/schemas/map-usage.ts",
+    "src/services/map-usage.ts",
+    "src/utils/map-usage.ts",
+    "src/hooks/useMapUsage.ts",
+    "src/components/pack/MapUsage.tsx",
   ])("%s is gone", (file) => {
     expect(existsSync(at(file))).toBe(false);
   });
@@ -33,5 +42,9 @@ describe("removed for good", () => {
       scripts: Record<string, string>;
     };
     expect(Object.keys(pkg.scripts)).not.toContain("archive:import");
+  });
+
+  it("keeps no per-IP limit for map usage", () => {
+    expect(Object.keys(RATE_LIMITS)).not.toContain("mapUsage");
   });
 });

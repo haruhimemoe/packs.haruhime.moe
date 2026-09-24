@@ -6,8 +6,7 @@
  *       writes go through the driver so `updatedAt` never moves (a hidden pack keeps its place).
  *       Hiding a pack also unpins it (pins live in src/services/pins.ts); unhiding never pins it
  *       again. Rows say when a pack was pinned. Archive packs (owned by the system account, which
- *       has no osu! id) are moderated like any other; hiding, unhiding or deleting one rebuilds the
- *       map usage of its maps (src/services/map-usage.ts).
+ *       has no osu! id) are moderated like any other.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -21,7 +20,6 @@ import { revalidatePack, revalidatePublicPacks } from "@/lib/revalidate";
 import { UNPIN } from "@/models/Pack";
 import { type AdminPackPage, type AdminPackRow, adminPackRowSchema } from "@/schemas/public-pack";
 import { slugSchema, type Visibility } from "@/schemas/saved-pack";
-import { refreshMapUsage } from "@/services/map-usage";
 import { connectedPackModel } from "@/services/packs";
 import { escapeRegExp } from "@/utils/text";
 
@@ -72,19 +70,6 @@ const toRow = (record: AdminRecord): AdminPackRow =>
     hiddenAt: record.hiddenAt ? record.hiddenAt.toISOString() : null,
     pinnedAt: record.pinnedAt ? record.pinnedAt.toISOString() : null,
   });
-
-/** Enough of a pack to tell whether its map usage needs a rebuild, and for which maps. */
-const USAGE_FIELDS = { "slots.beatmapId": 1, "archive.fingerprint": 1 } as const;
-
-type UsageFields = { slots?: { beatmapId?: unknown }[]; archive?: { fingerprint?: unknown } };
-
-/** An archive pack's maps change what map usage shows: rebuild them. Other packs don't count. */
-const refreshUsageOf = async (doc: UsageFields | null): Promise<void> => {
-  if (!doc?.archive?.fingerprint || !Array.isArray(doc.slots)) return;
-  await refreshMapUsage(
-    doc.slots.flatMap((slot) => (typeof slot.beatmapId === "number" ? [slot.beatmapId] : [])),
-  );
-};
 
 export type AdminListOptions = { page?: number; hiddenOnly?: boolean; query?: string };
 
@@ -148,11 +133,6 @@ export const setPackHidden = async (
   if (result.matchedCount === 0 && !(await model.collection.findOne({ slug, ...MODERATED }))) {
     return null;
   }
-  if (result.modifiedCount > 0) {
-    await refreshUsageOf(
-      await model.collection.findOne<UsageFields>({ slug }, { projection: USAGE_FIELDS }),
-    );
-  }
   revalidatePack(slug);
   revalidatePublicPacks();
   const [record] = await model.aggregate<AdminRecord>([{ $match: { slug } }, ...ownerStages]);
@@ -167,12 +147,8 @@ export const setPackHidden = async (
 export const adminDeletePack = async (slug: string): Promise<boolean> => {
   if (!slugSchema.safeParse(slug).success) return false;
   const model = await connectedPackModel();
-  const deleted = await model.collection.findOneAndDelete(
-    { slug, ...MODERATED },
-    { projection: USAGE_FIELDS },
-  );
-  if (!deleted) return false;
-  await refreshUsageOf(deleted as UsageFields);
+  const result = await model.collection.deleteOne({ slug, ...MODERATED });
+  if (result.deletedCount !== 1) return false;
   revalidatePack(slug);
   revalidatePublicPacks();
   return true;

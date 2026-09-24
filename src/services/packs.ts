@@ -7,8 +7,6 @@
  *       (services/pack-stats.ts); a slot or bucket change clears the old ones first. Saving a
  *       pack as anything but public takes away its pin (services/pins.ts). Archive details (an
  *       imported tournament pool's) pass through to the DTO; no save here ever writes them.
- *       Editing or deleting an archive pack rebuilds the map usage of its maps
- *       (services/map-usage.ts).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -32,7 +30,6 @@ import {
   savedPackSummarySchema,
   slugSchema,
 } from "@/schemas/saved-pack";
-import { refreshMapUsage } from "@/services/map-usage";
 import { schedulePackStats } from "@/services/pack-stats";
 import { canonicalLinks } from "@/utils/magnet";
 import { storedBuckets } from "@/utils/stored-buckets";
@@ -397,7 +394,6 @@ export const packKeyOf = (pack: SavedPack): string => poolKey(pack);
  *          Never touches the moderation flag. Clears recorded export links when the pack
  *          key changes, stats when the slots or buckets change, and the pin when it stops being
  *          public; schedules new stats then, or whenever the pack has none or incomplete ones.
- *          An archive pack's maps, old and new, get their usage rebuilt.
  */
 export const updatePack = async (
   slug: string,
@@ -439,9 +435,6 @@ export const updatePack = async (
     )
     .lean();
   if (!doc) return null;
-  if (before.archive) {
-    await refreshMapUsage([...before.slots, ...doc.slots].map((slot) => slot.beatmapId));
-  }
   revalidatePack(slug);
   if (touchesPublicList(before.visibility, doc.visibility)) revalidatePublicPacks();
   const pack = toSavedPack(doc);
@@ -453,18 +446,13 @@ export const updatePack = async (
  * @function deletePack
  * @param slug {string} untrusted route segment
  * @param ownerId {string} signed-in user's id
- * @returns {Promise<boolean>} true when the owner's pack was deleted (an archive pack's maps
- *          then lose it from their usage)
+ * @returns {Promise<boolean>} true when the owner's pack was deleted
  */
 export const deletePack = async (slug: string, ownerId: string): Promise<boolean> => {
   if (!slugSchema.safeParse(slug).success) return false;
   const model = await connectedPackModel();
-  const doc = await model
-    .findOneAndDelete({ slug, ownerId })
-    .select("visibility slots.beatmapId archive.fingerprint")
-    .lean();
+  const doc = await model.findOneAndDelete({ slug, ownerId }).select("visibility").lean();
   if (!doc) return false;
-  if (doc.archive) await refreshMapUsage(doc.slots.map((slot) => slot.beatmapId));
   revalidatePack(slug);
   if (touchesPublicList(doc.visibility)) revalidatePublicPacks();
   return true;
