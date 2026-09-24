@@ -1,7 +1,8 @@
 /**
  * @file tests/unit/constants/guide.test.ts
- * @desc Guide registry, slug guard, the pack key doc staying in sync with the codec, and the
- *       archived pools guide (what they are, otdb as the source, finding them, map usage, how to
+ * @desc Guide registry, slug guard, the pack key doc staying in sync with the codec, the
+ *       make-a-pack tips (Copy ID, Used in N pools), and the archived pools guide (what they are,
+ *       otdb as the source, what happens when a pool changes, finding them, map usage, how to
  *       report a wrong one).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
@@ -126,6 +127,13 @@ describe("make-a-pack guide", () => {
       expect(at).toBeGreaterThan(from - 1);
       from = at;
     }
+  });
+
+  it("points to Copy ID and to Used in N pools", () => {
+    expect(text()).toContain('Every map row has a "Copy ID" button that copies its beatmap ID');
+    expect(text()).toContain('says "Used in N pools" in its row');
+    expect(text()).toContain("(/guide/archived-pools)");
+    expect(GUIDE_DOCS["make-a-pack"].lastUpdated).toBe("2026-09-24");
   });
 
   it("answers the question in its first paragraph and links the builder", () => {
@@ -256,6 +264,9 @@ describe("archived-pools guide", () => {
     "Each archived pack links its pool on otdb",
     "## Finding them",
     "the Source filter shows Community packs, Archive packs, or both",
+    "community packs come first and archived pools after them",
+    "When a pool changes on otdb, the new version gets its own pack",
+    "Its link keeps working.",
     "## Used in N pools",
     '"Used in 3 pools"',
     "The count leaves out the pool you're looking at",

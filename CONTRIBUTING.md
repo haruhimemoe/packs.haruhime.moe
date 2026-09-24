@@ -1,5 +1,9 @@
 # Contributing
 
+Bug reports and fixes are welcome. For anything bigger than a fix, open an [issue](https://github.com/haruhimemoe/packs.haruhime.moe/issues) first so we can agree on it.
+
+Read [AGENTS.md](./AGENTS.md) before changing code. It has the layout, code style and data rules.
+
 ## Setup
 
 Requires Bun 1.4+ and Node 24+.
@@ -14,19 +18,22 @@ The dev server runs on http://localhost:3000. The anonymous tool (build, key, zi
 
 `bun install` also sets up a lefthook pre-commit hook that runs Biome on staged files.
 
-Read [AGENTS.md](./AGENTS.md) before changing code. It has the layout, code style and data rules.
-
 ## Making a change
 
 1. Branch from `main` (`feat/<topic>`, `fix/<topic>`).
-2. Write a failing test in `tests/`, make it pass, keep commits small and Conventional.
-3. Run the full check before opening a PR:
+2. Write a failing test in `tests/`, make it pass, and keep commits small.
+3. If people will see the change, update the copy that describes it in the same PR: the guide, the API docs, the homepage FAQ or the legal pages. AGENTS.md section 7 lists them.
+4. Run the full check before opening a PR:
 
    ```sh
    bun run check && bun run typecheck && bun run test && SKIP_ENV_VALIDATION=true bun run build
    ```
 
-4. Open a PR using the template. CI must be green before merge.
+5. Open a PR using the template. CI must be green before merge.
+
+Use [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, `chore:`, `test:`, `refactor:`).
+
+Releases are cut by the maintainers.
 
 ## Tests
 
@@ -36,7 +43,7 @@ Read [AGENTS.md](./AGENTS.md) before changing code. It has the layout, code styl
 - `tests/components/`: React components in jsdom.
 - `tests/integration/`: route handlers and services against an in-memory MongoDB (mongodb-memory-server). The first run downloads the MongoDB binary.
 
-Tests never hit the network: HTTP is mocked with recorded fixtures in `tests/fixtures/`. `bun run test:coverage` adds v8 coverage.
+Tests never hit the network: HTTP is mocked with recorded fixtures in `tests/fixtures/`.
 
 ## Scripts
 
@@ -47,4 +54,6 @@ Tests never hit the network: HTTP is mocked with recorded fixtures in `tests/fix
 | `bun run check` / `check:fix` | Biome lint, format and import order |
 | `bun run typecheck` | Route type generation, then `tsc` |
 | `bun run test` | All Vitest projects |
-| `bun run test:coverage` | Tests with v8 coverage |
+| `bun run test:coverage` | Tests with v8 coverage; fails under 90% on `src/utils/` and `src/schemas/` |
+
+CI runs the same checks, with `test:coverage` in place of `test`.

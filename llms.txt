@@ -1,0 +1,35 @@
+# packs.haruhime.moe
+
+> Source for https://packs.haruhime.moe, a browser-first osu! mappool pack builder. Paste beatmap IDs, osu! links or spreadsheet rows, arrange the maps into slots, download the pool as one zip or a torrent built in the browser, and share it with a pack key or a saved short link. The site also lists public packs and archived tournament pools (from otdb), shows which archived pools used a map, and has a JSON API. It never hosts beatmap files. Next.js 16, React 19, TypeScript 7 and MongoDB, run with Bun. MIT license. The live site serves its own llms.txt at https://packs.haruhime.moe/llms.txt; that one is the canonical guide to the pages, guides, API and data. This file covers the repository.
+
+## Site
+
+- [llms.txt on the live site](https://packs.haruhime.moe/llms.txt): the canonical guide to the site's pages, guides, search index, map usage, API and legal pages, built from the same registries as the pages
+- [packs.haruhime.moe](https://packs.haruhime.moe/): the live site
+- [API docs](https://packs.haruhime.moe/docs/api.md): the packs API as plain Markdown (keys, rate limits, errors, the pack object, map usage, every endpoint)
+- [OpenAPI document](https://packs.haruhime.moe/api/v1/openapi.json): OpenAPI 3.1 for every /api/v1 endpoint, built from the route handlers' zod schemas
+
+## Docs
+
+- [README](https://github.com/haruhimemoe/packs.haruhime.moe#readme): what packs does, its features, stack and the shared packages it uses
+- [AGENTS.md](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/AGENTS.md): conventions, invariants (no file hosting, pack keys, accounts, public packs, archive packs, map usage, pack stats) and file layout for AI coding agents
+- [CONTRIBUTING.md](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/CONTRIBUTING.md): setup, environment variables, tests and the checks a PR must pass
+- [SECURITY.md](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/SECURITY.md): how to report a vulnerability
+
+## Source
+
+- [content/](https://github.com/haruhimemoe/packs.haruhime.moe/tree/main/content): the guides, the API docs and the legal pages, as MDX
+- [src/app/api/v1/](https://github.com/haruhimemoe/packs.haruhime.moe/tree/main/src/app/api/v1): the public API's route handlers
+- [src/lib/openapi.ts](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/src/lib/openapi.ts): builds the OpenAPI document
+- [src/utils/llms-txt.ts](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/src/utils/llms-txt.ts): builds the live /llms.txt
+- [.env.example](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/.env.example): every environment variable, with what it's for
+
+## Elsewhere
+
+- [@haruhimemoe/pool](https://github.com/haruhimemoe/pool): the mappool shape, mod rules, pasted-pool parsing and the pack key codec packs uses
+- [@haruhimemoe/hinai](https://github.com/haruhimemoe/hinai): the client for the hinai beatmap mirror
+- [@haruhimemoe/osu](https://github.com/haruhimemoe/osu): osu! API v2 shapes and the server client
+- [@haruhimemoe/ui](https://github.com/haruhimemoe/ui): the React components and theme the site is built from
+- [@haruhimemoe/brand](https://github.com/haruhimemoe/brand): generates the logos, icons and link preview
+- [haruhime Claude Code plugin](https://github.com/haruhimemoe/claude-plugin): skills for osu! tools, including one for packs and its API
+- [haruhime.moe](https://github.com/haruhimemoe/haruhime.moe): the home page for haruhime's osu! tournament tools

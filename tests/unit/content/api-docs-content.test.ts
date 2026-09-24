@@ -1,8 +1,9 @@
 /**
  * @file tests/unit/content/api-docs-content.test.ts
  * @desc content/docs/api.mdx documents every endpoint in the OpenAPI route table, the real
- *       limits, the headers, every error code the API sends, pack stats and their index keys,
- *       archive packs, map usage (no key, its fields, its cache), and the Claude Code plugin;
+ *       limits, the headers, every error code the API sends, what PUT does to fields left out,
+ *       pins and hidden packs, the owner name, pack stats and every index key, archive packs, map
+ *       usage (no key, its fields, its cache), and the Claude Code plugin;
  *       every doc stays plain Markdown so /docs/<slug>.md can serve it as is.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
@@ -12,9 +13,11 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { API_PAGE_SIZE, OPENAPI_PATH, RATE_LIMITS } from "@/constants/api";
+import { API_PAGE_SIZE, OPENAPI_PATH, RATE_LIMITS, UNKNOWN_OWNER_NAME } from "@/constants/api";
+import { ARCHIVE_ACCOUNT } from "@/constants/archive";
 import { DOC_DOCS, DOC_SLUGS } from "@/constants/docs";
 import { MAX_USAGE_IDS } from "@/constants/map-usage";
+import { MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH, MAX_SLOTS } from "@/constants/pack";
 import { SEARCH_INDEX_LIMIT } from "@/constants/public-packs";
 import { errorCodeFor } from "@/lib/api";
 import { API_OPERATIONS } from "@/lib/openapi";
@@ -83,17 +86,51 @@ describe("content/docs/api.mdx", () => {
   });
 });
 
+describe("writes and the pack object", () => {
+  it.each([
+    "`PUT` and `DELETE` also answer `404` for any pack that isn't yours.",
+    "Leaving out `description` clears it, and leaving out `visibility` makes the pack unlisted.",
+    "A pack a moderator hid stays hidden, and a pinned pack that stops being public loses its pin.",
+    "It can't hide, pin or moderate packs, not even an admin's key.",
+    "Pinned packs aren't marked or moved up here",
+    `a name of 1 to ${MAX_NAME_LENGTH} characters, 1 to ${MAX_SLOTS} maps, a description of up to ${MAX_DESCRIPTION_LENGTH} characters, up to 8 custom slots`,
+    "no slurs in the name, the description or custom slot names",
+  ])("says %j", (phrase) => {
+    expect(text()).toContain(phrase);
+  });
+
+  it("names the owner the archive and unknown owners show as", () => {
+    expect(text()).toContain(`\`${ARCHIVE_ACCOUNT.name}\` on archive packs`);
+    expect(text()).toContain(`\`${UNKNOWN_OWNER_NAME}\` when we don't have one`);
+  });
+});
+
 describe("pack stats", () => {
   it.each(Object.keys(packStatsSchema.shape))("documents stats.%s", (field) => {
     expect(text()).toContain(`\`${field}\``);
   });
 
-  it.each(["`t`", "`r`", "`a`", "`l`", "`b`", "`m`", "`g`", "`k`", "`x`", "`xk`", "`xu`"])(
-    "documents the index key %s",
-    (key) => {
-      expect(text()).toContain(key);
-    },
-  );
+  it.each([
+    "`s`",
+    "`n`",
+    "`o`",
+    "`c`",
+    "`d`",
+    "`u`",
+    "`t`",
+    "`r`",
+    "`a`",
+    "`l`",
+    "`b`",
+    "`m`",
+    "`g`",
+    "`k`",
+    "`x`",
+    "`xk`",
+    "`xu`",
+  ])("documents the index key %s", (key) => {
+    expect(text()).toContain(key);
+  });
 
   it("says stats arrive after a save", () => {
     expect(text()).toContain("a few seconds after each save");

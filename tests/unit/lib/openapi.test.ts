@@ -2,8 +2,9 @@
  * @file tests/unit/lib/openapi.test.ts
  * @desc The OpenAPI document: 3.1, every v1 route present and backed by a handler, every $ref
  *       resolves, component schemas are the handlers' own zod schemas, pack objects document their
- *       optional stats (never part of a body), both pack lists are paged, and the map usage reads
- *       need no key, take their id or ids, and document their cache header.
+ *       optional stats (never part of a body), both pack lists are paged, PUT and DELETE describe
+ *       their 404 as "not yours", and the map usage reads need no key, take their id or ids, and
+ *       document their cache header.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
  * @modified Thu Sep 24, 2026
@@ -174,6 +175,22 @@ describe("buildOpenApiDocument", () => {
       },
     });
     expect(Object.keys(op.responses)).toContain("400");
+  });
+
+  it("says PUT and DELETE answer 404 for any pack that isn't yours, and GET only for hidden ones", () => {
+    const slugOps = doc.paths["/packs/{slug}"] as Record<
+      string,
+      { responses: Record<string, { description: string }> }
+    >;
+    expect(slugOps.put?.responses["404"]?.description).toBe(
+      "The pack doesn't exist or isn't yours.",
+    );
+    expect(slugOps.delete?.responses["404"]?.description).toBe(
+      "The pack doesn't exist or isn't yours.",
+    );
+    expect(slugOps.get?.responses["404"]?.description).toBe(
+      "The pack doesn't exist, or it's private or hidden and not yours.",
+    );
   });
 
   describe("map usage", () => {

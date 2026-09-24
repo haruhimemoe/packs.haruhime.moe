@@ -22,7 +22,7 @@ curl https://packs.haruhime.moe/api/v1/me \
 - Send `Authorization: Bearer hpk_…` with every request but map usage. A key is `hpk_` followed by 43 letters, digits, `-` and `_`.
 - Each account has one key. **Regenerate** on your account page makes a new one, and the old key stops working right away. **Revoke** deletes it.
 - We keep only a hash of your key, so we can't show it to you again. Lost it? Regenerate.
-- A key acts as you and nothing more. It never carries admin rights.
+- A key acts as you. It can't hide, pin or moderate packs, not even an admin's key.
 - A missing key gets `401` with the code `unauthorized`. A wrong, revoked, or replaced key gets `401` with the code `invalid_api_key`.
 
 ### Keep your key on a server
@@ -37,7 +37,7 @@ The API is for servers and bots. It sends no CORS headers, so a web page on anot
 - 10 new keys an hour per account, on your account page.
 - 60 map usage requests a minute per IP address. They need no key and don't count toward your account's 60.
 
-Counters start over at the top of each minute. Every response carries:
+Counters start over at the top of each minute (each hour for new keys). Every response from an endpoint that needs a key carries:
 
 - `RateLimit-Limit`: requests allowed in the current window;
 - `RateLimit-Remaining`: how many are left;
@@ -45,7 +45,7 @@ Counters start over at the top of each minute. Every response carries:
 
 On a 401, these describe the failed-attempt limit for your IP address.
 
-Map usage answers are the exception: our CDN can answer them from its cache, so they carry `Cache-Control` and no rate-limit headers. Over their limit you still get the `429` below, with all four headers.
+Map usage needs no key, and our CDN can answer it from its cache, so its answers are different: they carry `Cache-Control` and no rate-limit headers. Over their limit you still get the `429` below, with all four headers.
 
 Over a limit you get `429` with a `Retry-After` header, in seconds. Wait that long, then try again.
 
@@ -59,9 +59,9 @@ Every error has the same shape:
 
 `code` doesn't change, so your program can check it. `message` is for people and may change.
 
-- `400` `bad_request`: the body, `page`, or a beatmap ID isn't valid. The message says what to fix.
+- `400` `bad_request`: the body, `page`, or a beatmap ID (in the path or in `ids`) isn't valid. The message says what to fix.
 - `401` `unauthorized`: no key. A bad key gets `invalid_api_key` instead. Both come with `WWW-Authenticate: Bearer`.
-- `404` `not_found`: the pack doesn't exist, or it's private or hidden and not yours. The API doesn't say which.
+- `404` `not_found`: the pack doesn't exist, or it's private or hidden and not yours. `PUT` and `DELETE` also answer `404` for any pack that isn't yours. The API doesn't say which.
 - `409` `conflict`: you already have 200 saved packs. Delete one first.
 - `413` `too_large`: the body is over 16 KB.
 - `415` `unsupported_media_type`: send the body with `Content-Type: application/json`.
@@ -104,10 +104,12 @@ Every error has the same shape:
 
 - `slots` holds beatmap (difficulty) IDs by slot. Titles, star ratings per map, and other beatmap details aren't included. Look them up on osu! or a beatmap mirror.
 - `buckets` shows up when a pack has its own slots or slot order. Custom slots carry their color and mods.
+- `description` is left out when the pack has none.
+- `ownerName` is the owner's osu! username: `haruhime archive` on archive packs, or `Unknown player` when we don't have one.
 - `packKey` is the pack's [pack key](/guide/pack-key). Anyone can open it at `https://packs.haruhime.moe/k#` followed by the key.
 - `exports` lists the magnet links the owner recorded, newest first.
 - `hiddenAt` shows up only on your own packs, when a moderator has hidden one.
-- `stats` sums up the pack's maps. We work it out a few seconds after each save, so it's missing from the answer to `POST` and to a `PUT` that changes the maps; read the pack again a little later. It's also missing for a pack whose stats we haven't worked out yet.
+- `stats` sums up the pack's maps. We work it out a few seconds after each save, so it's missing from the answer to `POST` and to a `PUT` that changes the maps or slots; read the pack again a little later. It's also missing for a pack whose stats we haven't worked out yet.
 - `archive` shows up only on archive packs: past tournament pools we imported, hosted by `haruhime archive`. See Archive packs below. Nobody can set or change it: `POST` and `PUT` ignore it.
 
 ### Pack stats
@@ -137,12 +139,12 @@ Every error has the same shape:
 
 - `tournament`, `round`, `year`: read from the pool's name at its source. `round` is `null` when the name has no round we know, and `year` when it has no year.
 - `badged`: whether the tournament was badged. `null` until a source tells us.
-- `fingerprint`: the pool's identity, a sha256 of its sorted `beatmapId:mods` entries. The same pool from two sources is one pack with two sources; a pool that changed maps is a new pack.
-- `sources`: where the pool came from, first import first: `kind` (`otdb`, `otr` or `wybin`), the pool's `id` there, its `url`, and `importedAt`.
+- `fingerprint`: the pool's identity, a sha256 of its sorted `beatmapId:mods` entries. The same pool from two sources is one pack with two sources. A pool that changed maps at its source is a new pack, and the old pack becomes unlisted once every source of it changed: its link still works, but it leaves the public list and map usage.
+- `sources`: where the pool came from, first import first: `kind` (`otdb`, `otr` or `wybin`; every pool so far comes from `otdb`), the pool's `id` there, its `url`, and `importedAt`.
 
 ## Map usage
 
-Map usage says which archive packs used a map, so you can see how often and how recently it was pooled. Only public archive packs count; community packs don't.
+Map usage says which archive packs used a map, so you can see how often and how recently it was pooled. Only the archive packs listed on [/packs](https://packs.haruhime.moe/packs) count (public and not hidden); community packs don't.
 
 ```json
 {
@@ -181,7 +183,7 @@ Map usage says which archive packs used a map, so you can see how often and how 
 - `mods`: what the slot plays with. A built-in slot gives its code (`NM`, `HD`, `HR`, `DT`, `FM`, `TB`), a custom slot the mods it forces (`HDHR`), `FM` when it's free mod, and `NM` when it has no mods. A map without a slot is `NM`.
 - `fingerprint`: the pool's fingerprint, the same as its pack's `archive.fingerprint`. Pools with the same maps and mods share it, so to show a pool's maps without counting that pool, leave out the entries whose `fingerprint` is the pool's own.
 
-A map no archive pack used comes back with a `count` of 0 and no entries, never a 404. Usage changes when we import pools or a moderator hides or deletes one; answers can be up to an hour old.
+A map no archive pack used comes back with a `count` of 0 and no entries, never a 404. Usage changes when we import pools or a moderator hides, unhides or deletes one; answers can be up to an hour old.
 
 ## Endpoints
 
@@ -195,7 +197,7 @@ The key's owner.
 
 ### `GET /api/v1/packs`
 
-Public packs, most recently updated first, 50 per page. Takes `?page=` (see Pagination). Each entry in `packs` is a full pack object, shortened here.
+Public packs, most recently updated first, 50 per page, archive packs included. Takes `?page=` (see Pagination). Each entry in `packs` is a full pack object, shortened here. Pinned packs aren't marked or moved up here; the Pinned row is only on the site.
 
 ```json
 { "packs": [{ "slug": "V1StGXR8_Z", "name": "Spring Cup Finals", "packKey": "pk1.…" }], "page": 1, "pageCount": 3, "total": 131 }
@@ -219,7 +221,7 @@ Your packs, any visibility, most recently updated first, 50 per page. Takes `?pa
 
 ### `POST /api/v1/packs`
 
-Save a new pack. The body follows the same rules as the site: a name of 1 to 64 characters, 1 to 64 maps, a description of up to 500 characters, and no slurs in either. `visibility` is `private`, `unlisted` (the default), or `public`.
+Save a new pack. The body follows the same rules as the site: a name of 1 to 64 characters, 1 to 64 maps, a description of up to 500 characters, up to 8 custom slots, and no slurs in the name, the description or custom slot names. `visibility` is `private`, `unlisted` (the default), or `public`.
 
 ```sh
 curl https://packs.haruhime.moe/api/v1/packs \
@@ -232,7 +234,7 @@ Answers `201` with `{ "pack": … }`.
 
 ### `PUT /api/v1/packs/{slug}`
 
-Replace one of your packs. Send the whole pack, as for `POST`. Leaving out `description` clears it. A new pool (different maps, slots, or name) clears the pack's recorded magnet links, because they no longer match. Answers `200` with `{ "pack": … }`.
+Replace one of your packs. Send the whole pack, as for `POST`. Leaving out `description` clears it, and leaving out `visibility` makes the pack unlisted. A new pool (different maps, slots, or name) clears the pack's recorded magnet links, because they no longer match. A pack a moderator hid stays hidden, and a pinned pack that stops being public loses its pin. Answers `200` with `{ "pack": … }`.
 
 ### `DELETE /api/v1/packs/{slug}`
 
@@ -262,7 +264,7 @@ The same for up to 100 maps at once: pass their IDs as `?ids=129891,75`. Each ID
 
 `page` starts at 1 and goes up to 999999. Responses include `page`, `pageCount`, and `total`. A page past the end comes back with an empty `packs` list.
 
-To list public packs (slug, name, owner, map count) without a key, use the static search index at [/packs/index.json](https://packs.haruhime.moe/packs/index.json) (up to 5,000 packs). It doesn't count toward any limit. Entries list community packs newest created first, then archive packs newest created first, and `t` is when the pack was created (an archive pack's is when we imported it). Each entry also carries the pack's stats in short form once we have them: `r` star rating range, `a` average stars, `l` length range in seconds, `b` BPM range, `m` mods and `g` rulesets (comma-separated), and `k` for `complete`. Archive packs also carry `x` (always `1`), `xk` (the source: `otdb`, `otr` or `wybin`) and `xu` (the pool's page there). For a pack's maps, call `GET /api/v1/packs/{slug}`.
+To list public packs without a key, use the static search index at [/packs/index.json](https://packs.haruhime.moe/packs/index.json) (up to 5,000 packs). It doesn't count toward any limit, and it updates shortly after a public pack changes. Entries list community packs newest created first, then archive packs newest created first. Each entry has `s` (slug), `n` (name), `o` (the owner's osu! username), `c` (map count), `d` (the start of the description, up to 140 characters), `u` (last updated) and `t` (created; an archive pack's is when we imported it). Each entry also carries the pack's stats in short form once we have them: `r` star rating range, `a` average stars, `l` length range in seconds, `b` BPM range, `m` mods and `g` rulesets (comma-separated), and `k` for `complete`. Archive packs also carry `x` (always `1`), `xk` (the source: `otdb`, `otr` or `wybin`) and `xu` (the pool's page there). For a pack's maps, call `GET /api/v1/packs/{slug}`.
 
 ## Pack keys
 

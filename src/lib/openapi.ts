@@ -4,7 +4,8 @@
  *       validate with and answer in (z.toJSONSchema, JSON Schema 2020-12, which OpenAPI 3.1 uses
  *       as-is); paths come from API_OPERATIONS. The published spec can't drift from the code.
  *       Public operations (map usage) need no key (`security: []`), document their Cache-Control
- *       instead of RateLimit-* headers, and can't answer 401.
+ *       instead of RateLimit-* headers, and can't answer 401. PUT and DELETE describe their 404 as
+ *       "not yours", since they refuse every pack the key's owner doesn't own.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
  * @modified Thu Sep 24, 2026
@@ -56,7 +57,11 @@ export type ApiOperation = {
   success: { status: 200 | 201 | 204; description: string; schema?: ApiSchemaName };
   /** Every operation can also answer 500; operation() adds it. */
   errors: readonly Exclude<ErrorStatus, 500>[];
+  /** The 404's description when it differs from ERROR_DESCRIPTIONS (writes: any pack not yours). */
+  notFound?: string;
 };
+
+const NOT_YOURS = "The pack doesn't exist or isn't yours.";
 
 export const API_OPERATIONS: readonly ApiOperation[] = [
   {
@@ -110,6 +115,7 @@ export const API_OPERATIONS: readonly ApiOperation[] = [
     body: "PackInput",
     success: { status: 200, description: "The updated pack.", schema: "PackResponse" },
     errors: [400, 401, 404, 413, 415, 429],
+    notFound: NOT_YOURS,
   },
   {
     operationId: "deletePack",
@@ -118,6 +124,7 @@ export const API_OPERATIONS: readonly ApiOperation[] = [
     summary: "Delete one of your packs",
     success: { status: 204, description: "Deleted." },
     errors: [401, 404, 429],
+    notFound: NOT_YOURS,
   },
   {
     operationId: "getBeatmapUsage",
@@ -239,7 +246,7 @@ const operation = (op: ApiOperation): JsonObject => ({
       [...op.errors, 500 as const].map((status) => [
         status,
         {
-          description: ERROR_DESCRIPTIONS[status],
+          description: (status === 404 && op.notFound) || ERROR_DESCRIPTIONS[status],
           headers: errorHeaders(op, status),
           content: json("Error"),
         },

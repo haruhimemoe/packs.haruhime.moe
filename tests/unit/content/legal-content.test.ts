@@ -1,7 +1,8 @@
 /**
  * @file tests/unit/content/legal-content.test.ts
  * @desc Guards legal copy: every registered doc has an MDX file, no duplicate h1, the clauses
- *       that cover us stay in the text, and no page describes the Google Drive or OneDrive exports
+ *       that cover us stay in the text, every call our server makes to osu! and the mirror (pack
+ *       stats included) is disclosed, and no page describes the Google Drive or OneDrive exports
  *       that were never built (a magnet link is the only export a pack records).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
@@ -127,6 +128,15 @@ describe("privacy", () => {
     expect(text()).toContain(phrase);
   });
 
+  it.each([
+    "any osu! calls it makes for that count against your IP address's share too",
+    "It asks the beatmap mirror (mirror.hinamizawa.ai) for the maps' details",
+    "our server never downloads beatmap files",
+    'the "Clear local data" button at the bottom of every page',
+  ])("discloses the pack stats lookups and the local data button: %j", (phrase) => {
+    expect(text()).toContain(phrase);
+  });
+
   it("says saving packs on the website creates account counters too", () => {
     expect(text()).toContain(
       "If you save or change packs (magnet links included), use the API, or create a key: short-lived request counters, by account",
@@ -239,6 +249,8 @@ describe("public packs and moderation copy", () => {
   it.each([
     ["terms", "We may hide or delete public or unlisted packs that break these terms"],
     ["terms", "We never review private packs"],
+    ["terms", "we may pin public packs to the top of the public packs page or unpin them"],
+    ["terms", "past tournament pools we imported from public sources (archived pools)"],
     ["privacy", "the pack name, description,"],
     ["privacy", "listed on the public packs page with your osu! username and avatar"],
     ["copyright", "a pack name and description"],
@@ -302,6 +314,12 @@ describe("API copy", () => {
     expect(read("your-privacy-rights")).toContain(phrase);
   });
 
+  it("the rights page counts the stats lookups among the osu! lookups", () => {
+    expect(read("your-privacy-rights")).toContain(
+      "and the lookups for a pack's stats when you save it), keyed by your IP address",
+    );
+  });
+
   it("the per-IP counters' windows match the two-minute lifetime the pages state", () => {
     // A counter expires one minute after its window ends (src/lib/rate-limit.ts,
     // src/lib/osu/attributes.ts), so a 60-second window is gone within about two minutes.
@@ -338,6 +356,20 @@ describe("disclaimers", () => {
   ])("contains %j", (phrase) => {
     expect(text()).toContain(phrase);
   });
+
+  it("says our server asks the mirror for map details, and never for files", () => {
+    expect(text()).toContain(
+      "To work out a saved pack's stats, our server asks the mirror for the maps' details (never the beatmap files), with the same User-Agent.",
+    );
+    expect(text()).not.toContain("Our server never contacts the mirror");
+  });
+
+  it.each(["**Pack stats.**", "**Archived pools.**", "counts only the archived pools we imported"])(
+    "says what our other numbers mean: %j",
+    (phrase) => {
+      expect(text()).toContain(phrase);
+    },
+  );
 
   it("keeps the verbatim ppy trademark notice", () => {
     expect(text()).toContain(SITE.trademarkNotice);

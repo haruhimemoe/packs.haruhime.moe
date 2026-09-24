@@ -20,7 +20,7 @@ If you don't sign in, we don't keep an account or any profile about you. If you 
 Every place packs uses your IP address:
 
 - **Sign-in sessions.** Our sign-in library stores the IP address you signed in from with each session, as listed above.
-- **osu! lookups.** While you build or view a pack, signed in or not, your browser asks our server for star ratings with mods (`/api/osu/star-ratings`) and for maps the mirror doesn't have (`/api/osu/beatmaps`). Our server counts these requests per IP address in short-lived counters, so one visitor can't use up the site's osu! API quota. The counters are deleted automatically within about two minutes.
+- **osu! lookups.** While you build or view a pack, signed in or not, your browser asks our server for star ratings with mods (`/api/osu/star-ratings`) and for maps the mirror doesn't have (`/api/osu/beatmaps`). Our server counts these requests per IP address in short-lived counters, so one visitor can't use up the site's osu! API quota. When you save a pack, on the site or through the API, our server looks up its maps to work out the pack's stats, and any osu! calls it makes for that count against your IP address's share too. The counters are deleted automatically within about two minutes.
 - **API requests without a valid key.** Counted per IP address for about 2 minutes, to stop key guessing.
 - **Map usage lookups.** Pack pages and the editor ask our server which archived tournament pools used each map (`/api/v1/beatmaps/usage`), signed in or not, and anyone can ask the API the same without a key. Our server counts these requests per IP address in short-lived counters, deleted automatically within about two minutes. The answers hold nothing about you.
 - **Sign-in rate limits.** Our sign-in library limits requests to its sign-in, sign-out and session endpoints per IP address. It keeps these counts in server memory only: they're never written to the database, they expire after about 10 seconds, and they're gone when the server instance restarts.
@@ -52,9 +52,11 @@ Magnet links on a pack page were added by the pack's owner. If you open one, you
 
 When the mirror doesn't have a map, your browser asks our server, and our server asks the osu! API (osu.ppy.sh) for that map's details. Only beatmap IDs are sent to osu!, never anything about you. To show star ratings with mods, our server also sends osu! a beatmap ID and the mod names (like HD or DT), and nothing else.
 
+After a pack is saved, our server works out its stats (star rating, length and BPM ranges), and a daily job fills in what it couldn't get. It asks the beatmap mirror (mirror.hinamizawa.ai) for the maps' details, and osu! for maps the mirror doesn't have and for ratings with mods. These requests carry beatmap IDs and mod names only, and our server never downloads beatmap files.
+
 ## Data on your device
 
-Pack drafts are kept in your browser's IndexedDB, and downloaded beatmap files are cached in your browser's private file storage so a second export doesn't download everything again. Your download options (videos and backgrounds) are saved in this browser's local storage, and removing backgrounds happens on your device too. When you filter public packs, this tab's session storage remembers how many results were showing and how far down you'd scrolled, so the Back button takes you there again. It's gone when you close the tab. This data stays on your device. You can delete it anytime with the "clear local data" button or by clearing site data in your browser.
+Pack drafts are kept in your browser's IndexedDB, and downloaded beatmap files are cached in your browser's private file storage so a second export doesn't download everything again. Your download options (videos and backgrounds) are saved in this browser's local storage, and removing backgrounds happens on your device too. When you filter public packs, this tab's session storage remembers how many results were showing and how far down you'd scrolled, so the Back button takes you there again. It's gone when you close the tab. This data stays on your device. You can delete it anytime with the "Clear local data" button at the bottom of every page, or by clearing site data in your browser.
 
 ## Service providers
 

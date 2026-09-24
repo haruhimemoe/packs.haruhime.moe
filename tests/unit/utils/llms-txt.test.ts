@@ -1,18 +1,21 @@
 /**
  * @file tests/unit/utils/llms-txt.test.ts
- * @desc llms.txt follows the llmstxt.org shape, is built from the registries (every guide and
- *       legal doc appears, docs by their .md copy), and every link is absolute and on one line.
+ * @desc llms.txt follows the llmstxt.org shape, opens with the notes a reader needs first (no
+ *       file hosting, pack keys, archived pools), is built from the registries (every guide and
+ *       legal doc appears, docs by their .md copy), spells out the /packs query string, the index
+ *       keys and map usage, and every link is absolute and on one line.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
  */
 
 import { describe, expect, it } from "vitest";
+import { RATE_LIMITS } from "@/constants/api";
 import { DOC_DOCS, DOC_SLUGS } from "@/constants/docs";
 import { GUIDE_DOCS, GUIDE_SLUGS } from "@/constants/guide";
 import { LEGAL_DOCS, LEGAL_SLUGS } from "@/constants/legal";
 import { SITE } from "@/constants/site";
-import { buildLlmsTxt, llmsSections } from "@/utils/llms-txt";
+import { buildLlmsTxt, LLMS_NOTES, llmsSections } from "@/utils/llms-txt";
 
 const LINK = /\[([^\]]+)\]\(([^)]+)\)/g;
 
@@ -23,13 +26,26 @@ describe("buildLlmsTxt", () => {
     expect(text.startsWith(`# ${SITE.title}\n\n> ${SITE.description}\n`)).toBe(true);
   });
 
+  it("puts the notes between the quote and the first section, one paragraph each", () => {
+    const head = text.slice(0, text.indexOf("\n\n## "));
+    expect(head).toBe([`# ${SITE.title}`, `> ${SITE.description}`, ...LLMS_NOTES].join("\n\n"));
+  });
+
+  it.each([
+    "packs doesn't host beatmap files.",
+    `opens at ${SITE.url}/k# followed by the key, with no account.`,
+    "Archived pools are past osu! tournament mappools imported from otdb",
+  ])("notes %j", (phrase) => {
+    expect(text).toContain(phrase);
+  });
+
   it("has the Pages, Guides, Data, API, and Legal sections in that order", () => {
     const headings = [...text.matchAll(/^## (.+)$/gm)].map((m) => m[1]);
     expect(headings).toEqual(["Pages", "Guides", "Data", "API", "Legal"]);
   });
 
   it("lists the main pages", () => {
-    for (const path of ["/", "/new", "/k", "/packs", "/brand"]) {
+    for (const path of ["/", "/new", "/k", "/packs", "/guide", "/brand"]) {
       expect(text).toContain(`](${SITE.url}${path})`);
     }
   });
@@ -58,6 +74,36 @@ describe("buildLlmsTxt", () => {
     expect(text).toContain("newest created first");
     expect(text).toContain("r: [min, max] star rating");
     expect(text).toContain("k: stats complete");
+    expect(text).toContain("xk: source (otdb, otr, wybin)");
+    expect(text).toContain(
+      "community packs newest created first, then archive packs newest created first",
+    );
+  });
+
+  it("spells out the /packs query string", () => {
+    const line = text.split("\n").find((l) => l.startsWith("- [Public packs]")) ?? "";
+    for (const param of [
+      "q (",
+      "sr (",
+      "len (",
+      "bpm",
+      "maps (",
+      "mods (",
+      "mode (",
+      "source (",
+      "sort (",
+    ]) {
+      expect(line).toContain(param);
+    }
+    expect(line).toContain("new, updated, sr-asc, sr-desc, maps, name");
+  });
+
+  it("lists map usage under Data, with its limit and no key", () => {
+    expect(text).toContain(`- [Map usage](${SITE.url}/api/v1/beatmaps/usage?ids=129891,75): `);
+    expect(text).toContain(`${SITE.url}/api/v1/beatmaps/{id}/usage answers for one map.`);
+    expect(text).toContain(
+      `No key needed: ${RATE_LIMITS.mapUsage.limit} requests a minute per IP address`,
+    );
   });
 
   it("uses absolute links on our own site only", () => {
@@ -73,9 +119,18 @@ describe("buildLlmsTxt", () => {
 
   it("renders given sections, with no colon when a link has no description", () => {
     expect(
-      buildLlmsTxt([{ heading: "API", links: [{ title: "Docs", url: "https://example.com/d" }] }]),
+      buildLlmsTxt(
+        [{ heading: "API", links: [{ title: "Docs", url: "https://example.com/d" }] }],
+        [],
+      ),
     ).toBe(
       `# ${SITE.title}\n\n> ${SITE.description}\n\n## API\n\n- [Docs](https://example.com/d)\n`,
+    );
+  });
+
+  it("renders given notes as one-line paragraphs", () => {
+    expect(buildLlmsTxt([], ["One\nnote. ", "Two"])).toBe(
+      `# ${SITE.title}\n\n> ${SITE.description}\n\nOne note.\n\nTwo\n`,
     );
   });
 

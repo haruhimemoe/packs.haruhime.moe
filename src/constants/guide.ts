@@ -30,7 +30,7 @@ export const GUIDE_DOCS: Record<
     title: "How to make an osu! mappool pack",
     description:
       "Build a pack from beatmap IDs or links, download it as one zip, and share it with a key.",
-    lastUpdated: "2026-09-23",
+    lastUpdated: "2026-09-24",
     howTo: [
       {
         name: "Open the builder",

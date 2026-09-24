@@ -1,7 +1,7 @@
 /**
  * @file tests/components/app/HomePage.test.tsx
  * @desc Home page: headline, primary CTA to the builder, key paste box, the three feature cards,
- *       the FAQ (how public pack filters match included).
+ *       the FAQ (how public pack filters match and sort, and where Copy ID is, included).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -76,6 +76,26 @@ describe("HomeScreen", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/range overlaps the range you set/)).toBeInTheDocument();
     expect(screen.getByText(/every mod and mode you tick/)).toBeInTheDocument();
+    expect(screen.getByText(/its map count is in range/)).toBeInTheDocument();
+    expect(screen.getByText(/community packs, archived pools, or both/)).toBeInTheDocument();
+  });
+
+  it("says how public packs sort, and where pinned packs go", () => {
+    render(<HomeScreen recent={[]} />);
+    expect(
+      screen.getByRole("heading", { level: 3, name: "How can I sort public packs?" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Pinned packs sit above the list until you search, filter or sort\./),
+    ).toBeInTheDocument();
+  });
+
+  it("says where Copy ID is", () => {
+    render(<HomeScreen recent={[]} />);
+    expect(
+      screen.getByRole("heading", { level: 3, name: "How do I copy a map's ID for !mp map?" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Press Copy ID on the map's row/)).toBeInTheDocument();
   });
 
   it("answers the common questions and describes them as FAQ data", () => {

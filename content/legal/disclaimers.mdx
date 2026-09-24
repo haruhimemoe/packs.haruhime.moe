@@ -12,10 +12,10 @@ Not affiliated with or endorsed by ppy Pty Ltd. osu! is a trademark of ppy Pty L
 
 ## How our requests identify themselves
 
-- **Our server to the osu! API.** When the mirror doesn't have a map, our server looks it up on the osu! API. Those requests send `User-Agent: packs.haruhime.moe (+https://packs.haruhime.moe; contact@haruhime.moe)`.
+- **Our server to the osu! API.** Our server calls the osu! API for maps the mirror doesn't have, for star ratings with mods, and to work out a saved pack's stats. Those requests send `User-Agent: packs.haruhime.moe (+https://packs.haruhime.moe; contact@haruhime.moe)`.
 - **Signing in.** Sign-in with osu! runs through our sign-in library, which talks to osu! with its own default headers.
 - **Your browser to the mirror.** Beatmap files and beatmap data go from the mirror to your browser. Browsers don't let a website set the User-Agent, so these requests carry your browser's own User-Agent, plus the `Origin` and `Referer` headers that name packs.haruhime.moe.
-- **Our server to the mirror.** There aren't any. Our server never contacts the mirror.
+- **Our server to the mirror.** To work out a saved pack's stats, our server asks the mirror for the maps' details (never the beatmap files), with the same User-Agent.
 
 ## Made with AI help
 
@@ -24,6 +24,8 @@ packs was built with help from AI coding tools (Claude, by Anthropic). A person 
 ## Estimates, not rulings
 
 - **Star ratings with mods.** Where packs shows a star rating with mods, it comes from the osu! API and is kept for up to 30 days, so it can lag behind a difficulty update on osu!.
+- **Pack stats.** The star rating, length and BPM ranges on public packs are worked out when a pack is saved. They can lag behind a map update on osu!, and while a lookup fails they cover only the maps we could look up.
+- **Archived pools.** Their tournament, round and year are read from each pool's name at its source, so an unusual name can come out wrong. "Used in N pools" counts only the archived pools we imported, not every tournament that used the map.
 
 ## Torrents
 
