@@ -142,7 +142,7 @@ describe("PublicPackBrowser", () => {
     const replace = vi.spyOn(window.history, "replaceState");
     const { user } = setup();
     screen.getByRole("slider", { name: "Minimum star rating" }).focus();
-    await user.keyboard("{ArrowRight>20/}");
+    await user.keyboard("{PageUp>20/}");
     await waitFor(() => expect(window.location.search).toBe("?sr=2-"));
     expect(replace.mock.calls.length).toBeLessThan(10);
   });

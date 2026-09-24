@@ -12,8 +12,10 @@ import type { Ruleset } from "@haruhimemoe/pool";
 
 /**
  * A range slider's bounds. A bottom end at `min` means no lower limit and a top end at `max`
- * means no upper limit ("10+"), so no pack sits outside what the slider can reach. `decimals` is
- * how precisely a range is kept (and written in the URL).
+ * means no upper limit ("10+"), so no pack sits outside what the slider can reach. `step` is as
+ * fine as the values packs carry, because a value typed into a slider's box snaps to it; the
+ * arrow keys move one step and Page Up/Down ten. `decimals` is how precisely a range is kept
+ * (and written in the URL).
  */
 export type FilterBounds = {
   readonly min: number;
@@ -22,19 +24,24 @@ export type FilterBounds = {
   readonly decimals: number;
 };
 
-/** Star rating: 0 to 10+, step 0.1. */
-export const STAR_RANGE: FilterBounds = Object.freeze({ min: 0, max: 10, step: 0.1, decimals: 2 });
+/** Star rating: 0 to 10+, step 0.01 (Page Up/Down 0.1), like the 2-decimal ratings on cards. */
+export const STAR_RANGE: FilterBounds = Object.freeze({
+  min: 0,
+  max: 10,
+  step: 0.01,
+  decimals: 2,
+});
 
-/** Map length in seconds: 0:00 to 10:00+, step 0:15. */
+/** Map length in seconds: 0:00 to 10:00+, step one second (Page Up/Down ten). */
 export const LENGTH_RANGE: FilterBounds = Object.freeze({
   min: 0,
   max: 600,
-  step: 15,
+  step: 1,
   decimals: 0,
 });
 
-/** BPM: 60 to 300+, step 5. */
-export const BPM_RANGE: FilterBounds = Object.freeze({ min: 60, max: 300, step: 5, decimals: 0 });
+/** BPM: 60 to 300+, step 1 (Page Up/Down 10). */
+export const BPM_RANGE: FilterBounds = Object.freeze({ min: 60, max: 300, step: 1, decimals: 0 });
 
 /** Maps in a pack: 1 to 40+. */
 export const MAP_COUNT_RANGE: FilterBounds = Object.freeze({

@@ -1,7 +1,8 @@
 /**
  * @file tests/components/packs/PackFilterBar.test.tsx
  * @desc The /packs filter bar: every control is labeled, chips and sliders work from the
- *       keyboard with ARIA values, lengths take m:ss, the sort select, "Clear filters" (and
+ *       keyboard with ARIA values, typed values stay exact (no snapping to a coarse step),
+ *       lengths take m:ss, the sort select, "Clear filters" (and
  *       where focus goes after it), and the result count in a live region.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
@@ -149,20 +150,50 @@ describe("PackFilterBar", () => {
     const high = screen.getByRole("slider", { name: "Maximum star rating" });
     low.focus();
     await user.keyboard("{ArrowRight}");
-    expect(low).toHaveAttribute("aria-valuetext", "0.1");
-    expect(last()?.sr).toEqual([0.1, null]);
+    expect(low).toHaveAttribute("aria-valuetext", "0.01");
+    expect(last()?.sr).toEqual([0.01, null]);
     await user.keyboard("{PageUp}");
-    expect(last()?.sr).toEqual([1.1, null]);
+    expect(last()?.sr).toEqual([0.11, null]);
     high.focus();
-    await user.keyboard("{ArrowLeft}");
+    await user.keyboard("{PageDown}");
     expect(high).toHaveAttribute("aria-valuetext", "9.9");
-    expect(last()?.sr).toEqual([1.1, 9.9]);
+    expect(last()?.sr).toEqual([0.11, 9.9]);
     await user.keyboard("{End}");
     expect(high).toHaveAttribute("aria-valuetext", "10+");
-    expect(last()?.sr).toEqual([1.1, null]);
+    expect(last()?.sr).toEqual([0.11, null]);
     low.focus();
     await user.keyboard("{Home}");
     expect(last()?.sr).toBeNull();
+  });
+
+  it("keeps typed values as typed instead of snapping them to a coarse step", async () => {
+    const { user, last } = setup();
+    const stars = screen.getByRole("textbox", { name: "Maximum star rating" });
+    await user.clear(stars);
+    await user.type(stars, "5.25{Enter}");
+    expect(last()?.sr).toEqual([0, 5.25]);
+    expect(stars).toHaveValue("5.25");
+    const bpm = screen.getByRole("textbox", { name: "Minimum BPM" });
+    await user.clear(bpm);
+    await user.type(bpm, "178{Enter}");
+    expect(last()?.bpm).toEqual([178, null]);
+    const length = screen.getByRole("textbox", { name: "Minimum length" });
+    await user.clear(length);
+    await user.type(length, "1:40{Enter}");
+    expect(last()?.len).toEqual([100, null]);
+    expect(length).toHaveValue("1:40");
+  });
+
+  it("moves length by a second and BPM by one with the arrows, ten with Page Up", async () => {
+    const { user, last } = setup();
+    screen.getByRole("slider", { name: "Minimum length" }).focus();
+    await user.keyboard("{ArrowRight}");
+    expect(last()?.len).toEqual([1, null]);
+    await user.keyboard("{PageUp}");
+    expect(last()?.len).toEqual([11, null]);
+    screen.getByRole("slider", { name: "Minimum BPM" }).focus();
+    await user.keyboard("{ArrowRight}{PageUp}");
+    expect(last()?.bpm).toEqual([71, null]);
   });
 
   it("reads typed lengths as m:ss, or minutes", async () => {
