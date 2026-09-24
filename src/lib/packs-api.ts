@@ -125,7 +125,7 @@ export const createPacksApi = ({
     adminRemove: async (slug: string): Promise<void> => {
       await request(`/api/admin/packs/${encodeURIComponent(slug)}`, { method: "DELETE" });
     },
-    /** @function fillPackStats @returns {Promise<PackStatsJob>} runs one batch of the stats job (admins only): packs updated and packs left */
+    /** @function fillPackStats @returns {Promise<PackStatsJob>} runs one batch of the stats job (admins only): packs updated, packs left, packs waiting to retry */
     fillPackStats: async (): Promise<PackStatsJob> => {
       const response = await request("/api/admin/pack-stats", { method: "POST" });
       return packStatsJobSchema.parse(await response.json());

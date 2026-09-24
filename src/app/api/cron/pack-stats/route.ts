@@ -1,9 +1,10 @@
 /**
  * @file src/app/api/cron/pack-stats/route.ts
  * @desc GET: the daily Vercel cron (vercel.json). Repairs missing or incomplete pack stats, one
- *       capped batch a run (runPackStatsJob), and answers { updated, remaining }. Vercel sends
- *       `Authorization: Bearer <CRON_SECRET>`. Fails closed: 503 while CRON_SECRET isn't set or
- *       is too short, 401 for a missing or wrong secret, and neither does any work. Never cached.
+ *       capped batch a run (runPackStatsJob), and answers { updated, remaining, waiting }. Vercel
+ *       sends `Authorization: Bearer <CRON_SECRET>`. Fails closed: 503 while CRON_SECRET isn't
+ *       set or is too short, 401 for a missing or wrong secret, and neither does any work. Never
+ *       cached.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026

@@ -1,7 +1,8 @@
 /**
  * @file src/app/api/admin/pack-stats/route.ts
  * @desc POST: admins only. Runs one batch of the pack stats job now (the same one the daily cron
- *       runs) and answers { updated, remaining }, so a backfill can go faster than a batch a day.
+ *       runs) and answers { updated, remaining, waiting }, so a backfill can go faster than a
+ *       batch a day.
  *       Everyone else gets the same 404 as other admin routes. It reads no body, so it refuses
  *       requests from other origins (refuseCrossSite). Never cached.
  * @author David @dvhsh (https://dvh.sh)
