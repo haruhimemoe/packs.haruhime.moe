@@ -1,11 +1,12 @@
 /**
  * @file tests/unit/content/api-docs-content.test.ts
  * @desc content/docs/api.mdx documents every endpoint in the OpenAPI route table, the real
- *       limits, the headers, every error code the API sends, and the Claude Code plugin; every
- *       doc stays plain Markdown so /docs/<slug>.md can serve it as is.
+ *       limits, the headers, every error code the API sends, pack stats and their index keys, and
+ *       the Claude Code plugin; every doc stays plain Markdown so /docs/<slug>.md can serve it as
+ *       is.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { readFileSync } from "node:fs";
@@ -16,6 +17,7 @@ import { DOC_DOCS, DOC_SLUGS } from "@/constants/docs";
 import { SEARCH_INDEX_LIMIT } from "@/constants/public-packs";
 import { errorCodeFor } from "@/lib/api";
 import { API_OPERATIONS } from "@/lib/openapi";
+import { packStatsSchema } from "@/schemas/pack-stats";
 
 const text = () => readFileSync(path.join(process.cwd(), "content", "docs", "api.mdx"), "utf8");
 
@@ -73,6 +75,24 @@ describe("content/docs/api.mdx", () => {
   });
 });
 
+describe("pack stats", () => {
+  it.each(Object.keys(packStatsSchema.shape))("documents stats.%s", (field) => {
+    expect(text()).toContain(`\`${field}\``);
+  });
+
+  it.each(["`r`", "`a`", "`l`", "`b`", "`m`", "`g`", "`k`"])(
+    "documents the index key %s",
+    (key) => {
+      expect(text()).toContain(key);
+    },
+  );
+
+  it("says stats arrive after a save", () => {
+    expect(text()).toContain("a few seconds after each save");
+    expect(text()).toContain("- 2026-09-24: pack objects carry `stats`");
+  });
+});
+
 describe("the Claude Code plugin section", () => {
   it.each([
     "## Use it with Claude Code",
@@ -84,7 +104,7 @@ describe("the Claude Code plugin section", () => {
   });
 
   it("dates the doc to the change", () => {
-    expect(DOC_DOCS.api.lastUpdated).toBe("2026-09-23");
+    expect(DOC_DOCS.api.lastUpdated).toBe("2026-09-24");
   });
 });
 

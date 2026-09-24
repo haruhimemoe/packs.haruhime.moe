@@ -1,11 +1,11 @@
 /**
  * @file tests/unit/lib/openapi.test.ts
  * @desc The OpenAPI document: 3.1, every v1 route present and backed by a handler, every $ref
- *       resolves, component schemas are the handlers' own zod schemas, and both pack lists are
- *       paged.
+ *       resolves, component schemas are the handlers' own zod schemas, pack objects document their
+ *       optional stats (never part of a body), and both pack lists are paged.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -43,6 +43,11 @@ const resolve = (doc: unknown, pointer: string): unknown =>
           : undefined,
       doc,
     );
+
+type PackSchema = {
+  required: string[];
+  properties: Record<string, { description?: string; properties?: Record<string, unknown> }>;
+};
 
 const withoutDialect = (schema: z.ZodType, io: "input" | "output") => {
   const { $schema: _dialect, ...rest } = z.toJSONSchema(schema, { target: "draft-2020-12", io });
@@ -97,6 +102,29 @@ describe("buildOpenApiDocument", () => {
     expect(
       (doc.components.schemas.PackResponse as { properties: { pack: unknown } }).properties.pack,
     ).toEqual(withoutDialect(apiPackSchema, "output"));
+  });
+
+  it("documents the optional stats on every pack, and never takes them in a body", () => {
+    const pack = (doc.components.schemas.PackResponse as { properties: { pack: PackSchema } })
+      .properties.pack;
+    expect(pack.required).not.toContain("stats");
+    expect(pack.properties.stats?.description).toContain("computed on the server after a save");
+    expect(Object.keys(pack.properties.stats?.properties ?? {})).toEqual([
+      "srMin",
+      "srMax",
+      "srAvg",
+      "lenMin",
+      "lenMax",
+      "bpmMin",
+      "bpmMax",
+      "mods",
+      "modes",
+      "count",
+      "complete",
+      "computedAt",
+    ]);
+    const input = doc.components.schemas.PackInput as { properties: Record<string, unknown> };
+    expect(input.properties).not.toHaveProperty("stats");
   });
 
   it("carries no $schema or $defs inside components", () => {
