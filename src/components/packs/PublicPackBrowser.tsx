@@ -4,7 +4,9 @@
  *       filter or sort (the plain /packs URL), the cached list (children) shows and nothing is
  *       fetched. Anything else loads /packs/index.json once and filters and sorts it here,
  *       50 cards at a time. The filters live in the URL (usePackFilters), the result count is
- *       announced once changes settle, and if the index can't load the server list stays.
+ *       announced once changes settle, an empty result says what might help (other words, a
+ *       wider range, or clearing the stat filters while stats are still being worked out), and
+ *       if the index can't load the server list stays.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -22,7 +24,7 @@ import { useSearchIndex } from "@/hooks/useSearchIndex";
 import { useSettledValue } from "@/hooks/useSettledValue";
 import { indexEntryToCard } from "@/lib/search-index";
 import type { SearchIndex } from "@/schemas/public-pack";
-import { filterPacks, isBrowsing, type PackFilters } from "@/utils/pack-filters";
+import { filterPacks, hasFilters, isBrowsing, type PackFilters } from "@/utils/pack-filters";
 import { prepareSearchIndex } from "@/utils/search";
 
 type PublicPackBrowserProps = {
@@ -31,13 +33,18 @@ type PublicPackBrowserProps = {
   loadIndex?: () => Promise<SearchIndex>;
 };
 
+/** What nothing matched: the text, the filter rows, both, or neither (a sort alone). */
+const noMatch = (q: string, filtered: boolean): string => {
+  if (q !== "" && filtered) return `No packs match “${q}” with these filters.`;
+  if (q !== "") return `No packs match “${q}”.`;
+  return filtered ? "No packs match these filters." : "No public packs yet.";
+};
+
 /** "3 packs match. 1 pack is hidden until its stats are ready." */
-const describeResults = (count: number, hidden: number, q: string): string => {
+const describeResults = (count: number, hidden: number, q: string, filtered: boolean): string => {
   const found =
     count === 0
-      ? q === ""
-        ? "No packs match these filters."
-        : `No packs match “${q}”.`
+      ? noMatch(q, filtered)
       : `${count} ${count === 1 ? "pack matches" : "packs match"}.`;
   if (hidden === 0) return found;
   return `${found} ${
@@ -45,6 +52,21 @@ const describeResults = (count: number, hidden: number, q: string): string => {
       ? "1 pack is hidden until its stats are ready."
       : `${hidden} packs are hidden until their stats are ready.`
   }`;
+};
+
+/** What to try when nothing matches, or null when nothing would help (a sort alone). */
+const noMatchHint = (hidden: number, q: string, filtered: boolean): string | null => {
+  if (hidden > 0) {
+    return hidden === 1
+      ? "That pack's stats are still being worked out. Clear the star rating, mod, length, BPM and mode filters to see it."
+      : "Those packs' stats are still being worked out. Clear the star rating, mod, length, BPM and mode filters to see them.";
+  }
+  if (filtered) {
+    return q === ""
+      ? "Try a wider range or fewer mods or modes."
+      : "Try a wider range, fewer mods or modes, or other words.";
+  }
+  return q === "" ? null : "Try other words.";
 };
 
 export function PublicPackBrowser({ children, loadIndex }: PublicPackBrowserProps) {
@@ -85,9 +107,11 @@ export function PublicPackBrowser({ children, loadIndex }: PublicPackBrowserProp
     focusFrom.current = null;
   });
 
+  const q = filters.q.trim();
+  const filtered = hasFilters(filters);
   let count = "";
   if (browsing && state.status === "loading") count = "Loading packs…";
-  else if (result) count = describeResults(result.entries.length, result.hidden, filters.q.trim());
+  else if (result) count = describeResults(result.entries.length, result.hidden, q, filtered);
   // Announce where a drag or a burst of typing ends up, not every step.
   const settledCount = useSettledValue(count, COUNT_SETTLE_MS);
 
@@ -96,7 +120,8 @@ export function PublicPackBrowser({ children, loadIndex }: PublicPackBrowserProp
     if (result === null) {
       body = <p className="text-c4 text-sm">Loading packs…</p>;
     } else if (result.entries.length === 0) {
-      body = <p className="text-c3">Try a wider range, fewer mods or modes, or other words.</p>;
+      const hint = noMatchHint(result.hidden, q, filtered);
+      body = hint ? <p className="text-c3">{hint}</p> : null;
     } else {
       body = (
         <div ref={list} className="flex flex-col items-center gap-4">

@@ -230,6 +230,45 @@ describe("PublicPackBrowser", () => {
     );
   });
 
+  it("suggests other words for a search on its own", async () => {
+    openUrl("/packs?q=zzzz");
+    setup();
+    expect(await screen.findByText("Try other words.")).toBeInTheDocument();
+    expect(screen.queryByText(/wider range/)).not.toBeInTheDocument();
+  });
+
+  it("names the search and the filters when both are set", async () => {
+    openUrl("/packs?q=zzzz&maps=5-");
+    setup();
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "No packs match “zzzz” with these filters.",
+      ),
+    );
+    expect(
+      screen.getByText("Try a wider range, fewer mods or modes, or other words."),
+    ).toBeInTheDocument();
+  });
+
+  it("suggests a wider range when only filters are set", async () => {
+    openUrl("/packs?maps=30-");
+    setup();
+    expect(
+      await screen.findByText("Try a wider range or fewer mods or modes."),
+    ).toBeInTheDocument();
+  });
+
+  it("says the stats are still being worked out when every match is hidden for them", async () => {
+    openUrl("/packs?mods=FL");
+    setup();
+    expect(
+      await screen.findByText(
+        "That pack's stats are still being worked out. Clear the star rating, mod, length, BPM and mode filters to see it.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/wider range/)).not.toBeInTheDocument();
+  });
+
   it("announces the count only once changes settle", async () => {
     vi.useFakeTimers();
     render(
