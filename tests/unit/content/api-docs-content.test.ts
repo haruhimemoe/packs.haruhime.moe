@@ -74,8 +74,10 @@ describe("content/docs/api.mdx", () => {
   });
 
   it("says what /packs/index.json holds, and points to the API for a pack's maps", () => {
-    expect(text()).toContain(`up to ${SEARCH_INDEX_LIMIT.toLocaleString("en-US")} newest`);
-    expect(text()).toContain("newest created first");
+    expect(text()).toContain(`up to ${SEARCH_INDEX_LIMIT.toLocaleString("en-US")} packs`);
+    expect(text()).toContain(
+      "community packs newest created first, then archive packs newest created first",
+    );
     expect(text()).toContain("GET /api/v1/packs/{slug}");
     expect(text()).not.toContain("read every public pack");
   });

@@ -331,6 +331,17 @@ describe("sortPacks", () => {
     expect(order("new")).toEqual(["Delta", "bravo", "Charlie", "Alpha"]);
   });
 
+  it("puts community packs before archive packs when newest first, as the plain list does", () => {
+    const archived = entry("Archived", { t: "2026-09-24T00:00:00.000Z", x: 1 });
+    expect(order("new", [a, archived, b, c, d])).toEqual([
+      "Delta",
+      "bravo",
+      "Charlie",
+      "Alpha",
+      "Archived",
+    ]);
+  });
+
   it("puts the most recently updated first", () => {
     expect(order("updated")).toEqual(["bravo", "Charlie", "Alpha", "Delta"]);
   });

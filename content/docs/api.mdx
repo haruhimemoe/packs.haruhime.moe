@@ -259,7 +259,7 @@ The same for up to 100 maps at once: pass their IDs as `?ids=129891,75`. Each ID
 
 `page` starts at 1 and goes up to 999999. Responses include `page`, `pageCount`, and `total`. A page past the end comes back with an empty `packs` list.
 
-To list public packs (slug, name, owner, map count) without a key, use the static search index at [/packs/index.json](https://packs.haruhime.moe/packs/index.json) (up to 5,000 newest). It doesn't count toward any limit. Entries are newest created first, and `t` is when the pack was created. Each entry also carries the pack's stats in short form once we have them: `r` star rating range, `a` average stars, `l` length range in seconds, `b` BPM range, `m` mods and `g` rulesets (comma-separated), and `k` for `complete`. Archive packs also carry `x` (always `1`), `xk` (the source: `otdb`, `otr` or `wybin`) and `xu` (the pool's page there). For a pack's maps, call `GET /api/v1/packs/{slug}`.
+To list public packs (slug, name, owner, map count) without a key, use the static search index at [/packs/index.json](https://packs.haruhime.moe/packs/index.json) (up to 5,000 packs). It doesn't count toward any limit. Entries list community packs newest created first, then archive packs newest created first, and `t` is when the pack was created (an archive pack's is when we imported it). Each entry also carries the pack's stats in short form once we have them: `r` star rating range, `a` average stars, `l` length range in seconds, `b` BPM range, `m` mods and `g` rulesets (comma-separated), and `k` for `complete`. Archive packs also carry `x` (always `1`), `xk` (the source: `otdb`, `otr` or `wybin`) and `xu` (the pool's page there). For a pack's maps, call `GET /api/v1/packs/{slug}`.
 
 ## Pack keys
 
@@ -279,6 +279,6 @@ The source is at [github.com/haruhimemoe/claude-plugin](https://github.com/haruh
 ## Changes
 
 - 2026-09-24: `GET /beatmaps/{id}/usage` and `GET /beatmaps/usage` list the archive pools a map was used in. They need no key.
-- 2026-09-24: archive packs (past tournament pools) carry `archive`, and their index entries carry `x`, `xk` and `xu`.
+- 2026-09-24: archive packs (past tournament pools) carry `archive`, and their index entries carry `x`, `xk` and `xu`. The index lists them after community packs.
 - 2026-09-24: pack objects carry `stats`, and the search index carries them in short form. Index entries carry `t` (created) and are newest created first.
 - 2026-09-23: `GET /me/packs` is paged like `GET /packs`.

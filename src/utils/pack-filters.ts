@@ -221,8 +221,12 @@ const byStars =
     return (a.a - b.a) * direction;
   };
 
+/** Community packs (no `x`) before archive packs, like the plain list. */
+const communityFirst = (a: SearchIndexEntry, b: SearchIndexEntry): number =>
+  (a.x === undefined ? 0 : 1) - (b.x === undefined ? 0 : 1);
+
 const COMPARE: Record<PackSort, (a: SearchIndexEntry, b: SearchIndexEntry) => number> = {
-  new: (a, b) => newestFirst(a.t ?? a.u, b.t ?? b.u),
+  new: (a, b) => communityFirst(a, b) || newestFirst(a.t ?? a.u, b.t ?? b.u),
   updated: (a, b) => newestFirst(a.u, b.u),
   "sr-asc": byStars(1),
   "sr-desc": byStars(-1),
@@ -234,8 +238,9 @@ const COMPARE: Record<PackSort, (a: SearchIndexEntry, b: SearchIndexEntry) => nu
  * @function sortPacks
  * @param entries {readonly SearchIndexEntry[]} index entries
  * @param sort {PackSort} the sort
- * @returns {SearchIndexEntry[]} a sorted copy: newest created (the update date when an entry has
- *          no creation date), recently updated, average stars either way (packs without them
+ * @returns {SearchIndexEntry[]} a sorted copy: newest created (community packs first, then
+ *          archive packs, like the plain list; the update date when an entry has no creation
+ *          date), recently updated, average stars either way (packs without them
  *          last), most maps, or name A to Z. Ties keep their order.
  */
 export const sortPacks = (

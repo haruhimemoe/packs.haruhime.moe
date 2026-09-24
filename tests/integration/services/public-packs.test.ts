@@ -19,7 +19,12 @@ import type { PackInput } from "@/schemas/saved-pack";
 import { ensureArchiveAccount } from "@/services/archive";
 import { createPack } from "@/services/packs";
 import { pinPack, reorderPins } from "@/services/pins";
-import { buildSearchIndex, listPinnedPacks, listPublicPacks } from "@/services/public-packs";
+import {
+  buildSearchIndex,
+  listPinnedPacks,
+  listPublicPacks,
+  listRecentPacks,
+} from "@/services/public-packs";
 import { createTestUser } from "../../helpers/auth";
 import { setupTestDb } from "../../helpers/db";
 
@@ -142,7 +147,11 @@ describe("public cards", () => {
 });
 
 /** Makes a pack an archive pack, the way the importer stores it. */
-const archive = (slug: string, url = "https://otdb.sheppsu.me/db/mappools/657/") =>
+const archive = (
+  slug: string,
+  url = "https://otdb.sheppsu.me/db/mappools/657/",
+  fingerprint = "c".repeat(64),
+) =>
   getPackModel().collection.updateOne(
     { slug },
     {
@@ -152,7 +161,7 @@ const archive = (slug: string, url = "https://otdb.sheppsu.me/db/mappools/657/")
           round: "Grand Finals",
           year: 2023,
           badged: null,
-          fingerprint: "c".repeat(64),
+          fingerprint,
           sources: [{ kind: "otdb", id: "657", url, importedAt: new Date() }],
         },
       },
@@ -197,6 +206,66 @@ describe("archive packs on the list and in the index", () => {
     const [entry] = (await buildSearchIndex()).packs;
     expect(entry).toMatchObject({ x: 1 });
     expect(entry).not.toHaveProperty("xu");
+  });
+});
+
+describe("community packs before archive packs", () => {
+  it("lists community packs first and archive packs after them, each newest first", async () => {
+    const host = await createTestUser();
+    const archiveId = await ensureArchiveAccount();
+    const community = (name: string) => createPack(host.id, input({ name }));
+    const archived = async (name: string, n: number) => {
+      const pack = await createPack(archiveId, input({ name }), { unlimited: true });
+      await archive(pack.slug, undefined, n.toString(16).padStart(64, "0"));
+    };
+    await community("Old community");
+    await archived("Archive 1", 1);
+    await archived("Archive 2", 2);
+    for (let i = 0; i < 22; i++) await community(`Community ${i}`);
+
+    const first = await listPublicPacks(1);
+    expect(first).toMatchObject({ total: 25, pageCount: 2 });
+    expect(first.packs.map((card) => card.name).slice(0, 2)).toEqual([
+      "Community 21",
+      "Community 20",
+    ]);
+    expect(first.packs.map((card) => card.name).slice(-2)).toEqual(["Old community", "Archive 2"]);
+    expect((await listPublicPacks(2)).packs.map((card) => card.name)).toEqual(["Archive 1"]);
+
+    const index = (await buildSearchIndex()).packs.map((entry) => entry.n);
+    expect(index).toHaveLength(25);
+    expect(index.slice(-3)).toEqual(["Old community", "Archive 2", "Archive 1"]);
+    // The cap drops archive packs before community ones.
+    expect((await buildSearchIndex({ limit: 23 })).packs.at(-1)?.n).toBe("Old community");
+  });
+});
+
+describe("listRecentPacks", () => {
+  it("lists the newest public community packs only, as the same cards", async () => {
+    const host = await createTestUser({ username: "Chiyo" });
+    const archiveId = await ensureArchiveAccount();
+    await createPack(host.id, input({ name: "Older" }));
+    await createPack(host.id, input({ name: "Unlisted", visibility: "unlisted" }));
+    const newer = await createPack(host.id, input({ name: "Newer" }));
+    const archived = await createPack(archiveId, input({ name: "Archived" }), { unlimited: true });
+    await archive(archived.slug);
+
+    const recent = await listRecentPacks(6);
+
+    expect(recent.map((card) => card.name)).toEqual(["Newer", "Older"]);
+    expect(recent[0]).toEqual(
+      (await listPublicPacks(1)).packs.find((card) => card.slug === newer.slug),
+    );
+    expect((await listRecentPacks(1)).map((card) => card.name)).toEqual(["Newer"]);
+  });
+
+  it("is empty without a database query in CI builds", async () => {
+    vi.stubEnv("SKIP_ENV_VALIDATION", "true");
+    try {
+      expect(await listRecentPacks(6)).toEqual([]);
+    } finally {
+      vi.stubEnv("SKIP_ENV_VALIDATION", "");
+    }
   });
 });
 
