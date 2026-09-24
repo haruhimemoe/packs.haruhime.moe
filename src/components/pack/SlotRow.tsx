@@ -2,7 +2,9 @@
  * @file src/components/pack/SlotRow.tsx
  * @desc One pool slot: badge, cover, title/difficulty/mapper, stars + stats, stars with mods,
  *       Copy ID (the beatmap ID, for "!mp map"), optional move and remove, and under it "Used in
- *       N pools" when other archive pools used the map.
+ *       N pools" when other archive pools used the map. A press of Copy ID never moves the row:
+ *       its status has room kept for it. Editable rows put their controls on their own line
+ *       below lg, so the map keeps room for its title.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -27,6 +29,12 @@ import type { BucketEntry, PoolSlot, SlotBucket } from "@/schemas/pack";
 import { type ModdedRating, slotStars } from "@/utils/slot-stars";
 
 export type MoveTarget = { value: SlotBucket; label: string; disabled: boolean };
+
+const VIEW_ROW = "flex flex-wrap items-center gap-3 sm:flex-nowrap";
+const EDIT_ROW = "flex flex-wrap items-center gap-3 lg:flex-nowrap";
+const VIEW_ACTIONS = "flex w-full items-center gap-3 sm:w-auto sm:shrink-0";
+const EDIT_ACTIONS =
+  "flex w-full flex-wrap items-center gap-3 sm:justify-end lg:w-auto lg:shrink-0 lg:flex-nowrap";
 
 type SlotRowProps = {
   slot: PoolSlot;
@@ -129,60 +137,66 @@ export function SlotRow({
     (option) => !option.disabled && (option.value ?? NO_SLOT_VALUE) === picked,
   );
   const target = offered ? picked : "";
+  const editable = Boolean(onRemove) || Boolean(onMove && moveTargets);
   return (
     <li className="flex flex-col gap-2 rounded-[10px] bg-b4 p-3">
-      <div className="flex flex-wrap items-center gap-3 sm:flex-nowrap">
+      {/* One line from sm up when viewing. Editing adds Move and Remove, which leave the map
+        too little room below lg, so there the controls take a line of their own under it. */}
+      <div className={editable ? EDIT_ROW : VIEW_ROW}>
         <ModBadge entry={entry} index={slot.index} />
         {body(slot, state, slotMods, ratings)}
-        {/* The slot's ID, so it works before the map loads. Phones: its own line under the map.
-          Wider: the status sits left of the button, so the button never moves on a press. */}
-        <CopyButton
-          text={String(slot.beatmapId)}
-          label="Copy ID"
-          aria-label={`Copy ID ${slot.beatmapId}`}
-          failedMessage={`Couldn't copy. The beatmap ID is ${slot.beatmapId}.`}
-          className="whitespace-nowrap"
-          wrapperClassName="w-full shrink-0 gap-2 sm:w-auto sm:flex-row-reverse"
-        />
-        {onMove && moveTargets ? (
-          <div className="flex items-center gap-1">
-            <select
-              aria-label={`Move ${title} to`}
-              value={target}
-              onChange={(event) => setPicked(event.target.value)}
-              className={fieldClasses("w-auto text-sm")}
-            >
-              <option value="" disabled>
-                Move to…
-              </option>
-              {moveTargets.map((option) => (
-                <option
-                  key={option.value ?? NO_SLOT_VALUE}
-                  value={option.value ?? NO_SLOT_VALUE}
-                  disabled={option.disabled}
-                >
-                  {option.label}
+        <div className={editable ? EDIT_ACTIONS : VIEW_ACTIONS}>
+          {/* The slot's ID, so it works before the map loads. Phones: its own line under the
+            map. Wider: the status sits left of the button in a box as wide as "Copied.", so a
+            press never moves the button or squeezes the map. */}
+          <CopyButton
+            text={String(slot.beatmapId)}
+            label="Copy ID"
+            aria-label={`Copy ID ${slot.beatmapId}`}
+            failedMessage={`Couldn't copy. The beatmap ID is ${slot.beatmapId}.`}
+            className="whitespace-nowrap"
+            wrapperClassName="w-full shrink-0 gap-2 sm:w-auto sm:flex-row-reverse sm:[&>output]:min-w-[4.5rem] sm:[&>output]:text-right"
+          />
+          {onMove && moveTargets ? (
+            <div className="flex items-center gap-1">
+              <select
+                aria-label={`Move ${title} to`}
+                value={target}
+                onChange={(event) => setPicked(event.target.value)}
+                className={fieldClasses("w-auto text-sm")}
+              >
+                <option value="" disabled>
+                  Move to…
                 </option>
-              ))}
-            </select>
-            <Button
-              variant="secondary"
-              aria-label={`Move ${title}`}
-              disabled={target === ""}
-              onClick={() => {
-                onMove(target === NO_SLOT_VALUE ? null : target);
-                setPicked("");
-              }}
-            >
-              Move
+                {moveTargets.map((option) => (
+                  <option
+                    key={option.value ?? NO_SLOT_VALUE}
+                    value={option.value ?? NO_SLOT_VALUE}
+                    disabled={option.disabled}
+                  >
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <Button
+                variant="secondary"
+                aria-label={`Move ${title}`}
+                disabled={target === ""}
+                onClick={() => {
+                  onMove(target === NO_SLOT_VALUE ? null : target);
+                  setPicked("");
+                }}
+              >
+                Move
+              </Button>
+            </div>
+          ) : null}
+          {onRemove ? (
+            <Button variant="ghost" onClick={onRemove} aria-label={`Remove ${title}`}>
+              Remove
             </Button>
-          </div>
-        ) : null}
-        {onRemove ? (
-          <Button variant="ghost" onClick={onRemove} aria-label={`Remove ${title}`}>
-            Remove
-          </Button>
-        ) : null}
+          ) : null}
+        </div>
       </div>
       {usage ? <MapUsage beatmapId={slot.beatmapId} entries={usage} /> : null}
     </li>

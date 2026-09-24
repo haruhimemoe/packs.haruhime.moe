@@ -292,7 +292,32 @@ describe("SlotRow Copy ID", () => {
     expect(screen.getByRole("status")).not.toHaveTextContent("Copied.");
   });
 
-  it("sits before the editing controls, on its own line on phones", () => {
+  it("sits before the editing controls, and a view row stays on one line from sm up", () => {
+    inList(<SlotRow slot={SLOT} entry={{ code: "NM" }} state={{ status: "found", meta: META }} />);
+    const wrapper = screen.getByRole("button", { name: "Copy ID 129891" }).parentElement;
+    const actions = wrapper?.parentElement;
+    const row = actions?.parentElement;
+    // The row inside the list item holds the map and the actions; usage goes in the stats line.
+    expect(row?.parentElement).toBe(screen.getByRole("listitem"));
+    expect(row).toHaveClass("flex-wrap", "sm:flex-nowrap");
+    // Phones: a full-width line under the map, so the title keeps its room.
+    expect(actions).toHaveClass("w-full", "sm:w-auto", "sm:shrink-0");
+    expect(wrapper).toHaveClass("w-full", "sm:w-auto");
+  });
+
+  it("keeps room for the status beside the button, so a press never moves the row", () => {
+    inList(<SlotRow slot={SLOT} entry={{ code: "NM" }} state={{ status: "found", meta: META }} />);
+    const wrapper = screen.getByRole("button", { name: "Copy ID 129891" }).parentElement;
+    // Wider screens: the status sits left of the button in a box as wide as "Copied.".
+    expect(wrapper).toHaveClass(
+      "sm:flex-row-reverse",
+      "sm:[&>output]:min-w-[4.5rem]",
+      "sm:[&>output]:text-right",
+    );
+    expect(wrapper?.querySelector("output")).not.toBeNull();
+  });
+
+  it("puts an editable row's controls on a line of their own below lg", () => {
     inList(
       <SlotRow
         slot={SLOT}
@@ -308,14 +333,14 @@ describe("SlotRow Copy ID", () => {
       "Move",
       "Remove",
     ]);
-    // Phones: a full-width line under the map, so the title keeps its room. Wider screens: in
-    // the row after the map, never squeezed.
-    const wrapper = screen.getByRole("button", { name: "Copy ID 129891" }).parentElement;
-    // The row inside the list item holds the map, Copy ID and the controls; usage goes under it.
-    const row = wrapper?.parentElement;
-    expect(row?.parentElement).toBe(screen.getByRole("listitem"));
-    expect(row).toHaveClass("flex-wrap", "sm:flex-nowrap");
-    expect(wrapper).toHaveClass("w-full", "sm:w-auto", "shrink-0");
+    const actions = screen.getByRole("button", { name: "Copy ID 129891" }).parentElement
+      ?.parentElement as HTMLElement;
+    expect(actions).toContainElement(screen.getByRole("button", { name: "Move NM1" }));
+    expect(actions).toContainElement(screen.getByRole("button", { name: "Remove NM1" }));
+    expect(actions).toHaveClass("w-full", "flex-wrap", "lg:w-auto", "lg:flex-nowrap");
+    const row = actions.parentElement;
+    expect(row).toHaveClass("flex-wrap", "lg:flex-nowrap");
+    expect(row).not.toHaveClass("sm:flex-nowrap");
   });
 });
 
