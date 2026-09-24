@@ -1,7 +1,8 @@
 /**
  * @file src/constants/api.ts
- * @desc Public API (/api/v1) settings: key format, page size, rate limits (the API's, and the
- *       per-IP and per-user limits on the app's own routes), and where the docs live.
+ * @desc Public API (/api/v1) settings: key format, page size, rate limits (the API's, the per-IP
+ *       and per-user limits on the app's own routes, and the failed-token limit on the pools service
+ *       routes), and where the docs live.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
  * @modified Thu Sep 24, 2026
@@ -39,6 +40,11 @@ export const RATE_LIMITS = {
   apiWrite: { scope: "api-write", limit: 10, windowSeconds: 60 },
   /** Missing, bad, or revoked keys, per IP. */
   authFail: { scope: "auth-fail", limit: 20, windowSeconds: 60 },
+  /**
+   * Missing or wrong POOLS_SERVICE_TOKEN on /api/service/pools/*, per IP. Only pools has the
+   * token; anyone else gets 10 tries a minute.
+   */
+  serviceAuthFail: { scope: "service-auth-fail", limit: 10, windowSeconds: 60 },
   /** Create or regenerate on /me, per user. */
   keyCreate: { scope: "key-create", limit: 10, windowSeconds: 3600 },
   /**

@@ -5,7 +5,8 @@
  *       back to a placeholder secret (a production build still may). On Vercel, only VERCEL_ENV
  *       production counts as production, so Preview deployments without auth config start. The
  *       optional CRON_SECRET is read on its own: when set it must be too long to guess, and a bad
- *       value only breaks the cron route, never the rest of the server env.
+ *       value only breaks the cron route, never the rest of the server env. So is
+ *       POOLS_SERVICE_TOKEN (at least 32).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -16,6 +17,7 @@ import {
   assertNoPlaceholderSecrets,
   EnvError,
   getCronSecret,
+  getPoolsServiceToken,
   isEnvValidationSkipped,
   parseDatabaseEnv,
   parseServerEnv,
@@ -131,6 +133,41 @@ describe("getCronSecret", () => {
     try {
       expect(() => getCronSecret()).toThrow(
         new EnvError("Missing or invalid environment variables: CRON_SECRET. See .env.example."),
+      );
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+});
+
+describe("POOLS_SERVICE_TOKEN", () => {
+  it("isn't part of the server env, so a bad value only stops the pools routes", () => {
+    expect(SERVER_ENV_KEYS).not.toContain("POOLS_SERVICE_TOKEN");
+    expect(parseServerEnv({ ...TEST_SERVER_ENV, POOLS_SERVICE_TOKEN: "short" })).toEqual(
+      TEST_SERVER_ENV,
+    );
+  });
+});
+
+describe("getPoolsServiceToken", () => {
+  it("reads POOLS_SERVICE_TOKEN on every call, trimmed, undefined when unset", () => {
+    try {
+      vi.stubEnv("POOLS_SERVICE_TOKEN", "");
+      expect(getPoolsServiceToken()).toBeUndefined();
+      vi.stubEnv("POOLS_SERVICE_TOKEN", `  ${"t".repeat(32)}\n`);
+      expect(getPoolsServiceToken()).toBe("t".repeat(32));
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it("throws, naming it but not printing it, when it's shorter than 32", () => {
+    vi.stubEnv("POOLS_SERVICE_TOKEN", "t".repeat(31));
+    try {
+      expect(() => getPoolsServiceToken()).toThrow(
+        new EnvError(
+          "Missing or invalid environment variables: POOLS_SERVICE_TOKEN. See .env.example.",
+        ),
       );
     } finally {
       vi.unstubAllEnvs();

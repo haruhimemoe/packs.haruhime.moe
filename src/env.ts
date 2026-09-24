@@ -6,10 +6,10 @@
  *       refuses that when a secret would be one of these public placeholders: first use throws,
  *       and so does server start (src/instrumentation.ts). Production means VERCEL_ENV=production
  *       when VERCEL_ENV is set (so Preview deployments without auth config still start), else
- *       NODE_ENV=production; never during `next build`. The optional CRON_SECRET guards the daily
- *       stats job. It isn't part of the server env: getCronSecret reads and checks it on its own on
- *       every call, so a missing or bad value only makes the cron route refuse, never sign-in or
- *       anything else getServerEnv backs.
+ *       NODE_ENV=production; never during `next build`. The optional CRON_SECRET (the daily stats
+ *       job) and POOLS_SERVICE_TOKEN (the routes pools.haruhime.moe calls) aren't part of the
+ *       server env: each is read and checked on its own on every call, so a missing or bad value
+ *       only makes its routes refuse, never sign-in or anything else getServerEnv backs.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -155,28 +155,45 @@ export const parseDatabaseEnv = (
  */
 export const getDatabaseUri = (): string => parseDatabaseEnv(process.env).MONGODB_URI;
 
+/**
+ * An optional machine secret, read from process.env on every call (never memoized) and checked
+ * on its own, so a missing or bad value only stops the routes it guards.
+ */
+const optionalSecret = (key: string, minLength: number): string | undefined => {
+  const parsed = z
+    .string()
+    .min(minLength)
+    .optional()
+    .safeParse(process.env[key]?.trim() || undefined);
+  if (parsed.success) return parsed.data;
+  throw new EnvError(`Missing or invalid environment variables: ${key}. See .env.example.`);
+};
+
 /** The daily stats job's secret, read only by getCronSecret. */
 export const CRON_SECRET_KEY = "CRON_SECRET";
 
 /**
- * Vercel Cron sends it as `Authorization: Bearer <CRON_SECRET>` (/api/cron/pack-stats).
- * Optional: without it the cron route refuses every call.
- */
-const cronSecretSchema = z.string().min(16).optional();
-
-/**
  * @function getCronSecret
  * @returns {string | undefined} CRON_SECRET from process.env, trimmed, validated on its own and
- *          never memoized; undefined when unset (the cron route then refuses every call)
+ *          never memoized; undefined when unset (the cron route then refuses every call). Vercel
+ *          Cron sends it as `Authorization: Bearer <CRON_SECRET>` (/api/cron/pack-stats).
  * @throws {EnvError} naming (never printing) CRON_SECRET when it's set but shorter than 16
  */
-export const getCronSecret = (): string | undefined => {
-  const parsed = cronSecretSchema.safeParse(process.env[CRON_SECRET_KEY]?.trim() || undefined);
-  if (parsed.success) return parsed.data;
-  throw new EnvError(
-    `Missing or invalid environment variables: ${CRON_SECRET_KEY}. See .env.example.`,
-  );
-};
+export const getCronSecret = (): string | undefined => optionalSecret(CRON_SECRET_KEY, 16);
+
+/** The token pools.haruhime.moe sends, read only by getPoolsServiceToken. */
+export const POOLS_SERVICE_TOKEN_KEY = "POOLS_SERVICE_TOKEN";
+
+/**
+ * @function getPoolsServiceToken
+ * @returns {string | undefined} POOLS_SERVICE_TOKEN from process.env, trimmed, validated on its
+ *          own and never memoized; undefined when unset (the pools service routes then refuse
+ *          every call). pools sends it as `Authorization: Bearer <POOLS_SERVICE_TOKEN>`
+ *          (/api/service/pools/*).
+ * @throws {EnvError} naming (never printing) POOLS_SERVICE_TOKEN when it's set but shorter than 32
+ */
+export const getPoolsServiceToken = (): string | undefined =>
+  optionalSecret(POOLS_SERVICE_TOKEN_KEY, 32);
 
 let cached: ServerEnv | null = null;
 

@@ -322,6 +322,13 @@ describe("API copy", () => {
     );
   });
 
+  it("discloses the pools service's failed-token counter", () => {
+    expect(read("privacy")).toContain("**Requests to our pools service without its token.**");
+    expect(read("your-privacy-rights")).toContain(
+      "or a request to our pools service has no valid token",
+    );
+  });
+
   it("the per-IP counters' windows match the two-minute lifetime the pages state", () => {
     // A counter expires one minute after its window ends (src/lib/rate-limit.ts,
     // src/lib/osu/attributes.ts), so a 60-second window is gone within about two minutes.
@@ -329,6 +336,7 @@ describe("API copy", () => {
       RATE_LIMITS.osuStarRatings,
       RATE_LIMITS.osuBeatmaps,
       RATE_LIMITS.authFail,
+      RATE_LIMITS.serviceAuthFail,
       OSU_API_BUDGET_PER_IP,
     ]) {
       expect(rule.windowSeconds).toBe(60);
