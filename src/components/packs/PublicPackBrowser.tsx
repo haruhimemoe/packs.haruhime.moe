@@ -3,10 +3,11 @@
  * @desc /packs in the browser: the filter bar over the server-rendered list. With no search,
  *       filter or sort (the plain /packs URL), the cached list (children) shows and nothing is
  *       fetched. Anything else loads /packs/index.json once and filters and sorts it here,
- *       50 cards at a time. The filters live in the URL (usePackFilters), the result count
- *       follows every change on screen but is announced only once changes settle, an empty result says what might help (other words, a
- *       wider range, or clearing the stat filters while stats are still being worked out), and
- *       if the index can't load the server list stays.
+ *       50 cards at a time. The filters live in the URL (usePackFilters). The result count
+ *       follows every change on screen but is announced only once changes settle. An empty
+ *       result says what might help (other words, a wider range, or clearing the stat filters
+ *       while stats are still being worked out). If the index can't load, the server list
+ *       stays: an alert says so once, and only its "Try again" button fetches the index again.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -71,7 +72,7 @@ const noMatchHint = (hidden: number, q: string, filtered: boolean): string | nul
 
 export function PublicPackBrowser({ children, loadIndex }: PublicPackBrowserProps) {
   const [filters, setFilters] = usePackFilters();
-  const { state, load } = useSearchIndex(loadIndex);
+  const { state, failures, load, retry } = useSearchIndex(loadIndex);
   const [shown, setShown] = useState(FILTER_RESULTS_STEP);
   const list = useRef<HTMLDivElement>(null);
   // After "Show more", the first new card to move focus to.
@@ -86,9 +87,13 @@ export function PublicPackBrowser({ children, loadIndex }: PublicPackBrowserProp
   const update = (next: PackFilters) => {
     setFilters(next);
     setShown(FILTER_RESULTS_STEP);
-    // Also retries after a failed load.
+    // After a failed load this does nothing: only "Try again" refetches.
     if (isBrowsing(next)) load();
   };
+
+  // A load failed and none has worked since (a retry may be running).
+  const failed = failures > 0 && state.status !== "ready";
+  const retrying = failed && state.status === "loading";
 
   // Fold the whole index once when it arrives, not on every change.
   const prepared = useMemo(
@@ -110,13 +115,14 @@ export function PublicPackBrowser({ children, loadIndex }: PublicPackBrowserProp
   const q = filters.q.trim();
   const filtered = hasFilters(filters);
   let count = "";
-  if (browsing && state.status === "loading") count = "Loading packs…";
+  if (browsing && state.status === "loading" && !failed) count = "Loading packs…";
   else if (result) count = describeResults(result.entries.length, result.hidden, q, filtered);
   // Announce where a drag or a burst of typing ends up, not every step.
   const settledCount = useSettledValue(count, COUNT_SETTLE_MS);
 
   let body: ReactNode = children;
-  if (browsing && state.status !== "error") {
+  // After a failure the server list stays, a background retry included.
+  if (browsing && !failed) {
     if (result === null) {
       body = <p className="text-c4 text-sm">Loading packs…</p>;
     } else if (result.entries.length === 0) {
@@ -162,10 +168,20 @@ export function PublicPackBrowser({ children, loadIndex }: PublicPackBrowserProp
           </>
         }
       />
-      {browsing && state.status === "error" ? (
-        <p role="alert" className="text-rose-300 text-sm">
-          Search and filters aren't available right now. Try again later.
-        </p>
+      {/* Always mounted, so only a change of text is announced; empty, it takes no space. */}
+      <p role="alert" className="text-rose-300 text-sm empty:sr-only">
+        {browsing && failed
+          ? failures === 1
+            ? "Search and filters aren't available right now."
+            : "Search and filters still aren't available. Try again in a minute."
+          : ""}
+      </p>
+      {browsing && failed ? (
+        <div>
+          <Button variant="secondary" onClick={retry} disabled={retrying}>
+            {retrying ? "Trying again…" : "Try again"}
+          </Button>
+        </div>
       ) : null}
       {body}
     </div>

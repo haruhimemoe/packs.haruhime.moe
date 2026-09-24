@@ -3,9 +3,10 @@
  * @desc /packs in the browser: the server list shows until someone searches, filters or sorts;
  *       then the index loads once and the bar filters it. The filters live in the URL (written
  *       with replaceState, even without String.prototype.toWellFormed, read back on load and on
- *       back/forward), the count shows at once and is announced once
- *       changes settle, packs hidden for missing stats are counted, results come 50 at a time,
- *       and a failed index load keeps the server list.
+ *       back/forward), the count shows at once and is announced once changes settle, packs
+ *       hidden for missing stats are counted, an empty result says what might help, cards are
+ *       dated by the sort, results come 50 at a time, and a failed index load keeps the server
+ *       list, says so once, and retries only on request.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -308,19 +309,66 @@ describe("PublicPackBrowser", () => {
     expect(announcedCount()).toBe("1 pack matches.");
   });
 
-  it("keeps the server list and explains when the index can't load", async () => {
+  it("keeps the server list and explains, once, when the index can't load", async () => {
     const { user, load } = setup(async () => {
       throw new Error("offline");
     });
+    const alert = screen.getByRole("alert");
+    expect(alert).toBeEmptyDOMElement();
     const box = screen.getByRole("searchbox", { name: "Search public packs" });
     await user.type(box, "spring");
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Search and filters aren't available right now. Try again later.",
+    await waitFor(() =>
+      expect(alert).toHaveTextContent("Search and filters aren't available right now."),
     );
     expect(screen.getByText("Server list")).toBeInTheDocument();
-    const calls = load.mock.calls.length;
-    await user.type(box, "s");
-    expect(load.mock.calls.length).toBeGreaterThan(calls);
+    expect(load).toHaveBeenCalledOnce();
+    // More typing and a slider don't refetch or re-announce: the same alert keeps its text.
+    await user.type(box, " cup");
+    screen.getByRole("slider", { name: "Minimum star rating" }).focus();
+    await user.keyboard("{PageUp}{PageUp}");
+    expect(load).toHaveBeenCalledOnce();
+    expect(screen.getByRole("alert")).toBe(alert);
+    expect(alert).toHaveTextContent("Search and filters aren't available right now.");
+    expect(screen.getByText("Server list")).toBeInTheDocument();
+    expect(screen.queryByText("Loading packs…")).not.toBeInTheDocument();
+  });
+
+  it("tries the index again only when asked, keeping the server list meanwhile", async () => {
+    let fail = true;
+    let finish: () => void = () => {};
+    const { user, load } = setup(
+      () =>
+        new Promise<SearchIndex>((resolve, reject) => {
+          if (fail) reject(new Error("offline"));
+          else finish = () => resolve(INDEX);
+        }),
+    );
+    await user.type(screen.getByRole("searchbox", { name: "Search public packs" }), "spring");
+    const alert = screen.getByRole("alert");
+    await waitFor(() =>
+      expect(alert).toHaveTextContent("Search and filters aren't available right now."),
+    );
+
+    await user.click(screen.getByRole("button", { name: "Try again" }));
+    expect(load).toHaveBeenCalledTimes(2);
+    await waitFor(() =>
+      expect(alert).toHaveTextContent(
+        "Search and filters still aren't available. Try again in a minute.",
+      ),
+    );
+    expect(screen.getByText("Server list")).toBeInTheDocument();
+
+    fail = false;
+    await user.click(screen.getByRole("button", { name: "Try again" }));
+    // While it loads, the list and the alert stay as they were.
+    expect(screen.getByText("Server list")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Trying again…" })).toBeDisabled();
+    act(() => finish());
+    expect(
+      await screen.findByRole("link", { name: "Spring Cup Quarterfinals" }),
+    ).toBeInTheDocument();
+    expect(alert).toBeEmptyDOMElement();
+    expect(screen.queryByRole("button", { name: "Try again" })).not.toBeInTheDocument();
   });
 
   it("shows 50 results at a time", async () => {
