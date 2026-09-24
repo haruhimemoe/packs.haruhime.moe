@@ -3,7 +3,8 @@
  * @desc The `bun run archive:import otdb [--dry-run] [--file <path>]` runner
  *       (scripts/archive-import.ts), run by an admin with the production database environment.
  *       It downloads otdb's export (or reads --file), plans against the stored archive packs,
- *       prints a summary, and writes only without --dry-run. After a real import that changed
+ *       prints a summary, and writes only without --dry-run (map usage is rebuilt for every map
+ *       then, and the runner says what changed). After a real import that changed
  *       something it asks the live site to refresh /packs and its index
  *       (POST /api/cron/revalidate-packs with CRON_SECRET); without CRON_SECRET, or if that
  *       request fails, it says so: the pages then pick the packs up at their daily refresh.
@@ -140,6 +141,12 @@ export const runArchiveImport = async (
     log(formatImportReport(result.plan, { read: listed, dryRun, source }));
     if (!dryRun) {
       log(`\nWrote ${result.created} new packs and new sources on ${result.updated} packs.`);
+    }
+    if (result.usage) {
+      const { beatmaps, written: changed, removed } = result.usage;
+      log(
+        `Map usage: ${beatmaps} maps used in archive pools; ${changed} updated, ${removed} removed.`,
+      );
     }
     written = result.created + result.updated;
   } catch (error) {

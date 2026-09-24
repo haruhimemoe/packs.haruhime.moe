@@ -7,8 +7,9 @@
  *       importArchive plans normalized pools against the stored archive packs (hidden ones
  *       included, so a pool an admin hid is never imported again) and, unless it's a dry run,
  *       writes the plan: new public packs with their seeded stats and archive details, and new
- *       sources on stored packs (through the driver, so `updatedAt` never moves). A dry run
- *       writes nothing, the account included. Revalidating the live site is the runner's job
+ *       sources on stored packs (through the driver, so `updatedAt` never moves), then rebuilds
+ *       map usage for every map (src/services/map-usage.ts). A dry run writes nothing, the account
+ *       and map usage included. Revalidating the live site is the runner's job
  *       (src/lib/archive-import.ts): this code also runs outside Next.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
@@ -22,6 +23,7 @@ import { nanoid } from "nanoid";
 import { ARCHIVE_ACCOUNT, type ArchiveSourceKind } from "@/constants/archive";
 import { SLUG_LENGTH } from "@/constants/pack";
 import { connectedDb } from "@/lib/db";
+import { rebuildMapUsage, type UsageRebuild } from "@/services/map-usage";
 import { connectedPackModel } from "@/services/packs";
 import {
   type ArchivePlan,
@@ -179,7 +181,11 @@ export const applyArchivePlan = async (
   return { created, updated };
 };
 
-export type ArchiveImport = ArchiveWrites & { plan: ArchivePlan };
+export type ArchiveImport = ArchiveWrites & {
+  plan: ArchivePlan;
+  /** The full map usage rebuild after a real run; null on a dry run. */
+  usage: UsageRebuild | null;
+};
 
 /**
  * @function importArchive
@@ -187,7 +193,8 @@ export type ArchiveImport = ArchiveWrites & { plan: ArchivePlan };
  * @param skipped {readonly SkippedPool[]} pools already left out (for the report)
  * @param options {{ dryRun: boolean; now?: Date; makeSlug?: () => string }} whether to write,
  *        the import time, and the slug source (tests)
- * @returns {Promise<ArchiveImport>} the plan, and what was written (nothing on a dry run)
+ * @returns {Promise<ArchiveImport>} the plan, what was written, and the map usage rebuild that
+ *          follows every real run (nothing on a dry run)
  */
 export const importArchive = async (
   pools: readonly NormalizedPool[],
@@ -195,7 +202,8 @@ export const importArchive = async (
   { dryRun, now = new Date(), makeSlug }: { dryRun: boolean; now?: Date; makeSlug?: () => string },
 ): Promise<ArchiveImport> => {
   const plan = planArchiveImport(pools, skipped, await listArchivePacks());
-  if (dryRun) return { plan, created: 0, updated: 0 };
+  if (dryRun) return { plan, created: 0, updated: 0, usage: null };
   const ownerId = await ensureArchiveAccount(now);
-  return { plan, ...(await applyArchivePlan(plan, { ownerId, now, makeSlug })) };
+  const writes = await applyArchivePlan(plan, { ownerId, now, makeSlug });
+  return { plan, ...writes, usage: await rebuildMapUsage(undefined, now) };
 };

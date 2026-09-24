@@ -19,15 +19,12 @@ import {
   addBuckets,
   bucketsOf,
   isModAcronym,
-  isModBucket,
   MAX_SLOT_INDEX,
   MOD_ACRONYMS,
   type ModAcronym,
   modSetProblem,
-  modsLabel,
   type Pool,
   parsePoolText,
-  type SlotMods,
   setBucketMods,
   slotTitle,
 } from "@haruhimemoe/pool";
@@ -35,6 +32,7 @@ import { ARCHIVE_SOURCE_LABELS, type ArchiveSourceKind } from "@/constants/archi
 import { type BucketEntry, type PoolSlot, slotKey } from "@/schemas/pack";
 import { type PackInput, packInputSchema } from "@/schemas/saved-pack";
 import { type ArchiveName, parseArchiveName } from "@/utils/archive-names";
+import { slotModsCode } from "@/utils/map-usage";
 import { computeStats, type PackStatsRecord, type StatsMetaById } from "@/utils/saved-pack-stats";
 import { slotModsMap } from "@/utils/slot-stars";
 
@@ -140,13 +138,6 @@ export const poolFromLabels = (name: string, slots: readonly SourceSlot[]): Labe
   return { ok: true, pool };
 };
 
-/** What a slot plays with, as the fingerprint writes it. */
-const modsKey = (slot: PoolSlot, mods: SlotMods | undefined): string => {
-  if (slot.mod !== null && isModBucket(slot.mod)) return slot.mod;
-  if (mods?.kind === "forced") return modsLabel(mods.set);
-  return mods?.kind === "free" ? "FM" : "NM";
-};
-
 /**
  * @function poolFingerprint
  * @param pool {{ slots: readonly PoolSlot[]; buckets?: readonly BucketEntry[] }} a pool
@@ -161,7 +152,7 @@ export const poolFingerprint = (pool: {
 }): string => {
   const mods = slotModsMap(pool.slots, bucketsOf(pool));
   const entries = pool.slots
-    .map((slot) => `${slot.beatmapId}:${modsKey(slot, mods.get(slotKey(slot)))}`)
+    .map((slot) => `${slot.beatmapId}:${slotModsCode(slot, mods.get(slotKey(slot)))}`)
     .sort();
   return createHash("sha256").update(entries.join("\n"), "utf8").digest("hex");
 };

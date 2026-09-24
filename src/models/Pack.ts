@@ -2,7 +2,8 @@
  * @file src/models/Pack.ts
  * @desc Saved pack model (collection "packs"): identity (name, slots, bucket list), description, export links,
  *       owner, visibility, moderation flag, pin to the top of /packs, filter stats, the archive
- *       details of an imported tournament pool, timestamps.
+ *       details of an imported tournament pool, timestamps. Archive packs are also indexed by
+ *       beatmap id, for map usage.
  *       Registered lazily on the shared connection so importing it needs no env.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
@@ -136,6 +137,11 @@ packSchema.index({ pinOrder: 1 }, { partialFilterExpression: { pinnedAt: { $exis
 packSchema.index(
   { "archive.fingerprint": 1 },
   { unique: true, partialFilterExpression: { "archive.fingerprint": { $exists: true } } },
+);
+// Map usage (src/services/map-usage.ts) finds the archive packs that use a map by its id.
+packSchema.index(
+  { "slots.beatmapId": 1 },
+  { partialFilterExpression: { "archive.fingerprint": { $exists: true } } },
 );
 
 /** A `$unset` that takes a pin away: unpinning, hiding, or saving a pack away from public. */

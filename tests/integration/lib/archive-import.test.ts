@@ -4,8 +4,9 @@
  *       dry run writes nothing; a real run creates public packs owned by the archive account,
  *       with archive details and seeded stats the stats job picks up; a second run changes
  *       nothing; a new source joins its stored pack; a changed pool gets its own pack and the
- *       old one stays; a hidden pack isn't imported again. The export download, the file read and
- *       the site refresh are stubs: nothing reaches otdb or the site.
+ *       old one stays; a hidden pack isn't imported again; every real run rebuilds map usage for
+ *       every map, and a dry run doesn't. The export download, the file read and the site refresh
+ *       are stubs: nothing reaches otdb or the site.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -16,6 +17,7 @@ import path from "node:path";
 import { ObjectId } from "mongodb";
 import { describe, expect, it, vi } from "vitest";
 import { ARCHIVE_ACCOUNT, OTDB_EXPORT_URL } from "@/constants/archive";
+import { MAP_USAGE_COLLECTION } from "@/constants/map-usage";
 import {
   type ArchiveImportDeps,
   REVALIDATE_PACKS_PATH,
@@ -23,6 +25,7 @@ import {
 } from "@/lib/archive-import";
 import { getDb } from "@/lib/db";
 import { getPackModel } from "@/models/Pack";
+import { getMapUsage } from "@/services/map-usage";
 import { setPackHidden } from "@/services/moderation";
 import { countPacksNeedingStats } from "@/services/pack-stats";
 import { buildSearchIndex, listPublicPacks } from "@/services/public-packs";
@@ -143,6 +146,38 @@ describe("archive:import", () => {
     expect(out).toContain("Wrote 0 new packs and new sources on 0 packs.");
     expect(await archivePacks()).toEqual(before);
     expect(await getDb().collection("user").countDocuments({})).toBe(1);
+  });
+
+  it("rebuilds map usage for every map on a real run, and never on a dry run", async () => {
+    const usageCount = () => getDb().collection(MAP_USAGE_COLLECTION).countDocuments({});
+    const dry = await withSample(["otdb", "--dry-run"]);
+    expect(dry.out).not.toContain("Map usage");
+    expect(await usageCount()).toBe(0);
+
+    const { out } = await withSample(["otdb"]);
+    const packs = await archivePacks();
+    const maps = new Set(packs.flatMap((pack) => pack.slots.map((slot) => slot.beatmapId)));
+    expect(await usageCount()).toBe(maps.size);
+    expect(out).toContain(
+      `Map usage: ${maps.size} maps used in archive pools; ${maps.size} updated, 0 removed.`,
+    );
+    const owc = packs.find((pack) => pack.name === "osu! World Cup 2023 Grand Finals");
+    const [slot] = owc?.slots ?? [];
+    if (!owc || !slot) throw new Error("OWC 2023 wasn't imported");
+    const [usage] = await getMapUsage([slot.beatmapId]);
+    expect(usage?.entries).toContainEqual(
+      expect.objectContaining({
+        slug: owc.slug,
+        tournament: "osu! World Cup 2023",
+        round: "Grand Finals",
+        year: 2023,
+      }),
+    );
+
+    const again = await withSample(["otdb"]);
+    expect(again.out).toContain(
+      `Map usage: ${maps.size} maps used in archive pools; 0 updated, 0 removed.`,
+    );
   });
 
   it("adds a second copy of a stored pool as a new source on its pack", async () => {
