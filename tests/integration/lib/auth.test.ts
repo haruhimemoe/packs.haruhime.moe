@@ -4,18 +4,24 @@
  *       cookies don't, the /api/auth handler starts osu! sign-in with PKCE and our callback, and
  *       the full OAuth callback (osu! stubbed) creates and refreshes the user without keeping tokens,
  *       storing the osu! profile as our user fields (synthetic email, image only with an avatar).
+ *       Nobody can sign in as a system account (the archive), however a sign-in reaches it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
+import { makeSignature } from "better-auth/crypto";
+import { ObjectId } from "mongodb";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { GET, POST } from "@/app/api/auth/[...all]/route";
-import { getUserFromHeaders } from "@/lib/auth";
+import { OSU_PROVIDER_ID } from "@/constants/auth";
+import { getAuth, getUserFromHeaders, isSystemUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { SIGNED_IN_COOKIE } from "@/lib/signed-in-marker";
+import { ensureArchiveAccount } from "@/services/archive";
 import { createTestUser } from "../../helpers/auth";
 import { setupTestDb } from "../../helpers/db";
+import { TEST_SERVER_ENV } from "../../helpers/server-env";
 
 vi.stubEnv("ADMIN_OSU_IDS", "12231334");
 
@@ -314,5 +320,83 @@ describe("signed-in marker cookie", () => {
       }),
     );
     expect(markerFrom(response)).toMatch(/^packs-signed-in=;.*Max-Age=0/);
+  });
+});
+
+describe("system accounts", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("isSystemUser knows the archive account and nobody else", async () => {
+    const archiveId = await ensureArchiveAccount();
+    const user = await createTestUser();
+    expect(await isSystemUser(archiveId)).toBe(true);
+    expect(await isSystemUser(new ObjectId(archiveId))).toBe(true);
+    expect(await isSystemUser(user.id)).toBe(false);
+    expect(await isSystemUser("not-an-id")).toBe(false);
+    expect(await isSystemUser(undefined)).toBe(false);
+  });
+
+  it("an osu! sign-in never lands on the archive account", async () => {
+    const archiveId = await ensureArchiveAccount();
+    const callback = await signInWithOsu(PEPPY);
+    const signedIn = await getUserFromHeaders(new Headers({ cookie: cookiesFrom(callback) }));
+    expect(signedIn).toMatchObject({ osuId: 2, username: "peppy" });
+    expect(signedIn?.id).not.toBe(archiveId);
+    const archiveUserId = new ObjectId(archiveId);
+    expect(await getDb().collection("account").countDocuments({ userId: archiveUserId })).toBe(0);
+    expect(await getDb().collection("session").countDocuments({ userId: archiveUserId })).toBe(0);
+  });
+
+  it("refuses the sign-in even when an osu! account was linked to it", async () => {
+    const archiveId = await ensureArchiveAccount();
+    const now = new Date();
+    await getDb()
+      .collection("account")
+      .insertOne({
+        userId: new ObjectId(archiveId),
+        providerId: OSU_PROVIDER_ID,
+        accountId: "2",
+        createdAt: now,
+        updatedAt: now,
+      });
+    const callback = await signInWithOsu(PEPPY);
+    expect(callback.headers.get("location")).toMatch(/error/);
+    expect(await getUserFromHeaders(new Headers({ cookie: cookiesFrom(callback) }))).toBeNull();
+    expect(await getDb().collection("session").countDocuments({})).toBe(0);
+  });
+
+  it("never gets a session or an osu! account link from better-auth", async () => {
+    const archiveId = await ensureArchiveAccount();
+    const ctx = await getAuth().$context;
+    expect(await ctx.internalAdapter.createSession(archiveId, false)).toBeNull();
+    expect(
+      await ctx.internalAdapter.createAccount({
+        userId: archiveId,
+        providerId: OSU_PROVIDER_ID,
+        accountId: "3",
+      }),
+    ).toBeNull();
+    expect(await getDb().collection("session").countDocuments({})).toBe(0);
+    expect(await getDb().collection("account").countDocuments({})).toBe(0);
+  });
+
+  it("a session row that reaches it anyway reads as signed out", async () => {
+    const archiveId = await ensureArchiveAccount();
+    const token = "archive-session-token-0000000000";
+    const now = new Date();
+    await getDb()
+      .collection("session")
+      .insertOne({
+        userId: new ObjectId(archiveId),
+        token,
+        expiresAt: new Date(now.getTime() + 3_600_000),
+        createdAt: now,
+        updatedAt: now,
+        ipAddress: "",
+        userAgent: "",
+      });
+    const signature = await makeSignature(token, TEST_SERVER_ENV.BETTER_AUTH_SECRET);
+    const cookie = `better-auth.session_token=${encodeURIComponent(`${token}.${signature}`)}`;
+    expect(await getUserFromHeaders(new Headers({ cookie }))).toBeNull();
   });
 });

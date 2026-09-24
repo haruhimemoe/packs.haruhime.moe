@@ -66,7 +66,8 @@ export const adminPackRowSchema = z.object({
   slug: slugSchema,
   name: z.string(),
   ownerName: z.string(),
-  ownerOsuId: z.number().int().positive(),
+  /** Null for a system account's pack (the archive): it has no osu! profile. */
+  ownerOsuId: z.number().int().positive().nullable(),
   visibility: visibilitySchema.exclude(["private"]),
   slotCount: z.number().int().nonnegative(),
   updatedAt: z.string(),

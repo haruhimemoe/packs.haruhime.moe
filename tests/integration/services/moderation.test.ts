@@ -1,15 +1,17 @@
 /**
  * @file tests/integration/services/moderation.test.ts
- * @desc Admin list (public + unlisted only, hidden filter, literal name filter) and hiding.
+ * @desc Admin list (public + unlisted only, hidden filter, literal name filter) and hiding,
+ *       archive packs (the system account, no osu! id) included.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { ObjectId } from "mongodb";
 import { describe, expect, it } from "vitest";
 import type { PackInput } from "@/schemas/saved-pack";
-import { listPacksForAdmin, setPackHidden } from "@/services/moderation";
+import { ensureArchiveAccount } from "@/services/archive";
+import { adminDeletePack, listPacksForAdmin, setPackHidden } from "@/services/moderation";
 import { createPack } from "@/services/packs";
 import { createTestUser } from "../../helpers/auth";
 import { setupTestDb } from "../../helpers/db";
@@ -43,6 +45,25 @@ describe("listPacksForAdmin", () => {
       slotCount: 2,
       hiddenAt: null,
     });
+  });
+
+  it("lists, hides and deletes the archive account's packs, whose host has no osu! id", async () => {
+    const archiveId = await ensureArchiveAccount();
+    const pack = await createPack(archiveId, input({ name: "OWC 2023 Finals" }), {
+      unlimited: true,
+    });
+    const [row] = (await listPacksForAdmin()).rows;
+    expect(row).toMatchObject({
+      slug: pack.slug,
+      ownerName: "haruhime archive",
+      ownerOsuId: null,
+    });
+    expect(await setPackHidden(pack.slug, adminId(), true)).toMatchObject({
+      ownerOsuId: null,
+      hiddenAt: expect.any(String),
+    });
+    expect(await adminDeletePack(pack.slug)).toBe(true);
+    expect((await listPacksForAdmin()).rows).toEqual([]);
   });
 
   it("filters to hidden packs", async () => {

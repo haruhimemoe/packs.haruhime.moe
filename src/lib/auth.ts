@@ -2,9 +2,12 @@
  * @file src/lib/auth.ts
  * @desc better-auth, built on first use: MongoDB adapter on the shared client, osu! generic OAuth
  *       (identify + public, PKCE). getUserFromHeaders() is how route handlers read the caller.
+ *       System users (`system: true`, like the archive account that owns imported pools) can
+ *       never act: no session or osu! account link is ever created for one, and a session that
+ *       reaches one anyway reads as signed out.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import "server-only";
@@ -13,6 +16,7 @@ import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { createAuthMiddleware } from "better-auth/api";
 import { genericOAuth } from "better-auth/plugins";
+import { ObjectId } from "mongodb";
 import { OSU_PROVIDER_ID } from "@/constants/auth";
 import { getServerEnv } from "@/env";
 import { isAdminOsuId } from "@/lib/admin";
@@ -36,6 +40,24 @@ export const osuProfileToUser = (raw: unknown) => {
     ...user,
     ...(user.avatarUrl ? { image: user.avatarUrl } : {}),
   };
+};
+
+/**
+ * @function isSystemUser
+ * @param userId {unknown} a user id as better-auth passes it (a hex string) or an ObjectId
+ * @returns {Promise<boolean>} true when that users record is a system account (`system: true`)
+ */
+export const isSystemUser = async (userId: unknown): Promise<boolean> => {
+  const id =
+    userId instanceof ObjectId
+      ? userId
+      : typeof userId === "string" && ObjectId.isValid(userId)
+        ? new ObjectId(userId)
+        : null;
+  if (!id) return false;
+  return (
+    (await getDb().collection("user").countDocuments({ _id: id, system: true }, { limit: 1 })) > 0
+  );
 };
 
 /** Drops OAuth tokens from an account write. */
@@ -68,13 +90,26 @@ const createAuth = () => {
         username: { type: "string", required: true },
         avatarUrl: { type: "string", required: false },
         countryCode: { type: "string", required: false },
+        // Set only by the server on system accounts (the archive). Nothing a client or an osu!
+        // profile sends can set it.
+        system: { type: "boolean", required: false, input: false },
       },
     },
     databaseHooks: {
       // We never call osu! as the user, so keep no osu! tokens (privacy policy lists what we store).
+      // A system account never gets an osu! account linked to it.
       account: {
-        create: { before: async (account) => ({ data: withoutTokens(account) }) },
+        create: {
+          before: async (account) =>
+            (await isSystemUser(account.userId)) ? false : { data: withoutTokens(account) },
+        },
         update: { before: async (account) => ({ data: withoutTokens(account) }) },
+      },
+      // Nobody signs in as a system account, whatever resolved to it.
+      session: {
+        create: {
+          before: async (session) => ((await isSystemUser(session.userId)) ? false : undefined),
+        },
       },
     },
     hooks: {
@@ -146,11 +181,12 @@ export type SessionUser = {
 /**
  * @function getUserFromHeaders
  * @param headers {Headers} request headers (the session cookie)
- * @returns {Promise<SessionUser | null>} the signed-in user, or null (no, forged, or expired session)
+ * @returns {Promise<SessionUser | null>} the signed-in user, or null (no, forged, or expired
+ *          session, or one that belongs to a system account)
  */
 export const getUserFromHeaders = async (headers: Headers): Promise<SessionUser | null> => {
   const session = await getAuth().api.getSession({ headers });
-  if (!session) return null;
+  if (!session || session.user.system === true) return null;
   const { id, osuId, username, avatarUrl } = session.user;
   return { id, osuId, username, avatarUrl: avatarUrl ?? null, isAdmin: isAdminOsuId(osuId) };
 };

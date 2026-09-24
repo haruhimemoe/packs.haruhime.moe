@@ -2,11 +2,11 @@
  * @file src/services/api-keys.ts
  * @desc API keys: one per user. Create and regenerate are one atomic upsert on userId, so two
  *       tabs racing still leave exactly one key. Authentication looks the key up by its hash; an
- *       admin's key skips the saved-pack cap but gets no moderation rights. lastUsedAt is
- *       written at most once an hour.
+ *       admin's key skips the saved-pack cap but gets no moderation rights. A key never acts as a
+ *       system account (the archive). lastUsedAt is written at most once an hour.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import "server-only";
@@ -100,7 +100,7 @@ export const revokeApiKey = async (userId: string): Promise<boolean> => {
  * @param key {string} untrusted bearer token
  * @param now {Date} current time (tests)
  * @returns {Promise<ApiCaller | null>} the key's owner, or null for a malformed, unknown, revoked,
- *          or replaced key, or one whose user record is gone
+ *          or replaced key, or one whose user record is gone or is a system account
  */
 export const authenticateApiKey = async (
   key: string,
@@ -113,8 +113,9 @@ export const authenticateApiKey = async (
   if (!doc) return null;
   const user = await getDb()
     .collection("user")
-    .findOne({ _id: doc.userId }, { projection: { osuId: 1, username: 1 } });
-  if (!user || typeof user.username !== "string" || typeof user.osuId !== "number") return null;
+    .findOne({ _id: doc.userId }, { projection: { osuId: 1, username: 1, system: 1 } });
+  if (!user || user.system === true) return null;
+  if (typeof user.username !== "string" || typeof user.osuId !== "number") return null;
   if (!doc.lastUsedAt || now.getTime() - doc.lastUsedAt.getTime() >= LAST_USED_INTERVAL_MS) {
     // Filter on the hash too, so a regenerate in between isn't stamped with this use.
     await model.updateOne({ _id: doc._id, hash }, { $set: { lastUsedAt: now } });

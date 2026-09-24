@@ -5,7 +5,8 @@
  *       one magnet link lives with the owner's remove in src/services/pack-exports.ts. Moderation
  *       writes go through the driver so `updatedAt` never moves (a hidden pack keeps its place).
  *       Hiding a pack also unpins it (pins live in src/services/pins.ts); unhiding never pins it
- *       again. Rows say when a pack was pinned.
+ *       again. Rows say when a pack was pinned. Archive packs (owned by the system account, which
+ *       has no osu! id) are moderated like any other.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -35,7 +36,8 @@ type AdminRecord = {
   updatedAt: Date;
   hiddenAt?: Date | null;
   pinnedAt?: Date | null;
-  owner: { username: string; osuId: number };
+  /** No osu! id on a system account (the archive). */
+  owner: { username: string; osuId?: number | null };
 };
 
 const ownerStages: PipelineStage[] = [
@@ -61,7 +63,7 @@ const toRow = (record: AdminRecord): AdminPackRow =>
     slug: record.slug,
     name: record.name,
     ownerName: record.owner.username,
-    ownerOsuId: record.owner.osuId,
+    ownerOsuId: record.owner.osuId ?? null,
     visibility: record.visibility,
     slotCount: record.slotCount,
     updatedAt: record.updatedAt.toISOString(),
