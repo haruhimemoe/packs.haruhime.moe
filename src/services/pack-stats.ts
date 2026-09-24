@@ -4,7 +4,9 @@
  *       pack's stats; the daily cron and the admin button run runPackStatsJob, which repairs
  *       missing or incomplete stats a batch at a time: packs with no stats first, then incomplete
  *       ones that are due for a retry, oldest first; in each group, listed public and unlisted
- *       packs before private and hidden ones. Incomplete stats wait longer before each retry
+ *       packs before private and hidden ones. Archive packs due for a retry come after every
+ *       community pack, and only in a run that took no other pack, so an import's backlog never
+ *       delays a community pack or spends its osu! allowance. Incomplete stats wait longer before each retry
  *       (statsRetryAt), so packs that keep failing can't crowd out the rest. Writes never move
  *       updatedAt and only land while the pack is unchanged since it was read, so a newer save
  *       always wins. Nothing here throws into a save: failures are logged and leave the stats
@@ -49,6 +51,10 @@ const waitingForRetry = (now: Date) => ({
 const SHARED = { visibility: { $in: ["public", "unlisted"] }, hiddenAt: null };
 /** Everything else: private packs, and packs a moderator hid. */
 const NOT_SHARED = { $or: [{ visibility: "private" }, { hiddenAt: { $ne: null } }] };
+/** Packs someone saved. */
+const COMMUNITY = { "archive.fingerprint": { $exists: false } };
+/** Packs the archive importer made: an import seeds hundreds at once. */
+const ARCHIVED = { "archive.fingerprint": { $exists: true } };
 const OLDEST_PACK_FIRST = { _id: 1 } as const;
 const OLDEST_STATS_FIRST = { "stats.computedAt": 1, _id: 1 } as const;
 const FIELDS = {
@@ -228,15 +234,28 @@ export const runPackStatsJob = async ({
 }: StatsDeps & { limit?: number } = {}): Promise<PackStatsJobResult> => {
   const model = await connectedModel();
   const at = (deps.now ?? (() => new Date()))();
-  const groups: { filter: QueryFilter<unknown>; sort: Record<string, 1> }[] = [
+  const groups: { filter: QueryFilter<unknown>; sort: Record<string, 1>; archive?: true }[] = [
     { filter: { ...NO_STATS, ...SHARED }, sort: OLDEST_PACK_FIRST },
     { filter: { ...NO_STATS, ...NOT_SHARED }, sort: OLDEST_PACK_FIRST },
-    { filter: { ...dueForRetry(at), ...SHARED }, sort: OLDEST_STATS_FIRST },
-    { filter: { ...dueForRetry(at), ...NOT_SHARED }, sort: OLDEST_STATS_FIRST },
+    { filter: { ...dueForRetry(at), ...SHARED, ...COMMUNITY }, sort: OLDEST_STATS_FIRST },
+    { filter: { ...dueForRetry(at), ...NOT_SHARED, ...COMMUNITY }, sort: OLDEST_STATS_FIRST },
+    {
+      filter: { ...dueForRetry(at), ...SHARED, ...ARCHIVED },
+      sort: OLDEST_STATS_FIRST,
+      archive: true,
+    },
+    {
+      filter: { ...dueForRetry(at), ...NOT_SHARED, ...ARCHIVED },
+      sort: OLDEST_STATS_FIRST,
+      archive: true,
+    },
   ];
   const picked: StatsDoc[] = [];
-  for (const { filter, sort } of groups) {
+  for (const { filter, sort, archive } of groups) {
     if (picked.length >= limit) break;
+    // The archive backlog gets only runs with nothing else to do: a batch spends one osu!
+    // allowance, which archive pairs would otherwise take from a community pack's.
+    if (archive && picked.length > 0) break;
     picked.push(
       ...(await model
         .find(filter, FIELDS)

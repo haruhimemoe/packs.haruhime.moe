@@ -3,7 +3,8 @@
  * @desc ensureArchiveAccount: one system users record, created once, with no osu! id and no
  *       linked account, that public lists show as "haruhime archive" with the site icon.
  *       applyArchivePlan: a slug collision retries, a pool another import stored meanwhile gets
- *       the sources instead of a second pack, and a source is never added twice.
+ *       the sources instead of a second pack, a source is never added twice, and seeded stats
+ *       are always stored incomplete, so the stats job replaces the source's ratings.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -108,7 +109,7 @@ describe("applyArchivePlan", () => {
     expect(await getPackModel().countDocuments({})).toBe(1);
   });
 
-  it("stores complete seeded stats without retry bookkeeping", async () => {
+  it("stores seeded stats as incomplete even when the source had every rating", async () => {
     const ownerId = await ensureArchiveAccount(NOW);
     const complete = {
       ...pool(otdbSource(3), "C Cup Finals", 3),
@@ -116,8 +117,8 @@ describe("applyArchivePlan", () => {
     };
     await applyArchivePlan(planArchiveImport([complete], [], []), { ownerId, now: NOW });
     const stored = await getPackModel().findOne({}).lean();
-    expect(stored?.stats?.complete).toBe(true);
-    expect(stored?.stats).not.toHaveProperty("retryAt");
+    // The source's ratings can be older than osu!'s: the stats job replaces them at least once.
+    expect(stored?.stats).toMatchObject({ complete: false, attempts: 1, retryAt: NOW });
   });
 
   it("rethrows other write errors", async () => {

@@ -6,7 +6,8 @@
  *       src/services/api-keys.ts). It has no pack cap: the importer writes its packs directly.
  *       importArchive plans normalized pools against the stored archive packs (hidden ones
  *       included, so a pool an admin hid is never imported again) and, unless it's a dry run,
- *       writes the plan: new public packs with their seeded stats and archive details, and new
+ *       writes the plan: new public packs with their seeded stats (always incomplete, so the
+ *       stats job looks every rating up on osu! once) and archive details, and new
  *       sources on stored packs (through the driver, so `updatedAt` never moves), then rebuilds
  *       map usage for every map (src/services/map-usage.ts). A dry run writes nothing, the account
  *       and map usage included. Revalidating the live site is the runner's job
@@ -87,9 +88,16 @@ export const listArchivePacks = async (): Promise<ExistingArchivePack[]> => {
   }));
 };
 
-/** Seeded stats as stored: incomplete ones due for the stats job at once (statsRetryAt). */
-const seededStats = (stats: PackStatsRecord) =>
-  stats.complete ? stats : { ...stats, attempts: 1, retryAt: statsRetryAt(stats.computedAt, 1) };
+/**
+ * Seeded stats as stored: always incomplete and due for the stats job (statsRetryAt), even when
+ * the source had every rating, so osu!'s current numbers replace the source's at least once.
+ */
+const seededStats = (stats: PackStatsRecord) => ({
+  ...stats,
+  complete: false,
+  attempts: 1,
+  retryAt: statsRetryAt(stats.computedAt, 1),
+});
 
 const isDuplicateOf = (error: unknown, field: string): boolean => {
   if (typeof error !== "object" || error === null) return false;

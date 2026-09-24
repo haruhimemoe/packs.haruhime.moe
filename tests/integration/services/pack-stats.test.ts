@@ -5,7 +5,8 @@
  *       incomplete stats; a map osu! says is gone doesn't; a save in between wins; revalidation.
  *       The repair job: missing stats first (public and unlisted, then private and hidden), then
  *       incomplete ones that are due, oldest first; a longer wait before each retry; the cap; what
- *       is due and what waits; one star-rating allowance per run. The mirror and osu! are MSW.
+ *       is due and what waits; one star-rating allowance per run; archive packs retried only in
+ *       runs with no community pack due. The mirror and osu! are MSW.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -227,6 +228,64 @@ const packWith = async (
   }
   return pack.slug;
 };
+
+/** Makes a pack an archive pack, the way the importer stores it. */
+const asArchive = (slug: string, n: number) =>
+  getPackModel().collection.updateOne(
+    { slug },
+    {
+      $set: {
+        archive: {
+          tournament: "Spring Cup",
+          round: "Finals",
+          year: 2024,
+          badged: null,
+          fingerprint: n.toString(16).padStart(64, "0"),
+          sources: [
+            { kind: "otdb", id: String(n), url: `https://otdb.sheppsu.me/db/mappools/${n}/` },
+          ],
+        },
+      },
+    },
+  );
+
+describe("runPackStatsJob and archive packs", () => {
+  it("retries community packs before archive packs, and never in the same run", async () => {
+    const owner = await createTestUser();
+    onMirror(lookups, beatmapRow(101));
+    // An import seeds many archive packs at once, before a community pack's stats fail.
+    const archived: string[] = [];
+    for (let n = 1; n <= 3; n++) {
+      const slug = await packWith(owner.id, `Archive ${n}`, "public", {
+        complete: false,
+        computedAt: "2026-09-01T00:00:00Z",
+      });
+      await asArchive(slug, n);
+      archived.push(slug);
+    }
+    const community = await packWith(owner.id, "Community", "public", {
+      complete: false,
+      computedAt: "2026-09-20T00:00:00Z",
+    });
+
+    // The community pack goes first, and alone: it keeps the run's whole osu! allowance.
+    expect(await runPackStatsJob({ limit: 25, now: () => NOW })).toEqual({
+      updated: 1,
+      remaining: 3,
+      waiting: 0,
+    });
+    expect((await storedStats(community))?.complete).toBe(true);
+    for (const slug of archived) expect((await storedStats(slug))?.complete).toBe(false);
+
+    // With no community pack due, the archive backlog gets the run.
+    expect(await runPackStatsJob({ limit: 2, now: () => NOW })).toEqual({
+      updated: 2,
+      remaining: 1,
+      waiting: 0,
+    });
+    expect((await storedStats(archived[0] ?? ""))?.complete).toBe(true);
+  });
+});
 
 describe("runPackStatsJob", () => {
   it("fills in missing stats first (public and unlisted, then private), then retries incomplete ones, oldest first", async () => {
