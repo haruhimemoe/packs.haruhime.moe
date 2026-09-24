@@ -6,7 +6,9 @@
  *       does; the same pool twice in one import is one new pack with both sources. A source
  *       whose pool changed (a new fingerprint for a source id a stored pack already has) gets its
  *       own pack, the old one stays, and the plan flags the pair. Also the runner's arguments and
- *       the summary it prints. Pure.
+ *       the summary it prints, where every piece of source text (names, labels in reasons) has
+ *       its control characters replaced and is cut short, so an export can't drive the admin's
+ *       terminal. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -179,8 +181,26 @@ export const parseImportArgs = (
   return { ok: true, args: { source, dryRun, file } };
 };
 
+/** C0 and C1 control characters, DEL included (Unicode's Cc). */
+const CONTROL = /\p{Cc}/gu;
+
+/** The most characters of one piece of source text the report prints. */
+const REPORT_TEXT_MAX = 200;
+
+/**
+ * @function reportText
+ * @param text {string} text a source gave (a pool name, a slot label inside a reason)
+ * @returns {string} the same, safe to print to the admin's terminal: every control character
+ *          (escape sequences, bells, line breaks) as U+FFFD, and at most REPORT_TEXT_MAX
+ *          characters, cut with an ellipsis
+ */
+export const reportText = (text: string): string => {
+  const safe = text.replace(CONTROL, "\uFFFD");
+  return safe.length > REPORT_TEXT_MAX ? `${safe.slice(0, REPORT_TEXT_MAX - 1)}…` : safe;
+};
+
 const label = (source: { kind: ArchiveSourceKind; id: string }): string =>
-  `${ARCHIVE_SOURCE_LABELS[source.kind]} #${source.id}`;
+  `${ARCHIVE_SOURCE_LABELS[source.kind]} #${reportText(source.id)}`;
 
 /**
  * @function formatImportReport
@@ -216,27 +236,31 @@ export const formatImportReport = (
   };
   section(
     "Skipped:",
-    plan.skipped.map((pool) => `${label(pool)}  ${pool.name}: ${pool.reason}`),
+    plan.skipped.map(
+      (pool) => `${label(pool)}  ${reportText(pool.name)}: ${reportText(pool.reason)}`,
+    ),
   );
   section(
     "Same pool twice in this import (one pack with both sources):",
     plan.merged.map(
-      (pool) => `${label(pool.source)} is the same pool as ${label(pool.into)} (${pool.name})`,
+      (pool) =>
+        `${label(pool.source)} is the same pool as ${label(pool.into)} (${reportText(pool.name)})`,
     ),
   );
   section(
     "Changed pools (the old pack stays):",
     plan.changed.map(
       (pool) =>
-        `${label(pool.source)}  was ${pool.from.slug} (${pool.from.name}), now ${
+        `${label(pool.source)}  was ${pool.from.slug} (${reportText(pool.from.name)}), now ${
           pool.to.slug === null ? "a new pack" : pool.to.slug
-        } (${pool.to.name})`,
+        } (${reportText(pool.to.name)})`,
     ),
   );
   section(
     "New sources on stored packs:",
     plan.update.map(
-      (pack) => `${pack.slug} (${pack.name}) gains ${pack.sources.map(label).join(", ")}`,
+      (pack) =>
+        `${pack.slug} (${reportText(pack.name)}) gains ${pack.sources.map(label).join(", ")}`,
     ),
   );
   return lines.join("\n");

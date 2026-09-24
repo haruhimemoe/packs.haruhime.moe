@@ -14,6 +14,7 @@ import {
   formatImportReport,
   parseImportArgs,
   planArchiveImport,
+  reportText,
   sourceKey,
 } from "@/utils/archive-import";
 import {
@@ -183,7 +184,48 @@ describe("parseImportArgs", () => {
   });
 });
 
+describe("reportText", () => {
+  it("turns control characters into U+FFFD, so source text can't drive the terminal", () => {
+    expect(reportText("\u001b[2K\u001b[1AOK\u0007\u009b\u007f\ttab\nline")).toBe(
+      "\uFFFD[2K\uFFFD[1AOK\uFFFD\uFFFD\uFFFD\uFFFDtab\uFFFDline",
+    );
+    expect(reportText("Pokémon Cup: RO16 (Tier 1)")).toBe("Pokémon Cup: RO16 (Tier 1)");
+  });
+
+  it("cuts long text to 200 characters", () => {
+    expect(reportText("x".repeat(5000))).toBe(`${"x".repeat(199)}…`);
+    expect(reportText("y".repeat(200))).toBe("y".repeat(200));
+  });
+});
+
 describe("formatImportReport", () => {
+  it("cleans every name and reason it prints from the source", () => {
+    const evil = "\u001b[2K\u001b[1A";
+    // A name normalizePool would refuse, as if a stored pack or another source carried it.
+    const plain = pool(otdbSource(71), "A Cup Finals", 1, 2);
+    const a = { ...plain, input: { ...plain.input, name: `${evil}A Cup Finals` } };
+    const twin = pool(otdbSource(418), "Twin", 1, 2);
+    const plan = planArchiveImport(
+      [a, twin],
+      [
+        {
+          kind: "otdb",
+          id: "7",
+          name: `${evil}Skipped 0${"z".repeat(10_000)}`,
+          reason: "Slot \u001b]52;c;aGk=\u0007: bad",
+        },
+      ],
+      [],
+    );
+    const report = formatImportReport(plan, { read: 3, dryRun: true, source: "otdb" });
+    // Line breaks are the report's own; nothing else below U+0020 or in C1 survives.
+    expect(report.replaceAll("\n", "")).not.toMatch(/\p{Cc}/u);
+    expect(report).toContain("\uFFFD[2K\uFFFD[1ASkipped 0");
+    expect(report).toContain("Slot \uFFFD]52;c;aGk=\uFFFD: bad");
+    expect(report).toContain("(\uFFFD[2K\uFFFD[1AA Cup Finals)");
+    expect(Math.max(...report.split("\n").map((line) => line.length))).toBeLessThan(450);
+  });
+
   it("prints the counts and every skipped, merged, changed and updated pool", () => {
     const a = pool(otdbSource(71), "United States Cup 2017 Quarter Finals", 1, 2);
     const merged = pool(otdbSource(418), "USA States Cup 2017 Quarterfinals", 1, 2);

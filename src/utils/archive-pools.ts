@@ -290,6 +290,10 @@ export const normalizePool = (
     ok: false,
     skipped: { kind: pool.source.kind, id: pool.source.id, name: pool.name, reason },
   });
+  // Control characters (escape sequences) have no place in a name that's stored and shown.
+  if (/\p{Cc}/u.test(pool.name)) {
+    return skip("The pool name has control characters.");
+  }
   let labelled = poolFromLabels(pool.name, pool.slots);
   if (!labelled.ok) return skip(labelled.reason);
   // What the source says the maps were played with, when it says it for every map.
