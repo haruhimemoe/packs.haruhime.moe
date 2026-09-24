@@ -3,7 +3,9 @@
  * @desc The /packs filter bar, laid out like the osu! beatmap listing: the search box and sort on
  *       top, then a panel of labeled rows (star rating, mods, length, BPM, mode, map count) with
  *       the live result count and "Clear filters". Controlled: it shows `filters` and reports
- *       every change. Built from the @haruhimemoe/ui filter components.
+ *       every change. On phones the rows start open when a filter is set (a shared link, Back),
+ *       and open again whenever filters arrive from the URL. Built from the @haruhimemoe/ui
+ *       filter components.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -100,6 +102,11 @@ type PackFilterBarProps = {
   resultCount?: ReactNode;
   /** Called when the search box gets focus (the page starts loading the index then). */
   onSearchFocus?: () => void;
+  /**
+   * How many times the filters were read from the URL (usePackFilters). Each new value refolds
+   * the phone panel: open when those filters set a row, so a shared link or Back shows them.
+   */
+  urlReads?: number;
 };
 
 export function PackFilterBar({
@@ -107,6 +114,7 @@ export function PackFilterBar({
   onChange,
   resultCount,
   onSearchFocus,
+  urlReads = 0,
 }: PackFilterBarProps) {
   const searchId = useId();
   const sortId = useId();
@@ -162,9 +170,13 @@ export function PackFilterBar({
         </Select>
       </div>
       <FilterPanel
+        // Remounted for filters from the URL, so it opens on phones when they set a row; a
+        // change made on the page leaves the fold as the reader left it.
+        key={urlReads}
         title="Filters"
         resultCount={resultCount}
         active={hasFilters(filters)}
+        defaultOpen={hasFilters(filters)}
         onClear={() => onChange(clearFilters(filters))}
       >
         {rangeRow(STAR_ROW)}

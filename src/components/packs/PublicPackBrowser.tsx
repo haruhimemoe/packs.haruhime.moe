@@ -176,6 +176,7 @@ export function PublicPackBrowser({ children, loadIndex }: PublicPackBrowserProp
         filters={filters}
         onChange={update}
         onSearchFocus={load}
+        urlReads={urlReads}
         resultCount={
           // People see every change; screen readers hear only where a drag or burst of typing
           // ends up (changes inside aria-hidden text aren't announced).

@@ -247,15 +247,37 @@ describe("PublicPackBrowser", () => {
     openUrl("/packs?mods=DT");
     router.set("mods=DT");
     setup();
-    const dt = screen.getByRole("button", { name: "DT" });
+    const dt = () => screen.getByRole("button", { name: "DT" });
     await waitFor(() => expect(cardNames()).toEqual(["Spring Cup Quarterfinals"]));
-    expect(dt).toHaveAttribute("aria-pressed", "true");
+    expect(dt()).toHaveAttribute("aria-pressed", "true");
 
     followLink("/packs");
 
-    await waitFor(() => expect(dt).toHaveAttribute("aria-pressed", "false"));
+    await waitFor(() => expect(dt()).toHaveAttribute("aria-pressed", "false"));
     expect(screen.getByText("Server list")).toBeInTheDocument();
     expect(window.location.search).toBe("");
+  });
+
+  it("shows the filter rows on phones for a filtered link, and when a link sets filters", async () => {
+    openUrl("/packs?mods=DT");
+    router.set("mods=DT");
+    setup();
+    const toggle = screen.getByRole("button", { name: "Filters" });
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    followLink("/packs");
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Filters" })).toHaveAttribute(
+        "aria-expanded",
+        "false",
+      ),
+    );
+    followLink("/packs?mode=taiko");
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Filters" })).toHaveAttribute(
+        "aria-expanded",
+        "true",
+      ),
+    );
   });
 
   it("follows a link to other filters on the same page", async () => {

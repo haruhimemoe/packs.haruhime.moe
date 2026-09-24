@@ -2,7 +2,8 @@
  * @file tests/components/packs/PackFilterBar.test.tsx
  * @desc The /packs filter bar: every control is labeled, chips and sliders work from the
  *       keyboard with ARIA values, typed values stay exact (no snapping to a coarse step),
- *       lengths take m:ss, the sort select, "Clear filters" (and
+ *       lengths take m:ss, the sort select, the phone fold (open when filters come set or arrive
+ *       from the URL), "Clear filters" (and
  *       where focus goes after it), and the result count in a live region.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
@@ -275,5 +276,33 @@ describe("PackFilterBar", () => {
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     await user.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("starts with the rows open on phones when filters are already set", () => {
+    setup({ initial: { ...EMPTY_FILTERS, mods: ["DT"] } });
+    expect(screen.getByRole("button", { name: "Filters" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+  });
+
+  it("stays folded for a search or sort alone", () => {
+    setup({ initial: { ...EMPTY_FILTERS, q: "cup", sort: "maps" } });
+    expect(screen.getByRole("button", { name: "Filters" })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+  });
+
+  it("opens the rows again when filters arrive from the URL (a new urlReads)", () => {
+    const view = render(<PackFilterBar filters={EMPTY_FILTERS} onChange={() => {}} urlReads={0} />);
+    const toggle = () => screen.getByRole("button", { name: "Filters" });
+    expect(toggle()).toHaveAttribute("aria-expanded", "false");
+    const fromUrl = { ...EMPTY_FILTERS, sr: [5, 6] as const };
+    // A change made on the page leaves the fold alone.
+    view.rerender(<PackFilterBar filters={fromUrl} onChange={() => {}} urlReads={0} />);
+    expect(toggle()).toHaveAttribute("aria-expanded", "false");
+    view.rerender(<PackFilterBar filters={fromUrl} onChange={() => {}} urlReads={1} />);
+    expect(toggle()).toHaveAttribute("aria-expanded", "true");
   });
 });
