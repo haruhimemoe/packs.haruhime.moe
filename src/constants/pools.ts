@@ -4,8 +4,9 @@
  *       that owns them. A users record with `system: true` and no linked osu! account, so nobody
  *       can sign in as it (src/lib/auth.ts refuses its sessions too). Its id is fixed, so two
  *       first syncs at once make one record, and queries can name it without a lookup. Also a
- *       pools pool id's shape, the origin kind, where tombstones live, and the rate-limit subject
- *       pools' saves spend osu! calls under.
+ *       pools pool id's shape, the origin kind, where tombstones live, the rate-limit subject
+ *       pools' saves and the stats backfill spend osu! calls under, and where that backfill writes
+ *       down the rating pairs it tried.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -34,7 +35,16 @@ export const POOLS_ORIGIN_KIND = "pools";
 export const DELETED_ORIGINS_COLLECTION = "deleted_origins";
 
 /**
- * The rate-limit subject pools' saves spend osu! calls under: a share of the global budget of its
- * own (OSU_API_BUDGET_PER_IP, 20 a minute), never a visitor's.
+ * The rate-limit subject pools' saves and the stats backfill spend osu! calls under: a share of the
+ * global budget of its own (OSU_API_BUDGET_PER_IP, 20 a minute), never a visitor's.
  */
 export const POOLS_SYNC_SUBJECT = "pools-sync";
+
+/** The pools stats backfill's record of rating pairs it asked osu! about that didn't come back rated. */
+export const POOLS_BACKFILL_COLLECTION = "pools_backfill";
+
+/**
+ * How long a backfill remembers those pairs, and a pack it ran out of pairs for: within a day it
+ * never asks twice, and a rerun the next day tries the failures again.
+ */
+export const POOLS_BACKFILL_WINDOW_MS = 24 * 60 * 60 * 1000;

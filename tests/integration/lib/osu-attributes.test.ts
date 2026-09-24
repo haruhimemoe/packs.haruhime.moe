@@ -3,11 +3,11 @@
  * @desc Star ratings with mods on the server: the Mongo cache (hits skip osu!), write-back, the
  *       per-request cap and concurrency, the shuffled selection of misses, the global osu! budget
  *       across requests and minutes (and no more counting once it refuses), osu! refusing a pair,
- *       osu! failing, and the database being unreachable; the per-subject share of the budget.
- *       osu! is MSW.
+ *       osu! failing, and the database being unreachable; the per-subject share of the budget,
+ *       and onAsk naming each pair osu! was asked about. osu! is MSW.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { createOsuClient } from "@haruhimemoe/osu";
@@ -266,5 +266,40 @@ describe("per-subject share of the osu! budget", () => {
     const second = await getStarRatings(pairs.slice(20), { ...deps(), subject: "203.0.113.9" });
     expect(second.pending).toHaveLength(5);
     expect(calls).toHaveLength(20);
+  });
+});
+
+describe("onAsk", () => {
+  it("names each pair osu! was asked about, and none it answered from the cache or left for later", async () => {
+    await stars().insertOne({ _id: "7:DT", stars: 7.1, fetchedAt: new Date(NOW) });
+    const misses = Array.from({ length: MAX_OSU_FETCHES_PER_REQUEST + 2 }, (_, i) =>
+      pair(1000 + i, "DT"),
+    );
+    const asked: string[] = [];
+    await getStarRatings([pair(7, "DT"), pair(500, "DT"), ...misses], {
+      ...deps(),
+      random: seeded(1),
+      onAsk: (key) => asked.push(key),
+    });
+    expect(asked).not.toContain("7:DT");
+    expect(asked).toHaveLength(MAX_OSU_FETCHES_PER_REQUEST);
+    expect([...asked].sort()).toEqual([...calls].sort());
+  });
+
+  it("names no pair the budget refused", async () => {
+    const window = osuBudgetWindow(NOW);
+    await counters().insertOne({
+      _id: window.id,
+      count: OSU_API_BUDGET.limit,
+      expiresAt: window.expiresAt,
+    });
+    const asked: string[] = [];
+    const result = await getStarRatings([pair(7, "DT")], {
+      ...deps(),
+      onAsk: (key) => asked.push(key),
+    });
+    expect(asked).toEqual([]);
+    expect(calls).toEqual([]);
+    expect(result.pending).toEqual(["7:DT"]);
   });
 });

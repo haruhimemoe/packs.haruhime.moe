@@ -3,8 +3,9 @@
  * @desc Indexes on collections Mongoose doesn't manage (better-auth's). The session TTL index makes
  *       MongoDB delete a sign-in session about a minute after it expires, which the privacy policy
  *       promises. Also the 30-day TTL on cached star ratings, and the TTL on rate-limit counters (the
- *       rate_limits collection src/lib/rate-limit.ts and the osu! budget share). createIndex is a
- *       no-op when the index already exists.
+ *       rate_limits collection src/lib/rate-limit.ts and the osu! budget share), and the TTL on
+ *       the pools backfill's record of tried pairs. createIndex is a no-op when the index already
+ *       exists.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -12,6 +13,7 @@
 
 import "server-only";
 import type { Db } from "mongodb";
+import { POOLS_BACKFILL_COLLECTION } from "@/constants/pools";
 import {
   RATE_LIMITS_COLLECTION,
   STAR_RATINGS_COLLECTION,
@@ -42,6 +44,10 @@ export const ensureIndexes = async (db: Db): Promise<void> => {
       // Default name. src/lib/rate-limit.ts creates no index of its own and relies on this one.
       db
         .collection(RATE_LIMITS_COLLECTION)
+        .createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
+      // The pools stats backfill's record of tried pairs (src/services/pack-stats.ts).
+      db
+        .collection(POOLS_BACKFILL_COLLECTION)
         .createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
     ]);
   } catch (error) {

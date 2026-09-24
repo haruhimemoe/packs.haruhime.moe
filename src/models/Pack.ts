@@ -64,6 +64,10 @@ const statsSchema = new Schema(
     // incomplete, and when the job may try again (statsRetryAt).
     attempts: { type: Number },
     retryAt: { type: Date },
+    // Written by a pools backfill (never sent): when it ran out of rating pairs to try for the
+    // pack, and how many rating pairs and maps the stats still lack (its progress check).
+    backfilledAt: { type: Date },
+    missing: { type: Number },
   },
   { _id: false },
 );

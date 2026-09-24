@@ -3,13 +3,14 @@
  * @desc Indexes we add to collections we don't own through Mongoose: the TTL index that deletes
  *       expired better-auth sessions, and proof that better-auth stores expiresAt as a Date
  *       (a TTL index silently ignores any other type), plus the TTL indexes on cached star ratings
- *       and rate-limit counters.
+ *       and rate-limit counters, and on the pools backfill's record of tried pairs.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
  */
 
 import { describe, expect, it, vi } from "vitest";
+import { POOLS_BACKFILL_COLLECTION } from "@/constants/pools";
 import {
   RATE_LIMITS_COLLECTION,
   STAR_RATINGS_COLLECTION,
@@ -69,6 +70,13 @@ describe("ensureIndexes", () => {
   it("expires rate-limit counters at expiresAt", async () => {
     await connectDb();
     expect(await getDb().collection(RATE_LIMITS_COLLECTION).indexes()).toContainEqual(
+      expect.objectContaining({ key: { expiresAt: 1 }, expireAfterSeconds: 0 }),
+    );
+  });
+
+  it("expires the pools backfill's record of tried pairs at expiresAt", async () => {
+    await connectDb();
+    expect(await getDb().collection(POOLS_BACKFILL_COLLECTION).indexes()).toContainEqual(
       expect.objectContaining({ key: { expiresAt: 1 }, expireAfterSeconds: 0 }),
     );
   });

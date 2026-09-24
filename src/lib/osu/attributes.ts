@@ -45,6 +45,8 @@ type LookupDeps = {
   random?: () => number;
   /** The caller's rate-limit subject (src/utils/client-ip.ts); omitted, only the global budget counts. */
   subject?: string;
+  /** Told the key of each pair osu! is asked about (the budget let that call through). */
+  onAsk?: (key: string) => void;
 };
 
 /**
@@ -122,7 +124,7 @@ export const takeOsuBudget = async (db: Db, nowMs: number, subject?: string): Pr
  * @function getStarRatings
  * @param pairs {readonly StarPair[]} validated, unique (beatmap, mods) pairs
  * @param deps {LookupDeps} osu! client, database, clock, random source (tests), and the
- *        caller's rate-limit subject
+ *        caller's rate-limit subject and onAsk
  * @returns {Promise<StarRatingsResult>} ratings found or fetched, and the pairs to ask about again
  *          (request order). Pairs osu! refuses are in neither. Never rejects.
  */
@@ -134,6 +136,7 @@ export const getStarRatings = async (
     now = Date.now,
     random = Math.random,
     subject,
+    onAsk,
   }: LookupDeps = {},
 ): Promise<StarRatingsResult> => {
   const ratings: Record<string, number> = {};
@@ -180,7 +183,11 @@ export const getStarRatings = async (
       }
       try {
         const stars = await osu.getStarRating(pair.beatmapId, pair.set, {
-          beforeCall: () => takeOsuBudget(database, now(), subject),
+          beforeCall: async () => {
+            const granted = await takeOsuBudget(database, now(), subject);
+            if (granted) onAsk?.(pair.key);
+            return granted;
+          },
         });
         // osu! has no such map, or won't rate these mods: the slot keeps its rating without mods.
         if (stars === null) return;
