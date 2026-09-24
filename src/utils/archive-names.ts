@@ -3,10 +3,10 @@
  * @desc Tournament, round and year from an archived pool's name (pool archive spec). Sources give
  *       one string ("osu! World Cup 2023 Grand Finals"): the first round token splits it, the
  *       tournament is everything before it, and the round is the token and everything after it
- *       (a tier or bracket like "(20k-10k)" stays with the round), each token in its usual
- *       spelling ("RO16" is "Round of 16", "Grandfinals" is "Grand Finals"). A name without a
- *       token keeps the whole name as the tournament and no round. The year is the first 20xx
- *       in the name. Pure.
+ *       (a tier, division or bracket like "(20k-10k)" stays with the round), each token in its
+ *       usual spelling ("RO16" is "Round of 16", "Grandfinals" is "Grand Finals"). A name
+ *       without a token keeps the whole name as the tournament and no round. The year is the
+ *       first 20xx in the name. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -43,6 +43,10 @@ export const ROUND_TOKENS: readonly RoundToken[] = Object.freeze<RoundToken[]>([
   { pattern: /\bweek\s*(\d{1,2})\b/iu, label: (m) => `Week ${Number(m[1])}` },
   { pattern: /\bday\s*(\d{1,2})\b/iu, label: (m) => `Day ${Number(m[1])}` },
   { pattern: /\btier\s*(\d{1,2})\b/iu, label: (m) => `Tier ${Number(m[1])}` },
+  {
+    pattern: /\bdivision\s+([a-z]|[ivx]{1,4}|\d{1,2})\b/iu,
+    label: (m) => `Division ${(m[1] ?? "").toUpperCase()}`,
+  },
 ]);
 
 type Found = { index: number; length: number; label: string };

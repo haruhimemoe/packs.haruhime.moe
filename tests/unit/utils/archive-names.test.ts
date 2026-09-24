@@ -1,7 +1,8 @@
 /**
  * @file tests/unit/utils/archive-names.test.ts
  * @desc parseArchiveName over real otdb pool names, the odd ones included: typos, glued years,
- *       tiers and brackets after the round, several rounds in one pool, and names with no round.
+ *       tiers and brackets after the round, tiers and divisions before it, several rounds in one
+ *       pool, and names with no round.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -59,6 +60,22 @@ const NAMES: [string, ArchiveName][] = [
   [
     "Canadian Draft Cup 2020 Tier 2 Grand Finals",
     { tournament: "Canadian Draft Cup 2020", round: "Tier 2 Grand Finals", year: 2020 },
+  ],
+  [
+    "Dio's Spring Classic Division A Quarterfinals",
+    { tournament: "Dio's Spring Classic", round: "Division A Quarterfinals", year: null },
+  ],
+  [
+    "Dio's Bizarre Holiday Triples Division S Grand Finals",
+    { tournament: "Dio's Bizarre Holiday Triples", round: "Division S Grand Finals", year: null },
+  ],
+  [
+    "Conyoh Cup 2 Division I Quarterfinals",
+    { tournament: "Conyoh Cup 2", round: "Division I Quarterfinals", year: null },
+  ],
+  [
+    "Conyoh Cup 2 Division IV Group Stage",
+    { tournament: "Conyoh Cup 2", round: "Division IV Group Stage", year: null },
   ],
   [
     "Czechoslovak 1v1 Tourney 2020 RO32 Low Tier",
@@ -148,6 +165,21 @@ const NAMES: [string, ArchiveName][] = [
 describe("parseArchiveName", () => {
   it.each(NAMES)("%s", (name, expected) => {
     expect(parseArchiveName(name)).toEqual(expected);
+  });
+
+  it("reads a division like a tier, and only with a letter, a roman numeral or a number", () => {
+    expect(parseArchiveName("Spring Cup division b round of 32")).toMatchObject({
+      tournament: "Spring Cup",
+      round: "Division B Round of 32",
+    });
+    expect(parseArchiveName("Spring Cup Division 2 Finals")).toMatchObject({
+      tournament: "Spring Cup",
+      round: "Division 2 Finals",
+    });
+    expect(parseArchiveName("Division Cup 2021 Finals")).toMatchObject({
+      tournament: "Division Cup 2021",
+      round: "Finals",
+    });
   });
 
   it("keeps the whole name when a round token comes first", () => {
