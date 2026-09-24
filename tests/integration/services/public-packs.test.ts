@@ -78,6 +78,8 @@ describe("listPublicPacks", () => {
       slotCount: 2,
       excerpt: "Quals pool for SPC",
     });
+    const newer = await getPackModel().findOne({ name: "Newer" }).lean();
+    expect(result.packs[0]?.createdAt).toBe(newer?.createdAt.toISOString());
   });
 
   it("pages 24 at a time", async () => {

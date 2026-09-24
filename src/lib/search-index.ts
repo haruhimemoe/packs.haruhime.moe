@@ -49,7 +49,7 @@ const statsOf = ({ r, a, l, b, m, g, k }: SearchIndexEntry): IndexStats | undefi
  * @function indexEntryToCard
  * @param entry {SearchIndexEntry} compact index entry
  * @returns {PublicPackCard} the card shape (no avatar: the index leaves it out to stay small),
- *          with the entry's stats when it has them
+ *          with the entry's creation date and stats when it has them
  */
 export const indexEntryToCard = (entry: SearchIndexEntry): PublicPackCard => {
   const stats = statsOf(entry);
@@ -61,6 +61,7 @@ export const indexEntryToCard = (entry: SearchIndexEntry): PublicPackCard => {
     slotCount: entry.c,
     excerpt: entry.d,
     updatedAt: entry.u,
+    ...(entry.t ? { createdAt: entry.t } : {}),
     ...(stats ? { stats } : {}),
   };
 };

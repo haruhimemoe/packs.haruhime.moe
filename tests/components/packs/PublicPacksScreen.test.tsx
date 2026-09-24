@@ -1,7 +1,7 @@
 /**
  * @file tests/components/packs/PublicPacksScreen.test.tsx
- * @desc /packs body: cards (with star and length ranges once a pack has stats), count, the
- *       filter bar, paging links, empty state.
+ * @desc /packs body: cards (with star and length ranges once a pack has stats, and the date the
+ *       pack was added), count, the filter bar, paging links, empty state.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -20,10 +20,11 @@ const CARD: PublicPackCard = {
   slotCount: 12,
   excerpt: "Round of 16",
   updatedAt: "2026-09-22T00:00:00.000Z",
+  createdAt: "2026-08-03T00:00:00.000Z",
 };
 
 describe("PublicPacksScreen", () => {
-  it("lists cards with host, size, excerpt, and date", () => {
+  it("lists cards with host, size, excerpt, and the date it was added (the list's order)", () => {
     render(<PublicPacksScreen packs={[CARD]} page={1} pageCount={1} total={1} />);
     expect(screen.getByRole("heading", { level: 1, name: "Public packs" })).toBeInTheDocument();
     expect(screen.getByText("1 pack shared by hosts.")).toBeInTheDocument();
@@ -34,8 +35,15 @@ describe("PublicPacksScreen", () => {
     expect(screen.getByText("Chiyo")).toBeInTheDocument();
     expect(screen.getByText("12 maps")).toBeInTheDocument();
     expect(screen.getByText("Round of 16")).toBeInTheDocument();
-    expect(screen.getByText("Updated Sep 22, 2026")).toBeInTheDocument();
+    expect(screen.getByText("Added Aug 3, 2026")).toBeInTheDocument();
+    expect(screen.queryByText(/Updated/)).not.toBeInTheDocument();
     expect(screen.queryByRole("navigation", { name: "Pages" })).not.toBeInTheDocument();
+  });
+
+  it("falls back to the update date for a card without a creation date", () => {
+    const { createdAt: _created, ...old } = CARD;
+    render(<PublicPacksScreen packs={[old]} page={1} pageCount={1} total={1} />);
+    expect(screen.getByText("Updated Sep 22, 2026")).toBeInTheDocument();
   });
 
   it("shows a card's star and length ranges once the pack has stats", () => {

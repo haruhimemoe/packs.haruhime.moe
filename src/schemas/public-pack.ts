@@ -20,6 +20,8 @@ export const publicPackCardSchema = z.object({
   slotCount: z.number().int().nonnegative(),
   excerpt: z.string(),
   updatedAt: z.string(),
+  /** When the pack was first saved. Absent only for cards from an index cached before `t`. */
+  createdAt: z.string().optional(),
   /** Absent until the pack's stats are computed. */
   stats: indexStatsSchema.optional(),
 });

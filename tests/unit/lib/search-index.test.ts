@@ -92,4 +92,11 @@ describe("indexEntryToCard", () => {
       updatedAt: "2026-09-22T00:00:00.000Z",
     });
   });
+
+  it("carries the creation date when the entry has one", () => {
+    const entry = INDEX.packs[0] as (typeof INDEX.packs)[number];
+    expect(indexEntryToCard({ ...entry, t: "2026-08-03T00:00:00.000Z" }).createdAt).toBe(
+      "2026-08-03T00:00:00.000Z",
+    );
+  });
 });

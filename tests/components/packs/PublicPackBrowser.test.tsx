@@ -292,6 +292,21 @@ describe("PublicPackBrowser", () => {
     expect(screen.queryByRole("button", { name: "Show more" })).not.toBeInTheDocument();
   });
 
+  it("dates cards by what the list is sorted by", async () => {
+    openUrl("/packs?mode=mania");
+    const { user } = setup();
+    const card = (await screen.findByRole("link", { name: "Mania Open Finals" })).closest("li");
+    expect(card).toHaveTextContent("Added Sep 22, 2026");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Sort by" }), "Recently updated");
+    expect(screen.getByRole("link", { name: "Mania Open Finals" }).closest("li")).toHaveTextContent(
+      "Updated Sep 22, 2026",
+    );
+    await user.selectOptions(screen.getByRole("combobox", { name: "Sort by" }), "Most maps");
+    expect(screen.getByRole("link", { name: "Mania Open Finals" }).closest("li")).toHaveTextContent(
+      "Added Sep 22, 2026",
+    );
+  });
+
   it("shows star and length ranges on filtered cards", async () => {
     openUrl("/packs?mode=mania");
     setup();

@@ -103,6 +103,7 @@ export const listPublicPacks = async (page: number): Promise<PublicPackPage> => 
         slotCount: row.slotCount,
         excerpt: describe(row),
         updatedAt: row.updatedAt.toISOString(),
+        createdAt: row.createdAt.toISOString(),
         ...compactStats(row),
       }),
     ),

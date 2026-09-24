@@ -101,7 +101,10 @@ export function PublicPackBrowser({ children, loadIndex }: PublicPackBrowserProp
       body = (
         <div ref={list} className="flex flex-col items-center gap-4">
           <div className="w-full">
-            <PublicPackList packs={result.entries.slice(0, shown).map(indexEntryToCard)} />
+            <PublicPackList
+              packs={result.entries.slice(0, shown).map(indexEntryToCard)}
+              date={filters.sort === "updated" ? "updated" : "added"}
+            />
           </div>
           {result.entries.length > shown ? (
             <Button

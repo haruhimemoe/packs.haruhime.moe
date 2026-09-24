@@ -1,7 +1,8 @@
 /**
  * @file src/components/packs/PublicPackCard.tsx
  * @desc One public pack in the /packs grid: name, host, size, star and length ranges (once the
- *       pack's stats are in), description excerpt, last update.
+ *       pack's stats are in), description excerpt, and a date: when it was added (the list's
+ *       default order), or when it was last updated for lists sorted that way.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -15,7 +16,16 @@ import { formatDuration, formatRange, formatStars } from "@/utils/format";
 
 const DOT = <span aria-hidden="true">·</span>;
 
-export function PublicPackCard({ pack }: { pack: PublicPack }) {
+/** Which date a card shows: when the pack was added, or when it was last updated. */
+export type PackCardDate = "added" | "updated";
+
+type PublicPackCardProps = {
+  pack: PublicPack;
+  /** Default "added"; a card without a creation date shows its update date either way. */
+  date?: PackCardDate;
+};
+
+export function PublicPackCard({ pack, date = "added" }: PublicPackCardProps) {
   const stars = pack.stats?.r;
   const length = pack.stats?.l;
   return (
@@ -57,7 +67,11 @@ export function PublicPackCard({ pack }: { pack: PublicPack }) {
       {pack.excerpt ? (
         <p className="wrap-anywhere line-clamp-2 text-c2 text-sm">{pack.excerpt}</p>
       ) : null}
-      <p className="mt-auto text-c4 text-xs">Updated {formatShortDate(pack.updatedAt)}</p>
+      <p className="mt-auto text-c4 text-xs">
+        {date === "added" && pack.createdAt
+          ? `Added ${formatShortDate(pack.createdAt)}`
+          : `Updated ${formatShortDate(pack.updatedAt)}`}
+      </p>
     </li>
   );
 }
