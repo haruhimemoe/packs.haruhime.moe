@@ -3,11 +3,11 @@
  * @desc Next.js config: MDX page extensions, strict mode, unoptimized images (every raster is an
  *       external osu! CDN asset we never transform), security headers on every route (no framing,
  *       no MIME sniffing, a trimmed Referer; a full CSP needs nonces and comes later), no
- *       X-Powered-By, a redirect for the retired tournament check's guide page, and a rewrite
- *       that serves each doc's Markdown copy at /docs/<slug>.md.
+ *       X-Powered-By, redirects for the retired tournament check and archived pools guide pages,
+ *       and a rewrite that serves each doc's Markdown copy at /docs/<slug>.md.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import createMDX from "@next/mdx";
@@ -39,6 +39,8 @@ const nextConfig: NextConfig = {
     return [
       // The tournament check moved out of packs (2026-09-23); old guide links land on the index.
       { source: "/guide/official-tournament-pools", destination: "/guide", permanent: true },
+      // Tournament pools moved to pools.haruhime.moe (2026-09-24); same for their guide.
+      { source: "/guide/archived-pools", destination: "/guide", permanent: true },
     ];
   },
 };

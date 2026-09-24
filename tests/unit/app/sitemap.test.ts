@@ -45,7 +45,6 @@ describe("sitemap", () => {
       "/guide/make-a-pack",
       "/guide/pack-key",
       "/guide/seed-a-torrent",
-      "/guide/archived-pools",
       "/docs/api",
       "/legal/terms",
       "/legal/privacy",

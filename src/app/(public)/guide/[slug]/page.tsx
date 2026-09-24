@@ -14,7 +14,6 @@ import { GUIDE_DOCS, GUIDE_SLUGS, type GuideSlug, isGuideSlug } from "@/constant
 import { formatIsoDate } from "@/utils/date";
 
 const LOADERS: Record<GuideSlug, () => Promise<{ default: MDXContent }>> = {
-  "archived-pools": () => import("@content/guide/archived-pools.mdx"),
   "download-a-torrent": () => import("@content/guide/download-a-torrent.mdx"),
   "make-a-pack": () => import("@content/guide/make-a-pack.mdx"),
   "pack-key": () => import("@content/guide/pack-key.mdx"),

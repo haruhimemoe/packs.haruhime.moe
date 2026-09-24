@@ -57,8 +57,8 @@ describe("buildLlmsTxt", () => {
     expect(text).toContain(`- [${title}](${SITE.url}/guide/${slug}): ${description}`);
   });
 
-  it("lists the archived pools guide", () => {
-    expect(text).toContain(`- [Archived pools](${SITE.url}/guide/archived-pools): Past tournament`);
+  it("mentions no archived pools or otdb anywhere", () => {
+    expect(text).not.toMatch(/archived|otdb/i);
   });
 
   it.each(DOC_SLUGS)("lists the %s doc by its Markdown copy", (slug) => {

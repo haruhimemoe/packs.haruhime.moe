@@ -64,7 +64,7 @@ export const llmsSections = (): LlmsSection[] => [
       {
         title: "Guides",
         url: at("/guide"),
-        description: "Every guide: making a pack, torrents, pack keys, archived pools.",
+        description: "Every guide: making a pack, torrents and pack keys.",
       },
       {
         title: "Brand",

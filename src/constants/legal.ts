@@ -40,7 +40,7 @@ export const LEGAL_DOCS: Record<
   copyright: {
     title: "Copyright & Takedown",
     description:
-      "How to report a saved pack, where to send notices about beatmap files, and where archived pools come from.",
+      "How to report a saved pack, where to send notices about beatmap files, and where tournament pools come from.",
     lastUpdated: "2026-09-24",
   },
   disclaimers: {

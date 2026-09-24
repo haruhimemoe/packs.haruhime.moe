@@ -35,6 +35,7 @@ describe("removed for good", () => {
     "src/components/pack/MapUsage.tsx",
     "src/schemas/archive.ts",
     "src/components/pack/ArchiveBadge.tsx",
+    "content/guide/archived-pools.mdx",
   ])("%s is gone", (file) => {
     expect(existsSync(at(file))).toBe(false);
   });

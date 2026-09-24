@@ -11,7 +11,6 @@ export const GUIDE_SLUGS = [
   "download-a-torrent",
   "seed-a-torrent",
   "pack-key",
-  "archived-pools",
 ] as const;
 
 export type GuideSlug = (typeof GUIDE_SLUGS)[number];
@@ -114,12 +113,6 @@ export const GUIDE_DOCS: Record<
     title: "Pack keys",
     description: "What a pack key is, how to share one, and exactly how it's encoded.",
     lastUpdated: "2026-09-23",
-  },
-  "archived-pools": {
-    title: "Archived pools",
-    description:
-      "Past tournament mappools saved as packs: where they come from (otdb), how to find them, which pools used a map, and how to report a wrong one.",
-    lastUpdated: "2026-09-24",
   },
 };
 

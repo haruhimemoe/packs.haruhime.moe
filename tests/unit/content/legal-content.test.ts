@@ -231,14 +231,15 @@ describe("copyright", () => {
 
   it.each([
     "## Sources",
-    "[otdb](https://otdb.sheppsu.me)",
-    "the osu! tournament database by Sheppsu, used with permission",
-    "Each archive pack links its pool on otdb.",
-    "The pools are collected from public tournament data",
-    "We don't store who submitted a pool to otdb.",
-    "[Archived pools](/guide/archived-pools)",
-  ])("credits the archive's source: %j", (phrase) => {
+    "Packs owned by haruhime pools are past osu! tournament mappools",
+    "[pools.haruhime.moe](https://pools.haruhime.moe)",
+    "[otdb](https://otdb.sheppsu.me) by Sheppsu",
+  ])("credits where tournament pools come from: %j", (phrase) => {
     expect(read("copyright")).toContain(phrase);
+  });
+
+  it("no longer describes archive packs or links the retired guide", () => {
+    expect(read("copyright")).not.toMatch(/archive pack|archived pool|\/guide\/archived-pools/i);
   });
 
   it("dates the Sources section", () => {
@@ -252,7 +253,7 @@ describe("public packs and moderation copy", () => {
     ["terms", "We may hide or delete public or unlisted packs that break these terms"],
     ["terms", "We never review private packs"],
     ["terms", "we may pin public packs to the top of the public packs page or unpin them"],
-    ["terms", "past tournament pools we imported from public sources (archived pools)"],
+    ["terms", "past tournament pools published from pools.haruhime.moe, which can have mistakes"],
     ["privacy", "the pack name, description,"],
     ["privacy", "listed on the public packs page with your osu! username and avatar"],
     ["copyright", "a pack name and description"],
@@ -364,20 +365,13 @@ describe("disclaimers", () => {
     expect(text()).not.toContain("Our server never contacts the mirror");
   });
 
-  it("names the importer's download from otdb", () => {
-    expect(text()).toContain("**Our importer to otdb.**");
+  it.each(["**Pack stats.**"])("says what our other numbers mean: %j", (phrase) => {
+    expect(text()).toContain(phrase);
   });
 
-  it("says archived pools start with otdb's numbers", () => {
-    expect(text()).toContain("Archived pools start with otdb's numbers instead");
+  it("no longer mentions the importer or archived pools", () => {
+    expect(text()).not.toMatch(/otdb|archived pool|importer/i);
   });
-
-  it.each(["**Pack stats.**", "**Archived pools.**", "counts only the archived pools we imported"])(
-    "says what our other numbers mean: %j",
-    (phrase) => {
-      expect(text()).toContain(phrase);
-    },
-  );
 
   it("keeps the verbatim ppy trademark notice", () => {
     expect(text()).toContain(SITE.trademarkNotice);
