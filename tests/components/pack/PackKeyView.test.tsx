@@ -1,10 +1,10 @@
 /**
  * @file tests/components/pack/PackKeyView.test.tsx
  * @desc /k view: decodes the fragment, loads metadata, Download card before the pool, reacts to
- *       hash changes, saves a copy, retries map info from the Download card.
+ *       hash changes, saves a copy, retries map info from the Download card, Copy ID per map.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import "fake-indexeddb/auto";
@@ -82,6 +82,17 @@ describe("PackKeyView", () => {
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     expect(screen.getByRole("region", { name: "Maps" })).toContainElement(map);
     expect(screen.queryByRole("heading", { name: "From the mirror" })).not.toBeInTheDocument();
+  });
+
+  it("gives each map a Copy ID button", async () => {
+    openHash(`#${KEY}`);
+    render(<PackKeyView />);
+    const maps = await screen.findByRole("region", { name: "Maps" });
+    expect(
+      within(maps)
+        .getAllByRole("button", { name: /^Copy beatmap ID/ })
+        .map((b) => b.getAttribute("aria-label")),
+    ).toEqual(["Copy beatmap ID 129891", "Copy beatmap ID 1872396"]);
   });
 
   it("wraps a long unbroken pack name instead of overflowing", async () => {

@@ -1,10 +1,10 @@
 /**
  * @file tests/components/pack/PackBuilder.test.tsx
  * @desc End-to-end builder flow against the recorded mirror fixture and fake IndexedDB, and a
- *       name holding a lone surrogate (which once crashed the page).
+ *       name holding a lone surrogate (which once crashed the page), Copy ID in the pool.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import "fake-indexeddb/auto";
@@ -71,6 +71,24 @@ describe("PackBuilder", () => {
     unmount();
     render(<PackBuilder />);
     expect(await screen.findByRole("link", { name: "xi - FREEDOM DiVE" })).toBeInTheDocument();
+  });
+
+  it("gives each map in the pool a Copy ID button", async () => {
+    await saveDraft({
+      name: "p",
+      slots: [
+        { mod: "TB", index: 1, beatmapId: 1872396 },
+        { mod: "NM", index: 1, beatmapId: 129891 },
+      ],
+    });
+    render(<PackBuilder />);
+    await ready();
+    const pool = screen.getByRole("region", { name: "Pool" });
+    expect(
+      within(pool)
+        .getAllByRole("button", { name: /^Copy beatmap ID/ })
+        .map((b) => b.getAttribute("aria-label")),
+    ).toEqual(["Copy beatmap ID 129891", "Copy beatmap ID 1872396"]);
   });
 
   it("removes a slot and clears the pack after confirming", async () => {

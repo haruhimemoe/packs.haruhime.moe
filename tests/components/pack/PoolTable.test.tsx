@@ -1,9 +1,10 @@
 /**
  * @file tests/components/pack/PoolTable.test.tsx
- * @desc PoolTable groups slots into bucket sections in the fixed order and handles empty pools.
+ * @desc PoolTable groups slots into bucket sections in the fixed order, handles empty pools, and
+ *       gives every map its own Copy ID button.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
@@ -29,6 +30,23 @@ describe("PoolTable", () => {
         .getAllByText(/^NM\d$/)
         .map((e) => e.textContent),
     ).toEqual(["NM1", "NM2"]);
+  });
+
+  it("gives every map its own Copy ID button with that map's ID", async () => {
+    const user = userEvent.setup();
+    render(<PoolTable slots={slots} getState={loading} />);
+    const rows = screen.getAllByRole("listitem");
+    expect(
+      rows.map((row) =>
+        within(row)
+          .getAllByRole("button", { name: /^Copy beatmap ID/ })
+          .map((b) => b.getAttribute("aria-label")),
+      ),
+    ).toEqual([["Copy beatmap ID 1"], ["Copy beatmap ID 2"], ["Copy beatmap ID 3"]]);
+    await user.click(within(rows[2] as HTMLElement).getByRole("button", { name: /^Copy/ }));
+    expect(await navigator.clipboard.readText()).toBe("3");
+    expect(within(rows[2] as HTMLElement).getByRole("status")).toHaveTextContent("Copied.");
+    expect(within(rows[0] as HTMLElement).getByRole("status")).toBeEmptyDOMElement();
   });
 
   it("shows an empty state", () => {

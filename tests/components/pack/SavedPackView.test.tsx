@@ -1,10 +1,11 @@
 /**
  * @file tests/components/pack/SavedPackView.test.tsx
  * @desc /p/[slug] view: Download card first (recorded magnet links, then the mirror), pool,
- *       owner-only controls, admins removing a magnet link, short link + key sharing.
+ *       owner-only controls, admins removing a magnet link, short link + key sharing, Copy ID
+ *       per map.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { encodePackKey } from "@haruhimemoe/pool";
@@ -101,6 +102,16 @@ describe("SavedPackView", () => {
     ).toBeInTheDocument();
     // No separate Torrent card outside the Download card.
     expect(screen.getAllByRole("region", { name: "Torrent" })).toHaveLength(1);
+  });
+
+  it("gives each map a Copy ID button", () => {
+    render(<SavedPackView pack={PACK} isOwner={false} />);
+    const maps = screen.getByRole("region", { name: "Maps" });
+    expect(
+      within(maps)
+        .getAllByRole("button", { name: /^Copy beatmap ID/ })
+        .map((b) => b.getAttribute("aria-label")),
+    ).toEqual(["Copy beatmap ID 129891", "Copy beatmap ID 1872396"]);
   });
 
   it("hides owner controls from everyone else", () => {

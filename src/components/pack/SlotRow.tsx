@@ -1,17 +1,17 @@
 /**
  * @file src/components/pack/SlotRow.tsx
  * @desc One pool slot: badge, cover, title/difficulty/mapper, stars + stats, stars with mods,
- *       optional remove.
+ *       Copy ID (the beatmap ID, for "!mp map"), optional move and remove.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 "use client";
 
 import { beatmapUrl, coverUrl } from "@haruhimemoe/osu/shapes";
 import { type SlotMods, slotTitle } from "@haruhimemoe/pool";
-import { Button, fieldClasses } from "@haruhimemoe/ui";
+import { Button, CopyButton, fieldClasses } from "@haruhimemoe/ui";
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { Fragment, useState } from "react";
@@ -127,6 +127,16 @@ export function SlotRow({
     <li className="flex flex-wrap items-center gap-3 rounded-[10px] bg-b4 p-3 sm:flex-nowrap">
       <ModBadge entry={entry} index={slot.index} />
       {body(slot, state, slotMods, ratings)}
+      {/* The slot's ID, so it works before the map loads. Phones: its own line under the map.
+          Wider: the status sits left of the button, so the button never moves on a press. */}
+      <CopyButton
+        text={String(slot.beatmapId)}
+        label="Copy ID"
+        aria-label={`Copy beatmap ID ${slot.beatmapId}`}
+        failedMessage={`Couldn't copy. The beatmap ID is ${slot.beatmapId}.`}
+        className="whitespace-nowrap"
+        wrapperClassName="w-full shrink-0 gap-2 sm:w-auto sm:flex-row-reverse"
+      />
       {onMove && moveTargets ? (
         <div className="flex items-center gap-1">
           <select

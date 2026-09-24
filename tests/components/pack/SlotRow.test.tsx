@@ -1,16 +1,17 @@
 /**
  * @file tests/components/pack/SlotRow.test.tsx
- * @desc SlotRow in each metadata state and the optional remove control.
+ * @desc SlotRow in each metadata state, the optional remove control, and Copy ID (the map's
+ *       beatmap ID for "!mp map").
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { SlotRow } from "@/components/pack/SlotRow";
 import { MODDED_FAILED_NOTE, MODDED_LOADING_NOTE } from "@/utils/slot-stars";
 
@@ -72,7 +73,7 @@ describe("SlotRow", () => {
     const { rerender } = inList(
       <SlotRow slot={SLOT} entry={{ code: "NM" }} state={{ status: "loading" }} />,
     );
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Remove/ })).not.toBeInTheDocument();
     rerender(
       <ul>
         <SlotRow
@@ -248,5 +249,66 @@ describe("SlotRow star ratings with mods", () => {
     expect(screen.getByText("With mods:")).toHaveClass("sr-only");
     // Each entry stays on one line; the row wraps only between entries.
     expect(screen.getByText("HDHR 6.55")).toHaveClass("whitespace-nowrap");
+  });
+});
+
+describe("SlotRow Copy ID", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("copies the map's beatmap ID, not its set ID, and says so", async () => {
+    const user = userEvent.setup();
+    inList(<SlotRow slot={SLOT} entry={{ code: "NM" }} state={{ status: "found", meta: META }} />);
+    const button = screen.getByRole("button", { name: "Copy beatmap ID 129891" });
+    expect(button).toHaveTextContent("Copy ID");
+    await user.click(button);
+    expect(await navigator.clipboard.readText()).toBe("129891");
+    expect(screen.getByRole("status")).toHaveTextContent("Copied.");
+  });
+
+  it.each([
+    { status: "loading" } as const,
+    { status: "missing" } as const,
+    { status: "error", message: "Mirror is down." } as const,
+  ])("offers the slot's ID while the map is $status", async (state) => {
+    const user = userEvent.setup();
+    inList(<SlotRow slot={{ mod: null, index: 1, beatmapId: 42 }} entry={null} state={state} />);
+    await user.click(screen.getByRole("button", { name: "Copy beatmap ID 42" }));
+    expect(await navigator.clipboard.readText()).toBe("42");
+  });
+
+  it("shows the ID when the clipboard refuses", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue(new Error("denied"));
+    inList(<SlotRow slot={SLOT} entry={{ code: "NM" }} state={{ status: "found", meta: META }} />);
+    await user.click(screen.getByRole("button", { name: "Copy beatmap ID 129891" }));
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Couldn't copy. The beatmap ID is 129891.",
+    );
+    expect(screen.getByRole("status")).not.toHaveTextContent("Copied.");
+  });
+
+  it("sits before the editing controls, on its own line on phones", () => {
+    inList(
+      <SlotRow
+        slot={SLOT}
+        entry={{ code: "NM" }}
+        state={{ status: "found", meta: META }}
+        moveTargets={[{ value: "EZ", label: "EZ", disabled: false }]}
+        onMove={vi.fn()}
+        onRemove={vi.fn()}
+      />,
+    );
+    expect(screen.getAllByRole("button").map((b) => b.textContent)).toEqual([
+      "Copy ID",
+      "Move",
+      "Remove",
+    ]);
+    // Phones: a full-width line under the map, so the title keeps its room. Wider screens: in
+    // the row after the map, never squeezed.
+    const wrapper = screen.getByRole("button", { name: "Copy beatmap ID 129891" }).parentElement;
+    expect(wrapper?.parentElement).toBe(screen.getByRole("listitem"));
+    expect(wrapper).toHaveClass("w-full", "sm:w-auto", "shrink-0");
   });
 });
