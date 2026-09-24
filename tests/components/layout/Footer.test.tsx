@@ -51,8 +51,9 @@ describe("Footer", () => {
     const link = screen.getByRole("link", { name: "haruhime.moe" });
     expect(link).toHaveAttribute("href", "https://www.haruhime.moe");
     expect(link).toHaveAttribute("href", SITE.parentUrl);
-    const img = within(link).getByRole("img", { name: "haruhime.moe" });
-    expect(img).toHaveAttribute("src", "/brand/haruhime-wordmark.svg");
+    // The wordmark is drawn inline and hidden from screen readers; the link's label names it.
+    expect(link.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    expect(within(link).queryByRole("img")).not.toBeInTheDocument();
   });
 
   it("links the haruhimemoe GitHub org with a decorative GitHub mark", () => {
