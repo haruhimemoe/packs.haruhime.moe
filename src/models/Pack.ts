@@ -1,7 +1,8 @@
 /**
  * @file src/models/Pack.ts
  * @desc Saved pack model (collection "packs"): identity (name, slots, bucket list), description, export links,
- *       owner, visibility, moderation flag, pin to the top of /packs, filter stats, timestamps.
+ *       owner, visibility, moderation flag, pin to the top of /packs, filter stats, the archive
+ *       details of an imported tournament pool, timestamps.
  *       Registered lazily on the shared connection so importing it needs no env.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
@@ -67,6 +68,30 @@ const statsSchema = new Schema(
   { _id: false },
 );
 
+// Archive packs only (src/services/archive.ts): the tournament pool the importer made the pack
+// from. Nothing else writes it.
+const archiveSourceSchema = new Schema(
+  {
+    kind: { type: String, required: true },
+    id: { type: String, required: true },
+    url: { type: String, required: true },
+    importedAt: { type: Date, required: true },
+  },
+  { _id: false },
+);
+
+const archiveSchema = new Schema(
+  {
+    tournament: { type: String, required: true },
+    round: { type: String, default: null },
+    year: { type: Number, default: null },
+    badged: { type: Boolean, default: null },
+    fingerprint: { type: String, required: true },
+    sources: { type: [archiveSourceSchema], required: true },
+  },
+  { _id: false },
+);
+
 const packSchema = new Schema(
   {
     slug: { type: String, required: true, unique: true },
@@ -94,6 +119,8 @@ const packSchema = new Schema(
     // Absent until computed (a save schedules it; the daily job repairs gaps). Cleared when the
     // slots or buckets change.
     stats: { type: statsSchema, default: undefined },
+    // Archive packs only. Absent on every pack someone saved.
+    archive: { type: archiveSchema, default: undefined },
   },
   { timestamps: true, collection: "packs" },
 );
@@ -104,6 +131,12 @@ packSchema.index({ visibility: 1, updatedAt: -1 });
 packSchema.index({ visibility: 1, createdAt: -1 });
 // The pinned row and the admin's pin list: a handful of packs, found without a collection scan.
 packSchema.index({ pinOrder: 1 }, { partialFilterExpression: { pinnedAt: { $exists: true } } });
+// One archive pack per pool: the importer finds packs by fingerprint, and a second import of the
+// same pool (from any source) can never make a duplicate.
+packSchema.index(
+  { "archive.fingerprint": 1 },
+  { unique: true, partialFilterExpression: { "archive.fingerprint": { $exists: true } } },
+);
 
 /** A `$unset` that takes a pin away: unpinning, hiding, or saving a pack away from public. */
 export const UNPIN = { pinnedAt: "", pinOrder: "" } as const;

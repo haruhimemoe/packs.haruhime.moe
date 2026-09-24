@@ -5,7 +5,8 @@
  *       never confirm that a private slug exists). Changes that touch a public pack mark the
  *       cached /packs stale. Saves schedule the pack's filter stats after the response
  *       (services/pack-stats.ts); a slot or bucket change clears the old ones first. Saving a
- *       pack as anything but public takes away its pin (services/pins.ts).
+ *       pack as anything but public takes away its pin (services/pins.ts). Archive details (an
+ *       imported tournament pool's) pass through to the DTO; no save here ever writes them.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -18,6 +19,7 @@ import { MAX_SAVED_PACKS, OWN_PAGE_SIZE, SLUG_LENGTH } from "@/constants/pack";
 import { connectDb } from "@/lib/db";
 import { revalidatePack, revalidatePublicPacks } from "@/lib/revalidate";
 import { getPackModel, UNPIN } from "@/models/Pack";
+import { type PackArchive, packArchiveSchema } from "@/schemas/archive";
 import type { Pool } from "@/schemas/pack";
 import { type PackStats, packStatsSchema } from "@/schemas/pack-stats";
 import {
@@ -53,8 +55,43 @@ export type PackRecord = {
   hiddenAt?: Date | null;
   exports?: { kind: string; url: string; createdAt: Date }[] | null;
   stats?: { computedAt?: unknown } | null;
+  archive?: StoredArchive | null;
   createdAt: Date;
   updatedAt: Date;
+};
+
+/** Archive details as stored (src/models/Pack.ts), checked by storedArchive. */
+export type StoredArchive = {
+  tournament?: unknown;
+  round?: unknown;
+  year?: unknown;
+  badged?: unknown;
+  fingerprint?: unknown;
+  sources?: readonly { kind?: unknown; id?: unknown; url?: unknown; importedAt?: unknown }[] | null;
+};
+
+/**
+ * @function storedArchive
+ * @param value {PackRecord["archive"]} a stored document's archive details
+ * @returns {PackArchive | undefined} the DTO form, or undefined when there are none or they don't
+ *          parse (a bad archive row never breaks the pack)
+ */
+export const storedArchive = (value: PackRecord["archive"]): PackArchive | undefined => {
+  if (!value || !Array.isArray(value.sources)) return undefined;
+  const parsed = packArchiveSchema.safeParse({
+    tournament: value.tournament,
+    round: value.round ?? null,
+    year: value.year ?? null,
+    badged: value.badged ?? null,
+    fingerprint: value.fingerprint,
+    sources: value.sources.map((source) => ({
+      kind: source.kind,
+      id: source.id,
+      url: source.url,
+      importedAt: source.importedAt instanceof Date ? source.importedAt.toISOString() : null,
+    })),
+  });
+  return parsed.success ? parsed.data : undefined;
 };
 
 /**
@@ -109,6 +146,7 @@ export const toPackExports = (list: readonly StoredExport[] | null | undefined) 
 export const toSavedPack = (doc: PackRecord): SavedPack => {
   const buckets = storedBuckets(doc.buckets);
   const stats = storedStats(doc.stats);
+  const archive = storedArchive(doc.archive);
   return savedPackSchema.parse({
     slug: doc.slug,
     name: doc.name,
@@ -119,6 +157,7 @@ export const toSavedPack = (doc: PackRecord): SavedPack => {
     exports: toPackExports(doc.exports),
     ...(doc.hiddenAt ? { hiddenAt: doc.hiddenAt.toISOString() } : {}),
     ...(stats ? { stats } : {}),
+    ...(archive ? { archive } : {}),
     createdAt: doc.createdAt.toISOString(),
     updatedAt: doc.updatedAt.toISOString(),
   });

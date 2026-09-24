@@ -1,9 +1,9 @@
 /**
  * @file tests/unit/content/api-docs-content.test.ts
  * @desc content/docs/api.mdx documents every endpoint in the OpenAPI route table, the real
- *       limits, the headers, every error code the API sends, pack stats and their index keys, and
- *       the Claude Code plugin; every doc stays plain Markdown so /docs/<slug>.md can serve it as
- *       is.
+ *       limits, the headers, every error code the API sends, pack stats and their index keys,
+ *       archive packs, and the Claude Code plugin; every doc stays plain Markdown so
+ *       /docs/<slug>.md can serve it as is.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
  * @modified Thu Sep 24, 2026
@@ -17,6 +17,7 @@ import { DOC_DOCS, DOC_SLUGS } from "@/constants/docs";
 import { SEARCH_INDEX_LIMIT } from "@/constants/public-packs";
 import { errorCodeFor } from "@/lib/api";
 import { API_OPERATIONS } from "@/lib/openapi";
+import { archiveSourceSchema, packArchiveSchema } from "@/schemas/archive";
 import { packStatsSchema } from "@/schemas/pack-stats";
 
 const text = () => readFileSync(path.join(process.cwd(), "content", "docs", "api.mdx"), "utf8");
@@ -97,6 +98,20 @@ describe("pack stats", () => {
     expect(text()).toContain(
       "A map osu! says doesn't exist (deleted, say) is left out of the numbers and doesn't make `complete` false.",
     );
+  });
+});
+
+describe("archive packs", () => {
+  it.each([...Object.keys(packArchiveSchema.shape), ...Object.keys(archiveSourceSchema.shape)])(
+    "documents archive field %s",
+    (field) => {
+      expect(text()).toContain(`\`${field}\``);
+    },
+  );
+
+  it("says nobody can set it, and dates the change", () => {
+    expect(text()).toContain("Nobody can set or change it: `POST` and `PUT` ignore it.");
+    expect(text()).toContain("- 2026-09-24: archive packs (past tournament pools) carry `archive`");
   });
 });
 

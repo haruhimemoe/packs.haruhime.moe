@@ -105,6 +105,7 @@ Every error has the same shape:
 - `exports` lists the magnet links the owner recorded, newest first.
 - `hiddenAt` shows up only on your own packs, when a moderator has hidden one.
 - `stats` sums up the pack's maps. We work it out a few seconds after each save, so it's missing from the answer to `POST` and to a `PUT` that changes the maps; read the pack again a little later. It's also missing for a pack whose stats we haven't worked out yet.
+- `archive` shows up only on archive packs: past tournament pools we imported, hosted by `haruhime archive`. See Archive packs below. Nobody can set or change it: `POST` and `PUT` ignore it.
 
 ### Pack stats
 
@@ -115,6 +116,26 @@ Every error has the same shape:
 - `count`: the number of maps.
 - `complete`: `false` when we couldn't look up a map or a rating with mods. The numbers then cover the maps we could, and we try again later. A map osu! says doesn't exist (deleted, say) is left out of the numbers and doesn't make `complete` false. A range is `null` when no map gave a value.
 - `computedAt`: when we worked the stats out.
+
+### Archive packs
+
+```json
+"archive": {
+  "tournament": "osu! World Cup 2023",
+  "round": "Grand Finals",
+  "year": 2023,
+  "badged": null,
+  "fingerprint": "5e0c…",
+  "sources": [
+    { "kind": "otdb", "id": "657", "url": "https://otdb.sheppsu.me/mappool/657", "importedAt": "2026-09-24T12:00:00.000Z" }
+  ]
+}
+```
+
+- `tournament`, `round`, `year`: read from the pool's name at its source. `round` is `null` when the name has no round we know, and `year` when it has no year.
+- `badged`: whether the tournament was badged. `null` until a source tells us.
+- `fingerprint`: the pool's identity, a sha256 of its sorted `beatmapId:mods` entries. The same pool from two sources is one pack with two sources; a pool that changed maps is a new pack.
+- `sources`: where the pool came from, first import first: `kind` (`otdb`, `otr` or `wybin`), the pool's `id` there, its `url`, and `importedAt`.
 
 ## Endpoints
 
@@ -194,5 +215,6 @@ The source is at [github.com/haruhimemoe/claude-plugin](https://github.com/haruh
 
 ## Changes
 
+- 2026-09-24: archive packs (past tournament pools) carry `archive`.
 - 2026-09-24: pack objects carry `stats`, and the search index carries them in short form. Index entries carry `t` (created) and are newest created first.
 - 2026-09-23: `GET /me/packs` is paged like `GET /packs`.
