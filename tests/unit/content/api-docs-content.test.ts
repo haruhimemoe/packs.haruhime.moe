@@ -92,6 +92,12 @@ describe("pack stats", () => {
     expect(text()).toContain("a few seconds after each save");
     expect(text()).toContain("- 2026-09-24: pack objects carry `stats`");
   });
+
+  it("says a map osu! doesn't have is left out without making the stats incomplete", () => {
+    expect(text()).toContain(
+      "A map osu! says doesn't exist (deleted, say) is left out of the numbers and doesn't make `complete` false.",
+    );
+  });
 });
 
 describe("the Claude Code plugin section", () => {

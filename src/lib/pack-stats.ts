@@ -4,7 +4,8 @@
  *       after()), beatmap metadata from the hinai mirror (JSON only, 100 ids a call, never .osz)
  *       with osu! for the ids the mirror lacks, and ratings with mods from the star_ratings cache
  *       and osu! (getStarRatings). Every osu! call spends the shared budget, and the caller's
- *       share of it when a subject is given. Lookups never throw: what they can't get is missing.
+ *       share of it when a subject is given. Lookups never throw: what they can't get is missing,
+ *       and a map osu! says doesn't exist comes back as null.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -69,9 +70,10 @@ const chunks = <T>(items: readonly T[], size: number): T[][] =>
  * @function lookupStatsMeta
  * @param ids {readonly number[]} beatmap ids (duplicates fine)
  * @param deps {MetaDeps} mirror and osu! clients, database, clock (tests), subject, osu! call cap
- * @returns {Promise<Map<number, BeatmapMeta>>} metadata for every id the mirror or osu! answered.
- *          Ids in a failed mirror call go to osu! too. osu! is asked only within the budget and
- *          the call cap; ids it couldn't check are simply absent. Never rejects.
+ * @returns {Promise<Map<number, BeatmapMeta | null>>} metadata for every id the mirror or osu!
+ *          answered, and null for each id osu! says doesn't exist. Ids in a failed mirror call go
+ *          to osu! too. osu! is asked only within the budget and the call cap; ids it couldn't
+ *          check (refused, over the cap, a failed call) are absent. Never rejects.
  */
 export const lookupStatsMeta = async (
   ids: readonly number[],
@@ -83,8 +85,8 @@ export const lookupStatsMeta = async (
     subject,
     maxOsuCalls = MAX_OSU_METADATA_CALLS,
   }: MetaDeps = {},
-): Promise<Map<number, BeatmapMeta>> => {
-  const found = new Map<number, BeatmapMeta>();
+): Promise<Map<number, BeatmapMeta | null>> => {
+  const found = new Map<number, BeatmapMeta | null>();
   const missing: number[] = [];
   await runPool(
     chunks([...new Set(ids)], HINAI_BATCH_LIMIT),
@@ -122,6 +124,8 @@ export const lookupStatsMeta = async (
       { beforeCall },
     );
     for (const [id, meta] of result.found) found.set(id, meta);
+    // osu! answered no row: deleted or never there. Asking again won't change that.
+    for (const id of result.missing) found.set(id, null);
   } catch (error) {
     console.error("[stats] osu! lookup failed:", error);
   }

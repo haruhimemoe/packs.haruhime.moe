@@ -24,7 +24,7 @@ import {
   computeStats,
   type ModRatings,
   type PackStatsRecord,
-  type StatsMeta,
+  type StatsMetaById,
   statsPairsFor,
 } from "@/utils/saved-pack-stats";
 import { storedBuckets } from "@/utils/stored-buckets";
@@ -49,8 +49,8 @@ type StatsDoc = {
 export type StatsDeps = {
   /** The caller's rate-limit subject (a save); omitted for the job. */
   subject?: string | undefined;
-  /** Metadata source (default: mirror, then osu!). */
-  lookupMeta?: (ids: readonly number[]) => Promise<ReadonlyMap<number, StatsMeta>>;
+  /** Metadata source (default: mirror, then osu!); null for a map osu! says doesn't exist. */
+  lookupMeta?: (ids: readonly number[]) => Promise<StatsMetaById>;
   /** Ratings with mods (default: the star_ratings cache, then osu!). */
   lookupRatings?: (pairs: readonly StarPair[]) => Promise<ModRatings>;
   now?: () => Date;

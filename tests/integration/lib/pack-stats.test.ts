@@ -1,8 +1,9 @@
 /**
  * @file tests/integration/lib/pack-stats.test.ts
  * @desc Server lookups for pack stats: the mirror 100 ids a call, osu! only for what the mirror
- *       lacks (or a failed mirror call), within a call cap and the global budget; ratings with
- *       mods as rated, refused (null) or still pending (absent). The mirror and osu! are MSW.
+ *       lacks (or a failed mirror call), within a call cap and the global budget; maps osu! says
+ *       don't exist as null, unchecked ones absent; ratings with mods as rated, refused (null) or
+ *       still pending (absent). The mirror and osu! are MSW.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -41,15 +42,30 @@ describe("lookupStatsMeta", () => {
 
     const found = await lookupStatsMeta([5, 6]);
 
-    expect([...found.keys()]).toEqual([5]);
+    expect(found.get(5)?.starRating).toBe(2);
     expect(lookups.calls.osuBeatmaps).toEqual(["5,6"]);
   });
 
-  it("stops asking osu! at the call cap", async () => {
+  it("marks maps osu! says don't exist as null, apart from maps it couldn't check", async () => {
+    onMirror(lookups, beatmapRow(1));
+    lookups.osu.set(2, beatmapRow(2));
+
+    const found = await lookupStatsMeta([1, 2, 3]);
+
+    expect(found.get(1)).toBeTruthy();
+    expect(found.get(2)).toBeTruthy();
+    expect(found.has(3)).toBe(true);
+    expect(found.get(3)).toBeNull();
+  });
+
+  it("stops asking osu! at the call cap and leaves the unchecked ids out", async () => {
     const found = await lookupStatsMeta(range(1, 200), { maxOsuCalls: 2 });
 
-    expect(found.size).toBe(0);
     expect(lookups.calls.osuBeatmaps).toHaveLength(2);
+    // Two calls of 50 checked ids 1 to 100: osu! doesn't know them. 101 to 200 went unasked.
+    expect(found.size).toBe(100);
+    expect([...found.values()].every((meta) => meta === null)).toBe(true);
+    expect(found.has(101)).toBe(false);
   });
 
   it("doesn't ask osu! once the global budget is spent", async () => {
@@ -62,7 +78,7 @@ describe("lookupStatsMeta", () => {
     expect(lookups.calls.osuBeatmaps).toEqual([]);
   });
 
-  it("gives up quietly when osu! fails", async () => {
+  it("gives up quietly when osu! fails, leaving the ids unchecked", async () => {
     lookups.osuDown = true;
     expect((await lookupStatsMeta([9])).size).toBe(0);
   });

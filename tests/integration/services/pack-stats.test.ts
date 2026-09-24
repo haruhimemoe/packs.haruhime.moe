@@ -93,6 +93,27 @@ describe("refreshPackStats", () => {
     });
   });
 
+  it("stores complete stats without a map osu! says doesn't exist", async () => {
+    const owner = await createTestUser();
+    const pack = await createPack(owner.id, input());
+    // 101 is on the mirror; 102 was deleted: the mirror lacks it and osu! answers no row.
+    onMirror(lookups, beatmapRow(101, { difficulty_rating: 4.5 }));
+
+    expect(await refreshPackStats(pack.slug, { now: () => NOW })).toBe(true);
+
+    expect(lookups.calls.osuBeatmaps).toEqual(["102"]);
+    expect(lookups.calls.attributes).toEqual([]);
+    expect(await storedStats(pack.slug)).toMatchObject({
+      srMin: 4.5,
+      srMax: 4.5,
+      mods: ["NM", "DT"],
+      modes: ["osu"],
+      count: 2,
+      complete: true,
+    });
+    expect(await countPacksNeedingStats()).toBe(0);
+  });
+
   it("stores incomplete stats when the mirror and osu! both fail", async () => {
     const owner = await createTestUser();
     const pack = await createPack(owner.id, input());
@@ -140,7 +161,7 @@ describe("refreshPackStats", () => {
       // The owner saves while the lookup runs.
       await new Promise((resolve) => setTimeout(resolve, 5));
       await updatePack(pack.slug, owner.id, input({ name: "Renamed" }));
-      return new Map();
+      return new Map<number, null>();
     };
 
     expect(await refreshPackStats(pack.slug, { lookupMeta })).toBe(false);

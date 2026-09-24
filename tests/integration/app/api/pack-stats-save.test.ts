@@ -147,13 +147,16 @@ describe("saving on the site", () => {
   });
 
   it("retries incomplete stats on the next save, even without a slot change", async () => {
+    // Both down: no map could be checked (a map osu! says is gone wouldn't count as missing).
     lookups.mirrorDown = true;
+    lookups.osuDown = true;
     const user = await createTestUser();
     const { pack } = await save(user.cookie);
     await flushAfter();
     expect((await statsOf(pack.slug))?.complete).toBe(false);
 
     lookups.mirrorDown = false;
+    lookups.osuDown = false;
     known();
     const { pack: renamed } = await edit(pack.slug, user.cookie, { ...PACK, name: "Renamed" });
     expect(renamed.stats?.complete).toBe(false);

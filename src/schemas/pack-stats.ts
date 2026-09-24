@@ -33,7 +33,7 @@ export const packStatsSchema = z
     count: z.number().int().nonnegative().meta({ description: "Number of maps." }),
     complete: z.boolean().meta({
       description:
-        "False when a map's details or a rating with mods couldn't be looked up; the numbers then cover the maps that could.",
+        "False when a map's details or a rating with mods couldn't be looked up; the numbers then cover the maps that could. A map osu! says doesn't exist is left out and doesn't count.",
     }),
     computedAt: z.string().meta({ description: "When the stats were computed (ISO 8601)." }),
   })

@@ -113,7 +113,7 @@ Every error has the same shape:
 - `mods`: the pack's built-in slots (`NM`, `HD`, `HR`, `DT`, `FM`, `TB`) and the mods its custom slots force (`EZ`, `HD`, `HR`, `DT`, `HT`, `FL`; a custom free mod slot counts as `FM`), in that order.
 - `modes`: the rulesets of its maps (`osu`, `taiko`, `fruits`, `mania`).
 - `count`: the number of maps.
-- `complete`: `false` when we couldn't look up a map or a rating with mods. The numbers then cover the maps we could, and we try again later. A range is `null` when no map gave a value.
+- `complete`: `false` when we couldn't look up a map or a rating with mods. The numbers then cover the maps we could, and we try again later. A map osu! says doesn't exist (deleted, say) is left out of the numbers and doesn't make `complete` false. A range is `null` when no map gave a value.
 - `computedAt`: when we worked the stats out.
 
 ## Endpoints

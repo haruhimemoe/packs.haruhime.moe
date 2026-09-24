@@ -46,7 +46,10 @@ const resolve = (doc: unknown, pointer: string): unknown =>
 
 type PackSchema = {
   required: string[];
-  properties: Record<string, { description?: string; properties?: Record<string, unknown> }>;
+  properties: Record<
+    string,
+    { description?: string; properties?: Record<string, { description?: string }> }
+  >;
 };
 
 const withoutDialect = (schema: z.ZodType, io: "input" | "output") => {
@@ -123,6 +126,9 @@ describe("buildOpenApiDocument", () => {
       "complete",
       "computedAt",
     ]);
+    expect(pack.properties.stats?.properties?.complete?.description).toContain(
+      "A map osu! says doesn't exist is left out and doesn't count.",
+    );
     const input = doc.components.schemas.PackInput as { properties: Record<string, unknown> };
     expect(input.properties).not.toHaveProperty("stats");
   });

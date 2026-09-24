@@ -2,7 +2,8 @@
  * @file src/utils/saved-pack-stats.ts
  * @desc Stats a saved pack carries for the public filters (filters spec): star rating, length and
  *       BPM ranges, the mods and rulesets it has, its map count, and whether every lookup it needed
- *       came back. A slot forcing EZ, HR, DT, HT or FL counts with osu!'s rating for its whole
+ *       came back (a map osu! says doesn't exist is left out and doesn't count as missing). A
+ *       slot forcing EZ, HR, DT, HT or FL counts with osu!'s rating for its whole
  *       forced set; every other slot counts with the plain rating. Forced DT and HT change length
  *       and BPM. Also the rating pairs a pack needs, and the compact index form. Pure: metadata and
  *       ratings come in, so seeded metadata (archive imports) works the same as mirror metadata.
@@ -28,6 +29,12 @@ import { slotModsMap, starPairKey } from "@/utils/slot-stars";
 
 /** The metadata stats need: any source (mirror, osu!, a seeded import) will do. */
 export type StatsMeta = Pick<BeatmapMeta, "mode" | "bpm" | "lengthSeconds" | "starRating">;
+
+/**
+ * Metadata by beatmap id: the map's details, null when osu! says the map doesn't exist (deleted,
+ * or never did), or absent when nobody could check it yet.
+ */
+export type StatsMetaById = ReadonlyMap<number, StatsMeta | null>;
 
 /**
  * Ratings with mods by pair key ("129891:HDDT"): a number, null when osu! won't rate that set
@@ -80,18 +87,20 @@ const mapNull = <T, R>(value: T | null, fn: (value: T) => R): R | null =>
  * @function computeStats
  * @param slots {readonly PoolSlot[]} the pack's slots (a map in two slots counts twice)
  * @param buckets {readonly BucketEntry[] | undefined} its bucket list (undefined: the built-ins)
- * @param metaById {ReadonlyMap<number, StatsMeta>} metadata by beatmap id; a missing map is left
- *        out of every number and makes the stats incomplete
+ * @param metaById {StatsMetaById} metadata by beatmap id; a map that couldn't be checked is left
+ *        out of every number and makes the stats incomplete, and a map osu! says doesn't exist
+ *        (null) is left out without that: no later lookup would find it
  * @param modRatings {ModRatings} ratings with mods by pair key (see statsPairsFor)
  * @param computedAt {Date} when
  * @returns {PackStatsRecord} stars (2 decimals), length in whole seconds and whole BPM after DT
  *          and HT, each null when no map gave a value; mods in STAT_MOD_CODES order; rulesets in
- *          osu!'s order; the slot count; complete when no metadata or rating was missing
+ *          osu!'s order; the slot count; complete when every map was either found or confirmed
+ *          gone and no rating was missing
  */
 export const computeStats = (
   slots: readonly PoolSlot[],
   buckets: readonly BucketEntry[] | undefined,
-  metaById: ReadonlyMap<number, StatsMeta>,
+  metaById: StatsMetaById,
   modRatings: ModRatings,
   computedAt: Date,
 ): PackStatsRecord => {
@@ -106,7 +115,8 @@ export const computeStats = (
     const mods = modsBySlot.get(slotKey(slot));
     for (const code of codesOf(slot, mods)) codes.add(code);
     const meta = metaById.get(slot.beatmapId);
-    if (!meta) {
+    if (meta === null) continue;
+    if (meta === undefined) {
       complete = false;
       continue;
     }
@@ -143,20 +153,21 @@ export const computeStats = (
  * @function statsPairsFor
  * @param slots {readonly PoolSlot[]} the pack's slots
  * @param buckets {readonly BucketEntry[] | undefined} its bucket list (undefined: the built-ins)
- * @param metaById {ReadonlyMap<number, StatsMeta>} metadata by beatmap id
+ * @param metaById {StatsMetaById} metadata by beatmap id
  * @returns {StarPair[]} the (beatmap, forced set) ratings computeStats needs, one per pair, sorted
- *          by key. Maps without metadata are skipped: their stars can't count anyway.
+ *          by key. Maps without metadata (unchecked or gone) are skipped: their stars can't count
+ *          anyway.
  */
 export const statsPairsFor = (
   slots: readonly PoolSlot[],
   buckets: readonly BucketEntry[] | undefined,
-  metaById: ReadonlyMap<number, StatsMeta>,
+  metaById: StatsMetaById,
 ): StarPair[] => {
   const modsBySlot = slotModsMap(slots, bucketsOf({ buckets }));
   const pairs = new Map<string, StarPair>();
   for (const slot of slots) {
     const set = ratedSetFor(modsBySlot.get(slotKey(slot)));
-    if (set === null || !metaById.has(slot.beatmapId)) continue;
+    if (set === null || !metaById.get(slot.beatmapId)) continue;
     const key = starPairKey(slot.beatmapId, set);
     pairs.set(key, { key, beatmapId: slot.beatmapId, set: [...set] });
   }

@@ -1,8 +1,9 @@
 /**
  * @file tests/unit/utils/saved-pack-stats.test.ts
  * @desc Pack stats from slots and metadata (filters spec): plain and mod-adjusted star ratings,
- *       DT/HT length and BPM, the mod codes a pack has, rulesets, missing maps and ratings,
- *       mixed modes, an empty pack, rounding; the rating pairs a pack needs; the compact index form.
+ *       DT/HT length and BPM, the mod codes a pack has, rulesets, missing maps and ratings, maps
+ *       osu! says are gone (left out, still complete), mixed modes, an empty pack, rounding; the
+ *       rating pairs a pack needs; the compact index form.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -258,6 +259,34 @@ describe("computeStats", () => {
     });
   });
 
+  it("leaves out a map osu! says doesn't exist without making the stats incomplete", () => {
+    const slots = [slot("NM", 1, 1), slot("DT", 1, 2), slot("HR", 1, 3)];
+    const byId = new Map<number, StatsMeta | null>([
+      [1, meta({ starRating: 4, mode: "taiko" })],
+      [2, null],
+      [3, null],
+    ]);
+    expect(computeStats(slots, undefined, byId, NO_RATINGS, NOW)).toMatchObject({
+      srMin: 4,
+      srMax: 4,
+      srAvg: 4,
+      mods: ["NM", "HR", "DT"],
+      modes: ["taiko"],
+      count: 3,
+      complete: true,
+    });
+  });
+
+  it("is still incomplete when a gone map sits next to one nobody could check", () => {
+    const slots = [slot("NM", 1, 1), slot("NM", 2, 2)];
+    const byId = new Map<number, StatsMeta | null>([[1, null]]);
+    expect(computeStats(slots, undefined, byId, NO_RATINGS, NOW)).toMatchObject({
+      srMin: null,
+      modes: [],
+      complete: false,
+    });
+  });
+
   it("counts a map in two slots twice", () => {
     const slots = [slot("NM", 1, 90), slot("DT", 1, 90)];
     const byId = metas([[90, { starRating: 5 }]]);
@@ -308,6 +337,11 @@ describe("statsPairsFor", () => {
       { key: "4:HR", beatmapId: 4, set: ["HR"] },
       { key: "5:HDDT", beatmapId: 5, set: ["HD", "DT"] },
     ]);
+  });
+
+  it("asks for nothing for a map osu! says doesn't exist", () => {
+    const byId = new Map<number, StatsMeta | null>([[3, null]]);
+    expect(statsPairsFor([slot("DT", 1, 3)], undefined, byId)).toEqual([]);
   });
 
   it("asks for nothing when the pack has no mod slots", () => {
