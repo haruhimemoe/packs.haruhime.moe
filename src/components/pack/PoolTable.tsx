@@ -2,11 +2,14 @@
  * @file src/components/pack/PoolTable.tsx
  * @desc Pool grouped by bucket: no-slot maps first, then the pack's buckets in order, one labelled
  *       section per non-empty group. Editable pools add Remove and "Move to" per row. Given map
- *       usage, each row shows the other archive pools that used its map.
+ *       usage, each row shows the other archive pools that used its map. Only the row whose ID
+ *       was copied last says "Copied.": a press starts every other row's Copy ID over.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
  */
+
+"use client";
 
 import {
   bucketName,
@@ -19,6 +22,7 @@ import {
   slotModsSummary,
   sortSlots,
 } from "@haruhimemoe/pool";
+import { useState } from "react";
 import { type MoveTarget, SlotRow } from "@/components/pack/SlotRow";
 import { NO_SLOT_VALUE } from "@/constants/mods";
 import { MAX_SLOT_INDEX } from "@/constants/pack";
@@ -41,6 +45,15 @@ type PoolTableProps = {
   usageOf?: (beatmapId: number) => readonly MapUsageEntry[];
 };
 
+/**
+ * Which row copied last. Each Copy ID is keyed: the row copied last keeps the key it had when
+ * pressed (so its "Copied." stays), every other row gets `fresh` (so a new key clears theirs).
+ */
+type LastCopy = { slot: string | null; key: number; fresh: number };
+
+const copyKeyOf = (last: LastCopy, slot: string): number =>
+  last.slot === slot ? last.key : last.fresh;
+
 export function PoolTable({
   slots,
   buckets = DEFAULT_BUCKETS,
@@ -51,6 +64,11 @@ export function PoolTable({
   ratings,
   usageOf,
 }: PoolTableProps) {
+  const [lastCopy, setLastCopy] = useState<LastCopy>({ slot: null, key: 0, fresh: 0 });
+  const copied = (slot: string) =>
+    setLastCopy((last) =>
+      last.slot === slot ? last : { slot, key: copyKeyOf(last, slot), fresh: last.fresh + 1 },
+    );
   if (slots.length === 0) {
     return (
       <p className="rounded-[10px] bg-b4 p-6 text-center text-c3">
@@ -108,6 +126,8 @@ export function PoolTable({
                   slotMods={modsBySlot?.get(slotKey(slot))}
                   ratings={ratings?.get(slotKey(slot))}
                   usage={usageOf?.(slot.beatmapId)}
+                  copyKey={copyKeyOf(lastCopy, slotKey(slot))}
+                  onCopy={() => copied(slotKey(slot))}
                 />
               ))}
             </ul>

@@ -49,6 +49,10 @@ type SlotRowProps = {
   ratings?: readonly ModdedRating[];
   /** Other archive pools that used this map (map usage). Absent or empty: nothing shows. */
   usage?: readonly MapUsageEntry[];
+  /** Copy ID's key: a new one starts it over, clearing its "Copied." (PoolTable). */
+  copyKey?: number;
+  /** Called on every press of Copy ID, before it copies. */
+  onCopy?: () => void;
 };
 
 const body = (
@@ -127,6 +131,8 @@ export function SlotRow({
   slotMods,
   ratings,
   usage,
+  copyKey,
+  onCopy,
 }: SlotRowProps) {
   const title = slotTitle(slot);
   // Pick, then press Move: a <select> fires change on arrow keys, so moving on change would
@@ -150,6 +156,8 @@ export function SlotRow({
             map. Wider: the status sits left of the button in a box as wide as "Copied.", so a
             press never moves the button or squeezes the map. */}
           <CopyButton
+            key={copyKey}
+            onClickCapture={onCopy}
             text={String(slot.beatmapId)}
             label="Copy ID"
             aria-label={`Copy ID ${slot.beatmapId}`}

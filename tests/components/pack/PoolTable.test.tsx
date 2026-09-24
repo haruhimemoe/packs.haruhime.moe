@@ -1,7 +1,7 @@
 /**
  * @file tests/components/pack/PoolTable.test.tsx
  * @desc PoolTable groups slots into bucket sections in the fixed order, handles empty pools, and
- *       gives every map its own Copy ID button.
+ *       gives every map its own Copy ID button; only the row copied last says "Copied.".
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -47,6 +47,25 @@ describe("PoolTable", () => {
     expect(await navigator.clipboard.readText()).toBe("3");
     expect(within(rows[2] as HTMLElement).getByRole("status")).toHaveTextContent("Copied.");
     expect(within(rows[0] as HTMLElement).getByRole("status")).toBeEmptyDOMElement();
+  });
+
+  it("clears a row's Copied. when another row copies, so it names what the clipboard holds", async () => {
+    const user = userEvent.setup();
+    render(<PoolTable slots={slots} getState={loading} />);
+    const row = (i: number) => screen.getAllByRole("listitem")[i] as HTMLElement;
+    await user.click(within(row(0)).getByRole("button", { name: "Copy ID 1" }));
+    expect(within(row(0)).getByRole("status")).toHaveTextContent("Copied.");
+    await user.click(within(row(1)).getByRole("button", { name: "Copy ID 2" }));
+    expect(await navigator.clipboard.readText()).toBe("2");
+    expect(within(row(1)).getByRole("status")).toHaveTextContent("Copied.");
+    expect(within(row(0)).getByRole("status")).toBeEmptyDOMElement();
+    // The same row again keeps saying so.
+    await user.click(within(row(1)).getByRole("button", { name: "Copy ID 2" }));
+    expect(within(row(1)).getByRole("status")).toHaveTextContent("Copied.");
+    expect(within(row(1)).getByRole("button", { name: "Copy ID 2" })).toHaveFocus();
+    await user.click(within(row(0)).getByRole("button", { name: "Copy ID 1" }));
+    expect(within(row(0)).getByRole("status")).toHaveTextContent("Copied.");
+    expect(within(row(1)).getByRole("status")).toBeEmptyDOMElement();
   });
 
   it("shows an empty state", () => {
