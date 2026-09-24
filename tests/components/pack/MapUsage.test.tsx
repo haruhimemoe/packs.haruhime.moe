@@ -23,6 +23,7 @@ const OWC: MapUsageEntry = {
   badged: null,
   slot: "NM1",
   mods: "NM",
+  fingerprint: "a".repeat(64),
 };
 const SPRING: MapUsageEntry = {
   slug: "bbbbbbbbbb",
@@ -32,6 +33,7 @@ const SPRING: MapUsageEntry = {
   badged: null,
   slot: "HDHR2",
   mods: "HDHR",
+  fingerprint: "b".repeat(64),
 };
 const ENTRIES = [OWC, { ...OWC, slot: "TB1", mods: "TB" }, SPRING];
 

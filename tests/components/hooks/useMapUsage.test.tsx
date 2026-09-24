@@ -4,7 +4,8 @@
  *       sorted and each once; nothing for an empty pool; only new maps asked for after a change,
  *       nothing after a removal; the editor delay (none for the pool it opens with, then one
  *       request after a burst of changes); the
- *       pack's own entries left out; a failed request shows nothing and the next change asks
+ *       pack's own entries left out, and the pool's own by its fingerprint (nothing shown until
+ *       it's known); a failed request shows nothing and the next change asks
  *       again; an answer that lands after the pool changed is kept, and its ids aren't asked
  *       for twice; stopping on unmount. Plus fetchMapUsage.
  * @author David @dvhsh (https://dvh.sh)
@@ -12,6 +13,7 @@
  * @modified Thu Sep 24, 2026
  */
 
+import { createHash } from "node:crypto";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fetchMapUsage, type MapUsageFetcher, useMapUsage } from "@/hooks/useMapUsage";
@@ -25,6 +27,7 @@ const entry = (slug: string, slot = "NM1"): MapUsageEntry => ({
   badged: null,
   slot,
   mods: "NM",
+  fingerprint: slug.slice(0, 1).repeat(64),
 });
 
 /** Answers every id, with the entries given for some of them. */
@@ -77,6 +80,47 @@ describe("useMapUsage", () => {
     );
     await settle();
     expect(result.current(1)).toEqual([entry("bbbbbbbbbb")]);
+  });
+
+  it("leaves out the pool being shown by its fingerprint, showing nothing until it's known", async () => {
+    const pool = { slots: [{ mod: "NM" as const, index: 1, beatmapId: 1 }] };
+    const fetchUsage = fetcherWith({ 1: [entry("aaaaaaaaaa"), entry("bbbbbbbbbb")] });
+    let finish: ((print: string) => void) | undefined;
+    const hash = vi.fn(
+      () =>
+        new Promise<string>((done) => {
+          finish = done;
+        }),
+    );
+    const { result } = renderHook(() => useMapUsage([1], { fetchUsage, pool, hash }));
+    await settle();
+    expect(hash).toHaveBeenCalledWith("1:NM");
+    // The answer is in, but the pool's own entry could flash before the fingerprint is.
+    expect(result.current(1)).toEqual([]);
+    await act(async () => finish?.("a".repeat(64)));
+    expect(result.current(1)).toEqual([entry("bbbbbbbbbb")]);
+  });
+
+  it("leaves nothing out by fingerprint when it can't be worked out", async () => {
+    const pool = { slots: [{ mod: "NM" as const, index: 1, beatmapId: 1 }] };
+    const fetchUsage = fetcherWith({ 1: [entry("aaaaaaaaaa")] });
+    const hash = vi.fn(async () => Promise.reject(new Error("no crypto.subtle")));
+    const { result } = renderHook(() => useMapUsage([1], { fetchUsage, pool, hash }));
+    await settle();
+    expect(result.current(1)).toEqual([entry("aaaaaaaaaa")]);
+  });
+
+  it("works a pool's fingerprint out with SHA-256 by default, as the importer does", async () => {
+    const pool = { slots: [{ mod: "NM" as const, index: 1, beatmapId: 1 }] };
+    const print = createHash("sha256").update("1:NM", "utf8").digest("hex");
+    const fetchUsage = fetcherWith({ 1: [{ ...entry("aaaaaaaaaa"), fingerprint: print }] });
+    const { result } = renderHook(() => useMapUsage([1], { fetchUsage, pool }));
+    await vi.waitFor(async () => {
+      await settle();
+      expect(fetchUsage).toHaveBeenCalledTimes(1);
+    });
+    await settle();
+    expect(result.current(1)).toEqual([]);
   });
 
   it("asks only for new maps after a change, and nothing after a removal or reorder", async () => {

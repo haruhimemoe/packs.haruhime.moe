@@ -455,6 +455,7 @@ describe("SavedPackView", () => {
       badged: null,
       slot: "NM1",
       mods: "NM",
+      fingerprint: slug.slice(0, 1).repeat(64),
     });
 
     it("asks once for the whole pack, ids sorted, and shows Used in N pools per map", async () => {

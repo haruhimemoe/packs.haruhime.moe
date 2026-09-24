@@ -46,6 +46,7 @@ const PACK_FIELDS = {
   "archive.round": 1,
   "archive.year": 1,
   "archive.badged": 1,
+  "archive.fingerprint": 1,
 } as const;
 
 const usageCollection = async () =>

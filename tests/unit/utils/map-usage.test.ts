@@ -3,7 +3,8 @@
  * @desc Map usage from archive packs: each slot's mods code, reading stored pack rows (bad ones
  *       left out), one entry per slot, the order (newest year first, no year last), counting
  *       pools not slots, stored entries that don't parse, the fewest writes for a rebuild, and
- *       what a map row shows (its own pack left out, "Used in N pools", each pool's text).
+ *       what a map row shows (its own pack and its own pool left out, "Used in N pools", each
+ *       pool's text), and the text a fingerprint hashes.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -15,6 +16,7 @@ import type { BucketEntry, PoolSlot } from "@/schemas/pack";
 import {
   buildMapUsage,
   compareUsageEntries,
+  fingerprintText,
   packUsage,
   planUsageWrites,
   slotModsCode,
@@ -28,7 +30,14 @@ import {
   usagePoolCount,
 } from "@/utils/map-usage";
 
-const ARCHIVE = { tournament: "Spring Cup", round: "Finals", year: 2024, badged: null };
+const PRINT = "f".repeat(64);
+const ARCHIVE = {
+  tournament: "Spring Cup",
+  round: "Finals",
+  year: 2024,
+  badged: null,
+  fingerprint: PRINT,
+};
 
 const pack = (slug: string, slots: PoolSlot[], archive: Partial<UsagePack["archive"]> = {}) => ({
   slug,
@@ -44,6 +53,7 @@ const entry = (overrides: Partial<MapUsageEntry> = {}): MapUsageEntry => ({
   badged: null,
   slot: "NM1",
   mods: "NM",
+  fingerprint: PRINT,
   ...overrides,
 });
 
@@ -80,7 +90,13 @@ describe("usagePackOf", () => {
   const row = {
     slug: "aaaaaaaaaa",
     slots: [{ mod: "NM", index: 1, beatmapId: 75 }],
-    archive: { tournament: "Spring Cup", round: "Finals", year: 2024, badged: true },
+    archive: {
+      tournament: "Spring Cup",
+      round: "Finals",
+      year: 2024,
+      badged: true,
+      fingerprint: PRINT,
+    },
   };
 
   it("reads a stored archive pack", () => {
@@ -88,9 +104,21 @@ describe("usagePackOf", () => {
   });
 
   it("reads missing round, year and badged as null, and an empty bucket list as the default", () => {
-    expect(usagePackOf({ ...row, buckets: [], archive: { tournament: "Spring Cup" } })).toEqual({
+    expect(
+      usagePackOf({
+        ...row,
+        buckets: [],
+        archive: { tournament: "Spring Cup", fingerprint: PRINT },
+      }),
+    ).toEqual({
       ...row,
-      archive: { tournament: "Spring Cup", round: null, year: null, badged: null },
+      archive: {
+        tournament: "Spring Cup",
+        round: null,
+        year: null,
+        badged: null,
+        fingerprint: PRINT,
+      },
     });
   });
 
@@ -108,6 +136,8 @@ describe("usagePackOf", () => {
     ["bad slots", { ...row, slots: [{ mod: "NM", index: 1 }] }],
     ["no tournament", { ...row, archive: { ...row.archive, tournament: "" } }],
     ["a bad year", { ...row, archive: { ...row.archive, year: "2024" } }],
+    ["no fingerprint", { ...row, archive: { ...row.archive, fingerprint: undefined } }],
+    ["a bad fingerprint", { ...row, archive: { ...row.archive, fingerprint: "abc" } }],
   ])("leaves out a row with %s", (_label, doc) => {
     expect(usagePackOf(doc)).toBeNull();
   });
@@ -133,6 +163,18 @@ describe("packUsage", () => {
       [14, "4", "NM"],
     ]);
     expect(usage[0]?.entry).toEqual(entry({ slot: "NM1" }));
+  });
+});
+
+describe("fingerprintText", () => {
+  it("is each slot as beatmapId:mods, sorted, one per line: what a fingerprint hashes", () => {
+    const slots: PoolSlot[] = [
+      { mod: "TB", index: 1, beatmapId: 3 },
+      { mod: "HDHR", index: 2, beatmapId: 11 },
+      { mod: "NM", index: 1, beatmapId: 10 },
+      { mod: null, index: 4, beatmapId: 14 },
+    ];
+    expect(fingerprintText({ slots, buckets: CUSTOM })).toBe("10:NM\n11:HDHR\n14:NM\n3:TB");
   });
 });
 
@@ -278,10 +320,16 @@ describe("planUsageWrites", () => {
 });
 
 describe("what a map row shows", () => {
-  it("leaves out the pack being shown", () => {
-    const entries = [entry(), entry({ slug: "bbbbbbbbbb" })];
-    expect(usageElsewhere(entries, "aaaaaaaaaa")).toEqual([entry({ slug: "bbbbbbbbbb" })]);
-    expect(usageElsewhere(entries, undefined)).toBe(entries);
+  it("leaves out the pack being shown, by slug", () => {
+    const entries = [entry(), entry({ slug: "bbbbbbbbbb", fingerprint: "b".repeat(64) })];
+    expect(usageElsewhere(entries, { slug: "aaaaaaaaaa" })).toEqual([entries[1]]);
+    expect(usageElsewhere(entries, {})).toBe(entries);
+  });
+
+  it("leaves out the pool being shown, by fingerprint: a key, a copy, any pack with its maps", () => {
+    const entries = [entry(), entry({ slug: "bbbbbbbbbb", fingerprint: "b".repeat(64) })];
+    expect(usageElsewhere(entries, { fingerprint: PRINT })).toEqual([entries[1]]);
+    expect(usageElsewhere(entries, { slug: "bbbbbbbbbb", fingerprint: PRINT })).toEqual([]);
   });
 
   it.each([

@@ -2,7 +2,8 @@
  * @file tests/components/pack/PackKeyView.test.tsx
  * @desc /k view: decodes the fragment, loads metadata, Download card before the pool, reacts to
  *       hash changes, saves a copy, retries map info from the Download card, Copy ID per map, and
- *       the archive pools each map was used in (one request for the pool).
+ *       the archive pools each map was used in (one request for the pool; the pool itself left
+ *       out by its fingerprint).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -16,6 +17,7 @@ import { HttpResponse, http } from "msw";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PackKeyView } from "@/components/pack/PackKeyView";
 import { clearDraft, loadDraft } from "@/lib/storage/drafts";
+import { poolFingerprint } from "@/utils/archive-pools";
 import { HINAI_BATCH_URL, hinaiBatchHandler, setupHinaiServer } from "../../helpers/hinai-server";
 
 const server = setupHinaiServer();
@@ -69,6 +71,7 @@ describe("PackKeyView", () => {
                   badged: null,
                   slot: "TB1",
                   mods: "TB",
+                  fingerprint: "a".repeat(64),
                 },
               ]
             : [],
@@ -78,6 +81,35 @@ describe("PackKeyView", () => {
     render(<PackKeyView fetchUsage={fetchUsage} />);
     expect(await screen.findByRole("button", { name: "Used in 1 pool" })).toBeInTheDocument();
     expect(fetchUsage.mock.calls).toEqual([[[129891, 1872396]]]);
+  });
+
+  it("leaves out the pool being viewed: an archive pool's key doesn't count itself", async () => {
+    const entryFor = (slug: string, fingerprint: string) => ({
+      slug,
+      tournament: "osu! World Cup 2023",
+      round: "Grand Finals",
+      year: 2023,
+      badged: null,
+      slot: "TB1",
+      mods: "TB",
+      fingerprint,
+    });
+    const self = poolFingerprint(PACK);
+    const fetchUsage = vi.fn(async (ids: readonly number[]) => ({
+      beatmaps: ids.map((beatmapId) => ({
+        beatmapId,
+        count: 1,
+        entries: [
+          beatmapId === 129891
+            ? entryFor("bbbbbbbbbb", "b".repeat(64))
+            : entryFor("aaaaaaaaaa", self),
+        ],
+      })),
+    }));
+    openHash(`#${KEY}`);
+    render(<PackKeyView fetchUsage={fetchUsage} />);
+    expect(await screen.findByRole("button", { name: "Used in 1 pool" })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /^Used in/ })).toHaveLength(1);
   });
 
   it("renders the pack from the fragment with live metadata", async () => {

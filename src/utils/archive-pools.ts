@@ -17,7 +17,6 @@
 import { createHash } from "node:crypto";
 import {
   addBuckets,
-  bucketsOf,
   isModAcronym,
   MAX_SLOT_INDEX,
   MOD_ACRONYMS,
@@ -32,9 +31,8 @@ import { ARCHIVE_SOURCE_LABELS, type ArchiveSourceKind } from "@/constants/archi
 import { type BucketEntry, type PoolSlot, slotKey } from "@/schemas/pack";
 import { type PackInput, packInputSchema } from "@/schemas/saved-pack";
 import { type ArchiveName, parseArchiveName } from "@/utils/archive-names";
-import { slotModsCode } from "@/utils/map-usage";
+import { fingerprintText } from "@/utils/map-usage";
 import { computeStats, type PackStatsRecord, type StatsMetaById } from "@/utils/saved-pack-stats";
-import { slotModsMap } from "@/utils/slot-stars";
 
 /** One pool at one source. */
 export type ArchiveSourceRef = { kind: ArchiveSourceKind; id: string; url: string };
@@ -141,21 +139,16 @@ export const poolFromLabels = (name: string, slots: readonly SourceSlot[]): Labe
 /**
  * @function poolFingerprint
  * @param pool {{ slots: readonly PoolSlot[]; buckets?: readonly BucketEntry[] }} a pool
- * @returns {string} sha256 (lowercase hex) of its sorted "beatmapId:mods" entries, one per slot:
- *          a built-in slot's code (NM, HD, HR, DT, FM, TB), a custom slot's forced mods ("HDHR"),
- *          FM for a custom freemod slot, NM for one without mods and for maps without a slot.
- *          Slot order, labels and colors don't change it; maps and mods do.
+ * @returns {string} sha256 (lowercase hex) of its fingerprintText: its sorted "beatmapId:mods"
+ *          entries, one per slot: a built-in slot's code (NM, HD, HR, DT, FM, TB), a custom
+ *          slot's forced mods ("HDHR"), FM for a custom freemod slot, NM for one without mods and
+ *          for maps without a slot. Slot order, labels and colors don't change it; maps and mods
+ *          do.
  */
 export const poolFingerprint = (pool: {
   slots: readonly PoolSlot[];
   buckets?: readonly BucketEntry[] | undefined;
-}): string => {
-  const mods = slotModsMap(pool.slots, bucketsOf(pool));
-  const entries = pool.slots
-    .map((slot) => `${slot.beatmapId}:${slotModsCode(slot, mods.get(slotKey(slot)))}`)
-    .sort();
-  return createHash("sha256").update(entries.join("\n"), "utf8").digest("hex");
-};
+}): string => createHash("sha256").update(fingerprintText(pool), "utf8").digest("hex");
 
 /**
  * @function archiveDescription

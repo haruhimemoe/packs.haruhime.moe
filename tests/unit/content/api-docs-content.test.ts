@@ -133,6 +133,7 @@ describe("map usage", () => {
     "## Map usage",
     "Every request needs your personal API key, except map usage, which needs none.",
     "A pool with the map in two slots has two entries and counts once.",
+    "leave out the entries whose `fingerprint` is the pool's own",
     "most recent `year` first",
     "comes back with a `count` of 0 and no entries, never a 404",
     "they carry `Cache-Control` and no rate-limit headers",

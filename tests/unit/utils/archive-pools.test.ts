@@ -9,6 +9,7 @@
  * @modified Thu Sep 24, 2026
  */
 
+import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import type { BucketEntry, PoolSlot } from "@/schemas/pack";
 import {
@@ -20,6 +21,7 @@ import {
   poolFromLabels,
   type SourcePool,
 } from "@/utils/archive-pools";
+import { fingerprintText } from "@/utils/map-usage";
 import { otdbSource } from "@/utils/otdb";
 import type { StatsMeta } from "@/utils/saved-pack-stats";
 
@@ -126,6 +128,12 @@ describe("poolFingerprint", () => {
     { mod: "HD", index: 1, beatmapId: 2 },
     { mod: "TB", index: 1, beatmapId: 3 },
   ];
+
+  it("hashes fingerprintText, so the browser gets the same one from a pool", () => {
+    expect(poolFingerprint({ slots })).toBe(
+      createHash("sha256").update(fingerprintText({ slots }), "utf8").digest("hex"),
+    );
+  });
 
   it("is sha256 hex and ignores slot order, labels and colors", () => {
     const print = poolFingerprint({ slots });

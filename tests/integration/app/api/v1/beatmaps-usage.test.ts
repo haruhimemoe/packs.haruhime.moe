@@ -122,7 +122,12 @@ describe("GET /api/v1/beatmaps/{id}/usage", () => {
       badged: null,
       slot: "NM1",
       mods: "NM",
+      fingerprint: expect.stringMatching(/^[0-9a-f]{64}$/),
     });
+    const [first, second] = body.entries;
+    // One pool, one fingerprint: the same as the pack's archive.fingerprint.
+    expect(first?.fingerprint).toBe(second?.fingerprint);
+    expect(first?.fingerprint).not.toBe(body.entries[2]?.fingerprint);
   });
 
   it("answers a map no archive pool used with a count of 0, never a 404", async () => {

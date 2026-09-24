@@ -6,7 +6,8 @@
  *       link to its pool in its description can be followed. The owner also sees its visibility, an Edit link, and can add or remove magnet links; an admin
  *       can remove a magnet link from a public or unlisted pack, and pin a public pack that isn't
  *       hidden to the top of /packs (or unpin it). Each map shows the other archive pools that used
- *       it (one request for the whole pack; the pack's own entries left out).
+ *       it (one request for the whole pack; the pack's own entries, and any pool with the same
+ *       maps and mods, left out).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -114,6 +115,7 @@ export function SavedPackView({
   const stars = usePoolStarRatings(ref, meta.get);
   const usageOf = useMapUsage(ids, {
     excludeSlug: pack.slug,
+    pool: ref,
     ...(fetchUsage ? { fetchUsage } : {}),
   });
   const count = `${pack.slots.length} ${pack.slots.length === 1 ? "map" : "maps"}`;

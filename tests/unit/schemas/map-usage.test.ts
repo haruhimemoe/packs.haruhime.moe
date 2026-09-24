@@ -26,6 +26,7 @@ const ENTRY = {
   badged: null,
   slot: "NM1",
   mods: "NM",
+  fingerprint: "f".repeat(64),
 };
 
 describe("beatmapIdTextSchema", () => {
@@ -74,6 +75,15 @@ describe("usage answers", () => {
     const usage = { beatmapId: 75, count: 1, entries: [ENTRY] };
     expect(beatmapUsageSchema.parse(usage)).toEqual(usage);
     expect(beatmapUsageListSchema.parse({ beatmaps: [usage] })).toEqual({ beatmaps: [usage] });
+  });
+
+  it("refuse an entry without its pool's fingerprint", () => {
+    const { fingerprint: _, ...bare } = ENTRY;
+    const usage = (entry: object) => ({ beatmapId: 75, count: 1, entries: [entry] });
+    expect(beatmapUsageSchema.safeParse(usage(bare)).success).toBe(false);
+    expect(
+      beatmapUsageSchema.safeParse(usage({ ...ENTRY, fingerprint: "F".repeat(64) })).success,
+    ).toBe(false);
   });
 
   it("refuse a negative count and a bad slug", () => {

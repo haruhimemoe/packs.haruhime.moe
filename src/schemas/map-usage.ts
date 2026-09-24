@@ -2,7 +2,8 @@
  * @file src/schemas/map-usage.ts
  * @desc Map usage (pool archive spec, part 2): the archive pools a beatmap was used in, as the
  *       public API answers and the site reads it, and the `{id}` and `?ids=` the usage routes take.
- *       One entry per slot the map filled; `count` is how many pools.
+ *       One entry per slot the map filled, carrying its pool's fingerprint; `count` is how many
+ *       pools.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -10,6 +11,7 @@
 
 import { z } from "zod";
 import { MAX_USAGE_IDS } from "@/constants/map-usage";
+import { fingerprintSchema } from "@/schemas/archive";
 import { beatmapIdSchema } from "@/schemas/pack";
 import { slugSchema } from "@/schemas/saved-pack";
 
@@ -34,6 +36,10 @@ export const mapUsageEntrySchema = z.object({
   mods: z.string().min(1).meta({
     description:
       'What that slot plays with: NM, HD, HR, DT, FM or TB for a built-in slot, the forced mods of a custom slot ("HDHR"), FM for a custom free mod slot, NM for a custom slot without mods and for a map without a slot.',
+  }),
+  fingerprint: fingerprintSchema.meta({
+    description:
+      "That pool's fingerprint, the same as its pack's archive.fingerprint: a pool with the same maps and mods has the same one, so a client can leave out the pool it's showing.",
   }),
 });
 

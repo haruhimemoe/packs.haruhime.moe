@@ -4,8 +4,9 @@
  *       packs themselves. One entry per slot a map fills (a pool with the map in two slots gives
  *       two), in one fixed order: most recent year first, then pools without a year, then by
  *       tournament, round, slug and slot. `count` is how many pools, so a pool that uses a map
- *       twice counts once. planUsageWrites turns a rebuild into the fewest writes. Also what a
- *       map row shows. Pure, and safe in the browser.
+ *       twice counts once. Each entry carries its pool's fingerprint, so a page can leave out the
+ *       pool it shows. planUsageWrites turns a rebuild into the fewest writes. Also what a map
+ *       row shows, and the text a pool fingerprint hashes. Pure, and safe in the browser.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -13,6 +14,7 @@
 
 import { bucketsOf, isModBucket, modsLabel, type SlotMods, slotLabel } from "@haruhimemoe/pool";
 import { z } from "zod";
+import { fingerprintSchema } from "@/schemas/archive";
 import { type BeatmapUsage, type MapUsageEntry, mapUsageEntrySchema } from "@/schemas/map-usage";
 import {
   type BucketEntry,
@@ -39,6 +41,24 @@ export const slotModsCode = (slot: PoolSlot, mods: SlotMods | undefined): string
   return mods?.kind === "free" ? "FM" : "NM";
 };
 
+/**
+ * @function fingerprintText
+ * @param pool {{ slots: readonly PoolSlot[]; buckets?: readonly BucketEntry[] }} a pool
+ * @returns {string} what a pool fingerprint hashes (sha256, lowercase hex): one "beatmapId:mods"
+ *          line per slot (slotModsCode), sorted. The importer hashes it with node:crypto, the
+ *          browser with crypto.subtle, so both get the same fingerprint for the same pool.
+ */
+export const fingerprintText = (pool: {
+  slots: readonly PoolSlot[];
+  buckets?: readonly BucketEntry[] | undefined;
+}): string => {
+  const mods = slotModsMap(pool.slots, bucketsOf(pool));
+  return pool.slots
+    .map((slot) => `${slot.beatmapId}:${slotModsCode(slot, mods.get(slotKey(slot)))}`)
+    .sort()
+    .join("\n");
+};
+
 /** An archive pack as map usage needs it. */
 export type UsagePack = {
   slug: string;
@@ -49,6 +69,7 @@ export type UsagePack = {
     round: string | null;
     year: number | null;
     badged: boolean | null;
+    fingerprint: string;
   };
 };
 
@@ -61,6 +82,7 @@ const usagePackSchema = z.object({
     round: z.string().nullable(),
     year: z.number().int().nullable(),
     badged: z.boolean().nullable(),
+    fingerprint: fingerprintSchema,
   }),
 });
 
@@ -69,7 +91,13 @@ export type StoredUsagePack = {
   slug?: unknown;
   slots?: unknown;
   buckets?: unknown;
-  archive?: { tournament?: unknown; round?: unknown; year?: unknown; badged?: unknown } | null;
+  archive?: {
+    tournament?: unknown;
+    round?: unknown;
+    year?: unknown;
+    badged?: unknown;
+    fingerprint?: unknown;
+  } | null;
 };
 
 /**
@@ -80,12 +108,18 @@ export type StoredUsagePack = {
  */
 export const usagePackOf = (doc: StoredUsagePack): UsagePack | null => {
   if (!doc.archive) return null;
-  const { tournament, round, year, badged } = doc.archive;
+  const { tournament, round, year, badged, fingerprint } = doc.archive;
   const parsed = usagePackSchema.safeParse({
     slug: doc.slug,
     slots: doc.slots,
     buckets: storedBuckets(doc.buckets),
-    archive: { tournament, round: round ?? null, year: year ?? null, badged: badged ?? null },
+    archive: {
+      tournament,
+      round: round ?? null,
+      year: year ?? null,
+      badged: badged ?? null,
+      fingerprint,
+    },
   });
   return parsed.success ? parsed.data : null;
 };
@@ -97,7 +131,7 @@ export const usagePackOf = (doc: StoredUsagePack): UsagePack | null => {
  */
 export const packUsage = (pack: UsagePack): { beatmapId: number; entry: MapUsageEntry }[] => {
   const mods = slotModsMap(pack.slots, bucketsOf(pack));
-  const { tournament, round, year, badged } = pack.archive;
+  const { tournament, round, year, badged, fingerprint } = pack.archive;
   return pack.slots.map((slot) => ({
     beatmapId: slot.beatmapId,
     entry: {
@@ -108,6 +142,7 @@ export const packUsage = (pack: UsagePack): { beatmapId: number; entry: MapUsage
       badged,
       slot: slotLabel(slot),
       mods: slotModsCode(slot, mods.get(slotKey(slot))),
+      fingerprint,
     },
   }));
 };
@@ -199,7 +234,8 @@ const sameEntry = (a: MapUsageEntry, b: MapUsageEntry): boolean =>
   a.year === b.year &&
   a.badged === b.badged &&
   a.slot === b.slot &&
-  a.mods === b.mods;
+  a.mods === b.mods &&
+  a.fingerprint === b.fingerprint;
 
 const sameEntries = (a: readonly MapUsageEntry[], b: readonly MapUsageEntry[]): boolean =>
   a.length === b.length && a.every((entry, i) => sameEntry(entry, b[i] as MapUsageEntry));
@@ -240,14 +276,18 @@ export const planUsageWrites = (
 /**
  * @function usageElsewhere
  * @param entries {readonly MapUsageEntry[]} a map's entries
- * @param slug {string | undefined} the pack being shown, whose own entries are left out
+ * @param shown {{ slug?: string; fingerprint?: string }} the pack being shown, and the
+ *        fingerprint of the pool it holds: entries of either are left out (a key or a copy of an
+ *        archive pool is that pool, whatever its slug)
  * @returns {readonly MapUsageEntry[]} the entries from other pools
  */
 export const usageElsewhere = (
   entries: readonly MapUsageEntry[],
-  slug: string | undefined,
+  { slug, fingerprint }: { slug?: string | undefined; fingerprint?: string | undefined },
 ): readonly MapUsageEntry[] =>
-  slug === undefined ? entries : entries.filter((entry) => entry.slug !== slug);
+  slug === undefined && fingerprint === undefined
+    ? entries
+    : entries.filter((entry) => entry.slug !== slug && entry.fingerprint !== fingerprint);
 
 /**
  * @function usageLabel

@@ -46,7 +46,7 @@ const archivePack = async (id: number, name: string, slots: [string, number][]) 
   const slug = String(id).padStart(10, "a");
   const plan = planArchiveImport([normalized.pool], [], await listArchivePacks());
   await applyArchivePlan(plan, { ownerId, now: NOW, makeSlug: () => slug });
-  return { slug, ownerId };
+  return { slug, ownerId, fingerprint: normalized.pool.fingerprint };
 };
 
 const usageDocs = () =>
@@ -93,6 +93,7 @@ describe("rebuildMapUsage", () => {
       round: "Semifinals",
       year: 2025,
       badged: null,
+      fingerprint: autumn.fingerprint,
     };
     expect(used).toEqual({
       beatmapId: 75,
@@ -108,6 +109,7 @@ describe("rebuildMapUsage", () => {
           badged: null,
           slot: "NM1",
           mods: "NM",
+          fingerprint: spring.fingerprint,
         },
       ],
     });

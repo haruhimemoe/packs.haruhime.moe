@@ -353,6 +353,7 @@ describe("SlotRow map usage", () => {
     badged: null,
     slot: "NM1",
     mods: "NM",
+    fingerprint: "a".repeat(64),
   };
 
   it("shows Used in N pools in the map's stats line, so it adds no line of its own", () => {

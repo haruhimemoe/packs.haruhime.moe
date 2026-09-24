@@ -75,7 +75,11 @@ export function PackKeyView({
   const ids = useMemo(() => pack?.slots.map((s) => s.beatmapId) ?? [], [pack]);
   const meta = useBeatmapMeta(ids);
   const stars = usePoolStarRatings(pack ?? NO_POOL, meta.get);
-  const usageOf = useMapUsage(ids, fetchUsage ? { fetchUsage } : {});
+  // A key of an archive pool is that pool: its entries are left out by fingerprint.
+  const usageOf = useMapUsage(ids, {
+    ...(pack ? { pool: pack } : {}),
+    ...(fetchUsage ? { fetchUsage } : {}),
+  });
 
   if (state.status === "reading") {
     return <PageHeader title="Opening pack…" />;

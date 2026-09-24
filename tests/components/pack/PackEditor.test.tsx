@@ -51,6 +51,7 @@ const entry = (slug: string): MapUsageEntry => ({
   badged: null,
   slot: "NM1",
   mods: "NM",
+  fingerprint: slug.slice(0, 1).repeat(64),
 });
 
 /** Map 75 was used by the pack being edited and one other; map 76 by two others. */

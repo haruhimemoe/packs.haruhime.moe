@@ -60,6 +60,8 @@ export function PackEditor({
   const ids = useMemo(() => pack.slots.map((slot) => slot.beatmapId), [pack.slots]);
   const usageOf = useMapUsage(ids, {
     excludeSlug: slug,
+    // A copy of an archive pool is that pool until it changes: left out by fingerprint.
+    pool: pack,
     delayMs: usageDelayMs,
     ...(fetchUsage ? { fetchUsage } : {}),
   });

@@ -156,7 +156,8 @@ Map usage says which archive packs used a map, so you can see how often and how 
       "year": 2023,
       "badged": null,
       "slot": "NM1",
-      "mods": "NM"
+      "mods": "NM",
+      "fingerprint": "7efc8272a32f53fd013e43f9a2fc5be0422fa65bd1aaee14250ba68cbe504160"
     },
     {
       "slug": "Uakgb_J5m9",
@@ -165,7 +166,8 @@ Map usage says which archive packs used a map, so you can see how often and how 
       "year": null,
       "badged": null,
       "slot": "HDHR2",
-      "mods": "HDHR"
+      "mods": "HDHR",
+      "fingerprint": "622a494d3ea8c7ba2fed4f37909f14d9b50ab412322de39be62c8d6c2418bfca"
     }
   ]
 }
@@ -177,6 +179,7 @@ Map usage says which archive packs used a map, so you can see how often and how 
 - `tournament`, `round`, `year`, `badged`: the same as in the pack's `archive`.
 - `slot`: the slot label in that pool (`NM1`, `HDHR2`, `TB1`), or just the number for a map without a slot.
 - `mods`: what the slot plays with. A built-in slot gives its code (`NM`, `HD`, `HR`, `DT`, `FM`, `TB`), a custom slot the mods it forces (`HDHR`), `FM` when it's free mod, and `NM` when it has no mods. A map without a slot is `NM`.
+- `fingerprint`: the pool's fingerprint, the same as its pack's `archive.fingerprint`. Pools with the same maps and mods share it, so to show a pool's maps without counting that pool, leave out the entries whose `fingerprint` is the pool's own.
 
 A map no archive pack used comes back with a `count` of 0 and no entries, never a 404. Usage changes when we import pools or a moderator hides or deletes one; answers can be up to an hour old.
 
