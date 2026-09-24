@@ -1,8 +1,10 @@
 /**
  * @file tests/unit/utils/otdb.test.ts
  * @desc otdb's export (a committed sample of 22 real pools) to source pools: links, labels, osu!
- *       beatmap ids (not otdb's own), the map details that seed stats (a plain star rating only
- *       from an entry without rating mods), bad entries skipped, and no submitter data kept.
+ *       beatmap ids (not otdb's own), each map's mods, the map details that seed stats (a plain
+ *       star rating only from an entry without rating mods), bad entries skipped, and no
+ *       submitter data kept. Through normalizePools: EZ pools keep their EZ, and pools whose
+ *       slots mix mods are skipped.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -60,9 +62,12 @@ describe("readOtdbExport", () => {
     expect(first?.source).toEqual(otdbSource(58));
     expect(first?.name).toBe("Cindelluna's Winter Tour 2019 Finals (20k-10k)");
     expect(first?.slots.slice(0, 2)).toEqual([
-      { label: "NM1", beatmapId: 989603 },
-      { label: "NM2", beatmapId: 1389960 },
+      { label: "NM1", beatmapId: 989603, mods: [] },
+      // otdb shares a map's entry between pools, so an NM slot can list another pool's mods.
+      { label: "NM2", beatmapId: 1389960, mods: ["HD"] },
     ]);
+    const semis = pools.find((pool) => pool.source.id === "641");
+    expect(semis?.slots.find((slot) => slot.label === "HDDT1")?.mods).toEqual(["EZ", "HD", "DT"]);
   });
 
   it("keeps no submitter data or favorite counts", () => {
@@ -128,7 +133,7 @@ describe("the sample through normalizePools", () => {
   const { pools, skipped } = normalizePools(read.pools, read.meta, new Date());
   const byId = (id: string) => pools.find((pool) => pool.source.id === id);
 
-  it("skips only the pool with a slot listed twice", () => {
+  it("skips the pool with a slot listed twice, and the EZ World Cup pools that mix mods", () => {
     expect(skipped).toEqual([
       {
         kind: "otdb",
@@ -136,29 +141,39 @@ describe("the sample through normalizePools", () => {
         name: "Lobby 42: Roulette Team Solos Round of 16",
         reason: "Slot DT1: DT1 appears more than once.",
       },
+      {
+        kind: "otdb",
+        id: "665",
+        name: "EZ World Cup Qualifiers",
+        reason:
+          "Maps without a slot are played with mods (EZHT, EZ, EZDT), which a map without a slot can't hold.",
+      },
+      {
+        kind: "otdb",
+        id: "670",
+        name: "EZ World Cup Finals",
+        reason:
+          "Slot S: its maps are played with different mods (EZ, EZDT, EZHT), which one slot can't hold.",
+      },
     ]);
-    expect(pools).toHaveLength(21);
+    expect(pools).toHaveLength(19);
   });
 
-  it("reads numbered labels, custom labels and their mods", () => {
-    expect(byId("665")?.input.slots.every((slot) => slot.mod === null)).toBe(true);
-    expect(
-      byId("670")
-        ?.input.buckets?.filter((entry) => "color" in entry)
-        .map((b) => b.code),
-    ).toEqual(["S", "C"]);
+  it("reads custom labels and their mods, with the EZ every map carries", () => {
     expect(byId("641")?.input.buckets?.filter((entry) => "color" in entry)).toEqual([
       { code: "EZ", color: 0, mods: { kind: "forced", set: ["EZ"] } },
-      { code: "HDDT", color: 1, mods: { kind: "forced", set: ["HD", "DT"] } },
-      { code: "HT", color: 2, mods: { kind: "forced", set: ["HT"] } },
-      { code: "HDHT", color: 3, mods: { kind: "forced", set: ["HD", "HT"] } },
+      { code: "EZHD", color: 1, mods: { kind: "forced", set: ["EZ", "HD"] } },
+      { code: "EZDT", color: 2, mods: { kind: "forced", set: ["EZ", "DT"] } },
+      { code: "EZHDDT", color: 3, mods: { kind: "forced", set: ["EZ", "HD", "DT"] } },
+      { code: "EZHT", color: 4, mods: { kind: "forced", set: ["EZ", "HT"] } },
+      { code: "EZHDHT", color: 5, mods: { kind: "forced", set: ["EZ", "HD", "HT"] } },
     ]);
   });
 
   it("gives the two pairs of identical pools the same fingerprints", () => {
     expect(byId("418")?.fingerprint).toBe(byId("71")?.fingerprint);
     expect(byId("445")?.fingerprint).toBe(byId("283")?.fingerprint);
-    expect(new Set(pools.map((pool) => pool.fingerprint)).size).toBe(19);
+    expect(new Set(pools.map((pool) => pool.fingerprint)).size).toBe(17);
   });
 
   it("seeds stats without osu! lookups, incomplete until ratings with mods exist", () => {

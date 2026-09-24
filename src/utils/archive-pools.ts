@@ -3,9 +3,11 @@
  * @desc Source pools to archive packs (pool archive spec), for any source. Slot labels go through
  *       @haruhimemoe/pool's pasted-pool parsing ("NM1", "HD2", "TB", and custom labels like
  *       "HDHR1" or "EZ1", which become custom slots forcing those mods when the label spells a
- *       valid set); plain numbers ("#1", "12") are maps without a slot. A pool that doesn't parse
- *       cleanly, or fails pack validation (the content filter on its name and slot labels
- *       included), is skipped with a
+ *       valid set); plain numbers ("#1", "12") are maps without a slot. When the source lists
+ *       each map's mods, a rating mod every map under a label carries goes into the slot (an EZ
+ *       tournament's HD1 is EZHD1), and a pool whose no-mod slots mix mods is skipped rather than
+ *       imported as no mod (checkSourceMods). A pool that doesn't parse cleanly, or fails pack
+ *       validation (the content filter on its name and slot labels included), is skipped with a
  *       reason, never half-imported. Each pool gets its tournament, round and year from its
  *       name, a fingerprint (sha256 of its sorted "beatmapId:mods" entries: the same maps with
  *       the same mods in any order, from any source, give the same one), and stats seeded from
@@ -18,11 +20,14 @@
 import { createHash } from "node:crypto";
 import {
   addBuckets,
+  bucketsOf,
   isModAcronym,
+  isModBucket,
   MAX_SLOT_INDEX,
   MOD_ACRONYMS,
   type ModAcronym,
   modSetProblem,
+  modsLabel,
   type Pool,
   parsePoolText,
   setBucketMods,
@@ -34,12 +39,16 @@ import { type PackInput, packInputSchema } from "@/schemas/saved-pack";
 import { type ArchiveName, parseArchiveName } from "@/utils/archive-names";
 import { fingerprintText } from "@/utils/map-usage";
 import { computeStats, type PackStatsRecord, type StatsMetaById } from "@/utils/saved-pack-stats";
+import { slotModsMap } from "@/utils/slot-stars";
 
 /** One pool at one source. */
 export type ArchiveSourceRef = { kind: ArchiveSourceKind; id: string; url: string };
 
-/** A map as a source lists it: its slot label and osu! beatmap (difficulty) id. */
-export type SourceSlot = { label: string; beatmapId: number };
+/**
+ * A map as a source lists it: its slot label, osu! beatmap (difficulty) id, and the mods the
+ * source says it was played with (acronyms as the source writes them), when it says.
+ */
+export type SourceSlot = { label: string; beatmapId: number; mods?: readonly string[] };
 
 /** A pool as a source gives it. */
 export type SourcePool = { source: ArchiveSourceRef; name: string; slots: readonly SourceSlot[] };
@@ -75,6 +84,28 @@ export const modsFromSlotCode = (code: string): ModAcronym[] | null => {
   return modSetProblem(set) === null ? set : null;
 };
 
+/** Mods that change a map's star rating, as sources write them: NC is DT, DC is HT. */
+const RATING_MODS: Readonly<Record<string, ModAcronym>> = Object.freeze({
+  EZ: "EZ",
+  HR: "HR",
+  DT: "DT",
+  NC: "DT",
+  HT: "HT",
+  DC: "HT",
+  FL: "FL",
+});
+
+/**
+ * @function ratingModsOf
+ * @param mods {readonly string[]} a map's mods as its source writes them ("ez", "NC", "HD")
+ * @returns {ModAcronym[]} the ones that change its star rating, in canonical order (NC as DT,
+ *          DC as HT; HD, FM, TB and the rest dropped)
+ */
+export const ratingModsOf = (mods: readonly string[]): ModAcronym[] => {
+  const found = new Set(mods.flatMap((mod) => RATING_MODS[mod.toUpperCase()] ?? []));
+  return MOD_ACRONYMS.filter((mod) => found.has(mod));
+};
+
 /** "#1", "12": a numbered map without a slot. */
 const NUMBERED = /^#?\s*(\d{1,3})$/u;
 
@@ -84,12 +115,18 @@ type LabelResult = { ok: true; pool: Pool } | { ok: false; reason: string };
  * @function poolFromLabels
  * @param name {string} the pool's name
  * @param slots {readonly SourceSlot[]} its maps, in the source's order
+ * @param force {ReadonlyMap<string, readonly ModAcronym[]>} mods to force on custom codes that
+ *        spell none (from the source's mods, checkSourceMods)
  * @returns {LabelResult} the pool (slots in the source's order, custom slots with the mods their
- *          codes spell), or the first reason it can't be read: an empty or multi-line label, a
- *          label the pasted-pool parser refuses (a slot twice, too many custom slots...), or a
- *          slot number out of range
+ *          codes spell or `force` gives), or the first reason it can't be read: an empty or
+ *          multi-line label, a label the pasted-pool parser refuses (a slot twice, too many
+ *          custom slots...), or a slot number out of range
  */
-export const poolFromLabels = (name: string, slots: readonly SourceSlot[]): LabelResult => {
+export const poolFromLabels = (
+  name: string,
+  slots: readonly SourceSlot[],
+  force: ReadonlyMap<string, readonly ModAcronym[]> = new Map(),
+): LabelResult => {
   const fail = (reason: string): LabelResult => ({ ok: false, reason });
   const lines: string[] = [];
   const labels: string[] = [];
@@ -131,10 +168,85 @@ export const poolFromLabels = (name: string, slots: readonly SourceSlot[]): Labe
 
   let pool: Pool = addBuckets({ name, slots: ordered }, parsed.newBuckets);
   for (const bucket of parsed.newBuckets) {
-    const set = modsFromSlotCode(bucket.code);
-    if (set) pool = setBucketMods(pool, bucket.code, { kind: "forced", set });
+    const set = modsFromSlotCode(bucket.code) ?? force.get(bucket.code);
+    if (set) pool = setBucketMods(pool, bucket.code, { kind: "forced", set: [...set] });
   }
   return { ok: true, pool };
+};
+
+type ModsCheck =
+  | { ok: true; relabel: Map<number, string>; force: Map<string, ModAcronym[]> }
+  | { ok: false; reason: string };
+
+const setLabel = (set: readonly ModAcronym[]): string => (set.length === 0 ? "NM" : modsLabel(set));
+
+/**
+ * @function checkSourceMods
+ * @param pool {Pool} the pool as its labels read (poolFromLabels: slots in the source's order)
+ * @param mods {readonly (readonly string[])[]} each map's mods at the source, in the same order
+ * @returns {ModsCheck} what the source's mods change, or why the pool can't be held. Per slot
+ *          label (maps without a slot are one group; free mod slots are left alone), a rating mod
+ *          the label doesn't force is "extra". When every map under a label has the same extra
+ *          mods, and there are two or more of them or every map in the pool carries those mods
+ *          (one map alone could be otdb's entry from another pool), they go into the slot: a
+ *          label that spells mods becomes one spelling both (HD1 played with EZ is EZHD1), and a
+ *          custom label that spells none forces them. Otherwise a label that spells mods decides
+ *          (NM, HD, HR, DT, "HDDT"), while a no-mod custom label, or maps without a slot, with
+ *          extra mods can't be held, so the pool is skipped rather than imported as no mod.
+ */
+export const checkSourceMods = (pool: Pool, mods: readonly (readonly string[])[]): ModsCheck => {
+  const played = pool.slots.map((_, i) => ratingModsOf(mods[i] ?? []));
+  const everywhere = MOD_ACRONYMS.filter((mod) => played.every((set) => set.includes(mod)));
+  const slotMods = slotModsMap(pool.slots, bucketsOf(pool));
+  const groups = new Map<string | null, number[]>();
+  pool.slots.forEach((slot, i) => {
+    groups.set(slot.mod, [...(groups.get(slot.mod) ?? []), i]);
+  });
+  const relabel = new Map<number, string>();
+  const force = new Map<string, ModAcronym[]>();
+  for (const [code, members] of groups) {
+    const first = pool.slots[members[0] ?? 0];
+    const own = first ? slotMods.get(slotKey(first)) : undefined;
+    if (own?.kind === "free") continue;
+    const forced = own?.kind === "forced" ? own.set : [];
+    const extras = members.map((i) => (played[i] ?? []).filter((mod) => !forced.includes(mod)));
+    const labels = [...new Set(extras.map(setLabel))];
+    if (labels.length === 1 && labels[0] === "NM") continue;
+    const extra = extras[0] ?? [];
+    const shared =
+      labels.length === 1 &&
+      (members.length >= 2 || extra.every((mod) => everywhere.includes(mod)));
+    if (code === null) {
+      return {
+        ok: false,
+        reason: `Maps without a slot are played with mods (${labels.join(", ")}), which a map without a slot can't hold.`,
+      };
+    }
+    const spellsMods = isModBucket(code) || forced.length > 0;
+    if (!shared) {
+      if (spellsMods) continue;
+      return {
+        ok: false,
+        reason: `Slot ${code}: its maps are played with different mods (${labels.join(", ")}), which one slot can't hold.`,
+      };
+    }
+    if (!spellsMods) {
+      force.set(code, extra);
+      continue;
+    }
+    const set = MOD_ACRONYMS.filter((mod) => forced.includes(mod) || extra.includes(mod));
+    if (modSetProblem(set) !== null) {
+      return {
+        ok: false,
+        reason: `Slot ${code}: its maps are played with ${modsLabel(extra)} too, and ${modsLabel(set)} can't be forced together.`,
+      };
+    }
+    for (const i of members) {
+      const slot = pool.slots[i];
+      if (slot) relabel.set(i, `${modsLabel(set)}${slot.index}`);
+    }
+  }
+  return { ok: true, relabel, force };
 };
 
 /**
@@ -178,8 +290,22 @@ export const normalizePool = (
     ok: false,
     skipped: { kind: pool.source.kind, id: pool.source.id, name: pool.name, reason },
   });
-  const labelled = poolFromLabels(pool.name, pool.slots);
+  let labelled = poolFromLabels(pool.name, pool.slots);
   if (!labelled.ok) return skip(labelled.reason);
+  // What the source says the maps were played with, when it says it for every map.
+  const sourceMods = pool.slots.flatMap((slot) => (slot.mods ? [slot.mods] : []));
+  if (sourceMods.length === pool.slots.length && sourceMods.length > 0) {
+    const check = checkSourceMods(labelled.pool, sourceMods);
+    if (!check.ok) return skip(check.reason);
+    if (check.relabel.size > 0 || check.force.size > 0) {
+      const relabelled = pool.slots.map((slot, i) => ({
+        ...slot,
+        label: check.relabel.get(i) ?? slot.label,
+      }));
+      labelled = poolFromLabels(pool.name, relabelled, check.force);
+      if (!labelled.ok) return skip(labelled.reason);
+    }
+  }
   const checked = packInputSchema.safeParse({
     name: labelled.pool.name,
     slots: labelled.pool.slots,

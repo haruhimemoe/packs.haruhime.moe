@@ -2,14 +2,18 @@
  * @file tests/unit/utils/archive-pools.test.ts
  * @desc Source pools to archive packs: custom slot mods from their codes, slot labels through the
  *       pasted-pool parser (numbered maps, custom labels, and every way a pool is refused),
- *       fingerprints (order-independent, mods-sensitive), validation and the content filter,
- *       seeded stats, and id order. (The blocked name below is a test input only.)
+ *       the source's mods (a rating mod every map under a label carries goes into the slot, a
+ *       no-mod slot or maps without a slot whose mods can't be held skip the pool, the real EZ
+ *       pools otdb #642 and #669), fingerprints (order-independent, mods-sensitive), validation
+ *       and the content filter, seeded stats, and id order. (The blocked name below is a test input only.)
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
  */
 
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import type { BucketEntry, PoolSlot } from "@/schemas/pack";
 import {
@@ -22,7 +26,7 @@ import {
   type SourcePool,
 } from "@/utils/archive-pools";
 import { fingerprintText } from "@/utils/map-usage";
-import { otdbSource } from "@/utils/otdb";
+import { otdbSource, readOtdbExport } from "@/utils/otdb";
 import type { StatsMeta } from "@/utils/saved-pack-stats";
 
 const NOW = new Date("2026-09-24T12:00:00.000Z");
@@ -119,6 +123,170 @@ describe("poolFromLabels", () => {
     ],
   ])("refuses %j: %s", (labels, reason) => {
     expect(poolFromLabels("Cup", labelled(...labels))).toEqual({ ok: false, reason });
+  });
+});
+
+/** A pool whose maps carry the source's mods: [label, mods] per map. */
+const withMods = (id: number, name: string, maps: [string, string[]][]): SourcePool => ({
+  source: otdbSource(id),
+  name,
+  slots: maps.map(([label, mods], i) => ({ label, beatmapId: 2000 + i, mods })),
+});
+
+const customs = (pool: SourcePool) => {
+  const result = normalizePool(pool, new Map(), NOW);
+  if (!result.ok) throw new Error(result.skipped.reason);
+  return {
+    buckets: result.pool.input.buckets?.filter((entry) => "color" in entry) ?? [],
+    slots: result.pool.input.slots.map((slot) => `${slot.mod}${slot.index}`),
+  };
+};
+
+const skipReason = (pool: SourcePool): string | null => {
+  const result = normalizePool(pool, new Map(), NOW);
+  return result.ok ? null : result.skipped.reason;
+};
+
+describe("the source's mods", () => {
+  it("puts a rating mod every map under a label carries into the slot (an EZ tournament)", () => {
+    const { buckets, slots } = customs(
+      withMods(1, "EZ Cup Finals", [
+        ["EZ1", ["EZ"]],
+        ["HD1", ["EZ", "HD"]],
+        ["HD2", ["HD", "EZ"]],
+        ["DT1", ["EZ", "NC"]],
+        ["HT1", ["EZ", "DC"]],
+        ["TB1", ["EZ", "FM"]],
+      ]),
+    );
+    expect(slots).toEqual(["EZ1", "EZHD1", "EZHD2", "EZDT1", "EZHT1", "TB1"]);
+    expect(buckets).toEqual([
+      { code: "EZ", color: 0, mods: { kind: "forced", set: ["EZ"] } },
+      { code: "EZHD", color: 1, mods: { kind: "forced", set: ["EZ", "HD"] } },
+      { code: "EZDT", color: 2, mods: { kind: "forced", set: ["EZ", "DT"] } },
+      { code: "EZHT", color: 3, mods: { kind: "forced", set: ["EZ", "HT"] } },
+    ]);
+  });
+
+  it("forces a no-mod custom slot's mods when all its maps share them", () => {
+    const { buckets } = customs(
+      withMods(2, "Cup Finals", [
+        ["S1", ["EZ"]],
+        ["S2", ["EZ", "HD"]],
+        ["NM1", []],
+      ]),
+    );
+    expect(buckets).toEqual([{ code: "S", color: 0, mods: { kind: "forced", set: ["EZ"] } }]);
+  });
+
+  it("lets the label decide when a built-in slot's maps disagree (otdb shares entries)", () => {
+    const { buckets, slots } = customs(
+      withMods(3, "Cup Finals", [
+        ["NM1", ["HR"]],
+        ["NM2", []],
+        ["DT1", ["DT", "EZ"]],
+        ["DT2", ["DT"]],
+      ]),
+    );
+    expect(slots).toEqual(["NM1", "NM2", "DT1", "DT2"]);
+    expect(buckets).toEqual([]);
+  });
+
+  it("lets the label decide for one map with a mod the rest of the pool doesn't carry", () => {
+    const { slots } = customs(
+      withMods(4, "Cup Finals", [
+        ["NM1", []],
+        ["DT1", ["DT", "EZ"]],
+      ]),
+    );
+    expect(slots).toEqual(["NM1", "DT1"]);
+  });
+
+  it("uses one map's mod when every map in the pool carries it", () => {
+    const { slots } = customs(
+      withMods(5, "EZ Cup Finals", [
+        ["EZ1", ["EZ"]],
+        ["HDDT1", ["EZ", "HD", "DT"]],
+      ]),
+    );
+    expect(slots).toEqual(["EZ1", "EZHDDT1"]);
+  });
+
+  it.each([
+    [
+      "a no-mod custom slot whose maps carry different mods",
+      withMods(6, "EZ World Cup Finals", [
+        ["S1", ["EZ"]],
+        ["S2", ["EZ", "DT", "FM"]],
+        ["S3", ["EZ", "FM", "HT"]],
+      ]),
+      "Slot S: its maps are played with different mods (EZ, EZDT, EZHT), which one slot can't hold.",
+    ],
+    [
+      "maps without a slot that carry mods",
+      withMods(7, "EZ World Cup Qualifiers", [
+        ["#1", ["EZ", "FM", "HT"]],
+        ["#2", ["EZ", "HD"]],
+      ]),
+      "Maps without a slot are played with mods (EZHT, EZ), which a map without a slot can't hold.",
+    ],
+    [
+      "a label whose maps all carry a mod it can't be forced with",
+      withMods(8, "Cup Finals", [
+        ["HR1", ["HR", "EZ"]],
+        ["HR2", ["EZ", "HR"]],
+      ]),
+      "Slot HR: its maps are played with EZ too, and EZHR can't be forced together.",
+    ],
+  ])("skips a pool with %s", (_label, pool, reason) => {
+    expect(skipReason(pool)).toBe(reason);
+  });
+
+  it("changes nothing when the source gives no mods", () => {
+    expect(customs(source(9, "EZ Cup Finals", ["EZ1", "HD1"])).slots).toEqual(["EZ1", "HD1"]);
+  });
+});
+
+describe("the real EZ pools (otdb #642 and #669)", () => {
+  const read = readOtdbExport(
+    JSON.parse(
+      readFileSync(path.join(process.cwd(), "tests", "fixtures", "otdb", "ez-pools.json"), "utf8"),
+    ),
+  );
+  const { pools, skipped } = normalizePools(read.pools, read.meta, NOW);
+
+  it("imports Sheppsu's Super EZ Tournament Finals with EZ in every slot but the tiebreaker", () => {
+    const [finals] = pools;
+    expect(finals?.source.id).toBe("642");
+    expect(finals?.input.buckets?.filter((entry) => "color" in entry).map((b) => b.code)).toEqual([
+      "EZ",
+      "EZHD",
+      "EZDT",
+      "EZHDDT",
+      "EZHT",
+      "EZHDHT",
+    ]);
+    expect(finals?.input.slots.find((slot) => slot.beatmapId === 3409173)).toEqual({
+      mod: "EZDT",
+      index: 1,
+      beatmapId: 3409173,
+    });
+    // DT1 is EZ+DT, not a plain DT slot: its rating with mods has to be looked up.
+    expect(finals?.stats.complete).toBe(false);
+    expect(finals?.stats.mods).toContain("EZ");
+  });
+
+  it("skips EZ World Cup Semifinals, whose S and C slots mix mods", () => {
+    expect(pools).toHaveLength(1);
+    expect(skipped).toEqual([
+      {
+        kind: "otdb",
+        id: "669",
+        name: "EZ World Cup Semifinals",
+        reason:
+          "Slot S: its maps are played with different mods (EZ, EZDT, EZHT), which one slot can't hold.",
+      },
+    ]);
   });
 });
 

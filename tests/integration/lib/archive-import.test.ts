@@ -84,7 +84,7 @@ describe("archive:import", () => {
     const { code, out } = await withSample(["otdb", "--dry-run"]);
     expect(code).toBe(0);
     expect(out).toContain("otdb: 22 pools read. Dry run: nothing was written.");
-    expect(out).toMatch(/New packs\s+19/);
+    expect(out).toMatch(/New packs\s+17/);
     expect(out).toContain("otdb #418 is the same pool as otdb #71");
     expect(out).toContain("otdb #481  Lobby 42: Roulette Team Solos Round of 16: Slot DT1");
     expect(await getDb().collection("packs").countDocuments({})).toBe(0);
@@ -94,11 +94,11 @@ describe("archive:import", () => {
   it("creates public archive packs owned by the archive account", async () => {
     const { code, out } = await withSample(["otdb"]);
     expect(code).toBe(0);
-    expect(out).toContain("Wrote 19 new packs and new sources on 0 packs.");
+    expect(out).toContain("Wrote 17 new packs and new sources on 0 packs.");
     const account = await getDb().collection("user").findOne({ email: ARCHIVE_ACCOUNT.email });
     expect(account).toMatchObject({ system: true, username: "haruhime archive" });
     const packs = await archivePacks();
-    expect(packs).toHaveLength(19);
+    expect(packs).toHaveLength(17);
     for (const pack of packs) {
       expect(pack.ownerId.equals(account?._id as ObjectId)).toBe(true);
       expect(pack.visibility).toBe("public");
@@ -128,9 +128,9 @@ describe("archive:import", () => {
     const usa = packs.find((pack) => pack.name === "United States Cup 2017 Quarter Finals");
     expect(usa?.archive?.sources.map((source) => source.id)).toEqual(["71", "418"]);
     // The stats job takes the seeded, incomplete stats at once.
-    expect(await countPacksNeedingStats(NOW)).toBe(19);
+    expect(await countPacksNeedingStats(NOW)).toBe(17);
     // They're on /packs and in its index like any public pack.
-    expect((await listPublicPacks(1)).total).toBe(19);
+    expect((await listPublicPacks(1)).total).toBe(17);
     const index = await buildSearchIndex();
     // Newest created first: the highest pool id.
     expect(index.packs[0]?.n).toBe("5 Digit North American Draft Swiss Round 1 & 2");
@@ -147,7 +147,7 @@ describe("archive:import", () => {
     const { code, out } = await withSample(["otdb"]);
     expect(code).toBe(0);
     expect(out).toMatch(/New packs\s+0/);
-    expect(out).toMatch(/Unchanged\s+21/);
+    expect(out).toMatch(/Unchanged\s+19/);
     expect(out).toContain("Wrote 0 new packs and new sources on 0 packs.");
     expect(await archivePacks()).toEqual(before);
     expect(await getDb().collection("user").countDocuments({})).toBe(1);
@@ -195,7 +195,7 @@ describe("archive:import", () => {
     const pack = await getPackModel().findOne({ "archive.sources.id": "9001" }).lean();
     expect(pack?.name).toBe("Cindelluna's Winter Tour 2019 Finals (20k-10k)");
     expect(pack?.archive?.sources.map((source) => source.id)).toEqual(["58", "9001"]);
-    expect(await archivePacks()).toHaveLength(19);
+    expect(await archivePacks()).toHaveLength(17);
   });
 
   it("gives a changed pool its own pack, keeps the old one, and flags the pair", async () => {
@@ -234,7 +234,7 @@ describe("archive:import", () => {
     await setPackHidden(pack.slug, new ObjectId().toHexString(), true);
     const { out } = await withSample(["otdb"]);
     expect(out).toMatch(/New packs\s+0/);
-    expect(await archivePacks()).toHaveLength(19);
+    expect(await archivePacks()).toHaveLength(17);
   });
 
   it("downloads otdb's export when no file is given", async () => {

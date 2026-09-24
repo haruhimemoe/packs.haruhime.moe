@@ -1,7 +1,8 @@
 /**
  * @file src/utils/otdb.ts
  * @desc otdb's mappool export to source pools (pool archive spec): each pool's id, name, link
- *       and slots (label + osu! beatmap id), plus the details the export has for each map, which
+ *       and slots (label, osu! beatmap id, and the mods otdb lists for it), plus the details the
+ *       export has for each map, which
  *       seed pack stats: length and BPM (without mods), mode osu (otdb is osu!standard only), and
  *       the plain star rating from any entry of the map without rating mods (the export's rating
  *       has the entry's mods applied, so a map only ever listed with HR or DT has none). Entries
@@ -14,11 +15,13 @@
 
 import { OTDB_POOL_URL_PREFIX } from "@/constants/archive";
 import { otdbPoolSchema } from "@/schemas/otdb";
-import type { ArchiveSourceRef, SkippedPool, SourcePool } from "@/utils/archive-pools";
+import {
+  type ArchiveSourceRef,
+  ratingModsOf,
+  type SkippedPool,
+  type SourcePool,
+} from "@/utils/archive-pools";
 import type { StatsMeta } from "@/utils/saved-pack-stats";
-
-/** Mods that change a map's star rating (NC and DC are DT and HT). */
-const RATING_ACRONYMS: ReadonlySet<string> = new Set(["EZ", "HR", "DT", "NC", "HT", "DC", "FL"]);
 
 /**
  * @function otdbPoolUrl
@@ -80,7 +83,7 @@ export const readOtdbExport = (raw: unknown): OtdbRead => {
     for (const { beatmap } of pool.beatmap_connections) {
       const { id, length, bpm } = beatmap.beatmap_metadata;
       const known = meta.get(id);
-      const plain = !beatmap.mods.some(({ acronym }) => RATING_ACRONYMS.has(acronym.toUpperCase()));
+      const plain = ratingModsOf(beatmap.mods.map(({ acronym }) => acronym)).length === 0;
       if (known && (known.starRating !== null || !plain)) continue;
       meta.set(id, {
         mode: "osu",
@@ -95,6 +98,7 @@ export const readOtdbExport = (raw: unknown): OtdbRead => {
       slots: pool.beatmap_connections.map(({ slot, beatmap }) => ({
         label: slot,
         beatmapId: beatmap.beatmap_metadata.id,
+        mods: beatmap.mods.map(({ acronym }) => acronym),
       })),
     });
   });
