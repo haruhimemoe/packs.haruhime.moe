@@ -14,7 +14,6 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { API_PAGE_SIZE, OPENAPI_PATH, RATE_LIMITS, UNKNOWN_OWNER_NAME } from "@/constants/api";
-import { ARCHIVE_ACCOUNT } from "@/constants/archive";
 import { DOC_DOCS, DOC_SLUGS } from "@/constants/docs";
 import {
   DESCRIPTION_EXCERPT_LENGTH,
@@ -22,6 +21,7 @@ import {
   MAX_NAME_LENGTH,
   MAX_SLOTS,
 } from "@/constants/pack";
+import { POOLS_ACCOUNT } from "@/constants/pools";
 import { SEARCH_INDEX_LIMIT } from "@/constants/public-packs";
 import { errorCodeFor } from "@/lib/api";
 import { API_OPERATIONS } from "@/lib/openapi";
@@ -97,8 +97,10 @@ describe("writes and the pack object", () => {
     expect(text()).toContain(phrase);
   });
 
-  it("names the owner the archive and unknown owners show as", () => {
-    expect(text()).toContain(`\`${ARCHIVE_ACCOUNT.name}\` on archive packs`);
+  it("names the owner of the pools pools.haruhime.moe publishes, and of unknown owners", () => {
+    expect(text()).toContain(
+      `\`${POOLS_ACCOUNT.name}\` on the tournament pools pools.haruhime.moe publishes`,
+    );
     expect(text()).toContain(`\`${UNKNOWN_OWNER_NAME}\` when we don't have one`);
   });
 });

@@ -15,9 +15,9 @@ import { describe, expect, it, vi } from "vitest";
 import { getPackModel } from "@/models/Pack";
 import { searchIndexSchema } from "@/schemas/public-pack";
 import type { PackInput } from "@/schemas/saved-pack";
-import { ensureArchiveAccount } from "@/services/archive";
 import { createPack } from "@/services/packs";
 import { pinPack, reorderPins } from "@/services/pins";
+import { ensurePoolsAccount } from "@/services/pools-account";
 import { buildSearchIndex, listPinnedPacks, listPublicPacks } from "@/services/public-packs";
 import { createTestUser } from "../../helpers/auth";
 import { setupTestDb } from "../../helpers/db";
@@ -286,9 +286,9 @@ describe("listPinnedPacks", () => {
 describe("the system account's packs", () => {
   it("list and index like any other pack: newest first, no extra keys", async () => {
     const host = await createTestUser({ username: "Chiyo" });
-    const systemId = await ensureArchiveAccount();
+    const poolsId = await ensurePoolsAccount();
     const community = await createPack(host.id, input({ name: "Community" }));
-    const imported = await createPack(systemId, input({ name: "OWC 2023 Finals" }), {
+    const imported = await createPack(poolsId, input({ name: "OWC 2023 Finals" }), {
       unlimited: true,
     });
     // A leftover archive subdocument in the database changes nothing.
@@ -298,7 +298,7 @@ describe("the system account's packs", () => {
     );
     const page = await listPublicPacks(1);
     expect(page.packs.map((card) => card.name)).toEqual(["OWC 2023 Finals", "Community"]);
-    // No key on any card starts with "archive" (the owner's name may still say archive).
+    // No key on any card starts with "archive".
     expect(JSON.stringify(page)).not.toContain('"archive');
     const index = await buildSearchIndex();
     expect(index.packs.map((entry) => entry.s)).toEqual([imported.slug, community.slug]);

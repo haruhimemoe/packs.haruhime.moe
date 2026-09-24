@@ -18,9 +18,9 @@ import { getDb } from "@/lib/db";
 import { getPackModel } from "@/models/Pack";
 import { apiPackPageResponseSchema, apiPackResponseSchema } from "@/schemas/api";
 import type { PackInput } from "@/schemas/saved-pack";
-import { ensureArchiveAccount } from "@/services/archive";
 import { setPackHidden } from "@/services/moderation";
 import { createPack } from "@/services/packs";
+import { ensurePoolsAccount } from "@/services/pools-account";
 import { bearer, createTestApiKey, freezeTime } from "../../../../helpers/api-key";
 import { createTestUser } from "../../../../helpers/auth";
 import { setupTestDb } from "../../../../helpers/db";
@@ -214,14 +214,14 @@ describe("GET /api/v1/packs/{slug}", () => {
   it("reads a pack the system account owns like any other, with no archive field", async () => {
     const reader = await createTestUser();
     const key = await createTestApiKey(reader.id);
-    const systemId = await ensureArchiveAccount();
-    const { slug } = await createPack(systemId, INPUT, { unlimited: true });
+    const poolsId = await ensurePoolsAccount();
+    const { slug } = await createPack(poolsId, INPUT, { unlimited: true });
     await getPackModel().collection.updateOne(
       { slug },
       { $set: { archive: { tournament: "OWC", fingerprint: "b".repeat(64), sources: [] } } },
     );
     const body = (await (await one(key, slug)).json()) as { pack: Record<string, unknown> };
-    expect(body.pack).toMatchObject({ slug, ownerName: "haruhime archive" });
+    expect(body.pack).toMatchObject({ slug, ownerName: "haruhime pools" });
     expect(body.pack).not.toHaveProperty("archive");
   });
 });

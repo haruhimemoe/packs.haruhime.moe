@@ -4,7 +4,7 @@
  *       cookies don't, the /api/auth handler starts osu! sign-in with PKCE and our callback, and
  *       the full OAuth callback (osu! stubbed) creates and refreshes the user without keeping tokens,
  *       storing the osu! profile as our user fields (synthetic email, image only with an avatar).
- *       Nobody can sign in as a system account (the archive), however a sign-in reaches it.
+ *       Nobody can sign in as a system account (haruhime pools), however a sign-in reaches it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -18,7 +18,7 @@ import { OSU_PROVIDER_ID } from "@/constants/auth";
 import { getAuth, getUserFromHeaders, isSystemUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { SIGNED_IN_COOKIE } from "@/lib/signed-in-marker";
-import { ensureArchiveAccount } from "@/services/archive";
+import { ensurePoolsAccount } from "@/services/pools-account";
 import { createTestUser } from "../../helpers/auth";
 import { setupTestDb } from "../../helpers/db";
 import { TEST_SERVER_ENV } from "../../helpers/server-env";
@@ -326,34 +326,34 @@ describe("signed-in marker cookie", () => {
 describe("system accounts", () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  it("isSystemUser knows the archive account and nobody else", async () => {
-    const archiveId = await ensureArchiveAccount();
+  it("isSystemUser knows the pools account and nobody else", async () => {
+    const poolsId = await ensurePoolsAccount();
     const user = await createTestUser();
-    expect(await isSystemUser(archiveId)).toBe(true);
-    expect(await isSystemUser(new ObjectId(archiveId))).toBe(true);
+    expect(await isSystemUser(poolsId)).toBe(true);
+    expect(await isSystemUser(new ObjectId(poolsId))).toBe(true);
     expect(await isSystemUser(user.id)).toBe(false);
     expect(await isSystemUser("not-an-id")).toBe(false);
     expect(await isSystemUser(undefined)).toBe(false);
   });
 
-  it("an osu! sign-in never lands on the archive account", async () => {
-    const archiveId = await ensureArchiveAccount();
+  it("an osu! sign-in never lands on the pools account", async () => {
+    const poolsId = await ensurePoolsAccount();
     const callback = await signInWithOsu(PEPPY);
     const signedIn = await getUserFromHeaders(new Headers({ cookie: cookiesFrom(callback) }));
     expect(signedIn).toMatchObject({ osuId: 2, username: "peppy" });
-    expect(signedIn?.id).not.toBe(archiveId);
-    const archiveUserId = new ObjectId(archiveId);
-    expect(await getDb().collection("account").countDocuments({ userId: archiveUserId })).toBe(0);
-    expect(await getDb().collection("session").countDocuments({ userId: archiveUserId })).toBe(0);
+    expect(signedIn?.id).not.toBe(poolsId);
+    const poolsUserId = new ObjectId(poolsId);
+    expect(await getDb().collection("account").countDocuments({ userId: poolsUserId })).toBe(0);
+    expect(await getDb().collection("session").countDocuments({ userId: poolsUserId })).toBe(0);
   });
 
   it("refuses the sign-in even when an osu! account was linked to it", async () => {
-    const archiveId = await ensureArchiveAccount();
+    const poolsId = await ensurePoolsAccount();
     const now = new Date();
     await getDb()
       .collection("account")
       .insertOne({
-        userId: new ObjectId(archiveId),
+        userId: new ObjectId(poolsId),
         providerId: OSU_PROVIDER_ID,
         accountId: "2",
         createdAt: now,
@@ -366,12 +366,12 @@ describe("system accounts", () => {
   });
 
   it("never gets a session or an osu! account link from better-auth", async () => {
-    const archiveId = await ensureArchiveAccount();
+    const poolsId = await ensurePoolsAccount();
     const ctx = await getAuth().$context;
-    expect(await ctx.internalAdapter.createSession(archiveId, false)).toBeNull();
+    expect(await ctx.internalAdapter.createSession(poolsId, false)).toBeNull();
     expect(
       await ctx.internalAdapter.createAccount({
-        userId: archiveId,
+        userId: poolsId,
         providerId: OSU_PROVIDER_ID,
         accountId: "3",
       }),
@@ -381,13 +381,13 @@ describe("system accounts", () => {
   });
 
   it("a session row that reaches it anyway reads as signed out", async () => {
-    const archiveId = await ensureArchiveAccount();
-    const token = "archive-session-token-0000000000";
+    const poolsId = await ensurePoolsAccount();
+    const token = "pools-session-token-000000000000";
     const now = new Date();
     await getDb()
       .collection("session")
       .insertOne({
-        userId: new ObjectId(archiveId),
+        userId: new ObjectId(poolsId),
         token,
         expiresAt: new Date(now.getTime() + 3_600_000),
         createdAt: now,

@@ -3,7 +3,7 @@
  * @desc API keys: one per user. Create and regenerate are one atomic upsert on userId, so two
  *       tabs racing still leave exactly one key. Authentication looks the key up by its hash; an
  *       admin's key skips the saved-pack cap but gets no moderation rights. A key never acts as a
- *       system account (the archive). lastUsedAt is written at most once an hour.
+ *       system account (haruhime pools). lastUsedAt is written at most once an hour.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
  * @modified Thu Sep 24, 2026

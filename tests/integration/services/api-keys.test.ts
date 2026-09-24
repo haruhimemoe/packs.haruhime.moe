@@ -2,7 +2,7 @@
  * @file tests/integration/services/api-keys.test.ts
  * @desc One key per user: create, regenerate (the old key dies at once), revoke, concurrent
  *       creates, authentication, lastUsedAt throttling, a key whose user is gone, and a key that
- *       would act as a system account (the archive).
+ *       would act as a system account (haruhime pools).
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
  * @modified Thu Sep 24, 2026
@@ -14,7 +14,7 @@ import { apiKeyPrefix, hashApiKey } from "@/lib/api-key";
 import { getDb } from "@/lib/db";
 import { getApiKeyModel } from "@/models/ApiKey";
 import { authenticateApiKey, createApiKey, getApiKeyInfo, revokeApiKey } from "@/services/api-keys";
-import { ensureArchiveAccount } from "@/services/archive";
+import { ensurePoolsAccount } from "@/services/pools-account";
 import { freezeTime } from "../../helpers/api-key";
 import { createTestUser } from "../../helpers/auth";
 import { setupTestDb } from "../../helpers/db";
@@ -114,12 +114,12 @@ describe("authenticateApiKey", () => {
   });
 
   it("refuses a key stored for a system account, even one with an osu! id", async () => {
-    const archiveId = await ensureArchiveAccount();
-    const { key } = await createApiKey(archiveId);
+    const poolsId = await ensurePoolsAccount();
+    const { key } = await createApiKey(poolsId);
     expect(await authenticateApiKey(key)).toBeNull();
     await getDb()
       .collection("user")
-      .updateOne({ _id: new ObjectId(archiveId) }, { $set: { osuId: 1 } });
+      .updateOne({ _id: new ObjectId(poolsId) }, { $set: { osuId: 1 } });
     expect(await authenticateApiKey(key)).toBeNull();
   });
 

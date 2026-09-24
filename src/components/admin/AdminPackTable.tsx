@@ -3,7 +3,7 @@
  * @desc /admin table of public and unlisted packs with Hide / Unhide, Pin / Unpin (public packs
  *       that aren't hidden: the "Pinned" row on /packs) and Delete (confirmed inline). Refreshes
  *       the server page after each action. The host links to their osu! profile, except the
- *       archive's system account, which has none.
+ *       haruhime pools account, which has none.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -109,7 +109,7 @@ export function AdminPackTable({ rows, api = packsApi }: AdminPackTableProps) {
                 </td>
                 <td className="py-2 pr-3">
                   {row.ownerOsuId === null ? (
-                    // A system account (the archive) has no osu! profile to link.
+                    // A system account (haruhime pools) has no osu! profile to link.
                     <span className="text-c2">{row.ownerName}</span>
                   ) : (
                     <a

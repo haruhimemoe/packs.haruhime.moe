@@ -1,6 +1,6 @@
 /**
  * @file tests/components/admin/AdminPackTable.test.tsx
- * @desc Admin rows: host link (plain text for the archive's system account), status,
+ * @desc Admin rows: host link (plain text for the haruhime pools account), status,
  *       hide/unhide, pin/unpin (public packs that aren't hidden), delete with confirm, errors.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
@@ -62,14 +62,14 @@ describe("AdminPackTable", () => {
     expect(screen.getByText("Hidden Sep 22, 2026")).toBeInTheDocument();
   });
 
-  it("shows a host without an osu! id (the archive account) as plain text", () => {
+  it("shows a host without an osu! id (the pools account) as plain text", () => {
     render(
       <AdminPackTable
-        rows={[{ ...ROW, ownerName: "haruhime archive", ownerOsuId: null }]}
+        rows={[{ ...ROW, ownerName: "haruhime pools", ownerOsuId: null }]}
         api={fakeApi()}
       />,
     );
-    expect(screen.getByText("haruhime archive").closest("a")).toBeNull();
+    expect(screen.getByText("haruhime pools").closest("a")).toBeNull();
   });
 
   it("hides and unhides, then refreshes the page", async () => {

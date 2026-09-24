@@ -4,13 +4,13 @@
  *       pack's stats; the daily cron and the admin button run runPackStatsJob, which repairs
  *       missing or incomplete stats a batch at a time: packs with no stats first, then incomplete
  *       ones that are due for a retry, oldest first; in each group, listed public and unlisted
- *       packs before private and hidden ones. Archive packs due for a retry come after every
- *       community pack, and only in a run that took no other pack, so an import's backlog never
- *       delays a community pack or spends its osu! allowance. Incomplete stats wait longer before each retry
- *       (statsRetryAt), so packs that keep failing can't crowd out the rest. Writes never move
- *       updatedAt and only land while the pack is unchanged since it was read, so a newer save
- *       always wins. Nothing here throws into a save: failures are logged and leave the stats
- *       missing for the job.
+ *       packs before private and hidden ones. The haruhime pools account's packs due for a
+ *       retry come after every other pack, and only in a run that took no other pack, so an
+ *       import's backlog never delays anyone else's pack or spends its osu! allowance. Incomplete
+ *       stats wait longer before each retry (statsRetryAt), so packs that keep failing can't
+ *       crowd out the rest. Writes never move updatedAt and only land while the pack is unchanged
+ *       since it was read, so a newer save always wins. Nothing here throws into a save: failures
+ *       are logged and leave the stats missing for the job.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -19,6 +19,7 @@
 import "server-only";
 import type { QueryFilter, Types } from "mongoose";
 import { PACK_STATS_JOB_LIMIT } from "@/constants/pack-stats";
+import { POOLS_ACCOUNT } from "@/constants/pools";
 import type { StarPair } from "@/constants/star-ratings";
 import { connectDb } from "@/lib/db";
 import { afterResponse, lookupModRatings, lookupStatsMeta } from "@/lib/pack-stats";
@@ -51,10 +52,10 @@ const waitingForRetry = (now: Date) => ({
 const SHARED = { visibility: { $in: ["public", "unlisted"] }, hiddenAt: null };
 /** Everything else: private packs, and packs a moderator hid. */
 const NOT_SHARED = { $or: [{ visibility: "private" }, { hiddenAt: { $ne: null } }] };
-/** Packs someone saved. */
-const COMMUNITY = { "archive.fingerprint": { $exists: false } };
-/** Packs the archive importer made: an import seeds hundreds at once. */
-const ARCHIVED = { "archive.fingerprint": { $exists: true } };
+/** The haruhime pools account's packs: an import adds hundreds at once. */
+const POOLS_OWNED = { ownerId: POOLS_ACCOUNT.id };
+/** Everyone else's packs. */
+const NOT_POOLS = { ownerId: { $ne: POOLS_ACCOUNT.id } };
 const OLDEST_PACK_FIRST = { _id: 1 } as const;
 const OLDEST_STATS_FIRST = { "stats.computedAt": 1, _id: 1 } as const;
 const FIELDS = {
@@ -234,28 +235,20 @@ export const runPackStatsJob = async ({
 }: StatsDeps & { limit?: number } = {}): Promise<PackStatsJobResult> => {
   const model = await connectedModel();
   const at = (deps.now ?? (() => new Date()))();
-  const groups: { filter: QueryFilter<unknown>; sort: Record<string, 1>; archive?: true }[] = [
+  const groups: { filter: QueryFilter<unknown>; sort: Record<string, 1>; last?: true }[] = [
     { filter: { ...NO_STATS, ...SHARED }, sort: OLDEST_PACK_FIRST },
     { filter: { ...NO_STATS, ...NOT_SHARED }, sort: OLDEST_PACK_FIRST },
-    { filter: { ...dueForRetry(at), ...SHARED, ...COMMUNITY }, sort: OLDEST_STATS_FIRST },
-    { filter: { ...dueForRetry(at), ...NOT_SHARED, ...COMMUNITY }, sort: OLDEST_STATS_FIRST },
-    {
-      filter: { ...dueForRetry(at), ...SHARED, ...ARCHIVED },
-      sort: OLDEST_STATS_FIRST,
-      archive: true,
-    },
-    {
-      filter: { ...dueForRetry(at), ...NOT_SHARED, ...ARCHIVED },
-      sort: OLDEST_STATS_FIRST,
-      archive: true,
-    },
+    { filter: { ...dueForRetry(at), ...SHARED, ...NOT_POOLS }, sort: OLDEST_STATS_FIRST },
+    { filter: { ...dueForRetry(at), ...NOT_SHARED, ...NOT_POOLS }, sort: OLDEST_STATS_FIRST },
+    // One group for the pools backlog, whatever its visibility: nothing about it shows anywhere.
+    { filter: { ...dueForRetry(at), ...POOLS_OWNED }, sort: OLDEST_STATS_FIRST, last: true },
   ];
   const picked: StatsDoc[] = [];
-  for (const { filter, sort, archive } of groups) {
+  for (const { filter, sort, last } of groups) {
     if (picked.length >= limit) break;
-    // The archive backlog gets only runs with nothing else to do: a batch spends one osu!
-    // allowance, which archive pairs would otherwise take from a community pack's.
-    if (archive && picked.length > 0) break;
+    // The pools backlog gets only runs with nothing else to do: a batch spends one osu!
+    // allowance, which its pairs would otherwise take from another pack's.
+    if (last && picked.length > 0) break;
     picked.push(
       ...(await model
         .find(filter, FIELDS)

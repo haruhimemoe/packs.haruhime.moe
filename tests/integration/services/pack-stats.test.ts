@@ -5,8 +5,9 @@
  *       incomplete stats; a map osu! says is gone doesn't; a save in between wins; revalidation.
  *       The repair job: missing stats first (public and unlisted, then private and hidden), then
  *       incomplete ones that are due, oldest first; a longer wait before each retry; the cap; what
- *       is due and what waits; one star-rating allowance per run; archive packs retried only in
- *       runs with no community pack due. The mirror and osu! are MSW.
+ *       is due and what waits; one star-rating allowance per run; the haruhime pools account's packs
+ *       retried last, only in runs with nothing else due; with no pools packs, the job runs as
+ *       before and makes no account. The mirror and osu! are MSW.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -15,7 +16,9 @@
 import { revalidatePath } from "next/cache";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PACK_STATS_JOB_LIMIT } from "@/constants/pack-stats";
+import { POOLS_ACCOUNT } from "@/constants/pools";
 import { MAX_OSU_FETCHES_PER_REQUEST } from "@/constants/star-ratings";
+import { getDb } from "@/lib/db";
 import { getPackModel } from "@/models/Pack";
 import type { PackInput } from "@/schemas/saved-pack";
 import { countPacksNeedingStats, refreshPackStats, runPackStatsJob } from "@/services/pack-stats";
@@ -229,61 +232,91 @@ const packWith = async (
   return pack.slug;
 };
 
-/** Makes a pack an archive pack, the way the importer stores it. */
-const asArchive = (slug: string, n: number) =>
-  getPackModel().collection.updateOne(
-    { slug },
-    {
-      $set: {
-        archive: {
-          tournament: "Spring Cup",
-          round: "Finals",
-          year: 2024,
-          badged: null,
-          fingerprint: n.toString(16).padStart(64, "0"),
-          sources: [
-            { kind: "otdb", id: String(n), url: `https://otdb.sheppsu.me/db/mappools/${n}/` },
-          ],
-        },
-      },
-    },
-  );
-
-describe("runPackStatsJob and archive packs", () => {
-  it("retries community packs before archive packs, and never in the same run", async () => {
+describe("runPackStatsJob and the pools account's packs", () => {
+  it("retries other packs before the pools account's, and never in the same run", async () => {
     const owner = await createTestUser();
     onMirror(lookups, beatmapRow(101));
-    // An import seeds many archive packs at once, before a community pack's stats fail.
-    const archived: string[] = [];
+    // An import adds many pools packs at once, before another pack's stats fail.
+    const imported: string[] = [];
     for (let n = 1; n <= 3; n++) {
-      const slug = await packWith(owner.id, `Archive ${n}`, "public", {
-        complete: false,
-        computedAt: "2026-09-01T00:00:00Z",
-      });
-      await asArchive(slug, n);
-      archived.push(slug);
+      imported.push(
+        await packWith(POOLS_ACCOUNT.id, `Pool ${n}`, "public", {
+          complete: false,
+          computedAt: "2026-09-01T00:00:00Z",
+        }),
+      );
     }
     const community = await packWith(owner.id, "Community", "public", {
       complete: false,
       computedAt: "2026-09-20T00:00:00Z",
     });
 
-    // The community pack goes first, and alone: it keeps the run's whole osu! allowance.
+    // The other pack goes first, and alone: it keeps the run's whole osu! allowance.
     expect(await runPackStatsJob({ limit: 25, now: () => NOW })).toEqual({
       updated: 1,
       remaining: 3,
       waiting: 0,
     });
     expect((await storedStats(community))?.complete).toBe(true);
-    for (const slug of archived) expect((await storedStats(slug))?.complete).toBe(false);
+    for (const slug of imported) expect((await storedStats(slug))?.complete).toBe(false);
 
-    // With no community pack due, the archive backlog gets the run.
+    // With nothing else due, the pools backlog gets the run.
     expect(await runPackStatsJob({ limit: 2, now: () => NOW })).toEqual({
       updated: 2,
       remaining: 1,
       waiting: 0,
     });
-    expect((await storedStats(archived[0] ?? ""))?.complete).toBe(true);
+    expect((await storedStats(imported[0] ?? ""))?.complete).toBe(true);
+  });
+
+  it("fills in a pools pack with no stats at all like any other pack", async () => {
+    const owner = await createTestUser();
+    onMirror(lookups, beatmapRow(101));
+    const imported = await packWith(POOLS_ACCOUNT.id, "Pool", "public");
+    const community = await packWith(owner.id, "Community", "public", {
+      complete: false,
+      computedAt: "2026-09-20T00:00:00Z",
+    });
+
+    expect(await runPackStatsJob({ limit: 1, now: () => NOW })).toMatchObject({ updated: 1 });
+    expect((await storedStats(imported))?.complete).toBe(true);
+    expect((await storedStats(community))?.complete).toBe(false);
+  });
+
+  it("runs as before, and makes no account, while pools has published nothing", async () => {
+    const owner = await createTestUser();
+    onMirror(lookups, beatmapRow(101));
+    const olderRetry = await packWith(owner.id, "Retry old", "public", {
+      complete: false,
+      computedAt: "2026-09-01T00:00:00Z",
+    });
+    const newerRetry = await packWith(owner.id, "Retry newer", "private", {
+      complete: false,
+      computedAt: "2026-09-20T00:00:00Z",
+    });
+    const missing = await packWith(owner.id, "Missing", "private");
+
+    // No stats first, then due retries, shared before private; the empty pools group ends nothing.
+    expect(await runPackStatsJob({ limit: 1, now: () => NOW })).toEqual({
+      updated: 1,
+      remaining: 2,
+      waiting: 0,
+    });
+    expect((await storedStats(missing))?.complete).toBe(true);
+    expect(await runPackStatsJob({ limit: 1, now: () => NOW })).toEqual({
+      updated: 1,
+      remaining: 1,
+      waiting: 0,
+    });
+    expect((await storedStats(olderRetry))?.complete).toBe(true);
+    expect(await runPackStatsJob({ now: () => NOW })).toEqual({
+      updated: 1,
+      remaining: 0,
+      waiting: 0,
+    });
+    expect((await storedStats(newerRetry))?.complete).toBe(true);
+    // Only the test user: the job never creates the pools account.
+    expect(await getDb().collection("user").countDocuments({})).toBe(1);
   });
 });
 

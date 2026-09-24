@@ -5,8 +5,8 @@
  *       one magnet link lives with the owner's remove in src/services/pack-exports.ts. Moderation
  *       writes go through the driver so `updatedAt` never moves (a hidden pack keeps its place).
  *       Hiding a pack also unpins it (pins live in src/services/pins.ts); unhiding never pins it
- *       again. Rows say when a pack was pinned. Archive packs (owned by the system account, which
- *       has no osu! id) are moderated like any other.
+ *       again. Rows say when a pack was pinned. The haruhime pools account's packs (a system
+ *       account with no osu! id) are moderated like any other.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -36,7 +36,7 @@ type AdminRecord = {
   updatedAt: Date;
   hiddenAt?: Date | null;
   pinnedAt?: Date | null;
-  /** No osu! id on a system account (the archive). */
+  /** No osu! id on a system account (haruhime pools). */
   owner: { username: string; osuId?: number | null };
 };
 

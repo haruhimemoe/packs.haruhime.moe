@@ -2,9 +2,9 @@
  * @file src/lib/auth.ts
  * @desc better-auth, built on first use: MongoDB adapter on the shared client, osu! generic OAuth
  *       (identify + public, PKCE). getUserFromHeaders() is how route handlers read the caller.
- *       System users (`system: true`, like the archive account that owns imported pools) can
- *       never act: no session or osu! account link is ever created for one, and a session that
- *       reaches one anyway reads as signed out.
+ *       System users (`system: true`, like the haruhime pools account) can never act: no session
+ *       or osu! account link is ever created for one, and a session that reaches one anyway reads
+ *       as signed out.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -90,7 +90,7 @@ const createAuth = () => {
         username: { type: "string", required: true },
         avatarUrl: { type: "string", required: false },
         countryCode: { type: "string", required: false },
-        // Set only by the server on system accounts (the archive). Nothing a client or an osu!
+        // Set only by the server on system accounts (haruhime pools). Nothing a client or an osu!
         // profile sends can set it.
         system: { type: "boolean", required: false, input: false },
       },
