@@ -12,7 +12,7 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { RATE_LIMITS } from "@/constants/api";
-import { LEGAL_SLUGS, type LegalSlug } from "@/constants/legal";
+import { LEGAL_DOCS, LEGAL_SLUGS, type LegalSlug } from "@/constants/legal";
 import { SERVER_USER_AGENT, SITE } from "@/constants/site";
 import { OSU_API_BUDGET_PER_IP } from "@/constants/star-ratings";
 
@@ -216,6 +216,23 @@ describe("copyright", () => {
       expect(read("copyright")).toContain(phrase);
     },
   );
+
+  it.each([
+    "## Sources",
+    "[otdb](https://otdb.sheppsu.me)",
+    "the osu! tournament database by Sheppsu, used with permission",
+    "Each archive pack links its pool on otdb.",
+    "The pools are collected from public tournament data",
+    "We don't store who submitted a pool to otdb.",
+    "[Archived pools](/guide/archived-pools)",
+  ])("credits the archive's source: %j", (phrase) => {
+    expect(read("copyright")).toContain(phrase);
+  });
+
+  it("dates the Sources section", () => {
+    expect(LEGAL_DOCS.copyright.lastUpdated).toBe("2026-09-24");
+    expect(LEGAL_DOCS["your-privacy-rights"].lastUpdated).toBe("2026-09-24");
+  });
 });
 
 describe("public packs and moderation copy", () => {

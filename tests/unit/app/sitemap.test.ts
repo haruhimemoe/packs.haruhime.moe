@@ -4,7 +4,7 @@
  *       pack.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { describe, expect, it, vi } from "vitest";
@@ -45,6 +45,7 @@ describe("sitemap", () => {
       "/guide/make-a-pack",
       "/guide/pack-key",
       "/guide/seed-a-torrent",
+      "/guide/archived-pools",
       "/docs/api",
       "/legal/terms",
       "/legal/privacy",

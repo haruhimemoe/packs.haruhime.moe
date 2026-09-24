@@ -1,9 +1,11 @@
 /**
  * @file tests/unit/constants/guide.test.ts
- * @desc Guide registry, slug guard, and the pack key doc staying in sync with the codec.
+ * @desc Guide registry, slug guard, the pack key doc staying in sync with the codec, and the
+ *       archived pools guide (what they are, otdb as the source, finding them, map usage, how to
+ *       report a wrong one).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { existsSync, readFileSync } from "node:fs";
@@ -11,7 +13,7 @@ import path from "node:path";
 import { decodePackKey, PackKeyError } from "@haruhimemoe/pool";
 import { describe, expect, it } from "vitest";
 import { GUIDE_DOCS, GUIDE_SLUGS, isGuideSlug } from "@/constants/guide";
-import { NAV_LINKS } from "@/constants/site";
+import { NAV_LINKS, SITE } from "@/constants/site";
 
 const file = (slug: string) => path.join(process.cwd(), "content", "guide", `${slug}.mdx`);
 
@@ -223,5 +225,50 @@ describe("download-a-torrent guide", () => {
     const step = GUIDE_DOCS["download-a-torrent"].howTo?.find((s) => s.name === "Import the maps");
     expect(step?.text).toContain("A pack made on packs is a folder of .osz files");
     expect(step?.text).toContain("don't open it");
+  });
+});
+
+describe("archived-pools guide", () => {
+  const text = () => readFileSync(file("archived-pools"), "utf8");
+
+  it("is registered, dated to the archive, and says what it covers", () => {
+    expect(GUIDE_SLUGS).toContain("archived-pools");
+    expect(GUIDE_DOCS["archived-pools"]).toMatchObject({
+      title: "Archived pools",
+      lastUpdated: "2026-09-24",
+    });
+    expect(GUIDE_DOCS["archived-pools"].description).toContain("otdb");
+  });
+
+  it("says what archived pools are in its first paragraph", () => {
+    const first = text().split("\n\n")[0] ?? "";
+    expect(first).toContain("mappools from past osu! tournaments, saved as packs");
+    expect(first).toContain("(/packs)");
+    expect(first).toContain('"Archived pool" badge');
+  });
+
+  it.each([
+    "## Where they come from",
+    "[otdb](https://otdb.sheppsu.me)",
+    "by Sheppsu, used with permission",
+    "public tournament data",
+    "We don't copy who submitted a pool to otdb.",
+    "Each archived pack links its pool on otdb",
+    "## Finding them",
+    "the Source filter shows Community packs, Archive packs, or both",
+    "## Used in N pools",
+    '"Used in 3 pools"',
+    "The count leaves out the pack you're looking at",
+    "(/docs/api)",
+    "## Report a wrong one",
+    `[${SITE.contactEmail}](mailto:${SITE.contactEmail})`,
+    "with the pack's link and what's wrong",
+  ])("covers %j", (phrase) => {
+    expect(text()).toContain(phrase);
+  });
+
+  it("has no h1 and no em dashes", () => {
+    expect(text()).not.toMatch(/^# /m);
+    expect(text()).not.toContain("—");
   });
 });

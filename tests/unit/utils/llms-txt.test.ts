@@ -39,6 +39,10 @@ describe("buildLlmsTxt", () => {
     expect(text).toContain(`- [${title}](${SITE.url}/guide/${slug}): ${description}`);
   });
 
+  it("lists the archived pools guide", () => {
+    expect(text).toContain(`- [Archived pools](${SITE.url}/guide/archived-pools): Past tournament`);
+  });
+
   it.each(DOC_SLUGS)("lists the %s doc by its Markdown copy", (slug) => {
     const { title, description } = DOC_DOCS[slug];
     expect(text).toContain(`- [${title}](${SITE.url}/docs/${slug}.md): ${description}`);

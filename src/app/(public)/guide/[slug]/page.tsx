@@ -3,7 +3,7 @@
  * @desc Guide document route. Static params from the registry; unknown slugs 404.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { JsonLd, PageHeader, Prose } from "@haruhimemoe/ui";
@@ -14,6 +14,7 @@ import { GUIDE_DOCS, GUIDE_SLUGS, type GuideSlug, isGuideSlug } from "@/constant
 import { formatIsoDate } from "@/utils/date";
 
 const LOADERS: Record<GuideSlug, () => Promise<{ default: MDXContent }>> = {
+  "archived-pools": () => import("@content/guide/archived-pools.mdx"),
   "download-a-torrent": () => import("@content/guide/download-a-torrent.mdx"),
   "make-a-pack": () => import("@content/guide/make-a-pack.mdx"),
   "pack-key": () => import("@content/guide/pack-key.mdx"),
