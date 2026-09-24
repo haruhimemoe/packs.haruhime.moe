@@ -1,0 +1,287 @@
+/**
+ * @file tests/integration/lib/archive-import.test.ts
+ * @desc The archive:import runner against the test database with the committed otdb sample: a
+ *       dry run writes nothing; a real run creates public packs owned by the archive account,
+ *       with archive details and seeded stats the stats job picks up; a second run changes
+ *       nothing; a new source joins its stored pack; a changed pool gets its own pack and the
+ *       old one stays; a hidden pack isn't imported again. The export download, the file read and
+ *       the site refresh are stubs: nothing reaches otdb or the site.
+ * @author David @dvhsh (https://dvh.sh)
+ * @created Thu Sep 24, 2026
+ * @modified Thu Sep 24, 2026
+ */
+
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { ObjectId } from "mongodb";
+import { describe, expect, it, vi } from "vitest";
+import { ARCHIVE_ACCOUNT, OTDB_EXPORT_URL } from "@/constants/archive";
+import {
+  type ArchiveImportDeps,
+  REVALIDATE_PACKS_PATH,
+  runArchiveImport,
+} from "@/lib/archive-import";
+import { getDb } from "@/lib/db";
+import { getPackModel } from "@/models/Pack";
+import { setPackHidden } from "@/services/moderation";
+import { countPacksNeedingStats } from "@/services/pack-stats";
+import { buildSearchIndex, listPublicPacks } from "@/services/public-packs";
+import { setupTestDb } from "../../helpers/db";
+
+setupTestDb();
+
+const SAMPLE_TEXT = readFileSync(
+  path.join(process.cwd(), "tests", "fixtures", "otdb", "sample.json"),
+  "utf8",
+);
+type SamplePool = {
+  id: number;
+  name: string;
+  beatmap_connections: { slot: string; beatmap: { beatmap_metadata: { id: number } } }[];
+};
+const SAMPLE = (): SamplePool[] => JSON.parse(SAMPLE_TEXT) as SamplePool[];
+const NOW = new Date("2026-09-24T12:00:00.000Z");
+
+/** A run with every outside call stubbed; returns the exit code and what it printed. */
+const run = async (
+  argv: string[],
+  deps: ArchiveImportDeps = {},
+  files: Record<string, string> = {},
+) => {
+  const out: string[] = [];
+  const err: string[] = [];
+  const fetch = vi.fn(async () => new Response("unexpected", { status: 500 }));
+  const code = await runArchiveImport(argv, {
+    fetch,
+    readFile: async (file) => {
+      const text = files[file];
+      if (text === undefined) throw new Error(`ENOENT: ${file}`);
+      return text;
+    },
+    log: (text) => out.push(text),
+    warn: (text) => err.push(text),
+    now: () => NOW,
+    cronSecret: () => undefined,
+    ...deps,
+  });
+  return { code, out: out.join("\n"), err: err.join("\n"), fetch };
+};
+
+const withSample = (argv: string[], deps: ArchiveImportDeps = {}, text = SAMPLE_TEXT) =>
+  run([...argv, "--file", "sample.json"], deps, { "sample.json": text });
+
+const archivePacks = () =>
+  getPackModel()
+    .find({ "archive.fingerprint": { $exists: true } })
+    .sort({ _id: 1 })
+    .lean();
+
+describe("archive:import", () => {
+  it("writes nothing on a dry run, and prints the plan", async () => {
+    const { code, out } = await withSample(["otdb", "--dry-run"]);
+    expect(code).toBe(0);
+    expect(out).toContain("otdb: 22 pools read. Dry run: nothing was written.");
+    expect(out).toMatch(/New packs\s+19/);
+    expect(out).toContain("otdb #418 is the same pool as otdb #71");
+    expect(out).toContain("otdb #481  Lobby 42: Roulette Team Solos Round of 16: Slot DT1");
+    expect(await getDb().collection("packs").countDocuments({})).toBe(0);
+    expect(await getDb().collection("user").countDocuments({})).toBe(0);
+  });
+
+  it("creates public archive packs owned by the archive account", async () => {
+    const { code, out } = await withSample(["otdb"]);
+    expect(code).toBe(0);
+    expect(out).toContain("Wrote 19 new packs and new sources on 0 packs.");
+    const account = await getDb().collection("user").findOne({ email: ARCHIVE_ACCOUNT.email });
+    expect(account).toMatchObject({ system: true, username: "haruhime archive" });
+    const packs = await archivePacks();
+    expect(packs).toHaveLength(19);
+    for (const pack of packs) {
+      expect(pack.ownerId.equals(account?._id as ObjectId)).toBe(true);
+      expect(pack.visibility).toBe("public");
+    }
+    // Created in pool id order, so the newest pool is first on /packs.
+    expect(packs[0]?.archive?.sources.map((source) => source.id)).toEqual(["58"]);
+    const owc = packs.find((pack) => pack.name === "osu! World Cup 2023 Grand Finals");
+    expect(owc).toMatchObject({
+      description: "Archived from otdb pool #657: https://otdb.sheppsu.me/mappool/657",
+      archive: {
+        tournament: "osu! World Cup 2023",
+        round: "Grand Finals",
+        year: 2023,
+        badged: null,
+        fingerprint: expect.stringMatching(/^[0-9a-f]{64}$/),
+        sources: [
+          { kind: "otdb", id: "657", url: "https://otdb.sheppsu.me/mappool/657", importedAt: NOW },
+        ],
+      },
+      stats: { count: 20, modes: ["osu"], complete: false, attempts: 1, retryAt: NOW },
+    });
+    const usa = packs.find((pack) => pack.name === "United States Cup 2017 Quarter Finals");
+    expect(usa?.archive?.sources.map((source) => source.id)).toEqual(["71", "418"]);
+    // The stats job takes the seeded, incomplete stats at once.
+    expect(await countPacksNeedingStats(NOW)).toBe(19);
+    // They're on /packs and in its index like any public pack.
+    expect((await listPublicPacks(1)).total).toBe(19);
+    const index = await buildSearchIndex();
+    // Newest created first: the highest pool id.
+    expect(index.packs[0]?.n).toBe("5 Digit North American Draft Swiss Round 1 & 2");
+    expect(index.packs.find((entry) => entry.s === owc?.slug)).toMatchObject({
+      o: "haruhime archive",
+      c: 20,
+      k: false,
+    });
+  });
+
+  it("changes nothing on a second run", async () => {
+    await withSample(["otdb"]);
+    const before = await archivePacks();
+    const { code, out } = await withSample(["otdb"]);
+    expect(code).toBe(0);
+    expect(out).toMatch(/New packs\s+0/);
+    expect(out).toMatch(/Unchanged\s+21/);
+    expect(out).toContain("Wrote 0 new packs and new sources on 0 packs.");
+    expect(await archivePacks()).toEqual(before);
+    expect(await getDb().collection("user").countDocuments({})).toBe(1);
+  });
+
+  it("adds a second copy of a stored pool as a new source on its pack", async () => {
+    await withSample(["otdb"]);
+    const [first] = SAMPLE();
+    const copy = [{ ...first, id: 9001, name: "Cindelluna's Winter Tour 2019 Finals rerun" }];
+    const { out } = await withSample(["otdb"], {}, JSON.stringify(copy));
+    expect(out).toMatch(/Updated \(new source\)\s+1/);
+    expect(out).toContain("gains otdb #9001");
+    const pack = await getPackModel().findOne({ "archive.sources.id": "9001" }).lean();
+    expect(pack?.name).toBe("Cindelluna's Winter Tour 2019 Finals (20k-10k)");
+    expect(pack?.archive?.sources.map((source) => source.id)).toEqual(["58", "9001"]);
+    expect(await archivePacks()).toHaveLength(19);
+  });
+
+  it("gives a changed pool its own pack, keeps the old one, and flags the pair", async () => {
+    await withSample(["otdb"]);
+    const [first] = SAMPLE();
+    if (!first) throw new Error("empty sample");
+    const [connection, ...rest] = first.beatmap_connections;
+    if (!connection) throw new Error("empty pool");
+    const changed = [
+      {
+        ...first,
+        beatmap_connections: [
+          {
+            ...connection,
+            beatmap: {
+              ...connection.beatmap,
+              beatmap_metadata: { ...connection.beatmap.beatmap_metadata, id: 4242 },
+            },
+          },
+          ...rest,
+        ],
+      },
+    ];
+    const { out } = await withSample(["otdb"], {}, JSON.stringify(changed));
+    expect(out).toMatch(/New packs\s+1/);
+    expect(out).toMatch(/Changed pools\s+1/);
+    expect(out).toMatch(/otdb #58 {2}was [\w-]{10} \(Cindelluna's .*\), now a new pack/);
+    const both = await getPackModel().find({ "archive.sources.id": "58" }).lean();
+    expect(both).toHaveLength(2);
+  });
+
+  it("never imports a pool again after an admin hid its pack", async () => {
+    await withSample(["otdb"]);
+    const [pack] = await archivePacks();
+    if (!pack) throw new Error("nothing imported");
+    await setPackHidden(pack.slug, new ObjectId().toHexString(), true);
+    const { out } = await withSample(["otdb"]);
+    expect(out).toMatch(/New packs\s+0/);
+    expect(await archivePacks()).toHaveLength(19);
+  });
+
+  it("downloads otdb's export when no file is given", async () => {
+    const fetch = vi.fn(async () => new Response(SAMPLE_TEXT));
+    const { code, out } = await run(["otdb", "--dry-run"], { fetch });
+    expect(code).toBe(0);
+    expect(out).toContain("otdb: 22 pools read.");
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledWith(OTDB_EXPORT_URL, expect.anything());
+  });
+
+  it.each([
+    ["a failed download", ["otdb"], "Downloading the otdb export failed (500)."],
+    ["a missing file", ["otdb", "--file", "missing.json"], "ENOENT: missing.json"],
+  ])("stops with exit code 1 on %s", async (_label, argv, message) => {
+    const { code, err } = await run(argv);
+    expect(code).toBe(1);
+    expect(err).toContain(`archive:import stopped: ${message}`);
+    expect(await getDb().collection("packs").countDocuments({})).toBe(0);
+  });
+
+  it("stops on a file that isn't JSON or an export that isn't a list", async () => {
+    expect((await withSample(["otdb"], {}, "not json")).code).toBe(1);
+    const notAList = await withSample(["otdb"], {}, "{}");
+    expect(notAList.code).toBe(1);
+    expect(notAList.err).toContain("The otdb export isn't a list of pools.");
+  });
+
+  it("answers 2 with the usage for bad arguments", async () => {
+    const { code, err } = await run(["otr"]);
+    expect(code).toBe(2);
+    expect(err).toContain("Usage: bun run archive:import otdb [--dry-run] [--file <path>]");
+  });
+
+  describe("refreshing the site", () => {
+    const site = "https://packs.example";
+
+    it("asks the site to refresh /packs after a real import that wrote something", async () => {
+      const fetch = vi.fn(async () => Response.json({ revalidated: true }));
+      const { code, out } = await withSample(["otdb"], {
+        fetch,
+        siteUrl: site,
+        cronSecret: () => "cron-secret-for-tests-0123456789",
+      });
+      expect(code).toBe(0);
+      expect(fetch).toHaveBeenCalledWith(`${site}${REVALIDATE_PACKS_PATH}`, {
+        method: "POST",
+        headers: expect.objectContaining({
+          Authorization: "Bearer cron-secret-for-tests-0123456789",
+        }),
+      });
+      expect(out).toContain(`Refreshed /packs and its index on ${site}.`);
+    });
+
+    it("doesn't ask on a dry run or when nothing changed", async () => {
+      const fetch = vi.fn(async () => Response.json({ revalidated: true }));
+      const deps = { fetch, siteUrl: site, cronSecret: () => "cron-secret-for-tests-0123456789" };
+      await withSample(["otdb", "--dry-run"], deps);
+      await withSample(["otdb"]);
+      await withSample(["otdb"], deps);
+      expect(fetch).not.toHaveBeenCalled();
+    });
+
+    it("says when it can't ask, and still finishes", async () => {
+      const noSecret = await withSample(["otdb"], { siteUrl: site });
+      expect(noSecret.code).toBe(0);
+      expect(noSecret.out).toContain(
+        `CRON_SECRET isn't set, so ${site} wasn't asked to refresh. /packs refreshes on its own within 5 minutes.`,
+      );
+    });
+
+    it("warns when the site refuses or the secret is bad, and still finishes", async () => {
+      const refused = await withSample(["otdb"], {
+        fetch: async () => new Response("", { status: 401 }),
+        siteUrl: site,
+        cronSecret: () => "wrong-secret-for-tests-000000000",
+      });
+      expect(refused.code).toBe(0);
+      expect(refused.err).toContain(`Couldn't refresh /packs on ${site}: the site answered 401.`);
+      await getDb().collection("packs").deleteMany({});
+      const bad = await withSample(["otdb"], {
+        cronSecret: () => {
+          throw new Error("Missing or invalid environment variables: CRON_SECRET.");
+        },
+      });
+      expect(bad.code).toBe(0);
+      expect(bad.err).toContain("CRON_SECRET. /packs refreshes on its own within 5 minutes.");
+    });
+  });
+});

@@ -4,14 +4,34 @@
  *       account that owns every archive pack: a users record with `system: true`, no osu! id and
  *       no linked osu! account, so nobody can sign in or use an API key as it (src/lib/auth.ts,
  *       src/services/api-keys.ts). It has no pack cap: the importer writes its packs directly.
+ *       importArchive plans normalized pools against the stored archive packs (hidden ones
+ *       included, so a pool an admin hid is never imported again) and, unless it's a dry run,
+ *       writes the plan: new public packs with their seeded stats and archive details, and new
+ *       sources on stored packs (through the driver, so `updatedAt` never moves). A dry run
+ *       writes nothing, the account included. Revalidating the live site is the runner's job
+ *       (src/lib/archive-import.ts): this code also runs outside Next.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
  */
 
 import "server-only";
-import { ARCHIVE_ACCOUNT } from "@/constants/archive";
+import { bucketsOf, canonicalBuckets } from "@haruhimemoe/pool";
+import { type Document, ObjectId } from "mongodb";
+import { nanoid } from "nanoid";
+import { ARCHIVE_ACCOUNT, type ArchiveSourceKind } from "@/constants/archive";
+import { SLUG_LENGTH } from "@/constants/pack";
 import { connectedDb } from "@/lib/db";
+import { connectedPackModel } from "@/services/packs";
+import {
+  type ArchivePlan,
+  type ExistingArchivePack,
+  planArchiveImport,
+} from "@/utils/archive-import";
+import type { ArchiveSourceRef, NormalizedPool, SkippedPool } from "@/utils/archive-pools";
+import { type PackStatsRecord, statsRetryAt } from "@/utils/saved-pack-stats";
+
+const SLUG_ATTEMPTS = 3;
 
 /**
  * @function ensureArchiveAccount
@@ -37,4 +57,145 @@ export const ensureArchiveAccount = async (now: Date = new Date()): Promise<stri
   );
   if (!doc) throw new Error("archive account upsert returned no document");
   return doc._id.toString();
+};
+
+/**
+ * @function listArchivePacks
+ * @returns {Promise<ExistingArchivePack[]>} every stored archive pack (any visibility, hidden ones
+ *          included) with its fingerprint and sources. Reads only: no index is built for it.
+ */
+export const listArchivePacks = async (): Promise<ExistingArchivePack[]> => {
+  const packs = (await connectedDb()).collection("packs");
+  const docs = await packs
+    .find(
+      { "archive.fingerprint": { $exists: true } },
+      { projection: { slug: 1, name: 1, "archive.fingerprint": 1, "archive.sources": 1 } },
+    )
+    .toArray();
+  return docs.map((doc) => ({
+    slug: String(doc.slug),
+    name: String(doc.name),
+    fingerprint: String(doc.archive.fingerprint),
+    sources: (Array.isArray(doc.archive.sources) ? doc.archive.sources : []).map(
+      (source: { kind?: unknown; id?: unknown }) => ({
+        kind: String(source.kind),
+        id: String(source.id),
+      }),
+    ),
+  }));
+};
+
+/** Seeded stats as stored: incomplete ones due for the stats job at once (statsRetryAt). */
+const seededStats = (stats: PackStatsRecord) =>
+  stats.complete ? stats : { ...stats, attempts: 1, retryAt: statsRetryAt(stats.computedAt, 1) };
+
+const isDuplicateOf = (error: unknown, field: string): boolean => {
+  if (typeof error !== "object" || error === null) return false;
+  const { code, keyPattern } = error as { code?: unknown; keyPattern?: unknown };
+  return (
+    code === 11000 && typeof keyPattern === "object" && keyPattern !== null && field in keyPattern
+  );
+};
+
+type StoredSource = { kind: ArchiveSourceKind; id: string; url: string; importedAt: Date };
+
+const stamped = (sources: readonly ArchiveSourceRef[], now: Date): StoredSource[] =>
+  sources.map(({ kind, id, url }) => ({ kind, id, url, importedAt: now }));
+
+export type ArchiveWrites = { created: number; updated: number };
+
+/**
+ * @function applyArchivePlan
+ * @param plan {ArchivePlan} what to write
+ * @param options {{ ownerId: string; now?: Date; makeSlug?: () => string }} the archive account,
+ *        the import time, and the slug source (tests)
+ * @returns {Promise<ArchiveWrites>} how many packs were created, and how many stored packs gained
+ *          a source. A pool another import created meanwhile gets the sources instead of a
+ *          second pack (the fingerprint index refuses it), and a source a pack already has is
+ *          never added twice.
+ */
+export const applyArchivePlan = async (
+  plan: ArchivePlan,
+  {
+    ownerId,
+    now = new Date(),
+    makeSlug = () => nanoid(SLUG_LENGTH),
+  }: { ownerId: string; now?: Date; makeSlug?: () => string },
+): Promise<ArchiveWrites> => {
+  const model = await connectedPackModel();
+  const addSources = async (filter: Document, sources: readonly ArchiveSourceRef[]) => {
+    let added = false;
+    for (const source of stamped(sources, now)) {
+      const result = await model.collection.updateOne(
+        {
+          ...filter,
+          "archive.sources": { $not: { $elemMatch: { kind: source.kind, id: source.id } } },
+        },
+        { $push: { "archive.sources": source } } as Document,
+      );
+      added ||= result.modifiedCount > 0;
+    }
+    return added;
+  };
+  let created = 0;
+  let updated = 0;
+  for (const { pool, sources } of plan.create) {
+    const buckets = canonicalBuckets(bucketsOf(pool.input));
+    for (let attempt = 1; ; attempt++) {
+      try {
+        await model.create({
+          slug: makeSlug(),
+          ownerId: new ObjectId(ownerId),
+          name: pool.input.name,
+          slots: pool.input.slots,
+          ...(buckets ? { buckets } : {}),
+          ...(pool.input.description ? { description: pool.input.description } : {}),
+          visibility: "public",
+          stats: seededStats(pool.stats),
+          archive: {
+            tournament: pool.archive.tournament,
+            round: pool.archive.round,
+            year: pool.archive.year,
+            badged: null,
+            fingerprint: pool.fingerprint,
+            sources: stamped(sources, now),
+          },
+        });
+        created++;
+        break;
+      } catch (error) {
+        if (isDuplicateOf(error, "archive.fingerprint")) {
+          if (await addSources({ "archive.fingerprint": pool.fingerprint }, sources)) updated++;
+          break;
+        }
+        if (attempt < SLUG_ATTEMPTS && isDuplicateOf(error, "slug")) continue;
+        throw error;
+      }
+    }
+  }
+  for (const update of plan.update) {
+    if (await addSources({ slug: update.slug }, update.sources)) updated++;
+  }
+  return { created, updated };
+};
+
+export type ArchiveImport = ArchiveWrites & { plan: ArchivePlan };
+
+/**
+ * @function importArchive
+ * @param pools {readonly NormalizedPool[]} one source's normalized pools, in creation order
+ * @param skipped {readonly SkippedPool[]} pools already left out (for the report)
+ * @param options {{ dryRun: boolean; now?: Date; makeSlug?: () => string }} whether to write,
+ *        the import time, and the slug source (tests)
+ * @returns {Promise<ArchiveImport>} the plan, and what was written (nothing on a dry run)
+ */
+export const importArchive = async (
+  pools: readonly NormalizedPool[],
+  skipped: readonly SkippedPool[],
+  { dryRun, now = new Date(), makeSlug }: { dryRun: boolean; now?: Date; makeSlug?: () => string },
+): Promise<ArchiveImport> => {
+  const plan = planArchiveImport(pools, skipped, await listArchivePacks());
+  if (dryRun) return { plan, created: 0, updated: 0 };
+  const ownerId = await ensureArchiveAccount(now);
+  return { plan, ...(await applyArchivePlan(plan, { ownerId, now, makeSlug })) };
 };
