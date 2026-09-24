@@ -6,10 +6,9 @@
  * @modified Wed Sep 23, 2026
  */
 
-import { Button, fieldClasses, PageHeader } from "@haruhimemoe/ui";
+import { Button, fieldClasses, PageHeader, Pagination } from "@haruhimemoe/ui";
 import Link from "next/link";
 import { AdminPackTable } from "@/components/admin/AdminPackTable";
-import { Pagination } from "@/components/packs/Pagination";
 import type { AdminPackPage } from "@/schemas/public-pack";
 import { cn } from "@/utils/cn";
 import { adminHref } from "@/utils/paging";
@@ -63,7 +62,9 @@ export function AdminScreen({ rows, page, pageCount, total, hiddenOnly, query }:
       <Pagination
         page={page}
         pageCount={pageCount}
-        href={(n) => adminHref({ page: n, hiddenOnly, query })}
+        hrefFor={(n) => adminHref({ page: n, hiddenOnly, query })}
+        previousLabel="Newer"
+        nextLabel="Older"
       />
     </div>
   );

@@ -7,7 +7,7 @@
  * @modified Wed Sep 23, 2026
  */
 
-import { ButtonLink, Card, PageHeader } from "@haruhimemoe/ui";
+import { ButtonLink, Card, PageHeader, Pagination } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { ApiKeyCard } from "@/components/account/ApiKeyCard";
 import { DeleteAccountButton } from "@/components/account/DeleteAccountButton";
@@ -15,7 +15,6 @@ import { DownloadDataLink } from "@/components/account/DownloadDataLink";
 import { RestoreSignedIn } from "@/components/auth/RestoreSignedIn";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { MyPacksList } from "@/components/pack/MyPacksList";
-import { Pagination } from "@/components/packs/Pagination";
 import { MAX_SAVED_PACKS } from "@/constants/pack";
 import { requireUser } from "@/lib/auth-session";
 import { getApiKeyInfo } from "@/services/api-keys";
@@ -61,7 +60,13 @@ export default async function MyPacksPage({ searchParams }: PageProps<"/me">) {
       >
         <div className="flex flex-col gap-4">
           <MyPacksList packs={packs} total={total} />
-          <Pagination page={page} pageCount={pageCount} href={myPacksHref} />
+          <Pagination
+            page={page}
+            pageCount={pageCount}
+            hrefFor={myPacksHref}
+            previousLabel="Newer"
+            nextLabel="Older"
+          />
         </div>
       </Card>
       <ApiKeyCard initial={apiKey} />

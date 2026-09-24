@@ -6,8 +6,7 @@
  * @modified Wed Sep 23, 2026
  */
 
-import { PageHeader } from "@haruhimemoe/ui";
-import { Pagination } from "@/components/packs/Pagination";
+import { PageHeader, Pagination } from "@haruhimemoe/ui";
 import { PublicPackList } from "@/components/packs/PublicPackList";
 import { PublicPackSearch } from "@/components/packs/PublicPackSearch";
 import type { PublicPackPage } from "@/schemas/public-pack";
@@ -27,7 +26,13 @@ export function PublicPacksScreen({ packs, page, pageCount, total }: PublicPackP
       <PublicPackSearch>
         <div className="flex flex-col gap-4">
           <PublicPackList packs={packs} />
-          <Pagination page={page} pageCount={pageCount} href={publicPageHref} />
+          <Pagination
+            page={page}
+            pageCount={pageCount}
+            hrefFor={publicPageHref}
+            previousLabel="Newer"
+            nextLabel="Older"
+          />
         </div>
       </PublicPackSearch>
     </div>

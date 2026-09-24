@@ -3,10 +3,10 @@
  * @desc /packs body: cards, count, paging links, empty state.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Wed Sep 23, 2026
  */
 
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { PublicPacksScreen } from "@/components/packs/PublicPacksScreen";
 import type { PublicPackCard } from "@/schemas/public-pack";
@@ -39,9 +39,15 @@ describe("PublicPacksScreen", () => {
 
   it("links newer and older pages", () => {
     render(<PublicPacksScreen packs={[CARD]} page={2} pageCount={3} total={60} />);
-    expect(screen.getByRole("link", { name: "Newer" })).toHaveAttribute("href", "/packs");
-    expect(screen.getByRole("link", { name: "Older" })).toHaveAttribute("href", "/packs/page/3");
-    expect(screen.getByText("Page 2 of 3")).toBeInTheDocument();
+    const pages = screen.getByRole("navigation", { name: "Pages" });
+    expect(within(pages).getByRole("link", { name: "Newer" })).toHaveAttribute("href", "/packs");
+    expect(within(pages).getByRole("link", { name: "Newer" })).toHaveAttribute("rel", "prev");
+    expect(within(pages).getByRole("link", { name: "Older" })).toHaveAttribute(
+      "href",
+      "/packs/page/3",
+    );
+    expect(within(pages).getByRole("link", { name: "Older" })).toHaveAttribute("rel", "next");
+    expect(within(pages).getByText("Page 2 of 3")).toBeInTheDocument();
   });
 
   it("explains an empty list", () => {
