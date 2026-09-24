@@ -91,7 +91,7 @@ export const llmsSections = (): LlmsSection[] => [
       {
         title: "Public packs index",
         url: at("/packs/index.json"),
-        description: `JSON { v: 1, packs: [{ s: slug, n: name, o: owner's osu! username, c: map count, d: description excerpt (up to ${DESCRIPTION_EXCERPT_LENGTH} characters), u: last updated (ISO 8601), t: created (ISO 8601), and once computed r: [min, max] star rating, a: average stars, l: [min, max] length in seconds, b: [min, max] BPM, m: mods (comma-separated), g: rulesets (comma-separated), k: stats complete; archive packs also x: 1, xk: source (${list(ARCHIVE_SOURCE_KINDS)}), xu: the pool's page there }] }. Up to ${SEARCH_INDEX_LIMIT.toLocaleString("en-US")} packs: community packs newest created first, then archive packs newest created first. No key needed. A pack's page is ${at("/p/")}{s}.`,
+        description: `JSON { v: 1, packs: [{ s: slug, n: name, o: owner's osu! username, c: map count, d: description excerpt (up to ${DESCRIPTION_EXCERPT_LENGTH} characters, plus … when cut), u: last updated (ISO 8601), t: created (ISO 8601), and once computed r: [min, max] star rating, a: average stars, l: [min, max] length in seconds, b: [min, max] BPM, m: mods (comma-separated), g: rulesets (comma-separated), k: stats complete; archive packs also x: 1, xk: source (${list(ARCHIVE_SOURCE_KINDS)}), xu: the pool's page there, and they start with otdb's stats and k: false until the daily stats job works them out }] }. Up to ${SEARCH_INDEX_LIMIT.toLocaleString("en-US")} packs: community packs newest created first, then archive packs newest created first. No key needed. A pack's page is ${at("/p/")}{s}.`,
       },
       {
         title: "Map usage",

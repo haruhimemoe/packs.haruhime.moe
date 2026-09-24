@@ -75,6 +75,8 @@ describe("buildLlmsTxt", () => {
     expect(text).toContain("r: [min, max] star rating");
     expect(text).toContain("k: stats complete");
     expect(text).toContain("xk: source (otdb, otr, wybin)");
+    expect(text).toContain("characters, plus … when cut)");
+    expect(text).toContain("they start with otdb's stats and k: false");
     expect(text).toContain(
       "community packs newest created first, then archive packs newest created first",
     );

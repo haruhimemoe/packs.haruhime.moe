@@ -1,6 +1,6 @@
 /**
  * @file src/constants/pack-filters.ts
- * @desc The /packs filter bar (filters spec): slider bounds, sort options, mode and source chip
+ * @desc The /packs filter bar: slider bounds, sort options, mode and source chip
  *       labels, how many filtered cards show at a time, how long a loaded index is kept, how often the place
  *       in the results is saved for Back, and the timings that keep screen readers and the
  *       browser's history calm while someone drags a slider or types.
@@ -78,7 +78,7 @@ export const MODE_LABELS: Readonly<Record<Ruleset, string>> = Object.freeze({
 
 /**
  * Where a public pack comes from: saved by someone (community), or a past tournament pool we
- * imported (archive, pool archive spec). Both are shown by default.
+ * imported (archive). Both are shown by default.
  */
 export const PACK_SOURCES = ["community", "archive"] as const;
 

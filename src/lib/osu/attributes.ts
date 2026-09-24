@@ -11,7 +11,7 @@
  *       again. Never throws.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import "server-only";
@@ -30,7 +30,7 @@ import { getOsuClient, OsuApiError, type OsuClient } from "@/lib/osu";
 import { shuffled } from "@/utils/shuffle";
 import { runPool } from "@/utils/task-pool";
 
-/** Counters outlive their window by a minute, like qol-5's src/lib/rate-limit.ts. */
+/** Counters outlive their window by a minute, like the ones in src/lib/rate-limit.ts. */
 const BUDGET_GRACE_MS = 60_000;
 
 type StarDoc = { _id: string; stars: number; fetchedAt: Date };

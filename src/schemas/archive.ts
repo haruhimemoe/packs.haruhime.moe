@@ -1,6 +1,6 @@
 /**
  * @file src/schemas/archive.ts
- * @desc Archive packs (pool archive spec): the `archive` details a pack imported from a tournament
+ * @desc Archive packs: the `archive` details a pack imported from a tournament
  *       pool source carries (tournament, round, year, badged, fingerprint, sources), as the site
  *       and the API send them. Read-only: only the importer writes them, and pack bodies never
  *       carry them. Also a card's link to its first source.

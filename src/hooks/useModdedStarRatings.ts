@@ -1,13 +1,13 @@
 /**
  * @file src/hooks/useModdedStarRatings.ts
- * @desc Star ratings with mods for a pool (qol spec §5.2, controller ruling 2026-09-22): works out
+ * @desc Star ratings with mods for a pool: works out
  *       the (beatmap, mods) pairs its slots need, asks /api/osu/star-ratings with the canonical
  *       query (after a delay in the editor), and while osu! still owes pairs asks again every 5 s,
  *       at most 12 times. A pair the server leaves out, or still owes at the end, is failed, and
  *       its slot keeps the rating without mods.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 "use client";

@@ -1,6 +1,6 @@
 /**
  * @file src/hooks/useMapUsage.ts
- * @desc Map usage for a pool's maps (pool archive spec, part 2): asks
+ * @desc Map usage for a pool's maps: asks
  *       /api/v1/beatmaps/usage once for every map it doesn't know yet, ids sorted so every viewer
  *       of a pack shares one CDN-cached URL, and keeps the answers while the pool changes. The
  *       first ask goes out at once; in the editor, later ones wait for the pool to hold still.

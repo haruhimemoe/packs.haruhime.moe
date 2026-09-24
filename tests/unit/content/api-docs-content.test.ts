@@ -17,7 +17,12 @@ import { API_PAGE_SIZE, OPENAPI_PATH, RATE_LIMITS, UNKNOWN_OWNER_NAME } from "@/
 import { ARCHIVE_ACCOUNT } from "@/constants/archive";
 import { DOC_DOCS, DOC_SLUGS } from "@/constants/docs";
 import { MAX_USAGE_IDS } from "@/constants/map-usage";
-import { MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH, MAX_SLOTS } from "@/constants/pack";
+import {
+  DESCRIPTION_EXCERPT_LENGTH,
+  MAX_DESCRIPTION_LENGTH,
+  MAX_NAME_LENGTH,
+  MAX_SLOTS,
+} from "@/constants/pack";
 import { SEARCH_INDEX_LIMIT } from "@/constants/public-packs";
 import { errorCodeFor } from "@/lib/api";
 import { API_OPERATIONS } from "@/lib/openapi";
@@ -135,6 +140,17 @@ describe("pack stats", () => {
   it("says stats arrive after a save", () => {
     expect(text()).toContain("a few seconds after each save");
     expect(text()).toContain("- 2026-09-24: pack objects carry `stats`");
+  });
+
+  it("says archive packs start with otdb's numbers, always incomplete", () => {
+    expect(text()).toContain("Archive packs start with `complete` false and otdb's numbers");
+    expect(text()).toContain("archive packs last, so that can take many days");
+  });
+
+  it("says a cut description excerpt ends in an ellipsis", () => {
+    expect(text()).toContain(
+      `up to ${DESCRIPTION_EXCERPT_LENGTH} characters, plus \`…\` when it's cut`,
+    );
   });
 
   it("says a map osu! doesn't have is left out without making the stats incomplete", () => {

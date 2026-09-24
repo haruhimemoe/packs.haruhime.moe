@@ -1,6 +1,6 @@
 /**
  * @file src/services/pack-stats.ts
- * @desc Pack stats in the database (filters spec). After a save, refreshPackStats computes one
+ * @desc Pack stats in the database. After a save, refreshPackStats computes one
  *       pack's stats; the daily cron and the admin button run runPackStatsJob, which repairs
  *       missing or incomplete stats a batch at a time: packs with no stats first, then incomplete
  *       ones that are due for a retry, oldest first; in each group, listed public and unlisted

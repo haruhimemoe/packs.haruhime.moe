@@ -1,6 +1,6 @@
 /**
  * @file src/services/map-usage.ts
- * @desc Map usage in the database (pool archive spec, part 2): the map_usage collection, one
+ * @desc Map usage in the database: the map_usage collection, one
  *       document per beatmap id ({ _id, entries, updatedAt }), built from archive packs only
  *       (public and not hidden: the packs anyone can open). rebuildMapUsage rebuilds the given
  *       beatmaps, or all of them, from the packs and writes only what changed, going round again

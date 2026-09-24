@@ -1,6 +1,6 @@
 /**
  * @file src/lib/pack-stats.ts
- * @desc Server plumbing for pack stats (filters spec): run work after the response (Next's
+ * @desc Server plumbing for pack stats: run work after the response (Next's
  *       after()), beatmap metadata from the hinai mirror (JSON only, 100 ids a call, never .osz)
  *       with osu! for the ids the mirror lacks, and ratings with mods from the star_ratings cache
  *       and osu! (getStarRatings). Every osu! call spends the shared budget, and the caller's

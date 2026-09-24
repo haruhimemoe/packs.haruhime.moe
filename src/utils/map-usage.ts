@@ -1,6 +1,6 @@
 /**
  * @file src/utils/map-usage.ts
- * @desc Map usage (pool archive spec, part 2): which archive packs used a beatmap, built from the
+ * @desc Map usage: which archive packs used a beatmap, built from the
  *       packs themselves. One entry per slot a map fills (a pool with the map in two slots gives
  *       two), in one fixed order: most recent year first, then pools without a year, then by
  *       tournament, round, slug and slot. `count` is how many pools, so a pool that uses a map

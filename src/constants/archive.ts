@@ -1,6 +1,6 @@
 /**
  * @file src/constants/archive.ts
- * @desc Archived tournament pools (pool archive spec): the sources archive packs come from, how
+ * @desc Archived tournament pools: the sources archive packs come from, how
  *       they're named, otdb's export and pool pages, and the system account that owns every
  *       archive pack. Shared by the importer, the server and the /packs cards.
  * @author David @dvhsh (https://dvh.sh)

@@ -364,6 +364,14 @@ describe("disclaimers", () => {
     expect(text()).not.toContain("Our server never contacts the mirror");
   });
 
+  it("names the importer's download from otdb", () => {
+    expect(text()).toContain("**Our importer to otdb.**");
+  });
+
+  it("says archived pools start with otdb's numbers", () => {
+    expect(text()).toContain("Archived pools start with otdb's numbers instead");
+  });
+
   it.each(["**Pack stats.**", "**Archived pools.**", "counts only the archived pools we imported"])(
     "says what our other numbers mean: %j",
     (phrase) => {

@@ -1,12 +1,12 @@
 /**
  * @file src/components/pack/ModsField.tsx
- * @desc A custom slot's mods (qol spec §5.1): No mods, Forced (six toggle chips; the other half of
+ * @desc A custom slot's mods: No mods, Forced (six toggle chips; the other half of
  *       EZ+HR or DT+HT and a fourth mod are blocked, but stay focusable, with the reason as a
  *       title for mouse users and an aria-describedby'd description for screen readers), or
  *       Freemod.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 "use client";

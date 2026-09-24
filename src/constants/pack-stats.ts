@@ -1,6 +1,6 @@
 /**
  * @file src/constants/pack-stats.ts
- * @desc Pack stats (filters spec): the mod codes a pack's stats can hold, which forced mods change
+ * @desc Pack stats: the mod codes a pack's stats can hold, which forced mods change
  *       star rating and speed, how much osu! and mirror work one stats run may do, and how long
  *       incomplete stats wait between retries. Shared by the server (which computes stats) and the
  *       browser (which filters on them).

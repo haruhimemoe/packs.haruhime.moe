@@ -1,7 +1,7 @@
 /**
  * @file src/app/api/v1/beatmaps/[id]/usage/route.ts
  * @desc GET /api/v1/beatmaps/{id}/usage: the archive pools one beatmap was used in, most recent
- *       year first, and how many pools (pool archive spec, part 2). Public: no key, counted per
+ *       year first, and how many pools. Public: no key, counted per
  *       IP (RATE_LIMITS.mapUsage), and CDN-cached (MAP_USAGE_CACHE). A bad id is a 400.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026

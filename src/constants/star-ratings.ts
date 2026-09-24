@@ -1,11 +1,11 @@
 /**
  * @file src/constants/star-ratings.ts
- * @desc Star ratings with mods (qol spec §5.2, controller ruling 2026-09-22): the Mongo cache, the
- *       global osu! API budget (same document shape as the rate limits qol-5 adds in src/lib/rate-limit.ts)
- *       and each IP's share of it, per-request limits, and the browser's timing. Shared by the server and the browser.
+ * @desc Star ratings with mods: the Mongo cache, the global osu! API budget (the same document
+ *       shape as the rate limits in src/lib/rate-limit.ts) and each IP's share of it, per-request
+ *       limits, and the browser's timing. Shared by the server and the browser.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import type { ModAcronym } from "@haruhimemoe/pool";

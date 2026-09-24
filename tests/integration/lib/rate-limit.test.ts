@@ -1,11 +1,11 @@
 /**
  * @file tests/integration/lib/rate-limit.test.ts
  * @desc Fixed-window counters in rate_limits: counting, per-subject and per-window isolation,
- *       the TTL index (created by connectDb, shared with qol-3's osu! budget), and per-user
+ *       the TTL index (created by connectDb, shared with the global osu! budget), and per-user
  *       cleanup that leaves the osu! budget counter alone.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -94,7 +94,7 @@ describe("deleteRateLimitsFor", () => {
     await hitRateLimit(RATE_LIMITS.keyCreate, USER, NOW);
     await hitRateLimit(RATE_LIMITS.api, other, NOW);
     await hitRateLimit(RATE_LIMITS.authFail, "203.0.113.9", NOW);
-    // qol-3's global osu! budget counter lives in the same collection.
+    // The global osu! budget counter lives in the same collection.
     await counters().insertOne({
       _id: `osu-api:global:${Date.parse("2026-09-22T12:00:00.000Z") / 1000}`,
       count: 3,

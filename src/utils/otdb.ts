@@ -1,6 +1,6 @@
 /**
  * @file src/utils/otdb.ts
- * @desc otdb's mappool export to source pools (pool archive spec): each pool's id, name, link
+ * @desc otdb's mappool export to source pools: each pool's id, name, link
  *       and slots (label, osu! beatmap id, and the mods otdb lists for it), plus the details the
  *       export has for each map, which
  *       seed pack stats: length and BPM (without mods), mode osu (otdb is osu!standard only), and

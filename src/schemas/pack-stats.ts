@@ -1,6 +1,6 @@
 /**
  * @file src/schemas/pack-stats.ts
- * @desc Pack stats (filters spec) as the site and the API send them, and their compact form in
+ * @desc Pack stats as the site and the API send them, and their compact form in
  *       the search index and on public cards. The server computes them from the pack's slots and
  *       beatmap metadata when it saves a pack; the browser never sends them. Also what one run of
  *       the stats job reports.

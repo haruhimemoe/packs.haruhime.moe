@@ -1,6 +1,6 @@
 /**
  * @file tests/unit/utils/saved-pack-stats.test.ts
- * @desc Pack stats from slots and metadata (filters spec): plain and mod-adjusted star ratings,
+ * @desc Pack stats from slots and metadata: plain and mod-adjusted star ratings,
  *       DT/HT length and BPM, the mod codes a pack has, rulesets, missing maps and ratings, maps
  *       osu! says are gone (left out, still complete), seeded metadata without a plain rating,
  *       mixed modes, an empty pack, rounding; the rating pairs a pack needs; when the job may retry

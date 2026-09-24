@@ -1,10 +1,10 @@
 /**
  * @file src/app/api/v1/beatmaps/usage/route.ts
  * @desc GET /api/v1/beatmaps/usage?ids=1,2,3: the archive pools each of up to MAX_USAGE_IDS
- *       beatmaps was used in, one answer per id in the order asked, each id once (pool archive
- *       spec, part 2). Pack pages and the editor ask it once for all their maps. Public: no key,
- *       counted per IP (RATE_LIMITS.mapUsage), and CDN-cached (MAP_USAGE_CACHE), so the site asks
- *       with its ids sorted and every viewer of a pack shares one URL.
+ *       beatmaps was used in, one answer per id in the order asked, each id once. Pack pages
+ *       and the editor ask it once for all their maps. Public: no key, counted per IP
+ *       (RATE_LIMITS.mapUsage), and CDN-cached (MAP_USAGE_CACHE), so the site asks with its ids
+ *       sorted and every viewer of a pack shares one URL.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026

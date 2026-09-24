@@ -1,13 +1,13 @@
 /**
  * @file src/utils/slot-stars.ts
- * @desc Star ratings per slot (qol spec §5.3): what each slot plays with, what its star badge
+ * @desc Star ratings per slot: what each slot plays with, what its star badge
  *       shows (a forced slot's modded rating with the plain one in the title; a freemod slot's
  *       plain rating plus a row of modded ones; the plain rating with a note while a forced slot's
  *       rating with mods loads, and when the calculation failed), the (beatmap, mods) pairs a pool asks /api/osu/star-ratings for, the ratings
  *       each slot gets back, and the stars pack stats use. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";

@@ -1,6 +1,6 @@
 /**
  * @file src/utils/archive-names.ts
- * @desc Tournament, round and year from an archived pool's name (pool archive spec). Sources give
+ * @desc Tournament, round and year from an archived pool's name. Sources give
  *       one string ("osu! World Cup 2023 Grand Finals"): the first round token splits it, the
  *       tournament is everything before it, and the round is the token and everything after it
  *       (a tier, division or bracket like "(20k-10k)" stays with the round), each token in its

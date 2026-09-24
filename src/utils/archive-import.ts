@@ -1,6 +1,6 @@
 /**
  * @file src/utils/archive-import.ts
- * @desc Planning an archive import (pool archive spec): normalized pools against the archive
+ * @desc Planning an archive import: normalized pools against the archive
  *       packs already stored. A pool's identity is its fingerprint: a new fingerprint is a new
  *       pack; a stored one gains the source if it doesn't have it yet, and is unchanged if it
  *       does; the same pool twice in one import is one new pack with both sources. A source

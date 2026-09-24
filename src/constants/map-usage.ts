@@ -1,6 +1,6 @@
 /**
  * @file src/constants/map-usage.ts
- * @desc Map usage (pool archive spec, part 2): which archive packs used a beatmap. The collection
+ * @desc Map usage: which archive packs used a beatmap. The collection
  *       it lives in, the most ids one request takes, how long answers stay in the CDN cache, and
  *       how long the editor waits before asking. Shared by the server and the browser.
  * @author David @dvhsh (https://dvh.sh)

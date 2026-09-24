@@ -44,7 +44,7 @@ type SlotRowProps = {
   onRemove?: () => void;
   moveTargets?: readonly MoveTarget[];
   onMove?: (to: SlotBucket) => void;
-  /** What this slot plays with (qol spec §5.3). Absent: shown without mods. */
+  /** What this slot plays with. Absent: shown without mods. */
   slotMods?: SlotMods;
   /** Ratings with mods: absent while calculating, empty when they couldn't be calculated. */
   ratings?: readonly ModdedRating[];

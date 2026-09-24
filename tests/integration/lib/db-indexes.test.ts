@@ -6,7 +6,7 @@
  *       and rate-limit counters.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { describe, expect, it, vi } from "vitest";
@@ -66,7 +66,7 @@ describe("ensureIndexes", () => {
     expect(ttl?.expireAfterSeconds).toBe(STAR_RATINGS_TTL_SECONDS);
   });
 
-  it("expires rate-limit counters at expiresAt, with the same index qol-5 creates", async () => {
+  it("expires rate-limit counters at expiresAt", async () => {
     await connectDb();
     expect(await getDb().collection(RATE_LIMITS_COLLECTION).indexes()).toContainEqual(
       expect.objectContaining({ key: { expiresAt: 1 }, expireAfterSeconds: 0 }),

@@ -1,6 +1,6 @@
 /**
  * @file tests/unit/utils/pack-filters.test.ts
- * @desc Filters and sorts over the public pack index (filters spec): star rating, length and BPM
+ * @desc Filters and sorts over the public pack index: star rating, length and BPM
  *       ranges overlap, every ticked mod and mode must be there, the map count sits inside its
  *       range, ends are inclusive and an end at the slider's edge is open; packs without the
  *       stats a filter needs, or with incomplete stats a range or mode misses, are hidden and

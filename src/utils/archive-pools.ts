@@ -1,6 +1,6 @@
 /**
  * @file src/utils/archive-pools.ts
- * @desc Source pools to archive packs (pool archive spec), for any source. Slot labels go through
+ * @desc Source pools to archive packs, for any source. Slot labels go through
  *       @haruhimemoe/pool's pasted-pool parsing ("NM1", "HD2", "TB", and custom labels like
  *       "HDHR1" or "EZ1", which become custom slots forcing those mods when the label spells a
  *       valid set); plain numbers ("#1", "12") are maps without a slot. When the source lists

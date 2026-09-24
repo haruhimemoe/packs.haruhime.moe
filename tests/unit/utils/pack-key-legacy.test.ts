@@ -1,13 +1,13 @@
 /**
  * @file tests/unit/utils/pack-key-legacy.test.ts
- * @desc Old keys never break (qol spec §5.1): every recorded pk1/pk2 key decodes to the same pool,
+ * @desc Old keys never break: every recorded pk1/pk2 key decodes to the same pool,
  *       and that pool still encodes to the exact same key. pk3 likewise, from pk3.json: cases copied
  *       from @haruhimemoe/pool's tests/fixtures/packs-keys.json, which was recorded from packs at
  *       aa9ae4a (key and decoded pool both). Never edit or regenerate a fixture; a failure here
  *       means an existing key changed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import {

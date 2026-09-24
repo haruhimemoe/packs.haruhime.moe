@@ -1,6 +1,6 @@
 /**
  * @file src/schemas/map-usage.ts
- * @desc Map usage (pool archive spec, part 2): the archive pools a beatmap was used in, as the
+ * @desc Map usage: the archive pools a beatmap was used in, as the
  *       public API answers and the site reads it, and the `{id}` and `?ids=` the usage routes take.
  *       One entry per slot the map filled, carrying its pool's fingerprint; `count` is how many
  *       pools.

@@ -1,7 +1,7 @@
 /**
  * @file src/utils/pack-filters.ts
- * @desc Filters and sorting for public packs, run in the browser over the search index (filters
- *       spec). Star rating, length and BPM match when the pack's range overlaps the chosen one;
+ * @desc Filters and sorting for public packs, run in the browser over the search index.
+ *       Star rating, length and BPM match when the pack's range overlaps the chosen one;
  *       a pack needs every ticked mod and mode; its map count must sit inside the count range;
  *       it must come from a ticked source (community, or archive for entries with `x: 1`; both
  *       by default).

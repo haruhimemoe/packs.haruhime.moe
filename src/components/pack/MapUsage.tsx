@@ -1,6 +1,6 @@
 /**
  * @file src/components/pack/MapUsage.tsx
- * @desc "Used in N pools" in a map row's stats line (pool archive spec, part 2): a disclosure
+ * @desc "Used in N pools" in a map row's stats line: a disclosure
  *       button that opens the list of archive pools the map was used in (tournament and round,
  *       then year and slot), each linking its archive pack. Nothing at all when no other pool
  *       used the map. Its wrapper takes no box of its own, so the button sits in the flex-wrap

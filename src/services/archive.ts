@@ -1,6 +1,6 @@
 /**
  * @file src/services/archive.ts
- * @desc Archive packs in the database (pool archive spec). ensureArchiveAccount creates the system
+ * @desc Archive packs in the database. ensureArchiveAccount creates the system
  *       account that owns every archive pack: a users record with `system: true`, no osu! id and
  *       no linked osu! account, so nobody can sign in or use an API key as it (src/lib/auth.ts,
  *       src/services/api-keys.ts). It has no pack cap: the importer writes its packs directly.

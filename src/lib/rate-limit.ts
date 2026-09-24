@@ -3,12 +3,12 @@
  * @desc Fixed-window rate limits in MongoDB (collection rate_limits): one document per
  *       scope/subject/window, bumped with a single findOneAndUpdate upsert $inc, removed by the
  *       TTL index on expiresAt a minute after its window ends. The collection, the document shape
- *       and the TTL index (created by connectDb's ensureIndexes) are shared with qol-3's global
+ *       and the TTL index (created by connectDb's ensureIndexes) are shared with the global
  *       osu! budget (src/lib/osu/attributes.ts, `osu-api:global:*`). Counting fails open: if the
  *       write fails, the request is allowed and the error logged.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import "server-only";

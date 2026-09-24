@@ -1,6 +1,6 @@
 /**
  * @file src/utils/saved-pack-stats.ts
- * @desc Stats a saved pack carries for the public filters (filters spec): star rating, length and
+ * @desc Stats a saved pack carries for the public filters: star rating, length and
  *       BPM ranges, the mods and rulesets it has, its map count, and whether every lookup it needed
  *       came back (a map osu! says doesn't exist is left out and doesn't count as missing). A slot
  *       forcing EZ, HR, DT, HT or FL counts with osu!'s rating for its whole forced set; every
