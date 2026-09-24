@@ -81,7 +81,7 @@ describe("/packs", () => {
     expect(indexRequests).toHaveBeenCalledOnce();
     await waitFor(() =>
       expect(screen.getByRole("status")).toHaveTextContent(
-        "2 packs match. 1 without stats is hidden.",
+        "2 packs match. 1 pack is hidden until its stats are ready.",
       ),
     );
     expect(screen.getByRole("textbox", { name: "Minimum star rating" })).toHaveValue("5");

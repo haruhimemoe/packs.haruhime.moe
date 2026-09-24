@@ -189,10 +189,32 @@ describe("PublicPackBrowser", () => {
     setup();
     await waitFor(() =>
       expect(screen.getByRole("status")).toHaveTextContent(
-        "2 packs match. 1 without stats is hidden.",
+        "2 packs match. 1 pack is hidden until its stats are ready.",
       ),
     );
     expect(cardNames()).toEqual(["Mania Open Finals", "Spring Cup Quarterfinals"]);
+  });
+
+  it("counts a pack whose stats are incomplete as hidden when a range rules it out", async () => {
+    const partial: SearchIndexEntry = {
+      s: "partialxxx",
+      n: "Partial Cup",
+      o: "Chiyo",
+      c: 12,
+      d: "",
+      u: "2026-09-20T00:00:00.000Z",
+      r: [4.8, 6.1],
+      m: "NM,HD,HR,DT",
+      g: "osu",
+      k: false,
+    };
+    openUrl("/packs?sr=6.5-");
+    setup(async () => ({ v: 1, packs: [partial] }));
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "No packs match these filters. 1 pack is hidden until its stats are ready.",
+      ),
+    );
   });
 
   it("says when nothing matches", async () => {
@@ -203,7 +225,7 @@ describe("PublicPackBrowser", () => {
     await user.click(screen.getByRole("button", { name: "FL" }));
     await waitFor(() =>
       expect(screen.getByRole("status")).toHaveTextContent(
-        "No packs match these filters. 1 without stats is hidden.",
+        "No packs match these filters. 1 pack is hidden until its stats are ready.",
       ),
     );
   });

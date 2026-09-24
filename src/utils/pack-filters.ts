@@ -4,7 +4,9 @@
  *       spec). Star rating, length and BPM match when the pack's range overlaps the chosen one;
  *       a pack needs every ticked mod and mode; its map count must sit inside the count range.
  *       Ends are inclusive, and an end at the slider's edge is open. A pack without the stats a
- *       filter needs is left out and counted as hidden. Also the URL form of the filters
+ *       filter needs is left out and counted as hidden, and so is a pack with incomplete stats
+ *       that a range or mode rules out (the maps not looked up yet might match). Also the URL
+ *       form of the filters
  *       (`?sr=5.5-6.5&mods=HR,DT&...`), where anything unreadable is ignored. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
@@ -161,16 +163,25 @@ const countInside = (count: number, range: FilterRange | null): Verdict => {
   return aboveLow && belowHigh ? "match" : "fail";
 };
 
+/**
+ * With incomplete stats, a star rating, length, BPM or mode miss may only mean the maps that
+ * weren't looked up yet are missing from the numbers: count it as missing data, not a miss.
+ */
+const unsure = (verdict: Verdict, incomplete: boolean): Verdict =>
+  incomplete && verdict === "fail" ? "missing" : verdict;
+
 /** How one entry fares against the filter rows (not the text). */
 const judge = (entry: SearchIndexEntry, filters: PackFilters): Verdict => {
   const hasStats = entry.k !== undefined;
+  const incomplete = entry.k === false;
   return [
-    overlaps(entry.r, filters.sr, STAR_RANGE),
-    overlaps(entry.l, filters.len, LENGTH_RANGE),
-    overlaps(entry.b, filters.bpm, BPM_RANGE),
+    unsure(overlaps(entry.r, filters.sr, STAR_RANGE), incomplete),
+    unsure(overlaps(entry.l, filters.len, LENGTH_RANGE), incomplete),
+    unsure(overlaps(entry.b, filters.bpm, BPM_RANGE), incomplete),
+    // Mods come from the slots, so they're known even when a lookup failed.
     hasEvery(hasStats ? (entry.m ?? "") : undefined, filters.mods, false),
     // No rulesets with stats means no map's details came back: as good as no stats.
-    hasEvery(hasStats ? (entry.g ?? "") : undefined, filters.mode, true),
+    unsure(hasEvery(hasStats ? (entry.g ?? "") : undefined, filters.mode, true), incomplete),
     countInside(entry.c, filters.maps),
   ].reduce(worse, "match");
 };
@@ -217,7 +228,7 @@ export const sortPacks = (
  * @param filters {PackFilters} the filters
  * @returns {{ entries: SearchIndexEntry[]; hidden: number }} every entry matching the text and
  *          all filter rows, sorted; and how many matched everything they had data for but lacked
- *          stats a filter needs
+ *          stats a filter needs (or had incomplete stats a range or mode ruled out)
  */
 export const filterPacks = (
   prepared: readonly PreparedEntry[],

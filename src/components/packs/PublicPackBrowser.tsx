@@ -31,7 +31,7 @@ type PublicPackBrowserProps = {
   loadIndex?: () => Promise<SearchIndex>;
 };
 
-/** "3 packs match. 1 without stats is hidden." */
+/** "3 packs match. 1 pack is hidden until its stats are ready." */
 const describeResults = (count: number, hidden: number, q: string): string => {
   const found =
     count === 0
@@ -39,9 +39,12 @@ const describeResults = (count: number, hidden: number, q: string): string => {
         ? "No packs match these filters."
         : `No packs match “${q}”.`
       : `${count} ${count === 1 ? "pack matches" : "packs match"}.`;
-  return hidden === 0
-    ? found
-    : `${found} ${hidden} without stats ${hidden === 1 ? "is" : "are"} hidden.`;
+  if (hidden === 0) return found;
+  return `${found} ${
+    hidden === 1
+      ? "1 pack is hidden until its stats are ready."
+      : `${hidden} packs are hidden until their stats are ready.`
+  }`;
 };
 
 export function PublicPackBrowser({ children, loadIndex }: PublicPackBrowserProps) {

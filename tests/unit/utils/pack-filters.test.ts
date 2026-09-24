@@ -3,7 +3,8 @@
  * @desc Filters and sorts over the public pack index (filters spec): star rating, length and BPM
  *       ranges overlap, every ticked mod and mode must be there, the map count sits inside its
  *       range, ends are inclusive and an end at the slider's edge is open; packs without the
- *       stats a filter needs are hidden and counted; sorts keep ties in index order; the URL
+ *       stats a filter needs, or with incomplete stats a range or mode misses, are hidden and
+ *       counted; sorts keep ties in index order; the URL
  *       form parses and serializes (bad params ignored, lone surrogates replaced, also where
  *       String.prototype.toWellFormed is missing) and survives a round trip.
  * @author David @dvhsh (https://dvh.sh)
@@ -217,6 +218,44 @@ describe("packs without stats", () => {
   it("aren't counted when the text doesn't match", () => {
     expect(run(packs, { q: "zzz", sr: [4, 6] })).toEqual({ slugs: [], hidden: 0 });
     expect(run(packs, { q: "bare", sr: [4, 6] })).toEqual({ slugs: [], hidden: 1 });
+  });
+});
+
+describe("packs with incomplete stats", () => {
+  // DT maps that couldn't be rated yet are missing from the range: the pack might still match.
+  const partial = rated("Partial", { r: [4.8, 6.1], l: [90, 180], b: [150, 200], k: false });
+
+  it("are hidden and counted, not dropped, when a star rating, length or BPM range misses", () => {
+    expect(run([partial], { sr: [6.5, null] })).toEqual({ slugs: [], hidden: 1 });
+    expect(run([partial], { len: [200, null] })).toEqual({ slugs: [], hidden: 1 });
+    expect(run([partial], { bpm: [250, null] })).toEqual({ slugs: [], hidden: 1 });
+  });
+
+  it("are hidden and counted when a mode misses, since a missing map might have it", () => {
+    expect(run([partial], { mode: ["taiko"] })).toEqual({ slugs: [], hidden: 1 });
+  });
+
+  it("show when what they have already matches", () => {
+    expect(run([partial], { sr: [5, 5.5], mode: ["osu"] })).toEqual({
+      slugs: ["Partial"],
+      hidden: 0,
+    });
+  });
+
+  it("are a plain miss when a mod misses, since mods come from the slots", () => {
+    expect(run([partial], { mods: ["EZ"] })).toEqual({ slugs: [], hidden: 0 });
+    expect(run([partial], { sr: [6.5, null], mods: ["EZ"] })).toEqual({ slugs: [], hidden: 0 });
+  });
+
+  it("are a plain miss when the map count misses", () => {
+    expect(run([partial], { sr: [6.5, null], maps: [20, null] })).toEqual({
+      slugs: [],
+      hidden: 0,
+    });
+  });
+
+  it("don't change how complete stats are judged", () => {
+    expect(run([{ ...partial, k: true }], { sr: [6.5, null] })).toEqual({ slugs: [], hidden: 0 });
   });
 });
 
