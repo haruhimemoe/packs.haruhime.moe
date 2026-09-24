@@ -1,14 +1,15 @@
 /**
  * @file src/components/packs/PublicPacksScreen.tsx
- * @desc /packs body (server-rendered): heading, search over the server list, paging.
+ * @desc /packs body (server-rendered): heading, then the search and filter bar over the server
+ *       list and its paging (PublicPackBrowser swaps the list for filtered results).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { PageHeader, Pagination } from "@haruhimemoe/ui";
+import { PublicPackBrowser } from "@/components/packs/PublicPackBrowser";
 import { PublicPackList } from "@/components/packs/PublicPackList";
-import { PublicPackSearch } from "@/components/packs/PublicPackSearch";
 import type { PublicPackPage } from "@/schemas/public-pack";
 import { publicPageHref } from "@/utils/paging";
 
@@ -23,7 +24,7 @@ export function PublicPacksScreen({ packs, page, pageCount, total }: PublicPackP
             : `${total} ${total === 1 ? "pack" : "packs"} shared by hosts.`
         }
       />
-      <PublicPackSearch>
+      <PublicPackBrowser>
         <div className="flex flex-col gap-4">
           <PublicPackList packs={packs} />
           <Pagination
@@ -34,7 +35,7 @@ export function PublicPacksScreen({ packs, page, pageCount, total }: PublicPackP
             nextLabel="Older"
           />
         </div>
-      </PublicPackSearch>
+      </PublicPackBrowser>
     </div>
   );
 }

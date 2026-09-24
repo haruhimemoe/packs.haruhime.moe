@@ -1,9 +1,9 @@
 /**
  * @file tests/unit/utils/format.test.ts
- * @desc Number formatting for beatmap stats.
+ * @desc Number formatting for beatmap stats and pack ranges.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -12,6 +12,7 @@ import {
   formatBytes,
   formatDuration,
   formatLongDuration,
+  formatRange,
   formatStars,
   formatStat,
 } from "@/utils/format";
@@ -64,5 +65,17 @@ describe("formatLongDuration", () => {
     [3725.4, "1:02:05"],
   ])("%d → %s", (seconds, text) => {
     expect(formatLongDuration(seconds)).toBe(text);
+  });
+});
+
+describe("formatRange", () => {
+  it("joins two ends with an en dash", () => {
+    expect(formatRange(4.5, 6.2, formatStars)).toBe("4.50–6.20");
+    expect(formatRange(95, 240, formatDuration)).toBe("1:35–4:00");
+  });
+
+  it("shows one value when both ends look the same", () => {
+    expect(formatRange(5.3, 5.3, formatStars)).toBe("5.30");
+    expect(formatRange(5.301, 5.299, formatStars)).toBe("5.30");
   });
 });

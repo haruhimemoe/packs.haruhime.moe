@@ -3,7 +3,7 @@
  * @desc Display formatting for beatmap stats.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 /**
@@ -65,4 +65,16 @@ export const formatLongDuration = (seconds: number): string => {
   const hours = Math.floor(total / 3600);
   const minutes = Math.floor((total % 3600) / 60);
   return `${hours}:${String(minutes).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+};
+
+/**
+ * @function formatRange
+ * @param low {number} bottom of the range
+ * @param high {number} top of the range
+ * @param format {(n: number) => string} how to show one end
+ * @returns {string} "low–high", or one value when both ends look the same
+ */
+export const formatRange = (low: number, high: number, format: (n: number) => string): string => {
+  const [from, to] = [format(low), format(high)];
+  return from === to ? from : `${from}–${to}`;
 };
