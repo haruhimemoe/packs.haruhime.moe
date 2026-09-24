@@ -1,15 +1,16 @@
 /**
  * @file src/lib/storage/local-data.ts
- * @desc "Clear local data" (privacy policy): deletes the IndexedDB draft, the OPFS .osz cache and
- *       the saved download options.
+ * @desc "Clear local data" (privacy policy): deletes the IndexedDB draft, the OPFS .osz cache, the
+ *       saved download options and the saved place in the filtered public pack results.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { clearDownloadChoices } from "@/lib/storage/download-choices";
 import { clearDraft } from "@/lib/storage/drafts";
 import { type OszCache, oszCache } from "@/lib/storage/osz-cache";
+import { clearListViews } from "@/lib/storage/pack-list-view";
 
 /** Fired on window before anything is deleted, so open export panels drop files that are going away. */
 export const LOCAL_DATA_CLEARING_EVENT = "packs:local-data-clearing";
@@ -18,6 +19,7 @@ type LocalDataDeps = {
   clearDraft: () => Promise<void>;
   cache: Pick<OszCache, "clear">;
   clearChoices?: () => void;
+  clearViews?: () => void;
   notify?: () => void;
 };
 
@@ -39,10 +41,12 @@ export const clearLocalData = async (
     clearDraft: clearDraftIfStored,
     cache: oszCache,
     clearChoices: clearDownloadChoices,
+    clearViews: clearListViews,
     notify: notifyPage,
   },
 ): Promise<void> => {
   deps.notify?.();
   deps.clearChoices?.();
+  deps.clearViews?.();
   await Promise.all([deps.clearDraft(), deps.cache.clear()]);
 };

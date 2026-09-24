@@ -4,7 +4,9 @@
  *       filter or sort (the plain /packs URL), the cached list (children) shows and nothing is
  *       fetched. Anything else loads /packs/index.json once and filters and sorts it here,
  *       50 cards at a time. The filters live in the URL (usePackFilters) and follow it when it
- *       changes under the page (back, forward, or a link here). The result count
+ *       changes under the page (back, forward, or a link here). Coming back with Back or Forward
+ *       shows as many results as before, at the same place (usePackListView), and a remount
+ *       reuses the index this tab already loaded. The result count
  *       follows every change on screen but is announced only once changes settle. An empty
  *       result says what might help (other words, a wider range, or clearing the stat filters
  *       while stats are still being worked out). If the index can't load, the server list
@@ -23,6 +25,7 @@ import { PublicPackList } from "@/components/packs/PublicPackList";
 import { SearchParamsWatcher } from "@/components/packs/SearchParamsWatcher";
 import { COUNT_SETTLE_MS, FILTER_RESULTS_STEP } from "@/constants/pack-filters";
 import { usePackFilters } from "@/hooks/usePackFilters";
+import { usePackListView } from "@/hooks/usePackListView";
 import { useSearchIndex } from "@/hooks/useSearchIndex";
 import { useSettledValue } from "@/hooks/useSettledValue";
 import { indexEntryToCard } from "@/lib/search-index";
@@ -75,13 +78,6 @@ const noMatchHint = (hidden: number, q: string, filtered: boolean): string | nul
 export function PublicPackBrowser({ children, loadIndex }: PublicPackBrowserProps) {
   const { filters, setFilters, followUrl, urlReads } = usePackFilters();
   const { state, failures, load, retry } = useSearchIndex(loadIndex);
-  const [shown, setShown] = useState(FILTER_RESULTS_STEP);
-  // Filters read from the URL (back, forward, a link here) start from the first results too.
-  const [seenUrlReads, setSeenUrlReads] = useState(urlReads);
-  if (seenUrlReads !== urlReads) {
-    setSeenUrlReads(urlReads);
-    setShown(FILTER_RESULTS_STEP);
-  }
   const list = useRef<HTMLDivElement>(null);
   // After "Show more", the first new card to move focus to.
   const focusFrom = useRef<number | null>(null);
@@ -112,6 +108,16 @@ export function PublicPackBrowser({ children, loadIndex }: PublicPackBrowserProp
     () => (browsing && state.status === "ready" ? filterPacks(prepared, filters) : null),
     [browsing, state.status, prepared, filters],
   );
+  // Back to these results: as many as before, at the same place (usePackListView).
+  const [shown, setShown] = usePackListView(
+    !failed && result !== null && result.entries.length > 0,
+  );
+  // Filters read from the URL (back, forward, a link here) start from the first results too.
+  const [seenUrlReads, setSeenUrlReads] = useState(urlReads);
+  if (seenUrlReads !== urlReads) {
+    setSeenUrlReads(urlReads);
+    setShown(FILTER_RESULTS_STEP);
+  }
 
   useEffect(() => {
     if (focusFrom.current === null) return;

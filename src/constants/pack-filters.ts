@@ -1,7 +1,8 @@
 /**
  * @file src/constants/pack-filters.ts
  * @desc The /packs filter bar (filters spec): slider bounds, sort options, mode chip labels, how
- *       many filtered cards show at a time, and the timings that keep screen readers and the
+ *       many filtered cards show at a time, how long a loaded index is kept, how often the place
+ *       in the results is saved for Back, and the timings that keep screen readers and the
  *       browser's history calm while someone drags a slider or types.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
@@ -77,6 +78,15 @@ export const MODE_LABELS: Readonly<Record<Ruleset, string>> = Object.freeze({
 
 /** Filtered cards shown at first, and added by each "Show more". */
 export const FILTER_RESULTS_STEP = 50;
+
+/**
+ * How long a loaded search index is kept for the tab, so coming back to /packs has it at once.
+ * Past that, the next visit fetches it again (a pack saved meanwhile shows up).
+ */
+export const INDEX_REUSE_MS = 5 * 60_000;
+
+/** Least time between two saves of the reader's place in the results while they scroll. */
+export const LIST_VIEW_SAVE_MS = 200;
 
 /** Quiet time after the last change before the result count is announced. */
 export const COUNT_SETTLE_MS = 400;

@@ -5,8 +5,9 @@
  *       with replaceState, even without String.prototype.toWellFormed, read back on load, on
  *       back/forward and when a link changes the page's URL), the count shows at once and is announced once changes settle, packs
  *       hidden for missing stats are counted, an empty result says what might help, cards are
- *       dated by the sort, results come 50 at a time, and a failed index load keeps the server
- *       list, says so once, and retries only on request.
+ *       dated by the sort, results come 50 at a time, coming back with Back finds the results
+ *       and the place as they were, and a failed index load keeps the server list, says so once,
+ *       and retries only on request.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -17,6 +18,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PublicPackBrowser } from "@/components/packs/PublicPackBrowser";
 import { COUNT_SETTLE_MS } from "@/constants/pack-filters";
+import { forgetTraversal } from "@/lib/storage/pack-list-view";
 import { type SearchIndex, type SearchIndexEntry, searchIndexSchema } from "@/schemas/public-pack";
 import fixture from "../../fixtures/public-packs/index.json";
 
@@ -48,6 +50,16 @@ vi.mock("next/navigation", async () => {
       new URLSearchParams(useSyncExternalStore(router.subscribe, router.get, router.get)),
   };
 });
+
+/** 60 packs named "Cup 0" to "Cup 59", oldest first. */
+const MANY: SearchIndexEntry[] = Array.from({ length: 60 }, (_, i) => ({
+  s: `pack${String(i).padStart(6, "0")}`,
+  n: `Cup ${i}`,
+  o: "Chiyo",
+  c: 10,
+  d: "",
+  u: new Date(Date.UTC(2026, 0, 1) + i * 1000).toISOString(),
+}));
 
 /** What a Next Link does: push the URL, then the router's query follows (the page stays). */
 const followLink = (url: string) =>
@@ -457,21 +469,77 @@ describe("PublicPackBrowser", () => {
   });
 
   it("shows 50 results at a time", async () => {
-    const many: SearchIndexEntry[] = Array.from({ length: 60 }, (_, i) => ({
-      s: `pack${String(i).padStart(6, "0")}`,
-      n: `Cup ${i}`,
-      o: "Chiyo",
-      c: 10,
-      d: "",
-      u: new Date(Date.UTC(2026, 0, 1) + i * 1000).toISOString(),
-    }));
-    const { user } = setup(async () => ({ v: 1, packs: many }));
+    const { user } = setup(async () => ({ v: 1, packs: MANY }));
     await user.type(screen.getByRole("searchbox", { name: "Search public packs" }), "cup");
     await waitFor(() => expect(cardNames()).toHaveLength(50));
     await user.click(screen.getByRole("button", { name: "Show more" }));
     expect(cardNames()).toHaveLength(60);
     expect(screen.getByRole("link", { name: "Cup 9" })).toHaveFocus();
     expect(screen.queryByRole("button", { name: "Show more" })).not.toBeInTheDocument();
+  });
+
+  describe("coming back", () => {
+    const load = vi.fn(async (): Promise<SearchIndex> => ({ v: 1, packs: MANY }));
+    const page = () => (
+      <PublicPackBrowser loadIndex={load}>
+        <p>Server list</p>
+      </PublicPackBrowser>
+    );
+
+    /** Opens ?q=cup, shows all 60, scrolls down, then leaves the page. */
+    const browseAndLeave = async () => {
+      openUrl("/packs?q=cup");
+      const user = userEvent.setup();
+      const view = render(page());
+      await waitFor(() => expect(cardNames()).toHaveLength(50));
+      await user.click(screen.getByRole("button", { name: "Show more" }));
+      act(() => {
+        window.scrollY = 6063;
+        window.dispatchEvent(new Event("scroll"));
+      });
+      // Leaving by a card link saves the place at once (jsdom can't follow the link itself).
+      const stay = (event: Event) => event.preventDefault();
+      document.addEventListener("click", stay);
+      fireEvent.click(screen.getByRole("link", { name: "Cup 42" }));
+      document.removeEventListener("click", stay);
+      view.unmount();
+      window.scrollY = 0;
+    };
+
+    beforeEach(() => {
+      load.mockClear();
+      sessionStorage.clear();
+      forgetTraversal();
+    });
+
+    it("with Back, shows as many results as before at the same place, without refetching", async () => {
+      const scrollTo = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+      await browseAndLeave();
+      expect(load).toHaveBeenCalledOnce();
+
+      // Back: the browser goes to the entry, then Next mounts the page again.
+      openUrl("/packs?q=cup");
+      window.dispatchEvent(new PopStateEvent("popstate"));
+      render(page());
+
+      expect(cardNames()).toHaveLength(60);
+      expect(screen.queryByText("Loading packs…")).not.toBeInTheDocument();
+      expect(screen.getByRole("searchbox", { name: "Search public packs" })).toHaveValue("cup");
+      expect(scrollTo).toHaveBeenLastCalledWith(0, 6063);
+      expect(load).toHaveBeenCalledOnce();
+    });
+
+    it("starts at the top on a fresh visit to the same URL", async () => {
+      const scrollTo = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+      await browseAndLeave();
+      scrollTo.mockClear();
+
+      openUrl("/packs?q=cup");
+      render(page());
+
+      await waitFor(() => expect(cardNames()).toHaveLength(50));
+      expect(scrollTo).not.toHaveBeenCalled();
+    });
   });
 
   it("dates cards by what the list is sorted by", async () => {

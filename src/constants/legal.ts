@@ -4,7 +4,7 @@
  *       content/legal/<slug>.mdx. Bump lastUpdated in the same commit as any wording change.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 export const LEGAL_SLUGS = [
@@ -29,7 +29,7 @@ export const LEGAL_DOCS: Record<
   privacy: {
     title: "Privacy Policy",
     description: "What packs.haruhime.moe stores, why, and what stays in your browser.",
-    lastUpdated: "2026-09-23",
+    lastUpdated: "2026-09-24",
   },
   "your-privacy-rights": {
     title: "GDPR & CCPA",

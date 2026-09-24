@@ -5,7 +5,7 @@
  *       that were never built (a magnet link is the only export a pack records).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { existsSync, readFileSync } from "node:fs";
@@ -137,6 +137,12 @@ describe("privacy", () => {
     "packs lists only its own set of public trackers in these links",
   ])("describes what opening a magnet link shares: %j", (phrase) => {
     expect(text()).toContain(phrase);
+  });
+
+  it("says the tab remembers the place in filtered public packs, and for how long", () => {
+    expect(text()).toContain(
+      "When you filter public packs, this tab's session storage remembers how many results were showing and how far down you'd scrolled, so the Back button takes you there again. It's gone when you close the tab.",
+    );
   });
 
   it("names the linked osu! account record among what we store", () => {
