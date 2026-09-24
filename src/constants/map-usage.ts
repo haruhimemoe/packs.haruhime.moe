@@ -15,10 +15,11 @@ export const MAP_USAGE_COLLECTION = "map_usage";
 export const MAX_USAGE_IDS = 100;
 
 /**
- * Usage only changes when an archive pack is imported, hidden, unhidden or deleted: an hour in
- * the CDN, and up to a day of a stale answer while it fetches a fresh one.
+ * Usage only changes when an archive pack is imported, hidden, unhidden or deleted. 55 minutes
+ * fresh in the CDN, then 5 more minutes of the old answer while it fetches a new one: no answer
+ * served is more than an hour old, as the API docs say (a hidden pool is gone within the hour).
  */
-export const MAP_USAGE_CACHE = "public, s-maxage=3600, stale-while-revalidate=86400";
+export const MAP_USAGE_CACHE = "public, s-maxage=3300, stale-while-revalidate=300";
 
 /**
  * The editor asks about maps added after it opened once the pool has held still this long
