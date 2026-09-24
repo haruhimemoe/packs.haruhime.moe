@@ -2,11 +2,12 @@
  * @file src/utils/saved-pack-stats.ts
  * @desc Stats a saved pack carries for the public filters (filters spec): star rating, length and
  *       BPM ranges, the mods and rulesets it has, its map count, and whether every lookup it needed
- *       came back (a map osu! says doesn't exist is left out and doesn't count as missing). A
- *       slot forcing EZ, HR, DT, HT or FL counts with osu!'s rating for its whole
- *       forced set; every other slot counts with the plain rating. Forced DT and HT change length
- *       and BPM. Also the rating pairs a pack needs, and the compact index form. Pure: metadata and
- *       ratings come in, so seeded metadata (archive imports) works the same as mirror metadata.
+ *       came back (a map osu! says doesn't exist is left out and doesn't count as missing). A slot
+ *       forcing EZ, HR, DT, HT or FL counts with osu!'s rating for its whole forced set; every
+ *       other slot counts with the plain rating. Forced DT and HT change length and BPM. Also the
+ *       rating pairs a pack needs, when incomplete stats may be retried, and the compact index
+ *       form. Pure: metadata and ratings come in, so seeded metadata (archive imports) works the
+ *       same as mirror metadata.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -21,7 +22,13 @@ import {
   type Ruleset,
   type SlotMods,
 } from "@haruhimemoe/pool";
-import { RATING_MODS, SPEED_RATES, STAT_MOD_CODES, type StatModCode } from "@/constants/pack-stats";
+import {
+  PACK_STATS_RETRY_MAX_DAYS,
+  RATING_MODS,
+  SPEED_RATES,
+  STAT_MOD_CODES,
+  type StatModCode,
+} from "@/constants/pack-stats";
 import type { StarPair } from "@/constants/star-ratings";
 import { type BucketEntry, type PoolSlot, slotKey } from "@/schemas/pack";
 import type { IndexStats, PackStats } from "@/schemas/pack-stats";
@@ -172,6 +179,23 @@ export const statsPairsFor = (
     pairs.set(key, { key, beatmapId: slot.beatmapId, set: [...set] });
   }
   return [...pairs.values()].sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
+};
+
+const HOUR_MS = 3_600_000;
+const DAY_MS = 24 * HOUR_MS;
+
+/**
+ * @function statsRetryAt
+ * @param computedAt {Date} when the incomplete stats were computed
+ * @param attempts {number} how many computations in a row came out incomplete (1 or more)
+ * @returns {Date} when the stats job may try again: at once after the first, then after about 1,
+ *          2, 4, 8 and 16 days, and at most PACK_STATS_RETRY_MAX_DAYS; each wait is an hour short
+ *          of whole days, so a daily run at the same time still counts
+ */
+export const statsRetryAt = (computedAt: Date, attempts: number): Date => {
+  if (attempts <= 1) return new Date(computedAt.getTime());
+  const days = Math.min(2 ** (attempts - 2), PACK_STATS_RETRY_MAX_DAYS);
+  return new Date(computedAt.getTime() + days * DAY_MS - HOUR_MS);
 };
 
 /**

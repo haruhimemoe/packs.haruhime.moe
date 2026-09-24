@@ -67,6 +67,6 @@ describe("POST /api/admin/pack-stats", () => {
     const response = await run(admin.cookie);
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store");
-    expect(await response.json()).toEqual({ updated: 2, remaining: 0 });
+    expect(await response.json()).toEqual({ updated: 2, remaining: 0, waiting: 0 });
   });
 });

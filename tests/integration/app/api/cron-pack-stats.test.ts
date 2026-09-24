@@ -94,7 +94,11 @@ describe("GET /api/cron/pack-stats", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store");
-    expect(await response.json()).toEqual({ updated: PACK_STATS_JOB_LIMIT, remaining: 2 });
+    expect(await response.json()).toEqual({
+      updated: PACK_STATS_JOB_LIMIT,
+      remaining: 2,
+      waiting: 0,
+    });
     expect(await getPackModel().countDocuments({ "stats.complete": true })).toBe(
       PACK_STATS_JOB_LIMIT,
     );

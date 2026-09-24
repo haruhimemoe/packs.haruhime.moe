@@ -2,17 +2,20 @@
  * @file src/services/pack-stats.ts
  * @desc Pack stats in the database (filters spec). After a save, refreshPackStats computes one
  *       pack's stats; the daily cron and the admin button run runPackStatsJob, which repairs
- *       missing or incomplete stats a batch at a time (public and unlisted packs first, then
- *       private; never-computed first, then the oldest). Writes never move updatedAt and only land
- *       while the pack is unchanged since it was read, so a newer save always wins. Nothing here
- *       throws into a save: failures are logged and leave the stats missing for the job.
+ *       missing or incomplete stats a batch at a time: packs with no stats first, then incomplete
+ *       ones that are due for a retry, oldest first; in each group, listed public and unlisted
+ *       packs before private and hidden ones. Incomplete stats wait longer before each retry
+ *       (statsRetryAt), so packs that keep failing can't crowd out the rest. Writes never move
+ *       updatedAt and only land while the pack is unchanged since it was read, so a newer save
+ *       always wins. Nothing here throws into a save: failures are logged and leave the stats
+ *       missing for the job.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
  */
 
 import "server-only";
-import type { Types } from "mongoose";
+import type { QueryFilter, Types } from "mongoose";
 import { PACK_STATS_JOB_LIMIT } from "@/constants/pack-stats";
 import type { StarPair } from "@/constants/star-ratings";
 import { connectDb } from "@/lib/db";
@@ -26,14 +29,39 @@ import {
   type PackStatsRecord,
   type StatsMetaById,
   statsPairsFor,
+  statsRetryAt,
 } from "@/utils/saved-pack-stats";
 import { storedBuckets } from "@/utils/stored-buckets";
 
-/** Packs whose stats are missing (or null) or incomplete. */
-const NEEDS_STATS = { $or: [{ stats: null }, { "stats.complete": false }] };
-/** Never computed first (a missing field sorts first), then the oldest, then the oldest pack. */
+/** Packs with no stats (the field missing or null). */
+const NO_STATS = { stats: null };
+/** Incomplete stats whose retry time has come (stats written before retryAt existed count too). */
+const dueForRetry = (now: Date) => ({
+  "stats.complete": false,
+  "stats.retryAt": { $not: { $gt: now } },
+});
+/** Incomplete stats still waiting for their retry time. */
+const waitingForRetry = (now: Date) => ({
+  "stats.complete": false,
+  "stats.retryAt": { $gt: now },
+});
+/** Packs /packs and share links show: public or unlisted, and not hidden by a moderator. */
+const SHARED = { visibility: { $in: ["public", "unlisted"] }, hiddenAt: null };
+/** Everything else: private packs, and packs a moderator hid. */
+const NOT_SHARED = { $or: [{ visibility: "private" }, { hiddenAt: { $ne: null } }] };
+const OLDEST_PACK_FIRST = { _id: 1 } as const;
 const OLDEST_STATS_FIRST = { "stats.computedAt": 1, _id: 1 } as const;
-const FIELDS = { slug: 1, name: 1, slots: 1, buckets: 1, visibility: 1, hiddenAt: 1, updatedAt: 1 };
+const FIELDS = {
+  slug: 1,
+  name: 1,
+  slots: 1,
+  buckets: 1,
+  visibility: 1,
+  hiddenAt: 1,
+  updatedAt: 1,
+  "stats.complete": 1,
+  "stats.attempts": 1,
+};
 
 type StatsDoc = {
   _id: Types.ObjectId;
@@ -44,7 +72,12 @@ type StatsDoc = {
   visibility: string;
   hiddenAt?: Date | null;
   updatedAt: Date;
+  /** Only what the retry bookkeeping needs from the stats it replaces. */
+  stats?: { complete?: boolean; attempts?: number } | null;
 };
+
+/** Stats as written: incomplete ones also carry the retry bookkeeping (never sent). */
+type StoredStats = PackStatsRecord & { attempts?: number; retryAt?: Date };
 
 export type StatsDeps = {
   /** The caller's rate-limit subject (a save); omitted for the job. */
@@ -56,7 +89,7 @@ export type StatsDeps = {
   now?: () => Date;
 };
 
-export type PackStatsJobResult = { updated: number; remaining: number };
+export type PackStatsJobResult = { updated: number; remaining: number; waiting: number };
 
 const connectedModel = async () => {
   await connectDb();
@@ -106,6 +139,16 @@ const computeBatch = async (
   }));
 };
 
+/**
+ * The stats to store: complete ones as they are; incomplete ones with how many computations in a
+ * row came out incomplete (stats from before this bookkeeping count as one) and when to retry.
+ */
+const withRetry = (stats: PackStatsRecord, previous: StatsDoc["stats"]): StoredStats => {
+  if (stats.complete) return stats;
+  const attempts = previous?.complete === false ? (previous.attempts ?? 1) + 1 : 1;
+  return { ...stats, attempts, retryAt: statsRetryAt(stats.computedAt, attempts) };
+};
+
 /** Stores the stats if the pack is still as it was read. Returns whether it landed. */
 const writeStats = async (
   model: Awaited<ReturnType<typeof connectedModel>>,
@@ -114,7 +157,7 @@ const writeStats = async (
 ): Promise<boolean> => {
   const result = await model.updateOne(
     { _id: doc._id, updatedAt: doc.updatedAt },
-    { $set: { stats } },
+    { $set: { stats: withRetry(stats, doc.stats) } },
     { timestamps: false },
   );
   return result.matchedCount === 1;
@@ -163,17 +206,20 @@ export const schedulePackStats = (slug: string, subject: string | undefined): vo
 
 /**
  * @function countPacksNeedingStats
- * @returns {Promise<number>} packs of any visibility with missing or incomplete stats
+ * @param now {Date} the time to judge retries by (default: now)
+ * @returns {Promise<number>} packs of any visibility the job would take: no stats, or incomplete
+ *          ones due for a retry
  */
-export const countPacksNeedingStats = async (): Promise<number> =>
-  (await connectedModel()).countDocuments(NEEDS_STATS);
+export const countPacksNeedingStats = async (now: Date = new Date()): Promise<number> =>
+  (await connectedModel()).countDocuments({ $or: [NO_STATS, dueForRetry(now)] });
 
 /**
  * @function runPackStatsJob
  * @param options {StatsDeps & { limit?: number }} packs per run (default PACK_STATS_JOB_LIMIT),
  *        lookups and clock (tests)
- * @returns {Promise<PackStatsJobResult>} how many packs got new stats, and how many still have
- *          missing or incomplete ones (packs just recomputed but still incomplete count too)
+ * @returns {Promise<PackStatsJobResult>} how many packs got new stats; how many the next run
+ *          would still take (no stats, or incomplete ones due for a retry, packs just recomputed
+ *          included); and how many incomplete ones wait for a later retry
  * @throws when the database can't be reached (the route answers 500; nothing was written)
  */
 export const runPackStatsJob = async ({
@@ -181,23 +227,32 @@ export const runPackStatsJob = async ({
   ...deps
 }: StatsDeps & { limit?: number } = {}): Promise<PackStatsJobResult> => {
   const model = await connectedModel();
-  const shared = await model
-    .find({ ...NEEDS_STATS, visibility: { $in: ["public", "unlisted"] } }, FIELDS)
-    .sort(OLDEST_STATS_FIRST)
-    .limit(limit)
-    .lean<StatsDoc[]>();
-  const own =
-    shared.length < limit
-      ? await model
-          .find({ ...NEEDS_STATS, visibility: "private" }, FIELDS)
-          .sort(OLDEST_STATS_FIRST)
-          .limit(limit - shared.length)
-          .lean<StatsDoc[]>()
-      : [];
+  const at = (deps.now ?? (() => new Date()))();
+  const groups: { filter: QueryFilter<unknown>; sort: Record<string, 1> }[] = [
+    { filter: { ...NO_STATS, ...SHARED }, sort: OLDEST_PACK_FIRST },
+    { filter: { ...NO_STATS, ...NOT_SHARED }, sort: OLDEST_PACK_FIRST },
+    { filter: { ...dueForRetry(at), ...SHARED }, sort: OLDEST_STATS_FIRST },
+    { filter: { ...dueForRetry(at), ...NOT_SHARED }, sort: OLDEST_STATS_FIRST },
+  ];
+  const picked: StatsDoc[] = [];
+  for (const { filter, sort } of groups) {
+    if (picked.length >= limit) break;
+    picked.push(
+      ...(await model
+        .find(filter, FIELDS)
+        .sort(sort)
+        .limit(limit - picked.length)
+        .lean<StatsDoc[]>()),
+    );
+  }
   const written: StatsDoc[] = [];
-  for (const { doc, stats } of await computeBatch([...shared, ...own], deps)) {
+  for (const { doc, stats } of await computeBatch(picked, deps)) {
     if (await writeStats(model, doc, stats)) written.push(doc);
   }
   if (written.length > 0) revalidateFor(written);
-  return { updated: written.length, remaining: await countPacksNeedingStats() };
+  return {
+    updated: written.length,
+    remaining: await countPacksNeedingStats(at),
+    waiting: await model.countDocuments(waitingForRetry(at)),
+  };
 };

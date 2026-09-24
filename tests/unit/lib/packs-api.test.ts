@@ -123,10 +123,10 @@ describe("createPacksApi", () => {
     server.use(
       http.post(`${BASE}/api/admin/pack-stats`, ({ request }) => {
         calls.push({ method: "POST", path: new URL(request.url).pathname, body: null });
-        return HttpResponse.json({ updated: 3, remaining: 12 });
+        return HttpResponse.json({ updated: 3, remaining: 12, waiting: 2 });
       }),
     );
-    expect(await api.fillPackStats()).toEqual({ updated: 3, remaining: 12 });
+    expect(await api.fillPackStats()).toEqual({ updated: 3, remaining: 12, waiting: 2 });
     expect(calls).toEqual([{ method: "POST", path: "/api/admin/pack-stats", body: null }]);
   });
 

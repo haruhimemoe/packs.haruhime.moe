@@ -3,7 +3,7 @@
  * @desc Pack stats from slots and metadata (filters spec): plain and mod-adjusted star ratings,
  *       DT/HT length and BPM, the mod codes a pack has, rulesets, missing maps and ratings, maps
  *       osu! says are gone (left out, still complete), mixed modes, an empty pack, rounding; the
- *       rating pairs a pack needs; the compact index form.
+ *       rating pairs a pack needs; when the job may retry incomplete stats; the compact index form.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -18,6 +18,7 @@ import {
   type PackStatsRecord,
   type StatsMeta,
   statsPairsFor,
+  statsRetryAt,
   toIndexStats,
   toPackStatsDto,
 } from "@/utils/saved-pack-stats";
@@ -403,6 +404,26 @@ describe("toIndexStats", () => {
       g: "osu,taiko",
       k: true,
     });
+  });
+});
+
+describe("statsRetryAt", () => {
+  const HOUR = 3_600_000;
+  const waitHours = (attempts: number) =>
+    (statsRetryAt(NOW, attempts).getTime() - NOW.getTime()) / HOUR;
+
+  it("lets the next run retry right after the first incomplete result", () => {
+    expect(waitHours(1)).toBe(0);
+    expect(waitHours(0)).toBe(0);
+  });
+
+  it("then waits about 1, 2, 4, 8 and 16 days, each an hour short so a daily run counts", () => {
+    expect([2, 3, 4, 5, 6].map(waitHours)).toEqual([23, 47, 95, 191, 383]);
+  });
+
+  it("never waits more than 30 days", () => {
+    expect(waitHours(7)).toBe(30 * 24 - 1);
+    expect(waitHours(40)).toBe(30 * 24 - 1);
   });
 });
 

@@ -63,10 +63,15 @@ export const indexStatsSchema = z.object({
 
 export type IndexStats = z.infer<typeof indexStatsSchema>;
 
-/** One run of the stats job (the cron and the admin button): packs updated, packs still waiting. */
+/**
+ * One run of the stats job (the cron and the admin button): packs updated, packs the next run
+ * would still take (no stats, or incomplete ones due for a retry), and packs whose incomplete
+ * stats wait for a later retry.
+ */
 export const packStatsJobSchema = z.object({
   updated: z.number().int().nonnegative(),
   remaining: z.number().int().nonnegative(),
+  waiting: z.number().int().nonnegative(),
 });
 
 export type PackStatsJob = z.infer<typeof packStatsJobSchema>;

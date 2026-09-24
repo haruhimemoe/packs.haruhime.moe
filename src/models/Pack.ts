@@ -59,6 +59,10 @@ const statsSchema = new Schema(
     count: { type: Number, required: true },
     complete: { type: Boolean, required: true },
     computedAt: { type: Date, required: true },
+    // Incomplete stats only, for the daily job (never sent): computations in a row that came out
+    // incomplete, and when the job may try again (statsRetryAt).
+    attempts: { type: Number },
+    retryAt: { type: Date },
   },
   { _id: false },
 );
