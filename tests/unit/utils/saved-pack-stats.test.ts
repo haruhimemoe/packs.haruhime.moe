@@ -2,8 +2,9 @@
  * @file tests/unit/utils/saved-pack-stats.test.ts
  * @desc Pack stats from slots and metadata (filters spec): plain and mod-adjusted star ratings,
  *       DT/HT length and BPM, the mod codes a pack has, rulesets, missing maps and ratings, maps
- *       osu! says are gone (left out, still complete), mixed modes, an empty pack, rounding; the
- *       rating pairs a pack needs; when the job may retry incomplete stats; the compact index form.
+ *       osu! says are gone (left out, still complete), seeded metadata without a plain rating,
+ *       mixed modes, an empty pack, rounding; the rating pairs a pack needs; when the job may retry
+ *       incomplete stats; the compact index form.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -230,6 +231,30 @@ describe("computeStats", () => {
     expect(computeStats([slot("HR", 1, 60)], undefined, byId, ratings, NOW)).toMatchObject({
       srMin: 4.2,
       complete: true,
+    });
+  });
+
+  it("counts a map without a known plain rating for length and BPM, and marks stars missing", () => {
+    // Seeded metadata (an archive import) may only know the map's rating with mods.
+    const byId = metas([
+      [70, { starRating: null, lengthSeconds: 90, bpm: 200 }],
+      [71, { starRating: 6 }],
+    ]);
+    expect(
+      computeStats([slot("NM", 1, 70), slot("NM", 2, 71)], undefined, byId, NO_RATINGS, NOW),
+    ).toMatchObject({ srMin: 6, srMax: 6, lenMin: 90, bpmMax: 200, complete: false });
+    // Its rating with mods still counts once known.
+    const ratings: ModRatings = new Map([["70:DT", 7.5]]);
+    expect(computeStats([slot("DT", 1, 70)], undefined, byId, ratings, NOW)).toMatchObject({
+      srMin: 7.5,
+      lenMin: 60,
+      complete: true,
+    });
+    // osu! won't rate the set and the plain rating isn't known: missing.
+    const unrated: ModRatings = new Map([["70:HR", null]]);
+    expect(computeStats([slot("HR", 1, 70)], undefined, byId, unrated, NOW)).toMatchObject({
+      srMin: null,
+      complete: false,
     });
   });
 

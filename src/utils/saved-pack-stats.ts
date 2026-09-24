@@ -6,8 +6,8 @@
  *       forcing EZ, HR, DT, HT or FL counts with osu!'s rating for its whole forced set; every
  *       other slot counts with the plain rating. Forced DT and HT change length and BPM. Also the
  *       rating pairs a pack needs, when incomplete stats may be retried, and the compact index
- *       form. Pure: metadata and ratings come in, so seeded metadata (archive imports) works the
- *       same as mirror metadata.
+ *       form. Pure: metadata and ratings come in, so seeded metadata (archive imports, which may
+ *       lack a map's plain rating) works the same as mirror metadata.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -34,8 +34,13 @@ import { type BucketEntry, type PoolSlot, slotKey } from "@/schemas/pack";
 import type { IndexStats, PackStats } from "@/schemas/pack-stats";
 import { slotModsMap, starPairKey } from "@/utils/slot-stars";
 
-/** The metadata stats need: any source (mirror, osu!, a seeded import) will do. */
-export type StatsMeta = Pick<BeatmapMeta, "mode" | "bpm" | "lengthSeconds" | "starRating">;
+/**
+ * The metadata stats need: any source (mirror, osu!, a seeded import) will do. A seeded import
+ * may not know the plain star rating (its source only rated the map with mods): null.
+ */
+export type StatsMeta = Pick<BeatmapMeta, "mode" | "bpm" | "lengthSeconds"> & {
+  starRating: number | null;
+};
 
 /**
  * Metadata by beatmap id: the map's details, null when osu! says the map doesn't exist (deleted,
@@ -96,7 +101,9 @@ const mapNull = <T, R>(value: T | null, fn: (value: T) => R): R | null =>
  * @param buckets {readonly BucketEntry[] | undefined} its bucket list (undefined: the built-ins)
  * @param metaById {StatsMetaById} metadata by beatmap id; a map that couldn't be checked is left
  *        out of every number and makes the stats incomplete, and a map osu! says doesn't exist
- *        (null) is left out without that: no later lookup would find it
+ *        (null) is left out without that: no later lookup would find it. A map whose plain rating
+ *        isn't known counts for length and BPM, and makes the stats incomplete wherever that
+ *        rating would count.
  * @param modRatings {ModRatings} ratings with mods by pair key (see statsPairsFor)
  * @param computedAt {Date} when
  * @returns {PackStatsRecord} stars (2 decimals), length in whole seconds and whole BPM after DT
@@ -132,13 +139,13 @@ export const computeStats = (
     lengths.push(meta.lengthSeconds / speed);
     bpms.push(meta.bpm * speed);
     const set = ratedSetFor(mods);
-    if (set === null) {
-      stars.push(meta.starRating);
-      continue;
-    }
-    const rating = modRatings.get(starPairKey(slot.beatmapId, set));
-    if (rating === undefined) complete = false;
-    else stars.push(rating ?? meta.starRating);
+    // The rating with mods when the slot forces rated mods; the plain one otherwise, or when
+    // osu! won't rate that set (null). Undefined: not known yet.
+    const rating =
+      set === null ? meta.starRating : modRatings.get(starPairKey(slot.beatmapId, set));
+    const star = rating === null ? meta.starRating : rating;
+    if (star === null || star === undefined) complete = false;
+    else stars.push(star);
   }
   return {
     srMin: mapNull(lowest(stars), round2),
