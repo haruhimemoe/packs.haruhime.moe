@@ -412,7 +412,8 @@ const gained = (previous: StatsDoc["stats"], stats: PackStatsRecord, missing: nu
  *        lookups and clock (tests; the clock also picks the osu! budget's minute)
  * @returns {Promise<PoolsBackfillResult>} how many of the pools account's packs got stats that
  *          learned something (a rewrite that only moves computedAt or backfilledAt doesn't count),
- *          and how many still have work: no stats yet, or rating pairs this backfill hasn't tried
+ *          and how many still have work: no stats yet, rating pairs this backfill hasn't tried, or
+ *          maps with no details yet (their pairs aren't known, so none were tried)
  * @throws when the database can't be reached (the route answers 500)
  */
 export const runPoolsStatsBackfill = async ({
@@ -440,8 +441,12 @@ export const runPoolsStatsBackfill = async ({
   const written: StatsDoc[] = [];
   let updated = 0;
   for (const { doc, stats, missingPairs, missing } of computed) {
-    // Every pair it still lacks already failed in this backfill: nothing left to try for now.
-    const exhausted = !stats.complete && missingPairs.every((key) => ratings.failed.has(key));
+    // Every map had details (a map without them hides its pairs, none of them tried yet) and
+    // every pair it still lacks already failed in this backfill: nothing left to try for now.
+    const exhausted =
+      !stats.complete &&
+      missing === missingPairs.length &&
+      missingPairs.every((key) => ratings.failed.has(key));
     const landed = await writeStats(model, doc, stats, {
       countAttempt: false,
       missing,

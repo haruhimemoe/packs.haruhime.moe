@@ -4,8 +4,9 @@
  *       share of the osu! budget. The importer's loop (one call a minute until `remaining` is 0 or
  *       5 calls in a row update nothing) reaches complete stats asking osu! about each pair once,
  *       stops when osu! keeps failing and leaves those packs to the daily job (a day later a new
- *       backfill tries again), never asks twice about a pair osu! won't rate, and waits out a
- *       global budget visitors spent without marking anything tried. `updated` counts only packs
+ *       backfill tries again), never asks twice about a pair osu! won't rate, waits out a global
+ *       budget visitors spent without marking anything tried, and keeps a pack in the queue while
+ *       its maps have no details (none of its pairs were tried yet). `updated` counts only packs
  *       whose stats learned something, so while that budget stays spent the loop stops after 5
  *       calls. The mirror and osu! are MSW.
  * @author David @dvhsh (https://dvh.sh)
@@ -183,6 +184,32 @@ describe("runPoolsStatsBackfill", () => {
       remaining: 0,
     });
     expect((await stats(slug))?.complete).toBe(true);
+  });
+
+  it("keeps a pack whose maps have no details yet in the queue: none of its pairs were tried", async () => {
+    const slug = await dtPack(POOLS_ACCOUNT.id, "Pool", 4000, 3);
+    // The mirror is down and osu! knows the maps, but visitors spent its budget this minute.
+    lookups.mirrorDown = true;
+    for (const id of [4000, 4001, 4002]) lookups.osu.set(id, beatmapRow(id));
+    const window = osuBudgetWindow(START.getTime());
+    await getDb()
+      .collection<{ _id: string; count: number; expiresAt: Date }>(RATE_LIMITS_COLLECTION)
+      .insertOne({ _id: window.id, count: OSU_API_BUDGET.limit, expiresAt: window.expiresAt });
+
+    expect(await runPoolsStatsBackfill({ now: () => START })).toEqual({ updated: 1, remaining: 1 });
+    expect(lookups.calls.attributes).toEqual([]);
+    const first = await stats(slug);
+    expect(first).toMatchObject({ complete: false, missing: 3 });
+    expect(first).not.toHaveProperty("backfilledAt");
+    expect(await getDb().collection(POOLS_BACKFILL_COLLECTION).countDocuments({})).toBe(0);
+
+    // The next minute has a fresh budget: osu! sends the details, then rates each pair.
+    expect(await runPoolsStatsBackfill({ now: () => minute(1) })).toEqual({
+      updated: 1,
+      remaining: 0,
+    });
+    expect((await stats(slug))?.complete).toBe(true);
+    expect([...lookups.calls.attributes].sort()).toEqual(["4000:DT", "4001:DT", "4002:DT"]);
   });
 
   it("stops after 5 calls in a row that learn nothing, while visitors keep the global osu! budget spent", async () => {
