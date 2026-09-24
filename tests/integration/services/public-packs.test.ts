@@ -1,8 +1,9 @@
 /**
  * @file tests/integration/services/public-packs.test.ts
- * @desc The cached public list and search index: only public, visible packs, newest first, with
- *       the host's osu! name; paging; the index shape and cap; pack stats in compact form on
- *       index entries and cards (left out when a pack has none); no database under CI builds.
+ * @desc The cached public list and search index: only public, visible packs, newest created
+ *       first (an edit doesn't move a pack up), with the host's osu! name; paging; the index shape
+ *       (creation date included) and cap; pack stats in compact form on index entries and cards
+ *       (left out when a pack has none); no database under CI builds.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -88,6 +89,19 @@ describe("listPublicPacks", () => {
     expect((await listPublicPacks(2)).packs.map((p) => p.name)).toEqual(["Pack 0"]);
   });
 
+  it("orders by creation, so editing an older pack doesn't move it up", async () => {
+    const host = await createTestUser();
+    const older = await createPack(host.id, input({ name: "Older" }));
+    await createPack(host.id, input({ name: "Newer" }));
+    await getPackModel().updateOne(
+      { slug: older.slug },
+      { $set: { updatedAt: new Date("2030-01-01T00:00:00Z") } },
+      { timestamps: false },
+    );
+    expect((await listPublicPacks(1)).packs.map((p) => p.name)).toEqual(["Newer", "Older"]);
+    expect((await buildSearchIndex()).packs.map((e) => e.n)).toEqual(["Newer", "Older"]);
+  });
+
   it("is empty without a database query in CI builds", async () => {
     vi.stubEnv("SKIP_ENV_VALIDATION", "true");
     try {
@@ -146,7 +160,15 @@ describe("buildSearchIndex", () => {
     const index = await buildSearchIndex();
     expect(searchIndexSchema.safeParse(index).success).toBe(true);
     expect(index.packs).toEqual([
-      { s: pack.slug, n: "Pokémon Cup", o: "Chiyo", c: 2, d: "Round of 16", u: pack.updatedAt },
+      {
+        s: pack.slug,
+        n: "Pokémon Cup",
+        o: "Chiyo",
+        c: 2,
+        d: "Round of 16",
+        u: pack.updatedAt,
+        t: pack.createdAt,
+      },
     ]);
   });
 
@@ -175,6 +197,7 @@ describe("buildSearchIndex", () => {
         n: "Full",
         ...base,
         u: full.updatedAt,
+        t: full.createdAt,
         r: [5.12, 7.81],
         a: 6.3,
         l: [90, 258],
@@ -188,13 +211,14 @@ describe("buildSearchIndex", () => {
         n: "Partial",
         ...base,
         u: partial.updatedAt,
+        t: partial.createdAt,
         l: [90, 258],
         b: [120, 333],
         m: "NM,DT",
         g: "osu,mania",
         k: false,
       },
-      { s: none.slug, n: "No stats", ...base, u: none.updatedAt },
+      { s: none.slug, n: "No stats", ...base, u: none.updatedAt, t: none.createdAt },
     ]);
   });
 

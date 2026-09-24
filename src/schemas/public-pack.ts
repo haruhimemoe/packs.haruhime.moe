@@ -34,8 +34,9 @@ export type PublicPackPage = {
 };
 
 /**
- * Short keys keep the index small: slug, name, owner, count, description excerpt, updated, then
- * the pack's stats (r, a, l, b, m, g, k; see indexStatsSchema), all left out when it has none.
+ * Short keys keep the index small: slug, name, owner, count, description excerpt, updated,
+ * created, then the pack's stats (r, a, l, b, m, g, k; see indexStatsSchema), all left out when
+ * it has none. `t` is optional so an index cached before it existed still parses.
  */
 export const searchIndexEntrySchema = z.object({
   s: slugSchema,
@@ -44,6 +45,7 @@ export const searchIndexEntrySchema = z.object({
   c: z.number().int().nonnegative(),
   d: z.string(),
   u: z.string(),
+  t: z.string().optional(),
   ...indexStatsSchema.partial().shape,
 });
 

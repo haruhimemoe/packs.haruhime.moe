@@ -1,12 +1,13 @@
 /**
  * @file src/services/public-packs.ts
  * @desc The public list (/packs) and its search index: public packs with no moderation flag,
- *       newest first, joined with the host's current osu! name from better-auth's "user"
+ *       newest created first (an edit doesn't move a pack up; the browser can sort the index by
+ *       last update), joined with the host's current osu! name from better-auth's "user"
  *       collection. Read by ISR pages, so each runs once per regeneration, not per visitor.
  *       CI builds (SKIP_ENV_VALIDATION) get empty results instead of a database. The API's page
- *       (listPublicPacksFull) has the same order as full pack objects, and keeps a pack whose
- *       owner has no username or no record (as UNKNOWN_OWNER_NAME), so its total is exact.
- *       Cards and index entries carry the pack's stats in compact form when it has them.
+ *       (listPublicPacksFull) lists full pack objects, most recently updated first, and keeps a
+ *       pack whose owner has no username or no record (as UNKNOWN_OWNER_NAME), so its total is
+ *       exact. Cards and index entries carry the pack's stats in compact form when it has them.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -38,15 +39,16 @@ type ListedRow = {
   name: string;
   description?: string | null;
   slotCount: number;
+  createdAt: Date;
   updatedAt: Date;
   stats?: PackRecord["stats"];
   owner: { username: string; avatarUrl?: string | null };
 };
 
-/** Packs whose owner record is gone drop out at $unwind. */
+/** Newest created first. Packs whose owner record is gone drop out at $unwind. */
 const listedStages = (skip: number, limit: number): PipelineStage[] => [
   { $match: LISTED },
-  { $sort: { updatedAt: -1, _id: -1 } },
+  { $sort: { createdAt: -1, _id: -1 } },
   { $skip: skip },
   { $limit: limit },
   { $lookup: { from: "user", localField: "ownerId", foreignField: "_id", as: "owner" } },
@@ -57,6 +59,7 @@ const listedStages = (skip: number, limit: number): PipelineStage[] => [
       slug: 1,
       name: 1,
       description: 1,
+      createdAt: 1,
       updatedAt: 1,
       stats: 1,
       slotCount: { $size: "$slots" },
@@ -112,7 +115,7 @@ export const listPublicPacks = async (page: number): Promise<PublicPackPage> => 
 /**
  * @function buildSearchIndex
  * @param options {{ limit?: number }} most packs to include (default SEARCH_INDEX_LIMIT)
- * @returns {Promise<SearchIndex>} the newest public packs in the compact index shape
+ * @returns {Promise<SearchIndex>} the newest created public packs in the compact index shape
  */
 export const buildSearchIndex = async ({
   limit = SEARCH_INDEX_LIMIT,
@@ -131,6 +134,7 @@ export const buildSearchIndex = async ({
       c: row.slotCount,
       d: describe(row),
       u: row.updatedAt.toISOString(),
+      t: row.createdAt.toISOString(),
       ...compactStats(row).stats,
     })),
   });
@@ -141,7 +145,8 @@ export const buildSearchIndex = async ({
  * @param page {number} 1-based page
  * @param pageSize {number} packs per page
  * @returns {Promise<{ packs: { pack: SavedPack; ownerName: string }[]; page; pageCount; total }>}
- *          the same packs and order as /packs, as full DTOs (the API). Past the end: no packs.
+ *          the packs /packs lists, most recently updated first, as full DTOs (the API). Past the
+ *          end: no packs.
  */
 export const listPublicPacksFull = async (
   page: number,

@@ -70,6 +70,7 @@ describe("content/docs/api.mdx", () => {
 
   it("says what /packs/index.json holds, and points to the API for a pack's maps", () => {
     expect(text()).toContain(`up to ${SEARCH_INDEX_LIMIT.toLocaleString("en-US")} newest`);
+    expect(text()).toContain("newest created first");
     expect(text()).toContain("GET /api/v1/packs/{slug}");
     expect(text()).not.toContain("read every public pack");
   });
@@ -80,7 +81,7 @@ describe("pack stats", () => {
     expect(text()).toContain(`\`${field}\``);
   });
 
-  it.each(["`r`", "`a`", "`l`", "`b`", "`m`", "`g`", "`k`"])(
+  it.each(["`t`", "`r`", "`a`", "`l`", "`b`", "`m`", "`g`", "`k`"])(
     "documents the index key %s",
     (key) => {
       expect(text()).toContain(key);

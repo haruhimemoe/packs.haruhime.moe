@@ -91,6 +91,8 @@ const packSchema = new Schema(
 
 packSchema.index({ ownerId: 1, updatedAt: -1 });
 packSchema.index({ visibility: 1, updatedAt: -1 });
+// /packs and its search index: newest created first.
+packSchema.index({ visibility: 1, createdAt: -1 });
 
 const register = (connection: Connection) => connection.model("Pack", packSchema);
 

@@ -50,6 +50,8 @@ describe("buildLlmsTxt", () => {
 
   it("describes the public packs index, stats included", () => {
     expect(text).toContain(`](${SITE.url}/packs/index.json): `);
+    expect(text).toContain("t: created (ISO 8601)");
+    expect(text).toContain("newest created first");
     expect(text).toContain("r: [min, max] star rating");
     expect(text).toContain("k: stats complete");
   });

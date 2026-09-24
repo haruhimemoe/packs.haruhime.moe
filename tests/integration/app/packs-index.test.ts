@@ -30,7 +30,9 @@ describe("GET /packs/index.json", () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       v: 1,
-      packs: [{ s: pack.slug, n: "Cup", o: "Chiyo", c: 1, d: "", u: pack.updatedAt }],
+      packs: [
+        { s: pack.slug, n: "Cup", o: "Chiyo", c: 1, d: "", u: pack.updatedAt, t: pack.createdAt },
+      ],
     });
   });
 
@@ -62,6 +64,7 @@ describe("GET /packs/index.json", () => {
           c: 2,
           d: "",
           u: pack.updatedAt,
+          t: pack.createdAt,
           r: [3.61, 7.81],
           a: 5.71,
           l: [95, 258],
