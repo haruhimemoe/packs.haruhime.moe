@@ -8,8 +8,9 @@
  *       something it asks the live site to refresh /packs and its index
  *       (POST /api/cron/revalidate-packs with CRON_SECRET); without CRON_SECRET, or if that
  *       request fails, it says so: the pages then pick the packs up at their daily refresh.
- *       Answers an exit code: 0 done, 1 a fatal error (download, a bad file or export, the
- *       database), 2 bad arguments. Every outside call is injectable, so tests never reach otdb or the site.
+ *       An import that stops after writing says what it wrote and still asks for the refresh, since
+ *       a rerun would find those packs unchanged. Answers an exit code: 0 done, 1 a fatal error
+ *       (download, a bad file or export, the database), 2 bad arguments. Every outside call is injectable, so tests never reach otdb or the site.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -20,7 +21,7 @@ import { readFile } from "node:fs/promises";
 import { OTDB_EXPORT_URL } from "@/constants/archive";
 import { SERVER_USER_AGENT, SITE } from "@/constants/site";
 import { getCronSecret } from "@/env";
-import { importArchive } from "@/services/archive";
+import { ArchiveImportError, importArchive } from "@/services/archive";
 import { formatImportReport, IMPORT_USAGE, parseImportArgs } from "@/utils/archive-import";
 import { normalizePools } from "@/utils/archive-pools";
 import { readOtdbExport } from "@/utils/otdb";
@@ -156,6 +157,15 @@ export const runArchiveImport = async (
     written = result.created + result.updated + result.unlisted;
   } catch (error) {
     warn(`archive:import stopped: ${messageOf(error)}`);
+    if (error instanceof ArchiveImportError) {
+      const { created, updated, unlisted } = error.writes;
+      log(`Wrote ${created} new packs and new sources on ${updated} packs before it stopped.`);
+      if (unlisted > 0) log(`Unlisted ${unlisted} old ${unlisted === 1 ? "pack" : "packs"}.`);
+      // A rerun finds these packs unchanged and wouldn't refresh: do it now.
+      if (created + updated + unlisted > 0) {
+        await refreshSite({ doFetch, siteUrl, cronSecret, log, warn });
+      }
+    }
     return 1;
   }
   if (written > 0) await refreshSite({ doFetch, siteUrl, cronSecret, log, warn });

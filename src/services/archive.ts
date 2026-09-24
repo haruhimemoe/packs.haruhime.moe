@@ -129,6 +129,20 @@ const stamped = (sources: readonly ArchiveSourceRef[], now: Date): StoredSource[
 export type ArchiveWrites = { created: number; updated: number; unlisted: number };
 
 /**
+ * An import that stopped partway, with what it had written by then: the runner still says so
+ * and refreshes the site for those packs (a rerun finds them unchanged and wouldn't).
+ */
+export class ArchiveImportError extends Error {
+  readonly writes: ArchiveWrites;
+
+  constructor(cause: unknown, writes: ArchiveWrites) {
+    super(cause instanceof Error ? cause.message : String(cause), { cause });
+    this.name = "ArchiveImportError";
+    this.writes = writes;
+  }
+}
+
+/**
  * @function applyArchivePlan
  * @param plan {ArchivePlan} what to write
  * @param options {{ ownerId: string; now?: Date; makeSlug?: () => string }} the archive account,
@@ -138,6 +152,7 @@ export type ArchiveWrites = { created: number; updated: number; unlisted: number
  *          written; their pin goes with it). A pool another import created meanwhile gets the
  *          sources instead of a second pack (the fingerprint index refuses it), and a source a
  *          pack already has is never added twice.
+ * @throws {ArchiveImportError} when a write fails, carrying what was written before it
  */
 export const applyArchivePlan = async (
   plan: ArchivePlan,
@@ -147,69 +162,73 @@ export const applyArchivePlan = async (
     makeSlug = () => nanoid(SLUG_LENGTH),
   }: { ownerId: string; now?: Date; makeSlug?: () => string },
 ): Promise<ArchiveWrites> => {
-  const model = await connectedPackModel();
-  const addSources = async (filter: Document, sources: readonly ArchiveSourceRef[]) => {
-    let added = false;
-    for (const source of stamped(sources, now)) {
-      const result = await model.collection.updateOne(
-        {
-          ...filter,
-          "archive.sources": { $not: { $elemMatch: { kind: source.kind, id: source.id } } },
-        },
-        { $push: { "archive.sources": source } } as Document,
-      );
-      added ||= result.modifiedCount > 0;
-    }
-    return added;
-  };
-  let created = 0;
-  let updated = 0;
-  for (const { pool, sources } of plan.create) {
-    const buckets = canonicalBuckets(bucketsOf(pool.input));
-    for (let attempt = 1; ; attempt++) {
-      try {
-        await model.create({
-          slug: makeSlug(),
-          ownerId: new ObjectId(ownerId),
-          name: pool.input.name,
-          slots: pool.input.slots,
-          ...(buckets ? { buckets } : {}),
-          ...(pool.input.description ? { description: pool.input.description } : {}),
-          visibility: "public",
-          stats: seededStats(pool.stats),
-          archive: {
-            tournament: pool.archive.tournament,
-            round: pool.archive.round,
-            year: pool.archive.year,
-            badged: null,
-            fingerprint: pool.fingerprint,
-            sources: stamped(sources, now),
+  const writes: ArchiveWrites = { created: 0, updated: 0, unlisted: 0 };
+  try {
+    const model = await connectedPackModel();
+    const addSources = async (filter: Document, sources: readonly ArchiveSourceRef[]) => {
+      let added = false;
+      for (const source of stamped(sources, now)) {
+        const result = await model.collection.updateOne(
+          {
+            ...filter,
+            "archive.sources": { $not: { $elemMatch: { kind: source.kind, id: source.id } } },
           },
-        });
-        created++;
-        break;
-      } catch (error) {
-        if (isDuplicateOf(error, "archive.fingerprint")) {
-          if (await addSources({ "archive.fingerprint": pool.fingerprint }, sources)) updated++;
+          { $push: { "archive.sources": source } } as Document,
+        );
+        added ||= result.modifiedCount > 0;
+      }
+      return added;
+    };
+    for (const { pool, sources } of plan.create) {
+      const buckets = canonicalBuckets(bucketsOf(pool.input));
+      for (let attempt = 1; ; attempt++) {
+        try {
+          await model.create({
+            slug: makeSlug(),
+            ownerId: new ObjectId(ownerId),
+            name: pool.input.name,
+            slots: pool.input.slots,
+            ...(buckets ? { buckets } : {}),
+            ...(pool.input.description ? { description: pool.input.description } : {}),
+            visibility: "public",
+            stats: seededStats(pool.stats),
+            archive: {
+              tournament: pool.archive.tournament,
+              round: pool.archive.round,
+              year: pool.archive.year,
+              badged: null,
+              fingerprint: pool.fingerprint,
+              sources: stamped(sources, now),
+            },
+          });
+          writes.created++;
           break;
+        } catch (error) {
+          if (isDuplicateOf(error, "archive.fingerprint")) {
+            if (await addSources({ "archive.fingerprint": pool.fingerprint }, sources)) {
+              writes.updated++;
+            }
+            break;
+          }
+          if (attempt < SLUG_ATTEMPTS && isDuplicateOf(error, "slug")) continue;
+          throw error;
         }
-        if (attempt < SLUG_ATTEMPTS && isDuplicateOf(error, "slug")) continue;
-        throw error;
       }
     }
+    for (const update of plan.update) {
+      if (await addSources({ slug: update.slug }, update.sources)) writes.updated++;
+    }
+    for (const { slug } of plan.unlist) {
+      const result = await model.collection.updateOne(
+        { slug, visibility: "public", hiddenAt: null, "archive.fingerprint": { $exists: true } },
+        { $set: { visibility: "unlisted" }, $unset: UNPIN },
+      );
+      writes.unlisted += result.modifiedCount;
+    }
+    return writes;
+  } catch (error) {
+    throw new ArchiveImportError(error, { ...writes });
   }
-  for (const update of plan.update) {
-    if (await addSources({ slug: update.slug }, update.sources)) updated++;
-  }
-  let unlisted = 0;
-  for (const { slug } of plan.unlist) {
-    const result = await model.collection.updateOne(
-      { slug, visibility: "public", hiddenAt: null, "archive.fingerprint": { $exists: true } },
-      { $set: { visibility: "unlisted" }, $unset: UNPIN },
-    );
-    unlisted += result.modifiedCount;
-  }
-  return { created, updated, unlisted };
 };
 
 export type ArchiveImport = ArchiveWrites & {
@@ -226,6 +245,8 @@ export type ArchiveImport = ArchiveWrites & {
  *        the import time, and the slug source (tests)
  * @returns {Promise<ArchiveImport>} the plan, what was written, and the map usage rebuild that
  *          follows every real run (nothing on a dry run)
+ * @throws {ArchiveImportError} when writing or the map usage rebuild fails, carrying what was
+ *         written
  */
 export const importArchive = async (
   pools: readonly NormalizedPool[],
@@ -236,5 +257,9 @@ export const importArchive = async (
   if (dryRun) return { plan, created: 0, updated: 0, unlisted: 0, usage: null };
   const ownerId = await ensureArchiveAccount(now);
   const writes = await applyArchivePlan(plan, { ownerId, now, makeSlug });
-  return { plan, ...writes, usage: await rebuildMapUsage(undefined, now) };
+  try {
+    return { plan, ...writes, usage: await rebuildMapUsage(undefined, now) };
+  } catch (error) {
+    throw new ArchiveImportError(error, writes);
+  }
 };

@@ -332,6 +332,44 @@ describe("archive:import", () => {
       expect(out).toContain(`Refreshed /packs and its index on ${site}.`);
     });
 
+    it("still asks, and says what it wrote, when the import stops after writing packs", async () => {
+      const fetch = vi.fn(async () => Response.json({ revalidated: true }));
+      let made = 0;
+      const makeSlug = () => {
+        made++;
+        if (made > 2) throw new Error("the database went away");
+        return `partial${String(made).padStart(3, "0")}`;
+      };
+      const { code, out, err } = await withSample(["otdb"], {
+        fetch,
+        siteUrl: site,
+        makeSlug,
+        cronSecret: () => "cron-secret-for-tests-0123456789",
+      });
+      expect(code).toBe(1);
+      expect(err).toContain("archive:import stopped: the database went away");
+      expect(out).toContain("Wrote 2 new packs and new sources on 0 packs before it stopped.");
+      expect(await archivePacks()).toHaveLength(2);
+      // /packs gets the two packs now, not at its daily refresh.
+      expect(fetch).toHaveBeenCalledWith(`${site}${REVALIDATE_PACKS_PATH}`, expect.anything());
+      expect(out).toContain(`Refreshed /packs and its index on ${site}.`);
+    });
+
+    it("asks nothing when an import stops before writing anything", async () => {
+      const fetch = vi.fn(async () => Response.json({ revalidated: true }));
+      const { code, out } = await withSample(["otdb"], {
+        fetch,
+        siteUrl: site,
+        makeSlug: () => {
+          throw new Error("the database went away");
+        },
+        cronSecret: () => "cron-secret-for-tests-0123456789",
+      });
+      expect(code).toBe(1);
+      expect(out).toContain("Wrote 0 new packs and new sources on 0 packs before it stopped.");
+      expect(fetch).not.toHaveBeenCalled();
+    });
+
     it("doesn't ask on a dry run or when nothing changed", async () => {
       const fetch = vi.fn(async () => Response.json({ revalidated: true }));
       const deps = { fetch, siteUrl: site, cronSecret: () => "cron-secret-for-tests-0123456789" };
