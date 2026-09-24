@@ -139,7 +139,7 @@ export function SlotRow({
         <CopyButton
           text={String(slot.beatmapId)}
           label="Copy ID"
-          aria-label={`Copy beatmap ID ${slot.beatmapId}`}
+          aria-label={`Copy ID ${slot.beatmapId}`}
           failedMessage={`Couldn't copy. The beatmap ID is ${slot.beatmapId}.`}
           className="whitespace-nowrap"
           wrapperClassName="w-full shrink-0 gap-2 sm:w-auto sm:flex-row-reverse"

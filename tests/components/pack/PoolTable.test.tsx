@@ -39,10 +39,10 @@ describe("PoolTable", () => {
     expect(
       rows.map((row) =>
         within(row)
-          .getAllByRole("button", { name: /^Copy beatmap ID/ })
+          .getAllByRole("button", { name: /^Copy ID/ })
           .map((b) => b.getAttribute("aria-label")),
       ),
-    ).toEqual([["Copy beatmap ID 1"], ["Copy beatmap ID 2"], ["Copy beatmap ID 3"]]);
+    ).toEqual([["Copy ID 1"], ["Copy ID 2"], ["Copy ID 3"]]);
     await user.click(within(rows[2] as HTMLElement).getByRole("button", { name: /^Copy/ }));
     expect(await navigator.clipboard.readText()).toBe("3");
     expect(within(rows[2] as HTMLElement).getByRole("status")).toHaveTextContent("Copied.");

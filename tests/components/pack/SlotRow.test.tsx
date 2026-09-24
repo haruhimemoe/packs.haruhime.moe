@@ -261,8 +261,10 @@ describe("SlotRow Copy ID", () => {
   it("copies the map's beatmap ID, not its set ID, and says so", async () => {
     const user = userEvent.setup();
     inList(<SlotRow slot={SLOT} entry={{ code: "NM" }} state={{ status: "found", meta: META }} />);
-    const button = screen.getByRole("button", { name: "Copy beatmap ID 129891" });
+    const button = screen.getByRole("button", { name: "Copy ID 129891" });
     expect(button).toHaveTextContent("Copy ID");
+    // The name starts with the visible label, so "click Copy ID" works for speech input.
+    expect(button.getAttribute("aria-label")?.startsWith(button.textContent ?? "-")).toBe(true);
     await user.click(button);
     expect(await navigator.clipboard.readText()).toBe("129891");
     expect(screen.getByRole("status")).toHaveTextContent("Copied.");
@@ -275,7 +277,7 @@ describe("SlotRow Copy ID", () => {
   ])("offers the slot's ID while the map is $status", async (state) => {
     const user = userEvent.setup();
     inList(<SlotRow slot={{ mod: null, index: 1, beatmapId: 42 }} entry={null} state={state} />);
-    await user.click(screen.getByRole("button", { name: "Copy beatmap ID 42" }));
+    await user.click(screen.getByRole("button", { name: "Copy ID 42" }));
     expect(await navigator.clipboard.readText()).toBe("42");
   });
 
@@ -283,7 +285,7 @@ describe("SlotRow Copy ID", () => {
     const user = userEvent.setup();
     vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue(new Error("denied"));
     inList(<SlotRow slot={SLOT} entry={{ code: "NM" }} state={{ status: "found", meta: META }} />);
-    await user.click(screen.getByRole("button", { name: "Copy beatmap ID 129891" }));
+    await user.click(screen.getByRole("button", { name: "Copy ID 129891" }));
     expect(screen.getByRole("status")).toHaveTextContent(
       "Couldn't copy. The beatmap ID is 129891.",
     );
@@ -308,7 +310,7 @@ describe("SlotRow Copy ID", () => {
     ]);
     // Phones: a full-width line under the map, so the title keeps its room. Wider screens: in
     // the row after the map, never squeezed.
-    const wrapper = screen.getByRole("button", { name: "Copy beatmap ID 129891" }).parentElement;
+    const wrapper = screen.getByRole("button", { name: "Copy ID 129891" }).parentElement;
     // The row inside the list item holds the map, Copy ID and the controls; usage goes under it.
     const row = wrapper?.parentElement;
     expect(row?.parentElement).toBe(screen.getByRole("listitem"));
@@ -333,8 +335,7 @@ describe("SlotRow map usage", () => {
       <SlotRow slot={SLOT} entry={{ code: "NM" }} state={{ status: "loading" }} usage={[USED]} />,
     );
     const button = screen.getByRole("button", { name: "Used in 1 pool" });
-    const row = screen.getByRole("button", { name: "Copy beatmap ID 129891" }).parentElement
-      ?.parentElement;
+    const row = screen.getByRole("button", { name: "Copy ID 129891" }).parentElement?.parentElement;
     expect(row?.contains(button)).toBe(false);
     expect(screen.getByRole("listitem").contains(button)).toBe(true);
   });

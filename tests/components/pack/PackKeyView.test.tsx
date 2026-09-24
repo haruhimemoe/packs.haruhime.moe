@@ -118,9 +118,9 @@ describe("PackKeyView", () => {
     const maps = await screen.findByRole("region", { name: "Maps" });
     expect(
       within(maps)
-        .getAllByRole("button", { name: /^Copy beatmap ID/ })
+        .getAllByRole("button", { name: /^Copy ID/ })
         .map((b) => b.getAttribute("aria-label")),
-    ).toEqual(["Copy beatmap ID 129891", "Copy beatmap ID 1872396"]);
+    ).toEqual(["Copy ID 129891", "Copy ID 1872396"]);
   });
 
   it("wraps a long unbroken pack name instead of overflowing", async () => {

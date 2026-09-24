@@ -86,9 +86,9 @@ describe("PackBuilder", () => {
     const pool = screen.getByRole("region", { name: "Pool" });
     expect(
       within(pool)
-        .getAllByRole("button", { name: /^Copy beatmap ID/ })
+        .getAllByRole("button", { name: /^Copy ID/ })
         .map((b) => b.getAttribute("aria-label")),
-    ).toEqual(["Copy beatmap ID 129891", "Copy beatmap ID 1872396"]);
+    ).toEqual(["Copy ID 129891", "Copy ID 1872396"]);
   });
 
   it("removes a slot and clears the pack after confirming", async () => {

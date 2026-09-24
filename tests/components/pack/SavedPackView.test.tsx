@@ -112,9 +112,9 @@ describe("SavedPackView", () => {
     const maps = screen.getByRole("region", { name: "Maps" });
     expect(
       within(maps)
-        .getAllByRole("button", { name: /^Copy beatmap ID/ })
+        .getAllByRole("button", { name: /^Copy ID/ })
         .map((b) => b.getAttribute("aria-label")),
-    ).toEqual(["Copy beatmap ID 129891", "Copy beatmap ID 1872396"]);
+    ).toEqual(["Copy ID 129891", "Copy ID 1872396"]);
   });
 
   it("hides owner controls from everyone else", () => {
