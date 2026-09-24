@@ -12,7 +12,7 @@ packs.haruhime.moe: a browser-first osu! beatmap pack builder. Internal specs li
 
 ```
 src/app/          routes only (thin; compose components)
-src/components/   ui/ (primitives), layout/, and feature folders (beatmap/, pack/, export/)
+src/components/   layout/ and feature folders (beatmap/, pack/, export/); primitives come from @haruhimemoe/ui
 src/hooks/        client hooks (useBeatmapMeta, usePackDraft) + shared hook types
 src/constants/    static data (site, legal registry, mod buckets)
 src/utils/        pure, stateless helpers grouped by domain
@@ -28,7 +28,7 @@ tests/            unit/ (node), components/ (jsdom), integration/ (node + in-mem
 
 - TypeScript 7, `strict`, `noUncheckedIndexedAccess`. No `any`; validate external data with zod.
 - Biome is the only linter/formatter (`bun run check`, `bun run check:fix`). No ESLint or Prettier: typescript-eslint doesn't support TS 7.
-- No barrel files. Import exact paths (`@/components/ui/Button`).
+- No barrel files. Import exact paths (`@/components/pack/PoolTable`). The one exception is `@haruhimemoe/ui`, whose components all come from the package root.
 - One component per file, PascalCase filename, Tailwind only, no CSS modules. Components are presentational; data fetching lives in hooks or services.
 - `utils/` is pure. Integration code goes in `lib/`. Don't make one-function files in `lib/`.
 - Server-only modules `import "server-only"`. Browser-only integrations are imported only from client components.
@@ -60,9 +60,10 @@ Dates match `date "+%a %b %-d, %Y"`. Update `@modified` on edits, never `@create
 
 ## 6. Visual system
 
-osu!-web look, rebuilt from tokens in `src/app/globals.css`: `b1`–`b6` backgrounds, `c1`–`c4` text, `h1`/`h2` accent, all from `--hue`. Dark only. Font: Nunito via `--font-sans`. Never copy osu-web source (AGPL-3.0) or ship the Torus font.
+osu!-web look from `@haruhimemoe/ui`: `src/app/globals.css` imports its theme (`b1`–`b6` backgrounds, `c1`–`c4` text, `h1`/`h2` accent, all from `--hue`, pinned to 333 there). Dark only. Font: Nunito via `--font-sans`. Never copy osu-web source (AGPL-3.0) or ship the Torus font.
 
-- Page titles go through `PageHeader` (`src/components/ui/PageHeader.tsx`); don't hand-build page `h1`s. Structured data goes through `JsonLd`.
+- Buttons, cards, form fields, pagination, the header, footer and page frame come from `@haruhimemoe/ui`. Use them instead of rebuilding one here; a missing piece belongs in the library.
+- Page titles go through `PageHeader` (`@haruhimemoe/ui`); don't hand-build page `h1`s. Structured data goes through `JsonLd` (`@haruhimemoe/ui`).
 
 ## 7. Legal copy
 
