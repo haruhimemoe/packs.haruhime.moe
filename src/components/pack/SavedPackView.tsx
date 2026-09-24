@@ -1,8 +1,9 @@
 /**
  * @file src/components/pack/SavedPackView.tsx
  * @desc /p/[slug]: the Download card at the top (the recorded magnet links first, then the
- *       mirror, and the retry when map info fails), the saved pool with live metadata and star ratings with mods, and sharing. The
- *       owner also sees its visibility, an Edit link, and can add or remove magnet links; an admin
+ *       mirror, and the retry when map info fails), the saved pool with live metadata and star
+ *       ratings with mods, and sharing. An archive pack shows the "Archived pool" badge, and the
+ *       link to its pool in its description can be followed. The owner also sees its visibility, an Edit link, and can add or remove magnet links; an admin
  *       can remove a magnet link from a public or unlisted pack, and pin a public pack that isn't
  *       hidden to the top of /packs (or unpin it). Each map shows the other archive pools that used
  *       it (one request for the whole pack; the pack's own entries left out).
@@ -15,9 +16,10 @@
 
 import { encodePackKey } from "@haruhimemoe/pool";
 import { ButtonLink, Card, PageHeader } from "@haruhimemoe/ui";
-import { useId, useMemo, useState } from "react";
+import { type ReactNode, useId, useMemo, useState } from "react";
 import { ExportPanel } from "@/components/export/ExportPanel";
 import type { MagnetTarget } from "@/components/export/TorrentExport";
+import { ArchiveBadge } from "@/components/pack/ArchiveBadge";
 import { HiddenNotice } from "@/components/pack/HiddenNotice";
 import { MagnetLinks } from "@/components/pack/MagnetLinks";
 import { PackKeyField } from "@/components/pack/PackKeyField";
@@ -36,6 +38,26 @@ import type { PackExport } from "@/schemas/pack-export";
 import type { SavedPack } from "@/schemas/saved-pack";
 import { infohashOf } from "@/utils/magnet";
 import { isPinnable } from "@/utils/pins";
+
+/** A description as text, with an archive pack's link to its pool made a real link. */
+const describe = (description: string, poolUrl: string | undefined): ReactNode => {
+  const at = poolUrl ? description.indexOf(poolUrl) : -1;
+  if (!poolUrl || at === -1) return description;
+  return (
+    <>
+      {description.slice(0, at)}
+      <a
+        href={poolUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-h1 underline-offset-2 hover:underline"
+      >
+        {poolUrl}
+      </a>
+      {description.slice(at + poolUrl.length)}
+    </>
+  );
+};
 
 export type PackViewApi = PinApi & {
   get: (
@@ -114,6 +136,7 @@ export function SavedPackView({
       : undefined;
   const hasMagnets = exports.some((entry) => infohashOf(entry.url) !== null);
   const mapsHeadingId = useId();
+  const archiveSource = pack.archive?.sources[0];
 
   return (
     <div className="flex flex-col gap-6">
@@ -123,9 +146,12 @@ export function SavedPackView({
         meta={isOwner ? `${count} · ${VISIBILITY_OPTIONS[pack.visibility].label}` : count}
         actions={isOwner ? <ButtonLink href={`/p/${pack.slug}/edit`}>Edit</ButtonLink> : undefined}
       />
+      {archiveSource ? <ArchiveBadge source={archiveSource} /> : null}
       {canPin ? <PinButton slug={pack.slug} pinned={pinned} api={api} /> : null}
       {pack.description ? (
-        <p className="wrap-anywhere max-w-3xl whitespace-pre-line text-c2">{pack.description}</p>
+        <p className="wrap-anywhere max-w-3xl whitespace-pre-line text-c2">
+          {describe(pack.description, archiveSource?.url)}
+        </p>
       ) : null}
       <ExportPanel
         pack={ref}

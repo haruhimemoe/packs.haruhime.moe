@@ -11,7 +11,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ARCHIVE_SOURCE_LABELS } from "@/constants/archive";
+import { ArchiveBadge } from "@/components/pack/ArchiveBadge";
 import type { PublicPackCard as PublicPack } from "@/schemas/public-pack";
 import { formatShortDate } from "@/utils/date";
 import { formatDuration, formatRange, formatStars } from "@/utils/format";
@@ -38,17 +38,7 @@ export function PublicPackCard({ pack, date = "added" }: PublicPackCardProps) {
       >
         {pack.name}
       </Link>
-      {pack.archiveSource ? (
-        <a
-          href={pack.archiveSource.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="self-start rounded-full bg-b3 px-2.5 py-0.5 font-bold text-c2 text-xs transition-colors hover:text-h1"
-        >
-          Archived pool {DOT} <span className="sr-only">from</span>{" "}
-          {ARCHIVE_SOURCE_LABELS[pack.archiveSource.kind]}
-        </a>
-      ) : null}
+      {pack.archiveSource ? <ArchiveBadge source={pack.archiveSource} /> : null}
       <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-c3 text-sm">
         {pack.ownerAvatarUrl ? (
           <Image src={pack.ownerAvatarUrl} alt="" width={20} height={20} className="rounded-full" />
