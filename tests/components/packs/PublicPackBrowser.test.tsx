@@ -2,8 +2,8 @@
  * @file tests/components/packs/PublicPackBrowser.test.tsx
  * @desc /packs in the browser: the server list shows until someone searches, filters or sorts;
  *       then the index loads once and the bar filters it. The filters live in the URL (written
- *       with replaceState, even without String.prototype.toWellFormed, read back on load and on
- *       back/forward), the count shows at once and is announced once changes settle, packs
+ *       with replaceState, even without String.prototype.toWellFormed, read back on load, on
+ *       back/forward and when a link changes the page's URL), the count shows at once and is announced once changes settle, packs
  *       hidden for missing stats are counted, an empty result says what might help, cards are
  *       dated by the sort, results come 50 at a time, and a failed index load keeps the server
  *       list, says so once, and retries only on request.
@@ -21,6 +21,40 @@ import { type SearchIndex, type SearchIndexEntry, searchIndexSchema } from "@/sc
 import fixture from "../../fixtures/public-packs/index.json";
 
 const INDEX = searchIndexSchema.parse(fixture);
+
+/** The Next router's query string, as useSearchParams reports it (a tiny external store). */
+const router = vi.hoisted(() => {
+  let search = "";
+  const listeners = new Set<() => void>();
+  return {
+    get: () => search,
+    set: (next: string) => {
+      search = next;
+      for (const listener of listeners) listener();
+    },
+    subscribe: (listener: () => void) => {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+  };
+});
+
+vi.mock("next/navigation", async () => {
+  const { useSyncExternalStore } = await import("react");
+  return {
+    useSearchParams: () =>
+      new URLSearchParams(useSyncExternalStore(router.subscribe, router.get, router.get)),
+  };
+});
+
+/** What a Next Link does: push the URL, then the router's query follows (the page stays). */
+const followLink = (url: string) =>
+  act(() => {
+    window.history.pushState(null, "", url);
+    router.set(new URL(url, window.location.href).search.slice(1));
+  });
 
 const setup = (loadIndex: () => Promise<SearchIndex> = async () => INDEX) => {
   const load = vi.fn(loadIndex);
@@ -53,6 +87,7 @@ const announcedCount = () => {
 
 beforeEach(() => {
   openUrl("/packs");
+  router.set("");
 });
 
 afterEach(() => {
@@ -194,6 +229,56 @@ describe("PublicPackBrowser", () => {
     });
     expect(screen.getByText("Server list")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "taiko" })).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("resets when a link goes to the bare page, like the header's Packs link", async () => {
+    openUrl("/packs?mods=DT");
+    router.set("mods=DT");
+    setup();
+    const dt = screen.getByRole("button", { name: "DT" });
+    await waitFor(() => expect(cardNames()).toEqual(["Spring Cup Quarterfinals"]));
+    expect(dt).toHaveAttribute("aria-pressed", "true");
+
+    followLink("/packs");
+
+    await waitFor(() => expect(dt).toHaveAttribute("aria-pressed", "false"));
+    expect(screen.getByText("Server list")).toBeInTheDocument();
+    expect(window.location.search).toBe("");
+  });
+
+  it("follows a link to other filters on the same page", async () => {
+    setup();
+    followLink("/packs?mode=taiko&sort=name");
+    await waitFor(() => expect(cardNames()).toEqual(["Beginner Cup"]));
+    expect(screen.getByRole("combobox", { name: "Sort by" })).toHaveValue("name");
+  });
+
+  it("keeps the filters someone is setting when the router catches up with an older write", async () => {
+    const { user } = setup();
+    await user.click(screen.getByRole("button", { name: "NM" }));
+    await waitFor(() => expect(window.location.search).toBe("?mods=NM"));
+    await user.click(screen.getByRole("button", { name: "HD" }));
+    await waitFor(() => expect(window.location.search).toBe("?mods=NM,HD"));
+    // The router reports the first write late: the page must not go back to it.
+    act(() => router.set("mods=NM"));
+    act(() => router.set("mods=NM%2CHD"));
+    expect(screen.getByRole("button", { name: "HD" })).toHaveAttribute("aria-pressed", "true");
+    expect(window.location.search).toBe("?mods=NM,HD");
+  });
+
+  it("drops a URL write still waiting when a link changes the page's URL", async () => {
+    const { user } = setup();
+    screen.getByRole("slider", { name: "Minimum star rating" }).focus();
+    // Two steps in a row: the second write waits for the throttle.
+    await user.keyboard("{PageUp}{PageUp}");
+    followLink("/packs?mode=mania");
+    await waitFor(() => expect(cardNames()).toEqual(["Mania Open Finals"]));
+    await act(() => new Promise((resolve) => setTimeout(resolve, 400)));
+    expect(window.location.search).toBe("?mode=mania");
+    expect(screen.getByRole("slider", { name: "Minimum star rating" })).toHaveAttribute(
+      "aria-valuetext",
+      "0",
+    );
   });
 
   it("counts packs hidden because their stats aren't ready", async () => {

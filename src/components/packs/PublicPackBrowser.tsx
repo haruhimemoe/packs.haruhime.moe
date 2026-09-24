@@ -3,7 +3,8 @@
  * @desc /packs in the browser: the filter bar over the server-rendered list. With no search,
  *       filter or sort (the plain /packs URL), the cached list (children) shows and nothing is
  *       fetched. Anything else loads /packs/index.json once and filters and sorts it here,
- *       50 cards at a time. The filters live in the URL (usePackFilters). The result count
+ *       50 cards at a time. The filters live in the URL (usePackFilters) and follow it when it
+ *       changes under the page (back, forward, or a link here). The result count
  *       follows every change on screen but is announced only once changes settle. An empty
  *       result says what might help (other words, a wider range, or clearing the stat filters
  *       while stats are still being worked out). If the index can't load, the server list
@@ -16,9 +17,10 @@
 "use client";
 
 import { Button } from "@haruhimemoe/ui";
-import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { PackFilterBar } from "@/components/packs/PackFilterBar";
 import { PublicPackList } from "@/components/packs/PublicPackList";
+import { SearchParamsWatcher } from "@/components/packs/SearchParamsWatcher";
 import { COUNT_SETTLE_MS, FILTER_RESULTS_STEP } from "@/constants/pack-filters";
 import { usePackFilters } from "@/hooks/usePackFilters";
 import { useSearchIndex } from "@/hooks/useSearchIndex";
@@ -71,15 +73,21 @@ const noMatchHint = (hidden: number, q: string, filtered: boolean): string | nul
 };
 
 export function PublicPackBrowser({ children, loadIndex }: PublicPackBrowserProps) {
-  const [filters, setFilters] = usePackFilters();
+  const { filters, setFilters, followUrl, urlReads } = usePackFilters();
   const { state, failures, load, retry } = useSearchIndex(loadIndex);
   const [shown, setShown] = useState(FILTER_RESULTS_STEP);
+  // Filters read from the URL (back, forward, a link here) start from the first results too.
+  const [seenUrlReads, setSeenUrlReads] = useState(urlReads);
+  if (seenUrlReads !== urlReads) {
+    setSeenUrlReads(urlReads);
+    setShown(FILTER_RESULTS_STEP);
+  }
   const list = useRef<HTMLDivElement>(null);
   // After "Show more", the first new card to move focus to.
   const focusFrom = useRef<number | null>(null);
   const browsing = isBrowsing(filters);
 
-  // Filters read from the URL (on load, back or forward) need the index too.
+  // Filters read from the URL (on load, back, forward, or a link here) need the index too.
   useEffect(() => {
     if (browsing) load();
   }, [browsing, load]);
@@ -155,6 +163,9 @@ export function PublicPackBrowser({ children, loadIndex }: PublicPackBrowserProp
 
   return (
     <div className="flex flex-col gap-6">
+      <Suspense fallback={null}>
+        <SearchParamsWatcher onChange={followUrl} />
+      </Suspense>
       <PackFilterBar
         filters={filters}
         onChange={update}
