@@ -1,20 +1,22 @@
 /**
  * @file tests/components/pack/SavedPackView.test.tsx
  * @desc /p/[slug] view: Download card first (recorded magnet links, then the mirror), pool,
- *       owner-only controls, admins removing a magnet link, short link + key sharing, Copy ID
- *       per map.
+ *       owner-only controls, admins removing a magnet link and pinning a public pack to the top
+ *       of /packs, short link + key sharing, Copy ID per map.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
  */
 
 import { encodePackKey } from "@haruhimemoe/pool";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { HttpResponse, http } from "msw";
 import { describe, expect, it, vi } from "vitest";
 import { SavedPackView } from "@/components/pack/SavedPackView";
+import { PacksApiError } from "@/lib/packs-api";
 import type { SavedPack } from "@/schemas/saved-pack";
+import { PIN_LIMIT } from "@/utils/pins";
 import { MODDED_FAILED_NOTE } from "@/utils/slot-stars";
 import { HINAI_BATCH_URL, hinaiBatchHandler, setupHinaiServer } from "../../helpers/hinai-server";
 
@@ -188,6 +190,8 @@ describe("SavedPackView", () => {
       addMagnet: vi.fn(),
       removeMagnet: vi.fn(async () => []),
       adminRemoveMagnet: vi.fn(),
+      pin: vi.fn(),
+      unpin: vi.fn(),
     };
     render(
       <SavedPackView
@@ -217,6 +221,8 @@ describe("SavedPackView", () => {
       addMagnet: vi.fn(),
       removeMagnet: vi.fn(),
       adminRemoveMagnet: vi.fn(async () => []),
+      pin: vi.fn(),
+      unpin: vi.fn(),
     };
     render(<SavedPackView pack={pack} api={api} readCookie={() => "packs-signed-in=1"} />);
     await user.click(await screen.findByRole("button", { name: "Remove magnet link abababab" }));
@@ -239,6 +245,8 @@ describe("SavedPackView", () => {
       addMagnet: vi.fn(),
       removeMagnet: vi.fn(),
       adminRemoveMagnet: vi.fn(),
+      pin: vi.fn(),
+      unpin: vi.fn(),
     };
     render(<SavedPackView pack={pack} api={api} readCookie={() => "packs-signed-in=1"} />);
     await waitFor(() => expect(api.get).toHaveBeenCalled());
@@ -246,6 +254,80 @@ describe("SavedPackView", () => {
       await screen.findByRole("link", { name: "Open magnet link abababab" }),
     ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^Remove/ })).not.toBeInTheDocument();
+  });
+
+  describe("pinning", () => {
+    const PUBLIC: SavedPack = { ...PACK, visibility: "public" };
+    const PIN = {
+      slug: PACK.slug,
+      name: PACK.name,
+      ownerName: "host",
+      pinnedAt: "2026-09-24T10:00:00.000Z",
+    };
+    const adminApi = ({ pack = PUBLIC, pinned = false, isAdmin = true } = {}) => ({
+      get: vi.fn(async () => ({ pack, isOwner: false, isAdmin, pinned })),
+      addMagnet: vi.fn(),
+      removeMagnet: vi.fn(),
+      adminRemoveMagnet: vi.fn(),
+      pin: vi.fn(async () => [PIN]),
+      unpin: vi.fn(async () => []),
+    });
+    const signedIn = () => "packs-signed-in=1";
+
+    it("lets an admin pin a public pack to the top of /packs", async () => {
+      const user = userEvent.setup();
+      const api = adminApi();
+      render(<SavedPackView pack={PUBLIC} api={api} readCookie={signedIn} />);
+      await user.click(await screen.findByRole("button", { name: "Pin" }));
+      expect(api.pin).toHaveBeenCalledWith("abcdefghij");
+      expect(await screen.findByRole("button", { name: "Unpin" })).toHaveFocus();
+      expect(screen.getByText("Pinned to the top of /packs.")).toHaveAttribute("role", "status");
+    });
+
+    it("shows an admin that a pack is pinned, and unpins it", async () => {
+      const user = userEvent.setup();
+      const api = adminApi({ pinned: true });
+      render(<SavedPackView pack={PUBLIC} api={api} readCookie={signedIn} />);
+      const unpin = await screen.findByRole("button", { name: "Unpin" });
+      expect(screen.getByText("Pinned to the top of /packs.")).toHaveAttribute("role", "status");
+      await user.click(unpin);
+      expect(api.unpin).toHaveBeenCalledWith("abcdefghij");
+      expect(await screen.findByRole("button", { name: "Pin" })).toBeInTheDocument();
+      expect(screen.getByText("Unpinned from /packs.")).toHaveAttribute("role", "status");
+    });
+
+    it("says why a pin was refused", async () => {
+      const user = userEvent.setup();
+      const api = adminApi();
+      api.pin.mockRejectedValueOnce(new PacksApiError(PIN_LIMIT, 409));
+      render(<SavedPackView pack={PUBLIC} api={api} readCookie={signedIn} />);
+      await user.click(await screen.findByRole("button", { name: "Pin" }));
+      expect(await screen.findByRole("alert")).toHaveTextContent(PIN_LIMIT);
+      expect(screen.getByRole("button", { name: "Pin" })).toBeEnabled();
+    });
+
+    it("offers no Pin to other visitors, or on a pack that isn't public", async () => {
+      /** Renders, then waits until the viewer check has answered and the page has updated. */
+      const checked = async (pack: SavedPack, api: ReturnType<typeof adminApi>) => {
+        const view = render(<SavedPackView pack={pack} api={api} readCookie={signedIn} />);
+        await act(async () => {
+          await api.get.mock.results[0]?.value;
+        });
+        expect(api.get).toHaveBeenCalledOnce();
+        return view;
+      };
+      const visitor = await checked(PUBLIC, adminApi({ isAdmin: false }));
+      expect(screen.queryByRole("button", { name: "Pin" })).not.toBeInTheDocument();
+      visitor.unmount();
+      await checked(PACK, adminApi({ pack: PACK }));
+      expect(screen.queryByRole("button", { name: "Pin" })).not.toBeInTheDocument();
+    });
+
+    it("goes by the pack the admin's check found, not the cached page", async () => {
+      // The cached page is from before the host made the pack public.
+      render(<SavedPackView pack={PACK} api={adminApi()} readCookie={signedIn} />);
+      expect(await screen.findByRole("button", { name: "Pin" })).toBeInTheDocument();
+    });
   });
 
   it("has no Torrent section or mirror heading when the pack lists no links", () => {
@@ -275,6 +357,8 @@ describe("SavedPackView", () => {
       addMagnet: vi.fn(),
       removeMagnet: vi.fn(),
       adminRemoveMagnet: vi.fn(),
+      pin: vi.fn(),
+      unpin: vi.fn(),
     };
     const { unmount } = render(<SavedPackView pack={PACK} api={api} readCookie={() => ""} />);
     expect(api.get).not.toHaveBeenCalled();

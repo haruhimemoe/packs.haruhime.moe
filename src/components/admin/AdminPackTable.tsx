@@ -1,10 +1,11 @@
 /**
  * @file src/components/admin/AdminPackTable.tsx
- * @desc /admin table of public and unlisted packs with Hide / Unhide and Delete (confirmed
- *       inline). Refreshes the server page after each action.
+ * @desc /admin table of public and unlisted packs with Hide / Unhide, Pin / Unpin (public packs
+ *       that aren't hidden: the "Pinned" row on /packs) and Delete (confirmed inline). Refreshes
+ *       the server page after each action.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 "use client";
@@ -17,8 +18,9 @@ import { VISIBILITY_OPTIONS } from "@/constants/visibility";
 import { PacksApiError, packsApi } from "@/lib/packs-api";
 import type { AdminPackRow } from "@/schemas/public-pack";
 import { formatShortDate } from "@/utils/date";
+import { isPinnable } from "@/utils/pins";
 
-type AdminApi = Pick<typeof packsApi, "setHidden" | "adminRemove">;
+type AdminApi = Pick<typeof packsApi, "setHidden" | "adminRemove" | "pin" | "unpin">;
 
 type AdminPackTableProps = {
   rows: readonly AdminPackRow[];
@@ -77,7 +79,8 @@ export function AdminPackTable({ rows, api = packsApi }: AdminPackTableProps) {
         </p>
       ) : null}
       {rows.length === 0 ? <p className="text-c3">No packs here.</p> : null}
-      <div className="overflow-x-auto" hidden={rows.length === 0}>
+      {/* relative: the header's sr-only text is absolute and would widen the page on phones. */}
+      <div className="relative overflow-x-auto" hidden={rows.length === 0}>
         <table className="w-full min-w-[40rem] text-left text-sm">
           <thead className="text-c4">
             <tr>
@@ -116,8 +119,12 @@ export function AdminPackTable({ rows, api = packsApi }: AdminPackTableProps) {
                 <td className="py-2 pr-3 text-c2">{VISIBILITY_OPTIONS[row.visibility].label}</td>
                 <td className="py-2 pr-3 text-c2">{row.slotCount}</td>
                 <td className="py-2 pr-3 text-c2">{formatShortDate(row.updatedAt)}</td>
-                <td className="py-2 pr-3 text-amber-200">
-                  {row.hiddenAt ? `Hidden ${formatShortDate(row.hiddenAt)}` : ""}
+                <td className="py-2 pr-3">
+                  {row.hiddenAt ? (
+                    <span className="text-amber-200">Hidden {formatShortDate(row.hiddenAt)}</span>
+                  ) : row.pinnedAt ? (
+                    <span className="text-h1">Pinned</span>
+                  ) : null}
                 </td>
                 <td className="py-2">
                   {confirming === row.slug ? (
@@ -156,6 +163,28 @@ export function AdminPackTable({ rows, api = packsApi }: AdminPackTableProps) {
                       >
                         {row.hiddenAt ? "Unhide" : "Hide"}
                       </Button>
+                      {row.pinnedAt ? (
+                        <Button
+                          variant="secondary"
+                          aria-label={`Unpin ${row.name}`}
+                          onClick={() => run(row.slug, () => api.unpin(row.slug))}
+                          disabled={busy.has(row.slug)}
+                        >
+                          Unpin
+                        </Button>
+                      ) : isPinnable({
+                          visibility: row.visibility,
+                          hidden: row.hiddenAt !== null,
+                        }) ? (
+                        <Button
+                          variant="secondary"
+                          aria-label={`Pin ${row.name}`}
+                          onClick={() => run(row.slug, () => api.pin(row.slug))}
+                          disabled={busy.has(row.slug)}
+                        >
+                          Pin
+                        </Button>
+                      ) : null}
                       <Button
                         variant="ghost"
                         aria-label={`Delete ${row.name}`}

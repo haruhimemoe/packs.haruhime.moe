@@ -4,7 +4,7 @@
  *       admin) in the browser, and never asks without the signed-in marker.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -31,6 +31,8 @@ const api = (result: { pack: SavedPack; isOwner: boolean; isAdmin?: boolean } | 
   addMagnet: vi.fn(),
   removeMagnet: vi.fn(),
   adminRemoveMagnet: vi.fn(),
+  pin: vi.fn(),
+  unpin: vi.fn(),
 });
 
 describe("PackNotFoundFallback", () => {

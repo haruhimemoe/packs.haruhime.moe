@@ -1,15 +1,16 @@
 /**
  * @file src/app/(public)/packs/page.tsx
- * @desc /packs: page 1 of public packs. ISR: rebuilt at most once a day, or on the next
- *       visit after a public pack changes (revalidatePublicPacks).
+ * @desc /packs: page 1 of public packs, under the packs admins pinned. ISR: rebuilt at most
+ *       once a day, or on the next visit after a public pack or a pin changes
+ *       (revalidatePublicPacks).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import type { Metadata } from "next";
 import { PublicPacksScreen } from "@/components/packs/PublicPacksScreen";
-import { listPublicPacks } from "@/services/public-packs";
+import { listPinnedPacks, listPublicPacks } from "@/services/public-packs";
 
 export const revalidate = 86400;
 
@@ -20,6 +21,6 @@ export const metadata: Metadata = {
 };
 
 export default async function PublicPacksPage() {
-  const result = await listPublicPacks(1);
-  return <PublicPacksScreen {...result} />;
+  const [result, pinned] = await Promise.all([listPublicPacks(1), listPinnedPacks()]);
+  return <PublicPacksScreen {...result} pinned={pinned} />;
 }

@@ -1,10 +1,10 @@
 /**
  * @file src/app/(protected)/admin/page.tsx
- * @desc /admin: moderation for admins (ADMIN_OSU_IDS). Everyone else gets the site 404, so the
- *       page never confirms it exists. Dynamic: admin traffic only.
+ * @desc /admin: moderation and pinned packs for admins (ADMIN_OSU_IDS). Everyone else gets the
+ *       site 404, so the page never confirms it exists. Dynamic: admin traffic only.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import type { Metadata } from "next";
@@ -14,6 +14,7 @@ import { RestoreSignedIn } from "@/components/auth/RestoreSignedIn";
 import { MAX_NAME_LENGTH } from "@/constants/pack";
 import { requireUser } from "@/lib/auth-session";
 import { listPacksForAdmin } from "@/services/moderation";
+import { listPinnedForAdmin } from "@/services/pins";
 import { parsePageParam } from "@/utils/paging";
 
 export const metadata: Metadata = { title: "Admin", robots: { index: false } };
@@ -28,11 +29,14 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
   const page = parsePageParam(first(params.page)) ?? 1;
   const hiddenOnly = first(params.show) === "hidden";
   const query = first(params.q).trim().slice(0, MAX_NAME_LENGTH);
-  const result = await listPacksForAdmin({ page, hiddenOnly, query });
+  const [result, pins] = await Promise.all([
+    listPacksForAdmin({ page, hiddenOnly, query }),
+    listPinnedForAdmin(),
+  ]);
   return (
     <>
       <RestoreSignedIn />
-      <AdminScreen {...result} hiddenOnly={hiddenOnly} query={query} />
+      <AdminScreen {...result} hiddenOnly={hiddenOnly} query={query} pins={pins} />
     </>
   );
 }

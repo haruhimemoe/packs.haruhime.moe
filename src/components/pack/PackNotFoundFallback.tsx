@@ -5,7 +5,7 @@
  *       here in the browser instead.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 "use client";
@@ -49,6 +49,7 @@ export function PackNotFoundFallback({
         pack={access.pack}
         isOwner={access.isOwner}
         isAdmin={access.isAdmin}
+        pinned={access.pinned}
         api={api}
       />
     );

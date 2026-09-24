@@ -3,10 +3,11 @@
  * @desc /p/[slug]: the Download card at the top (the recorded magnet links first, then the
  *       mirror, and the retry when map info fails), the saved pool with live metadata and star ratings with mods, and sharing. The
  *       owner also sees its visibility, an Edit link, and can add or remove magnet links; an admin
- *       can remove a magnet link from a public or unlisted pack.
+ *       can remove a magnet link from a public or unlisted pack, and pin a public pack that isn't
+ *       hidden to the top of /packs (or unpin it).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 "use client";
@@ -20,6 +21,7 @@ import { HiddenNotice } from "@/components/pack/HiddenNotice";
 import { MagnetLinks } from "@/components/pack/MagnetLinks";
 import { PackKeyField } from "@/components/pack/PackKeyField";
 import { PackStats } from "@/components/pack/PackStats";
+import { type PinApi, PinButton } from "@/components/pack/PinButton";
 import { PoolTable } from "@/components/pack/PoolTable";
 import { ShortLinkField } from "@/components/pack/ShortLinkField";
 import { VISIBILITY_OPTIONS } from "@/constants/visibility";
@@ -31,9 +33,12 @@ import type { Pool } from "@/schemas/pack";
 import type { PackExport } from "@/schemas/pack-export";
 import type { SavedPack } from "@/schemas/saved-pack";
 import { infohashOf } from "@/utils/magnet";
+import { isPinnable } from "@/utils/pins";
 
-export type PackViewApi = {
-  get: (slug: string) => Promise<{ pack: SavedPack; isOwner: boolean; isAdmin?: boolean } | null>;
+export type PackViewApi = PinApi & {
+  get: (
+    slug: string,
+  ) => Promise<{ pack: SavedPack; isOwner: boolean; isAdmin?: boolean; pinned?: boolean } | null>;
   addMagnet: (slug: string, url: string, packKey: string) => Promise<PackExport[]>;
   removeMagnet: (slug: string, url: string) => Promise<PackExport[]>;
   adminRemoveMagnet: (slug: string, url: string) => Promise<PackExport[]>;
@@ -43,6 +48,7 @@ export function SavedPackView({
   pack,
   isOwner: isOwnerProp,
   isAdmin: isAdminProp,
+  pinned: pinnedProp,
   api = packsApi,
   readCookie,
 }: {
@@ -51,6 +57,8 @@ export function SavedPackView({
   isOwner?: boolean;
   /** Known with isOwner. Omitted: asked in the browser along with ownership. */
   isAdmin?: boolean;
+  /** Admins only, known with isAdmin: whether the pack is pinned to the top of /packs. */
+  pinned?: boolean;
   /** Test seams. Defaults: our API, document.cookie. */
   api?: PackViewApi;
   readCookie?: () => string;
@@ -61,6 +69,12 @@ export function SavedPackView({
   });
   const isOwner = isOwnerProp ?? (access.status === "found" && access.isOwner);
   const isAdmin = isAdminProp ?? (access.status === "found" && access.isAdmin);
+  const pinned = pinnedProp ?? (access.status === "found" && access.pinned);
+  // The cached page can be older than the pack: pin rules go by what the viewer check found.
+  const current = access.status === "found" ? access.pack : pack;
+  const canPin =
+    isAdmin &&
+    (pinned || isPinnable({ visibility: current.visibility, hidden: Boolean(current.hiddenAt) }));
   const ref = useMemo<Pool>(
     () =>
       pack.buckets
@@ -101,6 +115,7 @@ export function SavedPackView({
         meta={isOwner ? `${count} · ${VISIBILITY_OPTIONS[pack.visibility].label}` : count}
         actions={isOwner ? <ButtonLink href={`/p/${pack.slug}/edit`}>Edit</ButtonLink> : undefined}
       />
+      {canPin ? <PinButton slug={pack.slug} pinned={pinned} api={api} /> : null}
       {pack.description ? (
         <p className="wrap-anywhere max-w-3xl whitespace-pre-line text-c2">{pack.description}</p>
       ) : null}

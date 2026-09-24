@@ -1,7 +1,8 @@
 /**
  * @file src/lib/packs-api.ts
  * @desc Browser client for our own JSON API (/api/packs, /api/me, /api/me/api-key, /api/admin/packs,
- *       /api/admin/pack-stats). Errors carry the server's message so components can show it as-is.
+ *       /api/admin/pins, /api/admin/pack-stats). Errors carry the server's message so components
+ *       can show it as-is.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -11,7 +12,12 @@ import { z } from "zod";
 import { type ApiKeyCreated, apiErrorSchema, apiKeyCreatedSchema } from "@/schemas/api";
 import { type PackExport, packExportsSchema } from "@/schemas/pack-export";
 import { type PackStatsJob, packStatsJobSchema } from "@/schemas/pack-stats";
-import { type AdminPackRow, adminPackRowSchema } from "@/schemas/public-pack";
+import {
+  type AdminPackRow,
+  adminPackRowSchema,
+  type PinnedPack,
+  pinnedPackSchema,
+} from "@/schemas/public-pack";
 import { type PackInputBody, type SavedPack, savedPackSchema } from "@/schemas/saved-pack";
 
 export class PacksApiError extends Error {
@@ -27,10 +33,13 @@ export class PacksApiError extends Error {
 const packResponseSchema = z.object({ pack: savedPackSchema });
 const adminRowResponseSchema = z.object({ pack: adminPackRowSchema });
 const exportsResponseSchema = z.object({ exports: packExportsSchema });
+const pinsResponseSchema = z.object({ pins: z.array(pinnedPackSchema) });
 const viewerResponseSchema = z.object({
   pack: savedPackSchema,
   isOwner: z.boolean(),
   isAdmin: z.boolean().default(false),
+  /** Admins only: whether the pack is pinned to the top of /packs. */
+  pinned: z.boolean().optional(),
 });
 
 export type PackViewer = z.infer<typeof viewerResponseSchema>;
@@ -43,7 +52,7 @@ type PacksApiOptions = {
 /**
  * @function createPacksApi
  * @param options {PacksApiOptions} base URL and fetch (tests)
- * @returns {{ get; create; update; remove; deleteAccount; createApiKey; revokeApiKey; setHidden; adminRemove; fillPackStats; addMagnet; removeMagnet; adminRemoveMagnet }}
+ * @returns {{ get; create; update; remove; deleteAccount; createApiKey; revokeApiKey; setHidden; adminRemove; pin; unpin; reorderPins; fillPackStats; addMagnet; removeMagnet; adminRemoveMagnet }}
  */
 export const createPacksApi = ({
   baseUrl = "",
@@ -124,6 +133,29 @@ export const createPacksApi = ({
     /** @function adminRemove @param slug {string} @returns {Promise<void>} */
     adminRemove: async (slug: string): Promise<void> => {
       await request(`/api/admin/packs/${encodeURIComponent(slug)}`, { method: "DELETE" });
+    },
+    /** @function pin @param slug {string} @returns {Promise<PinnedPack[]>} pins a public pack to the top of /packs (admins only); the pinned list in order */
+    pin: async (slug: string): Promise<PinnedPack[]> => {
+      const response = await request(`/api/admin/pins/${encodeURIComponent(slug)}`, {
+        method: "PUT",
+      });
+      return pinsResponseSchema.parse(await response.json()).pins;
+    },
+    /** @function unpin @param slug {string} @returns {Promise<PinnedPack[]>} the pinned packs left, in order (admins only) */
+    unpin: async (slug: string): Promise<PinnedPack[]> => {
+      const response = await request(`/api/admin/pins/${encodeURIComponent(slug)}`, {
+        method: "DELETE",
+      });
+      return pinsResponseSchema.parse(await response.json()).pins;
+    },
+    /** @function reorderPins @param slugs {readonly string[]} every pinned slug in the new order @returns {Promise<PinnedPack[]>} the pinned list in that order (admins only) */
+    reorderPins: async (slugs: readonly string[]): Promise<PinnedPack[]> => {
+      const response = await request("/api/admin/pins", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slugs }),
+      });
+      return pinsResponseSchema.parse(await response.json()).pins;
     },
     /** @function fillPackStats @returns {Promise<PackStatsJob>} runs one batch of the stats job (admins only): packs updated, packs left, packs waiting to retry */
     fillPackStats: async (): Promise<PackStatsJob> => {

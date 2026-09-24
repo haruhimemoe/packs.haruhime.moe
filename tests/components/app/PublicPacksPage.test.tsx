@@ -2,7 +2,8 @@
  * @file tests/components/app/PublicPacksPage.test.tsx
  * @desc The /packs page end to end in the browser: the cached list with no params, and a shared
  *       filtered URL that loads /packs/index.json (a fixture served by msw) and shows the
- *       matching packs, sorted, with the count and the packs hidden for missing stats.
+ *       matching packs, sorted, with the count and the packs hidden for missing stats. The
+ *       "Pinned" row shows on every page of the plain list and goes away with any filter.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -14,7 +15,9 @@ import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import PublicPacksPage from "@/app/(public)/packs/page";
+import PublicPacksPageN from "@/app/(public)/packs/page/[n]/page";
 import type { PublicPackCard } from "@/schemas/public-pack";
+import { listPinnedPacks, listPublicPacks } from "@/services/public-packs";
 import fixture from "../../fixtures/public-packs/index.json";
 
 const CARD: PublicPackCard = {
@@ -28,6 +31,12 @@ const CARD: PublicPackCard = {
   stats: { r: [6.2, 7.9], a: 7.01, l: [120, 300], b: [170, 300], m: "NM,FM", g: "mania", k: true },
 };
 
+const PINNED: PublicPackCard = {
+  ...CARD,
+  slug: "pppppppppp",
+  name: "Pinned Cup Finals",
+};
+
 vi.mock("@/services/public-packs", () => ({
   listPublicPacks: vi.fn(async (page: number) => ({
     packs: [CARD],
@@ -35,6 +44,7 @@ vi.mock("@/services/public-packs", () => ({
     pageCount: 1,
     total: 4,
   })),
+  listPinnedPacks: vi.fn(async () => []),
 }));
 
 const indexRequests = vi.fn();
@@ -108,5 +118,38 @@ describe("/packs", () => {
       expect(screen.getByRole("status")).toHaveTextContent("No packs match these filters."),
     );
     await waitFor(() => expect(window.location.search).toBe("?mods=EZ&bpm=200-"));
+  });
+
+  it("shows the pinned row over the plain list, and drops it once a filter is picked", async () => {
+    vi.mocked(listPinnedPacks).mockResolvedValueOnce([PINNED]);
+    const user = userEvent.setup();
+    await renderPage("/packs");
+    const row = screen.getByRole("region", { name: "Pinned" });
+    expect(within(row).getByRole("link", { name: "Pinned Cup Finals" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "EZ" }));
+    await waitFor(() => expect(cardNames()).toEqual(["Beginner Cup"]));
+    expect(screen.queryByRole("region", { name: "Pinned" })).not.toBeInTheDocument();
+  });
+
+  it("shows the pinned row on later pages too", async () => {
+    vi.mocked(listPinnedPacks).mockResolvedValueOnce([PINNED]);
+    vi.mocked(listPublicPacks).mockResolvedValueOnce({
+      packs: [CARD],
+      page: 2,
+      pageCount: 2,
+      total: 30,
+    });
+    window.history.replaceState(null, "", "/packs/page/2");
+    render(
+      await PublicPacksPageN({
+        params: Promise.resolve({ n: "2" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    const row = screen.getByRole("region", { name: "Pinned" });
+    expect(within(row).getByRole("link", { name: "Pinned Cup Finals" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "All packs" })).toHaveTextContent(
+      "Mania Open Finals",
+    );
   });
 });

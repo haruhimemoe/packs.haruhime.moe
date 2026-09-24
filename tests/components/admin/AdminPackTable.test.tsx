@@ -1,6 +1,7 @@
 /**
  * @file tests/components/admin/AdminPackTable.test.tsx
- * @desc Admin rows: host link, status, hide/unhide, delete with confirm, errors.
+ * @desc Admin rows: host link, status, hide/unhide, pin/unpin (public packs that aren't hidden),
+ *       delete with confirm, errors.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -12,6 +13,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AdminPackTable } from "@/components/admin/AdminPackTable";
 import { PacksApiError } from "@/lib/packs-api";
 import type { AdminPackRow } from "@/schemas/public-pack";
+import { PIN_LIMIT } from "@/utils/pins";
 
 const { refresh } = vi.hoisted(() => ({ refresh: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
@@ -31,6 +33,8 @@ const ROW: AdminPackRow = {
 const fakeApi = () => ({
   setHidden: vi.fn(async () => ROW),
   adminRemove: vi.fn(async () => undefined),
+  pin: vi.fn(async () => []),
+  unpin: vi.fn(async () => []),
 });
 
 describe("AdminPackTable", () => {
@@ -75,6 +79,41 @@ describe("AdminPackTable", () => {
     await user.click(screen.getByRole("button", { name: "Unhide Quals" }));
     expect(api.setHidden).toHaveBeenCalledWith("bcdefghijk", false);
     expect(refresh).toHaveBeenCalledTimes(2);
+  });
+
+  it("pins a public pack and unpins a pinned one, and offers neither for other packs", async () => {
+    const user = userEvent.setup();
+    const api = fakeApi();
+    render(
+      <AdminPackTable
+        rows={[
+          ROW,
+          { ...ROW, slug: "bcdefghijk", name: "Quals", pinnedAt: "2026-09-24T10:00:00.000Z" },
+          { ...ROW, slug: "cdefghijkl", name: "Unlisted Cup", visibility: "unlisted" },
+          { ...ROW, slug: "defghijklm", name: "Hidden Cup", hiddenAt: "2026-09-22T12:00:00.000Z" },
+        ]}
+        api={api}
+      />,
+    );
+    expect(screen.getByText("Pinned")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Pin Unlisted Cup" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Pin Hidden Cup" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Pin Quals" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Pin SPC Finals" }));
+    expect(api.pin).toHaveBeenCalledWith("abcdefghij");
+    await user.click(screen.getByRole("button", { name: "Unpin Quals" }));
+    expect(api.unpin).toHaveBeenCalledWith("bcdefghijk");
+    expect(refresh).toHaveBeenCalledTimes(2);
+  });
+
+  it("says why a pin was refused", async () => {
+    const user = userEvent.setup();
+    const api = fakeApi();
+    api.pin.mockRejectedValueOnce(new PacksApiError(PIN_LIMIT, 409));
+    render(<AdminPackTable rows={[ROW]} api={api} />);
+    await user.click(screen.getByRole("button", { name: "Pin SPC Finals" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(PIN_LIMIT);
+    expect(refresh).not.toHaveBeenCalled();
   });
 
   it("deletes only after confirming", async () => {
@@ -126,6 +165,8 @@ describe("AdminPackTable", () => {
           }),
       ),
       adminRemove: vi.fn(async () => undefined),
+      pin: vi.fn(async () => []),
+      unpin: vi.fn(async () => []),
     };
     render(
       <AdminPackTable rows={[ROW, { ...ROW, slug: "bcdefghijk", name: "Quals" }]} api={api} />,

@@ -1,7 +1,8 @@
 /**
  * @file tests/components/packs/PublicPacksScreen.test.tsx
  * @desc /packs body: cards (with star and length ranges once a pack has stats, and the date the
- *       pack was added), count, the filter bar, paging links, empty state.
+ *       pack was added), count, the filter bar, paging links, empty state, and the "Pinned" row
+ *       above the list.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -22,6 +23,10 @@ const CARD: PublicPackCard = {
   updatedAt: "2026-09-22T00:00:00.000Z",
   createdAt: "2026-08-03T00:00:00.000Z",
 };
+
+/** True when a comes before b in the document. */
+const precedes = (a: Element, b: Element): boolean =>
+  (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
 
 describe("PublicPacksScreen", () => {
   it("lists cards with host, size, excerpt, and the date it was added (the list's order)", () => {
@@ -101,5 +106,33 @@ describe("PublicPacksScreen", () => {
     expect(
       screen.getByText("No public packs yet. Save a pack and set it to Public to list it here."),
     ).toBeInTheDocument();
+  });
+
+  it("shows the pinned packs above the list, in pin order, as the same cards", () => {
+    const pinned: PublicPackCard[] = [
+      { ...CARD, slug: "pppppppppp", name: "Spring Cup Finals", slotCount: 9 },
+      { ...CARD, slug: "qqqqqqqqqq", name: "Autumn Cup Finals" },
+    ];
+    render(<PublicPacksScreen packs={[CARD]} pinned={pinned} page={1} pageCount={1} total={3} />);
+    const row = screen.getByRole("region", { name: "Pinned" });
+    expect(
+      within(row)
+        .getAllByRole("link")
+        .map((link) => link.textContent),
+    ).toEqual(["Spring Cup Finals", "Autumn Cup Finals"]);
+    const [first] = within(row).getAllByRole("listitem");
+    expect(first).toHaveTextContent("Chiyo");
+    expect(first).toHaveTextContent("9 maps");
+    expect(first).toHaveTextContent("Added Aug 3, 2026");
+    const all = screen.getByRole("region", { name: "All packs" });
+    expect(within(all).getByRole("link", { name: "Pokémon Cup" })).toBeInTheDocument();
+    expect(precedes(row, all)).toBe(true);
+    expect(precedes(screen.getByRole("region", { name: "Filters" }), row)).toBe(true);
+  });
+
+  it("has no pinned row, and no extra heading, when nothing is pinned", () => {
+    render(<PublicPacksScreen packs={[CARD]} pinned={[]} page={1} pageCount={1} total={1} />);
+    expect(screen.queryByRole("region", { name: "Pinned" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { level: 2, name: "All packs" })).not.toBeInTheDocument();
   });
 });

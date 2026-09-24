@@ -187,6 +187,46 @@ describe("createPacksApi", () => {
     ]);
   });
 
+  it("pins, unpins and reorders as an admin, answering the pinned list", async () => {
+    const pins = [
+      {
+        slug: "abcdefghij",
+        name: "F",
+        ownerName: "peppy",
+        pinnedAt: "2026-09-24T10:00:00.000Z",
+      },
+    ];
+    server.use(
+      http.all(`${BASE}/api/admin/pins*`, async ({ request }) => {
+        const text = await request.text();
+        calls.push({
+          method: request.method,
+          path: new URL(request.url).pathname,
+          body: text ? JSON.parse(text) : null,
+        });
+        return HttpResponse.json({ pins });
+      }),
+    );
+    expect(await api.pin("abcdefghij")).toEqual(pins);
+    expect(await api.unpin("abcdefghij")).toEqual(pins);
+    expect(await api.reorderPins(["abcdefghij"])).toEqual(pins);
+    expect(calls).toEqual([
+      { method: "PUT", path: "/api/admin/pins/abcdefghij", body: null },
+      { method: "DELETE", path: "/api/admin/pins/abcdefghij", body: null },
+      { method: "PUT", path: "/api/admin/pins", body: { slugs: ["abcdefghij"] } },
+    ]);
+  });
+
+  it("surfaces why a pin was refused", async () => {
+    const message = "Only 6 packs can be pinned at once. Unpin one to pin another.";
+    server.use(
+      http.put(`${BASE}/api/admin/pins/:slug`, () =>
+        HttpResponse.json({ error: { code: "conflict", message } }, { status: 409 }),
+      ),
+    );
+    await expect(api.pin("abcdefghij")).rejects.toMatchObject({ status: 409, message });
+  });
+
   it("gets a pack for this viewer, and null when it's not found", async () => {
     server.use(
       http.get(`${BASE}/api/packs/abcdefghij`, () =>
@@ -210,6 +250,20 @@ describe("createPacksApi", () => {
       ),
     );
     expect(await api.get("abcdefghij")).toEqual({ pack: SAVED, isOwner: false, isAdmin: true });
+  });
+
+  it("says whether the pack is pinned when the viewer is an admin", async () => {
+    server.use(
+      http.get(`${BASE}/api/packs/abcdefghij`, () =>
+        HttpResponse.json({ pack: SAVED, isOwner: false, isAdmin: true, pinned: true }),
+      ),
+    );
+    expect(await api.get("abcdefghij")).toEqual({
+      pack: SAVED,
+      isOwner: false,
+      isAdmin: true,
+      pinned: true,
+    });
   });
 
   it("falls back to a generic message for an old-style error body", async () => {

@@ -1,11 +1,11 @@
 /**
  * @file src/hooks/usePackAccess.ts
  * @desc What this browser's viewer may see of a saved pack (and whether they own it or are an
- *       admin), asked once through our API, and only when the signed-in marker is present: cached
- *       pack pages carry no per-viewer data.
+ *       admin, and for admins whether it's pinned), asked once through our API, and only when the
+ *       signed-in marker is present: cached pack pages carry no per-viewer data.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 "use client";
@@ -18,10 +18,12 @@ export type PackAccess =
   | { status: "anonymous" }
   | { status: "checking" }
   | { status: "none" }
-  | { status: "found"; pack: SavedPack; isOwner: boolean; isAdmin: boolean };
+  | { status: "found"; pack: SavedPack; isOwner: boolean; isAdmin: boolean; pinned: boolean };
 
 export type PackAccessDeps = {
-  get: (slug: string) => Promise<{ pack: SavedPack; isOwner: boolean; isAdmin?: boolean } | null>;
+  get: (
+    slug: string,
+  ) => Promise<{ pack: SavedPack; isOwner: boolean; isAdmin?: boolean; pinned?: boolean } | null>;
   readCookie?: () => string;
 };
 
@@ -51,7 +53,12 @@ export const usePackAccess = (
         if (live) {
           setAccess(
             found
-              ? { status: "found", ...found, isAdmin: found.isAdmin ?? false }
+              ? {
+                  status: "found",
+                  ...found,
+                  isAdmin: found.isAdmin ?? false,
+                  pinned: found.pinned ?? false,
+                }
               : { status: "none" },
           );
         }
