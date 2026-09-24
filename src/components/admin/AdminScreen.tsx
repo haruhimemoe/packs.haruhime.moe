@@ -1,14 +1,16 @@
 /**
  * @file src/components/admin/AdminScreen.tsx
- * @desc /admin body: All / Hidden tabs, a name filter (plain GET form), the table, paging.
+ * @desc /admin body: All / Hidden tabs, a name filter (plain GET form), the table, paging, and
+ *       the pack stats panel.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { Button, PageHeader, Pagination, TextInput } from "@haruhimemoe/ui";
 import Link from "next/link";
 import { AdminPackTable } from "@/components/admin/AdminPackTable";
+import { PackStatsBackfill } from "@/components/admin/PackStatsBackfill";
 import type { AdminPackPage } from "@/schemas/public-pack";
 import { cn } from "@/utils/cn";
 import { adminHref } from "@/utils/paging";
@@ -67,6 +69,7 @@ export function AdminScreen({ rows, page, pageCount, total, hiddenOnly, query }:
         previousLabel="Newer"
         nextLabel="Older"
       />
+      <PackStatsBackfill />
     </div>
   );
 }

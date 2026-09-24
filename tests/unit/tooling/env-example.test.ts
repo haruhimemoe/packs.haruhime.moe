@@ -3,7 +3,7 @@
  * @desc .env.example documents every server variable and ships no secret values.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { readFileSync } from "node:fs";
@@ -18,7 +18,10 @@ describe(".env.example", () => {
     expect(text).toMatch(new RegExp(`^${key}=`, "m"));
   });
 
-  it.each(["MONGODB_URI", "BETTER_AUTH_SECRET", "OSU_CLIENT_SECRET"])("leaves %s empty", (key) => {
-    expect(text).toMatch(new RegExp(`^${key}=$`, "m"));
-  });
+  it.each(["MONGODB_URI", "BETTER_AUTH_SECRET", "OSU_CLIENT_SECRET", "CRON_SECRET"])(
+    "leaves %s empty",
+    (key) => {
+      expect(text).toMatch(new RegExp(`^${key}=$`, "m"));
+    },
+  );
 });

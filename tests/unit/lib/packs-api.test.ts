@@ -3,7 +3,7 @@
  * @desc Browser client for our packs API: requests, parsed responses, server messages.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { HttpResponse, http } from "msw";
@@ -117,6 +117,17 @@ describe("createPacksApi", () => {
     expect(calls).toEqual([
       { method: "PATCH", path: "/api/admin/packs/abcdefghij", body: { hidden: true } },
     ]);
+  });
+
+  it("runs the pack stats job as an admin with POST", async () => {
+    server.use(
+      http.post(`${BASE}/api/admin/pack-stats`, ({ request }) => {
+        calls.push({ method: "POST", path: new URL(request.url).pathname, body: null });
+        return HttpResponse.json({ updated: 3, remaining: 12 });
+      }),
+    );
+    expect(await api.fillPackStats()).toEqual({ updated: 3, remaining: 12 });
+    expect(calls).toEqual([{ method: "POST", path: "/api/admin/pack-stats", body: null }]);
   });
 
   it("deletes as an admin with DELETE", async () => {

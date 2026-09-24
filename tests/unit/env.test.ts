@@ -3,16 +3,18 @@
  * @desc Server env parsing: valid input, missing/invalid names (never values), blanks, and the CI
  *       SKIP_ENV_VALIDATION escape hatch, which a production server refuses when it would fall
  *       back to a placeholder secret (a production build still may). On Vercel, only VERCEL_ENV
- *       production counts as production, so Preview deployments without auth config start.
+ *       production counts as production, so Preview deployments without auth config start. The
+ *       optional CRON_SECRET, when set, is long enough to guess at.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { describe, expect, it, vi } from "vitest";
 import {
   assertNoPlaceholderSecrets,
   EnvError,
+  getCronSecret,
   isEnvValidationSkipped,
   parseDatabaseEnv,
   parseServerEnv,
@@ -38,7 +40,7 @@ describe("parseServerEnv", () => {
     const error = errorFrom({});
     expect(error).toBeInstanceOf(EnvError);
     expect(error.message).toBe(
-      `Missing or invalid environment variables: ${SERVER_ENV_KEYS.filter((key) => key !== "ADMIN_OSU_IDS").join(", ")}. See .env.example.`,
+      `Missing or invalid environment variables: ${SERVER_ENV_KEYS.filter((key) => key !== "ADMIN_OSU_IDS" && key !== "CRON_SECRET").join(", ")}. See .env.example.`,
     );
   });
 
@@ -94,6 +96,48 @@ describe("ADMIN_OSU_IDS", () => {
     const error = errorFrom({ ...TEST_SERVER_ENV, ADMIN_OSU_IDS: value });
     expect(error.message).toContain("ADMIN_OSU_IDS");
     expect(error.message).not.toContain(value);
+  });
+});
+
+describe("CRON_SECRET", () => {
+  it("is optional", () => {
+    expect(parseServerEnv({ ...TEST_SERVER_ENV }).CRON_SECRET).toBeUndefined();
+    expect(parseServerEnv({ ...TEST_SERVER_ENV, CRON_SECRET: " " }).CRON_SECRET).toBeUndefined();
+  });
+
+  it("takes a secret of 16 characters or more", () => {
+    const secret = "a-cron-secret-of-32-characters!!";
+    expect(parseServerEnv({ ...TEST_SERVER_ENV, CRON_SECRET: secret }).CRON_SECRET).toBe(secret);
+  });
+
+  it("refuses a short one without printing it", () => {
+    const error = errorFrom({ ...TEST_SERVER_ENV, CRON_SECRET: "short-secret" });
+    expect(error.message).toContain("CRON_SECRET");
+    expect(error.message).not.toContain("short-secret");
+  });
+});
+
+describe("getCronSecret", () => {
+  it("reads CRON_SECRET on every call, trimmed, undefined when unset", () => {
+    try {
+      vi.stubEnv("CRON_SECRET", "");
+      expect(getCronSecret()).toBeUndefined();
+      vi.stubEnv("CRON_SECRET", "  a-cron-secret-of-32-characters!!  ");
+      expect(getCronSecret()).toBe("a-cron-secret-of-32-characters!!");
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it("throws, naming it but not printing it, when it's too short", () => {
+    vi.stubEnv("CRON_SECRET", "short-secret");
+    try {
+      expect(() => getCronSecret()).toThrow(
+        new EnvError("Missing or invalid environment variables: CRON_SECRET. See .env.example."),
+      );
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 });
 

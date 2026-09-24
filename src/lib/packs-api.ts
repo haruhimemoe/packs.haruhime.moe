@@ -1,15 +1,16 @@
 /**
  * @file src/lib/packs-api.ts
- * @desc Browser client for our own JSON API (/api/packs, /api/me, /api/me/api-key, /api/admin/packs). Errors carry
- *       the server's message so components can show it as-is.
+ * @desc Browser client for our own JSON API (/api/packs, /api/me, /api/me/api-key, /api/admin/packs,
+ *       /api/admin/pack-stats). Errors carry the server's message so components can show it as-is.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { z } from "zod";
 import { type ApiKeyCreated, apiErrorSchema, apiKeyCreatedSchema } from "@/schemas/api";
 import { type PackExport, packExportsSchema } from "@/schemas/pack-export";
+import { type PackStatsJob, packStatsJobSchema } from "@/schemas/pack-stats";
 import { type AdminPackRow, adminPackRowSchema } from "@/schemas/public-pack";
 import { type PackInputBody, type SavedPack, savedPackSchema } from "@/schemas/saved-pack";
 
@@ -42,7 +43,7 @@ type PacksApiOptions = {
 /**
  * @function createPacksApi
  * @param options {PacksApiOptions} base URL and fetch (tests)
- * @returns {{ get; create; update; remove; deleteAccount; createApiKey; revokeApiKey; setHidden; adminRemove; addMagnet; removeMagnet; adminRemoveMagnet }}
+ * @returns {{ get; create; update; remove; deleteAccount; createApiKey; revokeApiKey; setHidden; adminRemove; fillPackStats; addMagnet; removeMagnet; adminRemoveMagnet }}
  */
 export const createPacksApi = ({
   baseUrl = "",
@@ -123,6 +124,11 @@ export const createPacksApi = ({
     /** @function adminRemove @param slug {string} @returns {Promise<void>} */
     adminRemove: async (slug: string): Promise<void> => {
       await request(`/api/admin/packs/${encodeURIComponent(slug)}`, { method: "DELETE" });
+    },
+    /** @function fillPackStats @returns {Promise<PackStatsJob>} runs one batch of the stats job (admins only): packs updated and packs left */
+    fillPackStats: async (): Promise<PackStatsJob> => {
+      const response = await request("/api/admin/pack-stats", { method: "POST" });
+      return packStatsJobSchema.parse(await response.json());
     },
     /** @function addMagnet @param slug {string} @param url {string} @param packKey {string} the key the torrent was made from @returns {Promise<PackExport[]>} */
     addMagnet: async (slug: string, url: string, packKey: string): Promise<PackExport[]> => {

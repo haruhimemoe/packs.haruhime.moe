@@ -2,7 +2,8 @@
  * @file src/schemas/pack-stats.ts
  * @desc Pack stats (filters spec) as the site and the API send them, and their compact form in
  *       the search index and on public cards. The server computes them from the pack's slots and
- *       beatmap metadata when it saves a pack; the browser never sends them.
+ *       beatmap metadata when it saves a pack; the browser never sends them. Also what one run of
+ *       the stats job reports.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -61,3 +62,11 @@ export const indexStatsSchema = z.object({
 });
 
 export type IndexStats = z.infer<typeof indexStatsSchema>;
+
+/** One run of the stats job (the cron and the admin button): packs updated, packs still waiting. */
+export const packStatsJobSchema = z.object({
+  updated: z.number().int().nonnegative(),
+  remaining: z.number().int().nonnegative(),
+});
+
+export type PackStatsJob = z.infer<typeof packStatsJobSchema>;

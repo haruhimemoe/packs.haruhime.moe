@@ -6,10 +6,11 @@
  *       refuses that when a secret would be one of these public placeholders: first use throws,
  *       and so does server start (src/instrumentation.ts). Production means VERCEL_ENV=production
  *       when VERCEL_ENV is set (so Preview deployments without auth config still start), else
- *       NODE_ENV=production; never during `next build`.
+ *       NODE_ENV=production; never during `next build`. The optional CRON_SECRET guards the daily
+ *       stats job; getCronSecret reads it on every call, so the route fails closed without it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import "server-only";
@@ -26,6 +27,11 @@ const serverEnvSchema = z.object({
     .string()
     .regex(/^\d+(\s*,\s*\d+)*$/)
     .optional(),
+  /**
+   * Vercel Cron sends it as `Authorization: Bearer <CRON_SECRET>` (/api/cron/pack-stats).
+   * Optional: without it the cron route refuses every call.
+   */
+  CRON_SECRET: z.string().min(16).optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -99,7 +105,7 @@ export const assertNoPlaceholderSecrets = (
 /**
  * @function parseServerEnv
  * @param source {Record<string, string | undefined>} usually process.env
- * @returns {ServerEnv} the five server variables, trimmed
+ * @returns {ServerEnv} the server variables, trimmed
  * @throws {EnvError} naming (never printing) each missing or invalid variable, or (skip flag on a
  *         production server) each secret that would be a placeholder
  */
@@ -151,6 +157,22 @@ export const parseDatabaseEnv = (
  * @throws {EnvError} when it's missing or invalid
  */
 export const getDatabaseUri = (): string => parseDatabaseEnv(process.env).MONGODB_URI;
+
+const cronEnvSchema = serverEnvSchema.pick({ CRON_SECRET: true });
+
+/**
+ * @function getCronSecret
+ * @returns {string | undefined} CRON_SECRET from process.env, trimmed, validated on its own and
+ *          never memoized; undefined when unset (the cron route then refuses every call)
+ * @throws {EnvError} naming (never printing) CRON_SECRET when it's set but shorter than 16
+ */
+export const getCronSecret = (): string | undefined => {
+  const parsed = cronEnvSchema.safeParse({
+    CRON_SECRET: process.env.CRON_SECRET?.trim() || undefined,
+  });
+  if (parsed.success) return parsed.data.CRON_SECRET;
+  throw new EnvError("Missing or invalid environment variables: CRON_SECRET. See .env.example.");
+};
 
 let cached: ServerEnv | null = null;
 

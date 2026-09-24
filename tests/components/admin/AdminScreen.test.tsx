@@ -1,9 +1,10 @@
 /**
  * @file tests/components/admin/AdminScreen.test.tsx
- * @desc /admin body: filter tabs, name filter form, count, paging links keep the filters.
+ * @desc /admin body: filter tabs, name filter form, count, paging links keep the filters; the
+ *       pack stats panel.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -31,5 +32,11 @@ describe("AdminScreen", () => {
       "href",
       "/admin?show=hidden&q=cup&page=3",
     );
+  });
+
+  it("has the pack stats panel", () => {
+    render(<AdminScreen rows={[]} page={1} pageCount={1} total={0} hiddenOnly={false} query="" />);
+    expect(screen.getByRole("heading", { level: 2, name: "Pack stats" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Fill in stats" })).toBeInTheDocument();
   });
 });
