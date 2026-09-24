@@ -6,7 +6,7 @@
  * @modified Wed Sep 23, 2026
  */
 
-import { Button, fieldClasses, PageHeader, Pagination } from "@haruhimemoe/ui";
+import { Button, PageHeader, Pagination, TextInput } from "@haruhimemoe/ui";
 import Link from "next/link";
 import { AdminPackTable } from "@/components/admin/AdminPackTable";
 import type { AdminPackPage } from "@/schemas/public-pack";
@@ -44,12 +44,13 @@ export function AdminScreen({ rows, page, pageCount, total, hiddenOnly, query }:
       <search>
         <form action="/admin" method="get" className="flex flex-wrap items-end gap-2">
           {hiddenOnly ? <input type="hidden" name="show" value="hidden" /> : null}
-          <div className="flex min-w-48 flex-1 flex-col gap-1">
-            <label htmlFor="admin-query" className="font-bold text-c3 text-sm">
-              Pack name
-            </label>
-            <input id="admin-query" name="q" defaultValue={query} className={fieldClasses()} />
-          </div>
+          <TextInput
+            id="admin-query"
+            label="Pack name"
+            wrapperClassName="min-w-48 flex-1"
+            name="q"
+            defaultValue={query}
+          />
           <Button type="submit" variant="secondary">
             Filter
           </Button>

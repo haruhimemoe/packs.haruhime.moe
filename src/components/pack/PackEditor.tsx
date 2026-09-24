@@ -10,7 +10,7 @@
 "use client";
 
 import { bucketsOf } from "@haruhimemoe/pool";
-import { Button, Card, fieldClasses } from "@haruhimemoe/ui";
+import { Button, Card, TextInput } from "@haruhimemoe/ui";
 import { type Dispatch, useId, useState } from "react";
 import { AddBeatmapForm } from "@/components/pack/AddBeatmapForm";
 import { BucketManager } from "@/components/pack/BucketManager";
@@ -44,20 +44,16 @@ export function PackEditor({ pack, dispatch, ready, meta }: PackEditorProps) {
 
   return (
     <>
-      <div className="flex flex-col gap-1">
-        <label htmlFor={nameId} className="font-bold text-c3 text-sm">
-          Pack name
-        </label>
-        <input
-          id={nameId}
-          value={pack.name}
-          maxLength={MAX_NAME_LENGTH}
-          disabled={!ready}
-          placeholder={DEFAULT_PACK_NAME}
-          onChange={(event) => dispatch({ type: "rename", name: event.target.value })}
-          className={fieldClasses("font-bold text-lg")}
-        />
-      </div>
+      <TextInput
+        id={nameId}
+        label="Pack name"
+        value={pack.name}
+        maxLength={MAX_NAME_LENGTH}
+        disabled={!ready}
+        placeholder={DEFAULT_PACK_NAME}
+        onChange={(event) => dispatch({ type: "rename", name: event.target.value })}
+        className="font-bold text-lg"
+      />
 
       <Card title="Add maps">
         <div className="flex flex-col gap-5">

@@ -4,7 +4,7 @@
  *       downloading.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Wed Sep 23, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -46,6 +46,20 @@ describe("DownloadOptions", () => {
     expect(onChange).toHaveBeenCalledWith({ videos: false, backgrounds: false });
     await user.click(screen.getByRole("checkbox", { name: /Include videos/ }));
     expect(onChange).toHaveBeenLastCalledWith({ videos: true, backgrounds: true });
+  });
+
+  it("names each checkbox by its label and describes it with the hint", async () => {
+    const user = userEvent.setup();
+    render(<DownloadOptions choices={DEFAULT_DOWNLOAD_CHOICES} onChange={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: /^Download options/ }));
+    expect(screen.getByRole("checkbox", { name: "Include videos" })).toHaveAccessibleDescription(
+      "Videos make packs several times larger.",
+    );
+    expect(
+      screen.getByRole("checkbox", { name: "Include backgrounds" }),
+    ).toHaveAccessibleDescription(
+      "Turn this off to remove background images in your browser. osu! shows its default background instead.",
+    );
   });
 
   it("locks the checkboxes and says why while the card is busy", async () => {

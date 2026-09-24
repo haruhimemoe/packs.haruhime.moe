@@ -10,6 +10,7 @@
 
 "use client";
 
+import { Checkbox } from "@haruhimemoe/ui";
 import { useId, useState } from "react";
 import type { DownloadChoices } from "@/schemas/download-choices";
 
@@ -20,30 +21,6 @@ import type { DownloadChoices } from "@/schemas/download-choices";
  */
 export const downloadOptionsSummary = ({ videos, backgrounds }: DownloadChoices): string =>
   `Download options: ${videos ? "videos" : "no videos"}, ${backgrounds ? "backgrounds" : "no backgrounds"}`;
-
-type ChoiceProps = {
-  label: string;
-  hint: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-};
-
-function Choice({ label, hint, checked, onChange }: ChoiceProps) {
-  return (
-    <label className="flex items-start gap-2 text-sm">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(event) => onChange(event.currentTarget.checked)}
-        className="mt-1 accent-h1"
-      />
-      <span>
-        <span className="font-bold text-c1">{label}</span>
-        <span className="text-c3"> · {hint}</span>
-      </span>
-    </label>
-  );
-}
 
 type DownloadOptionsProps = {
   choices: DownloadChoices;
@@ -70,17 +47,19 @@ export function DownloadOptions({ choices, onChange, disabled = false }: Downloa
       </button>
       <fieldset id={panelId} hidden={!open} disabled={disabled} className="flex flex-col gap-2">
         <legend className="sr-only">Download options</legend>
-        <Choice
+        <Checkbox
+          id={`${panelId}-videos`}
           label="Include videos"
           hint="Videos make packs several times larger."
           checked={choices.videos}
-          onChange={(videos) => onChange({ ...choices, videos })}
+          onChange={(event) => onChange({ ...choices, videos: event.currentTarget.checked })}
         />
-        <Choice
+        <Checkbox
+          id={`${panelId}-backgrounds`}
           label="Include backgrounds"
           hint="Turn this off to remove background images in your browser. osu! shows its default background instead."
           checked={choices.backgrounds}
-          onChange={(backgrounds) => onChange({ ...choices, backgrounds })}
+          onChange={(event) => onChange({ ...choices, backgrounds: event.currentTarget.checked })}
         />
         {disabled ? (
           <p className="text-c3 text-sm">

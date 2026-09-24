@@ -19,7 +19,7 @@ import {
   nextFreeColor,
   type SlotMods,
 } from "@haruhimemoe/pool";
-import { Button, fieldClasses } from "@haruhimemoe/ui";
+import { Button, fieldClasses, TextInput } from "@haruhimemoe/ui";
 import { type FormEvent, useId, useState } from "react";
 import { ColorPicker } from "@/components/pack/ColorPicker";
 import { ModBadge } from "@/components/pack/ModBadge";
@@ -241,22 +241,18 @@ export function BucketManager({
 
       <form onSubmit={add} className="flex flex-col gap-2">
         <div className="flex flex-wrap items-end gap-3">
-          <div className="flex flex-col gap-1">
-            <label htmlFor={codeId} className="font-bold text-c3 text-sm">
-              New slot code
-            </label>
-            <input
-              id={codeId}
-              value={code}
-              disabled={disabled}
-              placeholder="EZ"
-              onChange={(event) => {
-                setCode(event.target.value);
-                setError(null);
-              }}
-              className={fieldClasses("w-40")}
-            />
-          </div>
+          <TextInput
+            id={codeId}
+            label="New slot code"
+            value={code}
+            disabled={disabled}
+            placeholder="EZ"
+            onChange={(event) => {
+              setCode(event.target.value);
+              setError(null);
+            }}
+            className="w-40"
+          />
           <ColorPicker
             legend="Color for the new slot"
             value={color}

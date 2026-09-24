@@ -15,7 +15,7 @@ import {
   NO_SLOT_NAME,
   parseBeatmapRef,
 } from "@haruhimemoe/pool";
-import { Button, fieldClasses } from "@haruhimemoe/ui";
+import { Button, Select, TextInput } from "@haruhimemoe/ui";
 import { type FormEvent, useId, useState } from "react";
 import { NO_SLOT_VALUE } from "@/constants/mods";
 import type { BucketEntry, SlotBucket } from "@/schemas/pack";
@@ -57,40 +57,33 @@ export function AddBeatmapForm({
   return (
     <form onSubmit={submit} className="flex flex-col gap-2">
       <div className="flex flex-wrap items-end gap-2">
-        <div className="flex flex-col gap-1">
-          <label htmlFor={selectId} className="font-bold text-c3 text-sm">
-            Slot
-          </label>
-          <select
-            id={selectId}
-            value={current}
-            disabled={disabled}
-            onChange={(event) => setChoice(event.target.value)}
-            className={fieldClasses("w-auto")}
-          >
-            <option value={NO_SLOT_VALUE}>{NO_SLOT_NAME}</option>
-            {buckets.map((entry) => (
-              <option key={entry.code} value={entry.code}>
-                {bucketOptionLabel(entry)}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex min-w-48 flex-1 flex-col gap-1">
-          <label htmlFor={inputId} className="font-bold text-c3 text-sm">
-            Beatmap ID or link
-          </label>
-          <input
-            id={inputId}
-            value={value}
-            disabled={disabled}
-            onChange={(event) => setValue(event.target.value)}
-            placeholder="129891 or https://osu.ppy.sh/beatmapsets/…#osu/…"
-            aria-invalid={error ? true : undefined}
-            aria-describedby={error ? errorId : undefined}
-            className={fieldClasses()}
-          />
-        </div>
+        <Select
+          id={selectId}
+          label="Slot"
+          value={current}
+          disabled={disabled}
+          onChange={(event) => setChoice(event.target.value)}
+          className="w-auto"
+        >
+          <option value={NO_SLOT_VALUE}>{NO_SLOT_NAME}</option>
+          {buckets.map((entry) => (
+            <option key={entry.code} value={entry.code}>
+              {bucketOptionLabel(entry)}
+            </option>
+          ))}
+        </Select>
+        {/* The error sits under the whole row, not the field, so it's wired up by hand. */}
+        <TextInput
+          id={inputId}
+          label="Beatmap ID or link"
+          wrapperClassName="min-w-48 flex-1"
+          value={value}
+          disabled={disabled}
+          onChange={(event) => setValue(event.target.value)}
+          placeholder="129891 or https://osu.ppy.sh/beatmapsets/…#osu/…"
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : undefined}
+        />
         <Button type="submit" disabled={disabled}>
           Add
         </Button>

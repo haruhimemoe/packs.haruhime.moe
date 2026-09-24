@@ -8,7 +8,7 @@
 
 "use client";
 
-import { Button, fieldClasses } from "@haruhimemoe/ui";
+import { Button, TextInput } from "@haruhimemoe/ui";
 import { useId, useState } from "react";
 
 type Copied = "key" | "link" | "failed" | null;
@@ -35,15 +35,14 @@ export function PackKeyField({ packKey }: { packKey: string }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor={id} className="font-bold text-c3 text-sm">
-        Pack key
-      </label>
-      <input
+      <TextInput
         id={id}
+        label="Pack key"
+        wrapperClassName="gap-2"
         readOnly
         value={packKey}
         onFocus={(event) => event.currentTarget.select()}
-        className={fieldClasses("font-mono")}
+        className="font-mono"
       />
       <div className="flex flex-wrap items-center gap-2">
         <Button onClick={() => copy("key")}>Copy key</Button>

@@ -9,14 +9,13 @@
 
 "use client";
 
-import { Button, fieldClasses } from "@haruhimemoe/ui";
+import { CopyButton, TextInput } from "@haruhimemoe/ui";
 import { useEffect, useId, useState } from "react";
 import { SITE } from "@/constants/site";
 
 export function ShortLinkField({ slug }: { slug: string }) {
   const id = useId();
   const [origin, setOrigin] = useState<string>(SITE.url);
-  const [status, setStatus] = useState("");
 
   useEffect(() => {
     setOrigin(window.location.origin);
@@ -24,31 +23,25 @@ export function ShortLinkField({ slug }: { slug: string }) {
 
   const link = `${origin}/p/${slug}`;
 
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(link);
-      setStatus("Link copied.");
-    } catch {
-      setStatus("Couldn't copy. Select the link and copy it by hand.");
-    }
-  };
-
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor={id} className="font-bold text-c3 text-sm">
-        Short link
-      </label>
-      <input
+      <TextInput
         id={id}
+        label="Short link"
+        wrapperClassName="gap-2"
         readOnly
         value={link}
         onFocus={(event) => event.currentTarget.select()}
-        className={fieldClasses("font-mono")}
+        className="font-mono"
       />
-      <div className="flex flex-wrap items-center gap-2">
-        <Button onClick={copy}>Copy link</Button>
-        <output className="text-c3 text-sm">{status}</output>
-      </div>
+      <CopyButton
+        text={link}
+        label="Copy link"
+        copiedMessage="Link copied."
+        failedMessage="Couldn't copy. Select the link and copy it by hand."
+        variant="primary"
+        wrapperClassName="gap-2"
+      />
     </div>
   );
 }

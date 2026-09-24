@@ -10,7 +10,7 @@
 
 "use client";
 
-import { fieldClasses } from "@haruhimemoe/ui";
+import { TextInput } from "@haruhimemoe/ui";
 import { type ReactNode, useId, useMemo, useRef, useState } from "react";
 import { PublicPackList } from "@/components/packs/PublicPackList";
 import { fetchSearchIndex, indexEntryToCard } from "@/lib/search-index";
@@ -76,23 +76,18 @@ export function PublicPackSearch({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1">
-        <label htmlFor={inputId} className="font-bold text-c3 text-sm">
-          Search public packs
-        </label>
-        <input
-          id={inputId}
-          type="search"
-          value={query}
-          placeholder="Pack name, host, or description"
-          onFocus={load}
-          onChange={(event) => {
-            setQuery(event.target.value);
-            load();
-          }}
-          className={fieldClasses()}
-        />
-      </div>
+      <TextInput
+        id={inputId}
+        label="Search public packs"
+        type="search"
+        value={query}
+        placeholder="Pack name, host, or description"
+        onFocus={load}
+        onChange={(event) => {
+          setQuery(event.target.value);
+          load();
+        }}
+      />
       {state.status === "error" ? (
         <p role="alert" className="text-rose-300 text-sm">
           Search isn't available right now. Try again later.

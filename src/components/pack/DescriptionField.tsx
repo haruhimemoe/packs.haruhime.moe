@@ -8,7 +8,7 @@
 
 "use client";
 
-import { fieldClasses } from "@haruhimemoe/ui";
+import { Textarea } from "@haruhimemoe/ui";
 import { useId } from "react";
 import { MAX_DESCRIPTION_LENGTH } from "@/constants/pack";
 
@@ -23,11 +23,9 @@ export function DescriptionField({ value, onChange, disabled }: DescriptionField
   const countId = useId();
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={inputId} className="font-bold text-c3 text-sm">
-        Description (optional)
-      </label>
-      <textarea
+      <Textarea
         id={inputId}
+        label="Description (optional)"
         value={value}
         rows={4}
         maxLength={MAX_DESCRIPTION_LENGTH}
@@ -35,7 +33,6 @@ export function DescriptionField({ value, onChange, disabled }: DescriptionField
         placeholder="What the pack is for: the tournament, the round, anything players should know."
         aria-describedby={countId}
         onChange={(event) => onChange(event.target.value)}
-        className={fieldClasses("min-h-24 resize-y")}
       />
       <p id={countId} className="self-end text-c4 text-xs">
         {value.length}/{MAX_DESCRIPTION_LENGTH}

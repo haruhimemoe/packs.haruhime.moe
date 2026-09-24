@@ -9,7 +9,7 @@
 
 "use client";
 
-import { Button, fieldClasses } from "@haruhimemoe/ui";
+import { Button, TextInput } from "@haruhimemoe/ui";
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { PacksApiError } from "@/lib/packs-api";
@@ -164,15 +164,14 @@ export function TorrentExport({
           <div className="flex flex-wrap items-center gap-2">
             <Button onClick={() => saveFile(made, input.plan)}>Save .torrent</Button>
           </div>
-          <label htmlFor={magnetId} className="font-bold text-c3 text-sm">
-            Magnet link
-          </label>
-          <input
+          <TextInput
             id={magnetId}
+            label="Magnet link"
+            wrapperClassName="gap-2"
             readOnly
             value={made.magnet}
             onFocus={(event) => event.currentTarget.select()}
-            className={fieldClasses("font-mono")}
+            className="font-mono"
           />
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="secondary" onClick={() => copy(made.magnet)}>
