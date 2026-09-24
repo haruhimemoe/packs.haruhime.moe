@@ -1,9 +1,10 @@
 /**
  * @file tests/components/app/HomePage.test.tsx
- * @desc Home page: headline, primary CTA to the builder, key paste box, the three feature cards.
+ * @desc Home page: headline, primary CTA to the builder, key paste box, the three feature cards,
+ *       the FAQ (how public pack filters match included).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -66,6 +67,15 @@ describe("HomeScreen", () => {
       "href",
       "/packs",
     );
+  });
+
+  it("says how the public pack filters match", () => {
+    render(<HomeScreen recent={[]} />);
+    expect(
+      screen.getByRole("heading", { level: 3, name: "How do the public pack filters match?" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/range overlaps the range you set/)).toBeInTheDocument();
+    expect(screen.getByText(/every mod and mode you tick/)).toBeInTheDocument();
   });
 
   it("answers the common questions and describes them as FAQ data", () => {

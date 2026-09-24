@@ -4,7 +4,7 @@
  *       WebApplication + FAQPage structured data.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Thu Sep 24, 2026
  */
 
 import { ButtonLink, Card, JsonLd, PageHeader } from "@haruhimemoe/ui";
@@ -47,6 +47,11 @@ export const HOME_FAQ = [
   {
     question: "Can I make my pack public?",
     answer: "Yes. Save it, set it to Public, and it's listed on the public packs page.",
+  },
+  {
+    question: "How do the public pack filters match?",
+    answer:
+      "A pack matches when its star rating, length or BPM range overlaps the range you set, and when it has every mod and mode you tick. Packs whose stats aren't ready yet only show while no stat filter is set.",
   },
   {
     question: "Can I share a pack as a torrent?",
