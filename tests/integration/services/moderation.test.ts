@@ -2,7 +2,8 @@
  * @file tests/integration/services/moderation.test.ts
  * @desc Admin list (public + unlisted only, hidden filter, literal name filter) and hiding,
  *       the haruhime pools account's packs (a system account, no osu! id) included; deleting a
- *       pack pools published leaves a tombstone of its pool.
+ *       pack pools published leaves a tombstone of its pool, written first, so a pack whose
+ *       tombstone can't be written stays.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -12,6 +13,7 @@ import { ObjectId } from "mongodb";
 import { describe, expect, it } from "vitest";
 import { DELETED_ORIGINS_COLLECTION } from "@/constants/pools";
 import { getDb } from "@/lib/db";
+import { getPackModel } from "@/models/Pack";
 import type { PackInput } from "@/schemas/saved-pack";
 import { adminDeletePack, listPacksForAdmin, setPackHidden } from "@/services/moderation";
 import { createPack } from "@/services/packs";
@@ -124,5 +126,28 @@ describe("adminDeletePack and pools packs", () => {
     expect(await getDb().collection(DELETED_ORIGINS_COLLECTION).find({}).toArray()).toEqual([
       { _id: "otdb-58", deletedAt: expect.any(Date) },
     ]);
+  });
+
+  it("keeps a pools pack whose tombstone can't be written", async () => {
+    const poolsId = await ensurePoolsAccount();
+    const pooled = await createPack(poolsId, input({ name: "Ricma 2 Quarterfinals" }), {
+      unlimited: true,
+      origin: { kind: "pools", id: "otdb-58" },
+    });
+    // A validator no document passes: the tombstone's upsert fails like a database error would.
+    const db = getDb();
+    await db
+      .collection(DELETED_ORIGINS_COLLECTION)
+      .drop()
+      .catch(() => undefined);
+    await db.createCollection(DELETED_ORIGINS_COLLECTION, {
+      validator: { never: { $exists: true } },
+    });
+    try {
+      await expect(adminDeletePack(pooled.slug)).rejects.toThrow();
+    } finally {
+      await db.collection(DELETED_ORIGINS_COLLECTION).drop();
+    }
+    expect(await getPackModel().countDocuments({ slug: pooled.slug })).toBe(1);
   });
 });

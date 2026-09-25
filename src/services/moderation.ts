@@ -7,8 +7,8 @@
  *       Hiding a pack also unpins it (pins live in src/services/pins.ts); unhiding never pins it
  *       again. Rows say when a pack was pinned. The haruhime pools account's packs (a system
  *       account with no osu! id) are moderated like any other. Deleting a pack pools.haruhime.moe
- *       published leaves a tombstone of its pool (src/services/pools-sync.ts), so no sync creates
- *       it again.
+ *       published writes a tombstone of its pool first (src/services/pools-sync.ts), then deletes
+ *       it, so no sync creates it again.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Thu Sep 24, 2026
@@ -146,17 +146,22 @@ export const setPackHidden = async (
  * @function adminDeletePack
  * @param slug {string} untrusted route segment
  * @returns {Promise<boolean>} true when a public or unlisted pack was deleted
+ * @throws when the database fails; a pack whose tombstone couldn't be written is still there
  */
 export const adminDeletePack = async (slug: string): Promise<boolean> => {
   if (!slugSchema.safeParse(slug).success) return false;
   const model = await connectedPackModel();
-  const deleted = await model.collection.findOneAndDelete(
+  const found = await model.collection.findOne(
     { slug, ...MODERATED },
-    { projection: { origin: 1 } },
+    { projection: { _id: 1, origin: 1 } },
   );
-  if (!deleted) return false;
-  const originId = (deleted as { origin?: { id?: unknown } }).origin?.id;
+  if (!found) return false;
+  // Tombstone first: a sync that creates the pack again after this delete finds it
+  // (src/services/pools-sync.ts), and a failed write leaves the pack in place, not gone untracked.
+  const originId = (found as { origin?: { id?: unknown } }).origin?.id;
   if (typeof originId === "string") await tombstoneOrigin(originId);
+  const { deletedCount } = await model.collection.deleteOne({ _id: found._id, ...MODERATED });
+  if (deletedCount === 0) return false;
   revalidatePack(slug);
   revalidatePublicPacks();
   return true;
