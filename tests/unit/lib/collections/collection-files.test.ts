@@ -1,8 +1,8 @@
 /**
  * @file tests/unit/lib/collections/collection-files.test.ts
- * @desc Reading a picked collection.db (a file over the limit refused before it loads, the
- *       reader's errors passed through with code and offset) and the osu!stable download (a
- *       byte-for-byte round trip).
+ * @desc Reading a picked collection.db (a file over the limit refused before it loads, one
+ *       exactly at it read, the reader's errors passed through with code and offset) and the
+ *       osu!stable download (a byte-for-byte round trip).
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
  * @modified Fri Sep 25, 2026
@@ -16,6 +16,7 @@ import {
   hex,
   MD5_A,
   MD5_EMPTY,
+  TV1_EMPTY,
   TV1_TRAILING,
   TV2_FARM,
   TV3_UNICODE_AND_EMPTY,
@@ -53,6 +54,15 @@ describe("readCollectionFile", () => {
     await expect(readCollectionFile(new Blob([hex(TV2_FARM)]), 85)).rejects.toBeInstanceOf(
       CollectionDbError,
     );
+  });
+
+  it("reads a file exactly at the limit", async () => {
+    // TV1 is 8 bytes with no collections. Not TV2 at 86: the reader also caps collections plus
+    // hashes at maxBytes / 34, and TV2's three are over the two that 86 bytes allow.
+    await expect(readCollectionFile(new Blob([hex(TV1_EMPTY)]), 8)).resolves.toMatchObject({
+      version: 20150203,
+      collections: [],
+    });
   });
 
   it.each([

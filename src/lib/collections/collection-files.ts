@@ -23,7 +23,8 @@ import {
  * @param maxBytes {number} the largest file accepted (default MAX_COLLECTION_DB_BYTES, 64 MiB)
  * @returns {Promise<CollectionDbRead>} the database and the reader's warnings
  * @throws {CollectionDbError} too_large before loading a file over maxBytes, or whatever the
- *         strict reader finds wrong with it
+ *         strict reader finds wrong with it (too_large as well when its counts claim more than
+ *         maxBytes / 34 collections plus hashes)
  */
 export const readCollectionFile = async (
   file: Blob,

@@ -1,9 +1,10 @@
 /**
  * @file tests/unit/utils/osu-collection.test.ts
- * @desc The card's pure helpers: hashes from the page's map info (waiting, failures, pool order,
- *       a map in two slots, the maps left out and why), the default name for a new collection
- *       (trim, control characters, lone surrogates, the 127-byte cut, always a name
- *       addToCollection takes), and the error text with the package's codes.
+ * @desc The card's pure helpers: hashes from the page's map info (waiting, failures counted by
+ *       map, pool order by the pack's own buckets, a map in two slots, the maps left out and why,
+ *       one entry per map), the default name for a new collection (trim, control characters, lone
+ *       surrogates, the 127-byte cut, always a name addToCollection takes), and the error text
+ *       with the package's codes.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
  * @modified Fri Sep 25, 2026
@@ -19,7 +20,7 @@ import { describe, expect, it } from "vitest";
 import type { MetaState } from "@/hooks/beatmapMetaState";
 import type { Pool } from "@/schemas/pack";
 import { collectionErrorText, collectionMaps, defaultCollectionName } from "@/utils/osu-collection";
-import { foundWith, MD5_A, MD5_ABC, metaFrom } from "../../helpers/collections";
+import { foundWith, MD5_A, MD5_ABC, MD5_DIGEST, metaFrom } from "../../helpers/collections";
 
 // Stored out of pool order on purpose: TB first, NM2 before NM1.
 const PACK: Pool = {
@@ -61,6 +62,64 @@ describe("collectionMaps", () => {
         { beatmapId: 103, label: "HD1", reason: "no-checksum" },
         { beatmapId: 104, label: "TB1", reason: "missing" },
       ],
+    });
+  });
+
+  it("counts a map in two slots once when its info fails", () => {
+    const pack: Pool = {
+      name: "Twice",
+      slots: [
+        { mod: "NM", index: 1, beatmapId: 101 },
+        { mod: "DT", index: 1, beatmapId: 101 },
+        { mod: "HD", index: 1, beatmapId: 102 },
+      ],
+    };
+    expect(collectionMaps(pack, metaFrom({ ...READY, 101: FAILED }))).toEqual({
+      status: "error",
+      failed: 1,
+    });
+  });
+
+  it("follows the pack's own bucket order, custom buckets included", () => {
+    // DT before NM and a custom bucket between them: the default order would give NM1, DT1, RC1s.
+    const pack: Pool = {
+      name: "Reordered",
+      slots: [
+        { mod: "NM", index: 1, beatmapId: 101 },
+        { mod: "RC1", index: 2, beatmapId: 103 },
+        { mod: "RC1", index: 1, beatmapId: 105 },
+        { mod: "DT", index: 1, beatmapId: 102 },
+      ],
+      buckets: [
+        { code: "DT" },
+        { code: "RC1", color: 1 },
+        { code: "NM" },
+        { code: "HD" },
+        { code: "HR" },
+        { code: "FM" },
+        { code: "TB" },
+      ],
+    };
+    expect(collectionMaps(pack, metaFrom({ ...READY, 105: foundWith(105, MD5_DIGEST) }))).toEqual({
+      status: "ready",
+      hashes: [MD5_ABC, MD5_DIGEST, MD5_A],
+      skipped: [{ beatmapId: 103, label: "RC1 2", reason: "no-checksum" }],
+    });
+  });
+
+  it("lists a map left out of two slots once, with both slots in pool order", () => {
+    const pack: Pool = {
+      name: "Twice",
+      slots: [
+        { mod: "DT", index: 1, beatmapId: 104 },
+        { mod: "HD", index: 1, beatmapId: 101 },
+        { mod: "NM", index: 1, beatmapId: 104 },
+      ],
+    };
+    expect(collectionMaps(pack, metaFrom(READY))).toEqual({
+      status: "ready",
+      hashes: [MD5_A],
+      skipped: [{ beatmapId: 104, label: "NM1, DT1", reason: "missing" }],
     });
   });
 

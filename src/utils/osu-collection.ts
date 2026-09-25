@@ -19,7 +19,10 @@ import { DEFAULT_PACK_NAME } from "@/constants/pack";
 import type { MetaState } from "@/hooks/beatmapMetaState";
 import type { Pool } from "@/schemas/pack";
 
-/** A map the card leaves out: the mirror and osu! don't know it, or its info has no checksum. */
+/**
+ * A map the card leaves out: the mirror and osu! don't know it, or its info has no checksum. One
+ * per map: `label` names every slot it fills, in pool order ("NM1, DT1").
+ */
 export type SkippedMap = { beatmapId: number; label: string; reason: "missing" | "no-checksum" };
 
 /** What the card can add: wait, retry the map info, or these hashes (with the maps left out). */
@@ -37,9 +40,10 @@ const FILE_HELP = "Pick the collection.db in your osu! folder, not osu!.db or sc
  * @function collectionMaps
  * @param pack {Pool} the pack on the page
  * @param getMeta {(beatmapId: number) => MetaState} the map info the page loaded
- * @returns {CollectionMaps} "loading" while any map's info loads, "error" with how many failed
- *          once none is loading, else the lowercase MD5s in pool order without repeats and the
- *          maps left out, in pool order
+ * @returns {CollectionMaps} "loading" while any map's info loads, "error" with how many maps
+ *          failed once none is loading, else the lowercase MD5s in pool order without repeats and
+ *          the maps left out, in pool order. Pool order follows the pack's own buckets, and a map
+ *          in two slots counts once everywhere.
  */
 export const collectionMaps = (
   pack: Pool,
@@ -50,7 +54,9 @@ export const collectionMaps = (
     state: getMeta(slot.beatmapId),
   }));
   if (rows.some(({ state }) => state.status === "loading")) return { status: "loading" };
-  const failed = rows.filter(({ state }) => state.status === "error").length;
+  const failed = new Set(
+    rows.filter(({ state }) => state.status === "error").map(({ slot }) => slot.beatmapId),
+  ).size;
   if (failed > 0) return { status: "error", failed };
 
   const entries = rows.map(({ slot, state }) => ({
@@ -59,17 +65,21 @@ export const collectionMaps = (
     checksum: state.status === "found" ? state.meta.checksum : null,
   }));
   const { hashes, withoutChecksum } = collectionHashesFor(entries);
-  const left = new Set(withoutChecksum);
-  const skipped = entries
-    .filter((entry) => left.has(entry))
-    .map(
-      ({ slot, missing }): SkippedMap => ({
+  // Every slot of a map has the same info, so the first slot's reason holds for the rest.
+  const skipped = new Map<number, SkippedMap>();
+  for (const { slot, missing } of withoutChecksum) {
+    const label = slotTitle(slot);
+    const seen = skipped.get(slot.beatmapId);
+    if (seen) seen.label = `${seen.label}, ${label}`;
+    else {
+      skipped.set(slot.beatmapId, {
         beatmapId: slot.beatmapId,
-        label: slotTitle(slot),
+        label,
         reason: missing ? "missing" : "no-checksum",
-      }),
-    );
-  return { status: "ready", hashes, skipped };
+      });
+    }
+  }
+  return { status: "ready", hashes, skipped: [...skipped.values()] };
 };
 
 // One code point from `for...of`: a lone UTF-16 surrogate comes through on its own.
