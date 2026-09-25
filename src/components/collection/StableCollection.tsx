@@ -3,8 +3,11 @@
  * @desc The osu!stable side of "Add to osu! collection": pick your collection.db (read in this
  *       tab, not uploaded or kept), choose one of its collections or name a new one, see what
  *       changes, then download the whole file with the pack's maps added. Read and name errors
- *       show the package's code. The input is locked while a file reads. After a download the
- *       edited file stays loaded, so a second add builds on the first.
+ *       show the package's code; a good read is announced. The input is locked while a file
+ *       reads. After a download the edited file stays loaded, so a second add builds on the
+ *       first. A focused control that disables or removes itself hands focus on instead of
+ *       dropping it to the page: the file input gets it back after a read, and the Download and
+ *       "instead" buttons pass it to the Collection select.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
  * @modified Fri Sep 25, 2026
@@ -16,10 +19,11 @@ import {
   addToCollection,
   COLLECTION_DB_FILENAME,
   type CollectionDb,
+  CollectionDbError,
   type CollectionDbRead,
 } from "@haruhimemoe/osu/collections";
 import { Button, Notice, Select, TextInput } from "@haruhimemoe/ui";
-import { type ChangeEvent, useId, useMemo, useState } from "react";
+import { type ChangeEvent, useEffect, useId, useMemo, useRef, useState } from "react";
 import { readCollectionFile, stableCollectionFile } from "@/lib/collections/collection-files";
 import { collectionErrorText, defaultCollectionName } from "@/utils/osu-collection";
 
@@ -39,11 +43,18 @@ export type StableCollectionProps = {
   readFile?: (file: Blob) => Promise<CollectionDbRead>;
 };
 
-type Loaded = { db: CollectionDb; unusual: number };
+/**
+ * What the reader found odd: entries it kept, empty map entries (0x00 hashes) it dropped, and
+ * whether it stopped listing. Warnings past its first 1,000 come without a code, so they count
+ * as kept and the text allows for empty map entries among them.
+ */
+type Unusual = { kept: number; dropped: number; unlisted: boolean };
+type Loaded = { db: CollectionDb; unusual: Unusual };
 type Added = ReturnType<typeof addToCollection>;
 type Preview = { kind: "error"; message: string } | ({ kind: "ok" } & Added);
 
 const countMaps = (n: number): string => `${n} ${n === 1 ? "map" : "maps"}`;
+const countCollections = (n: number): string => `${n} ${n === 1 ? "collection" : "collections"}`;
 const shown = (name: string): string => (name === "" ? "(no name)" : name);
 
 const previewText = (added: Added, name: string): string => {
@@ -57,8 +68,40 @@ const previewText = (added: Added, name: string): string => {
   return `Adds ${countMaps(added.added)} to ${quoted}.${already}`;
 };
 
-const unusualText = (n: number): string =>
-  `${n} ${n === 1 ? "entry in this file looks" : "entries in this file look"} unusual, like a map listed twice. They stay exactly as they are.`;
+const unusualOf = (read: CollectionDbRead): Unusual => {
+  const dropped = read.warnings.filter((warning) => warning.code === "null_hash").length;
+  return {
+    kept: read.warnings.length - dropped + read.omittedWarnings,
+    dropped,
+    unlisted: read.omittedWarnings > 0,
+  };
+};
+
+const unusualText = ({ kept, dropped, unlisted }: Unusual): string => {
+  const sentences: string[] = [];
+  if (kept > 0) {
+    const one = kept === 1;
+    const fate = unlisted
+      ? "packs keeps them, apart from any empty map entries."
+      : `packs keeps ${one ? "it" : "them"}.`;
+    sentences.push(
+      `${kept} ${one ? "entry in this file looks" : "entries in this file look"} unusual, like a map listed twice. ${fate}`,
+    );
+  }
+  if (dropped > 0) {
+    sentences.push(
+      dropped === 1
+        ? "1 map entry in this file is empty. packs leaves it out of the new file."
+        : `${dropped} map entries in this file are empty. packs leaves them out of the new file.`,
+    );
+  }
+  return sentences.join(" ");
+};
+
+const saveErrorText = (error: unknown): string =>
+  error instanceof CollectionDbError
+    ? collectionErrorText(error)
+    : "Couldn't save collection.db. Try again.";
 
 export function StableCollection({
   packName,
@@ -74,6 +117,19 @@ export function StableCollection({
   const [typedName, setTypedName] = useState<string | null>(null);
   const [status, setStatus] = useState("");
   const [saveError, setSaveError] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const collectionRef = useRef<HTMLSelectElement>(null);
+  const refocusFile = useRef(false);
+
+  // Locking the file input while it has focus sends focus to <body> in browsers that apply the
+  // focus fix-up rule. Once a read ends and it's unlocked, put focus back there, unless focus has
+  // moved on to something else.
+  useEffect(() => {
+    if (reading || !refocusFile.current) return;
+    refocusFile.current = false;
+    const active = document.activeElement;
+    if (active === null || active === document.body) fileRef.current?.focus();
+  }, [reading]);
 
   const onFile = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.currentTarget.files?.[0];
@@ -86,13 +142,15 @@ export function StableCollection({
       const read = await readFile(file);
       setLoaded({
         db: { version: read.version, collections: read.collections },
-        unusual: read.warnings.length + read.omittedWarnings,
+        unusual: unusualOf(read),
       });
       setPicked(NEW);
+      setStatus(`Read collection.db: ${countCollections(read.collections.length)}.`);
     } catch (error) {
       setLoaded(null);
       setReadError(collectionErrorText(error));
     } finally {
+      refocusFile.current = true;
       setReading(false);
     }
   };
@@ -139,7 +197,7 @@ export function StableCollection({
     try {
       download(stableCollectionFile(preview.db), COLLECTION_DB_FILENAME);
     } catch (error) {
-      setSaveError(collectionErrorText(error));
+      setSaveError(saveErrorText(error));
       return;
     }
     setSaveError(null);
@@ -149,11 +207,14 @@ export function StableCollection({
     setStatus(
       `Downloaded collection.db with ${countMaps(preview.added)} added to "${shown(name)}".`,
     );
+    // Everything is in that collection now, so the button disables itself: move on from it.
+    collectionRef.current?.focus();
   };
 
   return (
     <div className="flex flex-col gap-4">
       <TextInput
+        ref={fileRef}
         id={`${id}-file`}
         type="file"
         accept=".db"
@@ -164,10 +225,13 @@ export function StableCollection({
         onChange={onFile}
       />
       {reading ? <p className="text-c3 text-sm">Reading collection.db…</p> : null}
-      {loaded && loaded.unusual > 0 ? <Notice>{unusualText(loaded.unusual)}</Notice> : null}
+      {loaded && (loaded.unusual.kept > 0 || loaded.unusual.dropped > 0) ? (
+        <Notice>{unusualText(loaded.unusual)}</Notice>
+      ) : null}
       {loaded ? (
         <>
           <Select
+            ref={collectionRef}
             id={`${id}-collection`}
             label="Collection"
             value={picked}
@@ -185,7 +249,7 @@ export function StableCollection({
               id={`${id}-name`}
               label="Name"
               value={typedOrDefault}
-              hint="Case and spaces count. A name you already have adds to that collection."
+              hint="Case counts, and so do spaces inside the name. A name you already have adds to that collection."
               error={preview?.kind === "error" ? preview.message : undefined}
               onChange={(event) => {
                 setTypedName(event.currentTarget.value);
@@ -196,7 +260,9 @@ export function StableCollection({
           {picked !== NEW && preview?.kind === "error" ? (
             <Notice tone="error">{preview.message}</Notice>
           ) : null}
-          {hashes === null ? <p className="text-c3 text-sm">Waiting for map info…</p> : null}
+          {hashes === null ? (
+            <p className="text-c3 text-sm">The preview shows once every map's info has loaded.</p>
+          ) : null}
           {preview?.kind === "ok" ? (
             <p className="text-c2 text-sm">{previewText(preview, name)}</p>
           ) : null}
@@ -206,7 +272,14 @@ export function StableCollection({
                 {`You already have "${shown(preview.similarName)}". Case and spaces count, so this makes a second collection.`}
               </Notice>
               {similarIndex >= 0 ? (
-                <Button variant="secondary" onClick={() => pick(String(similarIndex))}>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    // This button goes away with the pick, so focus goes where the pick shows.
+                    pick(String(similarIndex));
+                    collectionRef.current?.focus();
+                  }}
+                >
                   {`Add to "${shown(preview.similarName)}" instead`}
                 </Button>
               ) : null}

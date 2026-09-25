@@ -57,7 +57,8 @@ describe("CollectionPanel", () => {
     expect(within(card()).getByText("Loading map info…")).toBeInTheDocument();
   });
 
-  it("points at the Download card when map info failed", () => {
+  it("points at the Download card when map info failed", async () => {
+    const user = userEvent.setup();
     const getMeta = metaFrom({ ...READY, 102: { status: "error", message: "x" } });
     render(<CollectionPanel pack={PACK} getMeta={getMeta} download={vi.fn()} />);
     expect(
@@ -65,6 +66,14 @@ describe("CollectionPanel", () => {
         "Map info didn't load for 1 map. Retry loading maps in the Download card first.",
       ),
     ).toBeInTheDocument();
+    await user.upload(
+      within(card()).getByLabelText("Your collection.db"),
+      collectionFile(TV1_EMPTY),
+    );
+    expect(
+      await within(card()).findByText("The preview shows once every map's info has loaded."),
+    ).toBeInTheDocument();
+    expect(within(card()).queryByText(/Loading map info/)).not.toBeInTheDocument();
   });
 
   it("lists the maps it leaves out, and why", () => {
@@ -147,7 +156,10 @@ describe("CollectionPanel", () => {
       slots: [...PACK.slots, { mod: "DT", index: 1, beatmapId: 105 }],
     };
     rerender(<CollectionPanel pack={grown} getMeta={metaFrom(READY)} download={download} />);
-    expect(within(card()).getByText("Waiting for map info…")).toBeInTheDocument();
+    expect(within(card()).getByText("Loading map info…")).toBeInTheDocument();
+    expect(
+      within(card()).getByText("The preview shows once every map's info has loaded."),
+    ).toBeInTheDocument();
     expect(within(card()).getByRole("button", { name: "Download collection.db" })).toBeDisabled();
 
     const withNewMap = metaFrom({ ...READY, 105: foundWith(105, MD5_DIGEST) });

@@ -1,11 +1,14 @@
 /**
  * @file tests/components/collection/StableCollection.test.tsx
  * @desc The osu!stable side of the card: read errors with the package's codes (and a good file
- *       clearing them), the collection list (a repeated name once, an empty name), unusual
- *       entries kept, the steps, the default name (following the pack, clipped), name errors with
- *       their codes (empty, name_too_long, invalid_name), a typed name equal to a collection's
- *       adding to it, a similar name, a second add building on the first download, and the input
- *       locked while a file reads.
+ *       clearing them), a good read announced, the collection list (a repeated name once, an
+ *       empty name), unusual entries kept and empty map entries left out (singular, plural, past
+ *       the reader's list), the steps, the preview waiting for map info, the default name
+ *       (following the pack, clipped), name errors with their codes (empty, name_too_long,
+ *       invalid_name), outer spaces ignored in a typed name, a typed name equal to a collection's
+ *       adding to it, maps already there (plural), a similar name, a failed download keeping the
+ *       file and the pick, a second add building on the first download, the input locked while a
+ *       file reads, and focus kept on a control after each step.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
  * @modified Fri Sep 25, 2026
@@ -26,9 +29,12 @@ import {
 import {
   collectionFile,
   downloaded,
+  FARM_NULL_HASH,
+  FARM_NULL_HASHES_AND_REPEAT,
   hex,
   MD5_A,
   MD5_ABC,
+  MD5_DIGEST,
   MD5_EMPTY,
   TV1_EMPTY,
   TV1_TRAILING,
@@ -96,7 +102,7 @@ describe("StableCollection", () => {
     ]);
   });
 
-  it("counts entries that look unusual and keeps them as they are", async () => {
+  it("counts entries that look unusual and keeps them", async () => {
     const { upload, user, download } = setup();
     const twice = writeCollectionDb({
       version: 20150203,
@@ -105,7 +111,7 @@ describe("StableCollection", () => {
     await upload(new File([twice], "collection.db"));
     expect(
       await screen.findByText(
-        "1 entry in this file looks unusual, like a map listed twice. They stay exactly as they are.",
+        "1 entry in this file looks unusual, like a map listed twice. packs keeps it.",
       ),
     ).toBeInTheDocument();
     await user.selectOptions(screen.getByLabelText("Collection"), "Farm (2 maps)");
@@ -113,6 +119,78 @@ describe("StableCollection", () => {
     expect(readCollectionDb((await downloaded(download)).bytes).collections).toEqual([
       { name: "Farm", hashes: [MD5_EMPTY, MD5_EMPTY, MD5_A, MD5_ABC] },
     ]);
+
+    const thrice = writeCollectionDb({
+      version: 20150203,
+      collections: [{ name: "Farm", hashes: [MD5_EMPTY, MD5_EMPTY, MD5_EMPTY] }],
+    });
+    await upload(new File([thrice], "collection.db"));
+    expect(
+      await screen.findByText(
+        "2 entries in this file look unusual, like a map listed twice. packs keeps them.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("says which unusual entries are past the reader's list", async () => {
+    const { upload } = setup();
+    // 1,002 copies of one hash: 1,001 duplicate_hash warnings, one more than the reader lists.
+    const many = writeCollectionDb({
+      version: 20150203,
+      collections: [{ name: "Farm", hashes: Array.from({ length: 1002 }, () => MD5_A) }],
+    });
+    await upload(new File([many], "collection.db"));
+    expect(
+      await screen.findByText(
+        "1001 entries in this file look unusual, like a map listed twice. packs keeps them, apart from any empty map entries.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("says empty map entries are left out, and leaves them out", async () => {
+    const { upload, user, download } = setup();
+    await upload(collectionFile(FARM_NULL_HASH));
+    expect(
+      await screen.findByText(
+        "1 map entry in this file is empty. packs leaves it out of the new file.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/looks? unusual/)).not.toBeInTheDocument();
+
+    await upload(collectionFile(FARM_NULL_HASHES_AND_REPEAT));
+    expect(
+      await screen.findByText(
+        "1 entry in this file looks unusual, like a map listed twice. packs keeps it. 2 map entries in this file are empty. packs leaves them out of the new file.",
+      ),
+    ).toBeInTheDocument();
+    await user.selectOptions(screen.getByLabelText("Collection"), "Farm (2 maps)");
+    await user.click(screen.getByRole("button", { name: "Download collection.db" }));
+    expect(readCollectionDb((await downloaded(download)).bytes).collections).toEqual([
+      { name: "Farm", hashes: [MD5_A, MD5_A, MD5_ABC] },
+    ]);
+  });
+
+  it("announces a file it read", async () => {
+    const { upload } = setup();
+    await upload(collectionFile(TV2_FARM));
+    expect(await screen.findByText("Read collection.db: 1 collection.")).toHaveAttribute(
+      "role",
+      "status",
+    );
+    await upload(collectionFile(TV3_UNICODE_AND_EMPTY));
+    expect(await screen.findByText("Read collection.db: 2 collections.")).toHaveAttribute(
+      "role",
+      "status",
+    );
+  });
+
+  it("says the preview waits for map info", async () => {
+    const { upload } = setup({ hashes: null });
+    await upload(collectionFile(TV2_FARM));
+    expect(
+      await screen.findByText("The preview shows once every map's info has loaded."),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Download collection.db" })).toBeDisabled();
   });
 
   it("shows the steps to swap the file in", async () => {
@@ -202,7 +280,33 @@ describe("StableCollection", () => {
     expect(screen.getByLabelText("Collection")).toHaveValue("0");
   });
 
-  it("offers the collection whose name only differs in case", async () => {
+  it("counts case and inner spaces in a typed name, not outer ones", async () => {
+    const { upload, user } = setup();
+    await upload(collectionFile(TV2_FARM));
+    const name = await screen.findByLabelText("Name");
+    expect(name).toHaveAccessibleDescription(
+      "Case counts, and so do spaces inside the name. A name you already have adds to that collection.",
+    );
+    await user.clear(name);
+    await user.type(name, " Farm ");
+    expect(screen.getByText('Adds 1 map to "Farm". 1 is already in it.')).toBeInTheDocument();
+    await user.clear(name);
+    await user.type(name, "Fa rm");
+    expect(screen.getByText('Makes a new collection "Fa rm" with 2 maps.')).toBeInTheDocument();
+  });
+
+  it("says how many maps are already in the collection", async () => {
+    const { upload, user } = setup({ hashes: [MD5_A, MD5_ABC, MD5_DIGEST] });
+    const both = writeCollectionDb({
+      version: 20150203,
+      collections: [{ name: "Farm", hashes: [MD5_A, MD5_ABC] }],
+    });
+    await upload(new File([both], "collection.db"));
+    await user.selectOptions(await screen.findByLabelText("Collection"), "Farm (2 maps)");
+    expect(screen.getByText('Adds 1 map to "Farm". 2 are already in it.')).toBeInTheDocument();
+  });
+
+  it("offers the collection whose name only differs in case, and moves focus to it", async () => {
     const { upload, user } = setup();
     await upload(collectionFile(TV2_FARM));
     const name = await screen.findByLabelText("Name");
@@ -215,7 +319,30 @@ describe("StableCollection", () => {
     ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: 'Add to "Farm" instead' }));
     expect(screen.getByLabelText("Collection")).toHaveValue("0");
+    expect(screen.getByLabelText("Collection")).toHaveFocus();
     expect(screen.getByText('Adds 1 map to "Farm". 1 is already in it.')).toBeInTheDocument();
+  });
+
+  it("keeps the loaded file and the pick when a download fails", async () => {
+    const download = vi.fn().mockImplementationOnce(() => {
+      throw new Error("blocked");
+    });
+    const { upload, user } = setup({ download });
+    await upload(collectionFile(TV2_FARM));
+    await user.selectOptions(await screen.findByLabelText("Collection"), "Farm (2 maps)");
+    const button = screen.getByRole("button", { name: "Download collection.db" });
+    await user.click(button);
+    expect(screen.getByRole("alert")).toHaveTextContent("Couldn't save collection.db. Try again.");
+    expect(screen.getByLabelText("Collection")).toHaveValue("0");
+    expect(screen.getByText('Adds 1 map to "Farm". 1 is already in it.')).toBeInTheDocument();
+    expect(button).toBeEnabled();
+
+    await user.click(button);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(download).toHaveBeenCalledTimes(2);
+    expect(readCollectionDb((await downloaded(download, 1)).bytes).collections).toEqual([
+      { name: "Farm", hashes: [MD5_EMPTY, MD5_A, MD5_ABC] },
+    ]);
   });
 
   it("builds a second add on the first download", async () => {
@@ -228,6 +355,8 @@ describe("StableCollection", () => {
     ).toBeInTheDocument();
     expect(screen.getByText('All of these maps are already in "Farm".')).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Download collection.db" })).toBeDisabled();
+    // The button it was on is disabled now, so focus moves to the next choice.
+    expect(screen.getByLabelText("Collection")).toHaveFocus();
 
     await user.selectOptions(screen.getByLabelText("Collection"), "New collection");
     await user.clear(screen.getByLabelText("Name"));
@@ -256,5 +385,42 @@ describe("StableCollection", () => {
     });
     expect(screen.getByLabelText("Your collection.db")).toBeEnabled();
     expect(screen.getByRole("option", { name: "Farm (2 maps)" })).toBeInTheDocument();
+  });
+
+  it("puts focus back on the file input when locking it dropped focus", async () => {
+    const pending = Promise.withResolvers<CollectionDbRead>();
+    const { upload } = setup({ readFile: () => pending.promise });
+    const input = screen.getByLabelText("Your collection.db");
+    input.focus();
+    await upload(collectionFile(TV7_SHORT));
+    expect(input).toBeDisabled();
+    // Browsers that apply the focus fix-up rule send focus to <body> here; jsdom doesn't.
+    act(() => {
+      input.blur();
+    });
+    expect(document.body).toHaveFocus();
+    await act(async () => {
+      pending.reject(new Error("unreadable"));
+    });
+    expect(input).toBeEnabled();
+    expect(input).toHaveFocus();
+  });
+
+  it("leaves focus alone when it moved on during the read", async () => {
+    const pending = Promise.withResolvers<CollectionDbRead>();
+    const { upload } = setup({ readFile: () => pending.promise });
+    const input = screen.getByLabelText("Your collection.db");
+    input.focus();
+    await upload(collectionFile(TV2_FARM));
+    const elsewhere = document.createElement("button");
+    document.body.append(elsewhere);
+    act(() => {
+      elsewhere.focus();
+    });
+    await act(async () => {
+      pending.resolve(readCollectionDb(hex(TV2_FARM)));
+    });
+    expect(elsewhere).toHaveFocus();
+    elsewhere.remove();
   });
 });

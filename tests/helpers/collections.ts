@@ -1,10 +1,11 @@
 /**
  * @file tests/helpers/collections.ts
  * @desc Shared pieces for the osu! collection tests: collection.db byte vectors written as hex
- *       (copied from @haruhimemoe/osu's tests/collection-vectors.ts; never binary fixtures, since
- *       .editorconfig rewrites line endings and trailing whitespace in every file), RFC 1321's
- *       test MD5s as placeholder hashes (no beatmap has them), map info with a chosen checksum,
- *       and a reader for what a download seam was handed.
+ *       (the TVs copied from @haruhimemoe/osu's tests/collection-vectors.ts, plus two with empty
+ *       map entries; never binary fixtures, since .editorconfig rewrites line endings and
+ *       trailing whitespace in every file), RFC 1321's test MD5s as placeholder hashes (no
+ *       beatmap has them), map info with a chosen checksum, and a reader for what a download seam
+ *       was handed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
  * @modified Fri Sep 25, 2026
@@ -79,6 +80,35 @@ export const TV3_UNICODE_AND_EMPTY = `
 
 /** TV7: claims 2 collections but holds only "A": bad_count at byte 4 (7 bytes can't hold 2). */
 export const TV7_SHORT = "bb 77 33 01  02 00 00 00  0b 01 41  00 00 00 00";
+
+/** MD5_A as a collection.db string: the 0x0b marker, length 32, then its ASCII hex digits. */
+const MD5_A_STRING =
+  "0b 20 30 63 63 31 37 35 62 39 63 30 66 31 62 36 61 38 33 31 63 33 39 39 65 32 36 39 37 37 32 36 36 31";
+
+/**
+ * Not one of the package's vectors: "Farm" holding an empty map entry (a 0x00 hash marker, which
+ * the reader drops with a null_hash warning) then MD5_A (53 bytes).
+ */
+export const FARM_NULL_HASH = `
+  bb 77 33 01  01 00 00 00
+  0b 04 46 61 72 6d
+  02 00 00 00
+  00
+  ${MD5_A_STRING}
+`;
+
+/**
+ * Not one of the package's vectors: "Farm" holding two empty map entries, then MD5_A twice (two
+ * null_hash warnings and one duplicate_hash).
+ */
+export const FARM_NULL_HASHES_AND_REPEAT = `
+  bb 77 33 01  01 00 00 00
+  0b 04 46 61 72 6d
+  04 00 00 00
+  00  00
+  ${MD5_A_STRING}
+  ${MD5_A_STRING}
+`;
 
 /**
  * @function metaFor
