@@ -3,10 +3,11 @@
  * @desc llms.txt follows the llmstxt.org shape, opens with the notes a reader needs first (no
  *       file hosting, pack keys, the haruhime pools account), is built from the registries
  *       (every guide and legal doc appears, docs by their .md copy), spells out the /packs query
- *       string and the index keys, and every link is absolute and on one line.
+ *       string and the index keys, ends with our Discord server under Elsewhere, and every link
+ *       is absolute and on one line.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -42,9 +43,17 @@ describe("buildLlmsTxt", () => {
     expect(LLMS_NOTES.join(" ")).not.toMatch(/archive/i);
   });
 
-  it("has the Pages, Guides, Data, API, and Legal sections in that order", () => {
+  it("has the Pages, Guides, Data, API, Legal, and Elsewhere sections in that order", () => {
     const headings = [...text.matchAll(/^## (.+)$/gm)].map((m) => m[1]);
-    expect(headings).toEqual(["Pages", "Guides", "Data", "API", "Legal"]);
+    expect(headings).toEqual(["Pages", "Guides", "Data", "API", "Legal", "Elsewhere"]);
+  });
+
+  it("ends with our Discord server under Elsewhere", () => {
+    expect(
+      text.endsWith(
+        "\n## Elsewhere\n\n- [Discord](https://discord.gg/bKy9kjMV4y): our public Discord server\n",
+      ),
+    ).toBe(true);
   });
 
   it("lists the main pages", () => {
@@ -95,10 +104,12 @@ describe("buildLlmsTxt", () => {
     expect(text).not.toMatch(/map usage|\/beatmaps\//i);
   });
 
-  it("uses absolute links on our own site only", () => {
-    const urls = [...text.matchAll(LINK)].map((m) => m[2] ?? "");
+  it("uses absolute links on our own site, except Discord under Elsewhere", () => {
+    const [ours = "", elsewhere = ""] = text.split("\n## Elsewhere\n");
+    const urls = [...ours.matchAll(LINK)].map((m) => m[2] ?? "");
     expect(urls.length).toBeGreaterThan(10);
     for (const url of urls) expect(new URL(url).origin).toBe(SITE.url);
+    expect([...elsewhere.matchAll(LINK)].map((m) => m[2])).toEqual([SITE.discordUrl]);
   });
 
   it("ends with exactly one newline", () => {

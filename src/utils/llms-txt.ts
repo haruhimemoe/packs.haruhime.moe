@@ -5,10 +5,11 @@
  *       from the page list and the guide, docs, and legal registries, so new docs appear on their
  *       own. Docs link their Markdown copy (/docs/<slug>.md), as llmstxt.org suggests. The public
  *       packs link spells out its query string, and Data covers the search index's keys (the read
- *       that needs no key), from the same constants the code uses.
+ *       that needs no key), from the same constants the code uses. Elsewhere, last, links our
+ *       Discord server.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { RULESETS } from "@haruhimemoe/pool";
@@ -39,7 +40,7 @@ export const LLMS_NOTES: readonly string[] = [
 
 /**
  * @function llmsSections
- * @returns {LlmsSection[]} Pages, Guides, Data, API, Legal (new arrays on every call)
+ * @returns {LlmsSection[]} Pages, Guides, Data, API, Legal, Elsewhere (new arrays on every call)
  */
 export const llmsSections = (): LlmsSection[] => [
   {
@@ -115,6 +116,10 @@ export const llmsSections = (): LlmsSection[] => [
       url: at(`/legal/${slug}`),
       description: LEGAL_DOCS[slug].description,
     })),
+  },
+  {
+    heading: "Elsewhere",
+    links: [{ title: "Discord", url: SITE.discordUrl, description: "our public Discord server" }],
   },
 ];
 

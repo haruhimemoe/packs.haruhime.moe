@@ -33,3 +33,4 @@
 - [@haruhimemoe/brand](https://github.com/haruhimemoe/brand): generates the logos, icons and link preview
 - [haruhime Claude Code plugin](https://github.com/haruhimemoe/claude-plugin): skills for osu! tools, including one for packs and its API
 - [haruhime.moe](https://github.com/haruhimemoe/haruhime.moe): the home page for haruhime's osu! tournament tools
+- [Discord](https://discord.gg/bKy9kjMV4y): our public Discord server
