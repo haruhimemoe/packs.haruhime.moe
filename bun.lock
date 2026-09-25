@@ -5,10 +5,10 @@
     "": {
       "name": "packs.haruhime.moe",
       "dependencies": {
-        "@haruhimemoe/hinai": "0.1.0",
-        "@haruhimemoe/osu": "0.1.0",
+        "@haruhimemoe/hinai": "0.2.0",
+        "@haruhimemoe/osu": "0.2.0",
         "@haruhimemoe/pool": "0.1.0",
-        "@haruhimemoe/ui": "0.1.0",
+        "@haruhimemoe/ui": "0.3.0",
         "@mdx-js/loader": "3.1.1",
         "@mdx-js/react": "3.1.1",
         "@next/mdx": "16.3.6",
@@ -29,7 +29,7 @@
       },
       "devDependencies": {
         "@biomejs/biome": "2.5.14",
-        "@haruhimemoe/brand": "0.1.0",
+        "@haruhimemoe/brand": "0.3.0",
         "@tailwindcss/postcss": "4.3.3",
         "@testing-library/dom": "10.4.2",
         "@testing-library/jest-dom": "7.0.1",
@@ -131,15 +131,15 @@
 
     "@exodus/bytes": ["@exodus/bytes@1.16.0", "", { "peerDependencies": { "@noble/hashes": "^1.8.0 || ^2.0.0" }, "optionalPeers": ["@noble/hashes"] }, "sha512-IcpW84uEn3N7ETtNZMlxKhfl6Pec8rUNGOTBtWbK1FKhJxIFAptZyVrvVRVBimAJxJCgc3PxepxkdWWG4DVzfA=="],
 
-    "@haruhimemoe/brand": ["@haruhimemoe/brand@0.1.0", "", { "dependencies": { "@resvg/resvg-js": "2.6.2", "opentype.js": "2.0.0" }, "bin": { "haruhime-brand": "dist/cli.js" } }, "sha512-sgQ9Kr0QOoF+3onQ/cPHUPH5+XnyRN5Qd+nAp72O8CT7etg7EdRXbI2RSUcm9C4vH4hnAifVG3phJdHlypBy5Q=="],
+    "@haruhimemoe/brand": ["@haruhimemoe/brand@0.3.0", "", { "dependencies": { "@resvg/resvg-js": "2.6.2", "opentype.js": "2.0.0" }, "bin": { "haruhime-brand": "dist/cli.js" } }, "sha512-zJiduBLsEnHrjx18z/+dqLZBBAqzlzQyeBC1JkNt7OzVRQX92kwws3ttu+qvFcjfJjROlVCaxUvX9iQxDMyOWg=="],
 
-    "@haruhimemoe/hinai": ["@haruhimemoe/hinai@0.1.0", "", { "dependencies": { "@haruhimemoe/osu": "^0.1.0" }, "peerDependencies": { "zod": "^4.0.16" } }, "sha512-4Q4WMqG493RE6n8gWPlFyZzqmAtfyHS+Tbs3Esu0n1JRvu8rF6lGHCJNOQsm3u70ouANGxiNU5Ir96kCubun9g=="],
+    "@haruhimemoe/hinai": ["@haruhimemoe/hinai@0.2.0", "", { "dependencies": { "@haruhimemoe/osu": "^0.2.0" }, "peerDependencies": { "zod": "^4.0.16" } }, "sha512-4N9kFqiMHZ6OgkCxO/+fcqZEYA0MzAMiQgvlsk1S3rWgwktWue4Zz97FUSoUSDFdZtQ/tMoeSLfCU71Pkt7kMw=="],
 
-    "@haruhimemoe/osu": ["@haruhimemoe/osu@0.1.0", "", { "peerDependencies": { "zod": "^4.0.16" } }, "sha512-SAprNNSYhvexQRVHFZkG1ELHrxWq28jaV+hsfRIOynTCOx63CQRFkokQoEhC8SZFwNC0B8sKJIY25DIgr5+vSA=="],
+    "@haruhimemoe/osu": ["@haruhimemoe/osu@0.2.0", "", { "peerDependencies": { "zod": "^4.0.16" } }, "sha512-m7H/a2msQRteu+L4oSmte3VvQRzu2PgncGBh2/dbtTcpzPNg7Qq8YzJir/UiWHHesF1ppfGgK5P4Mmxb2mWGZA=="],
 
     "@haruhimemoe/pool": ["@haruhimemoe/pool@0.1.0", "", { "peerDependencies": { "zod": "^4.0.16" } }, "sha512-iEjd8qA9eeuaBHBprxvTmRjAnnb/TpmK0RBmC33XN0Zh59aFLd5iRtKJqxxpsn3yUuuFuVRMSIhBv4W5FAUpuA=="],
 
-    "@haruhimemoe/ui": ["@haruhimemoe/ui@0.1.0", "", { "dependencies": { "tailwind-merge": "3.7.0" }, "peerDependencies": { "next": ">=16.0.0 <17", "react": ">=19.0.0", "react-dom": ">=19.0.0", "tailwindcss": ">=4.1.0 <5" } }, "sha512-dC+0TAtjnmGJVvxi8NAyASSiBwSB59MczhXVfAMPpDWWJoYHjOOEvcXIiBFkW2eVk9WECtyzeRFjXbX3+Pid1w=="],
+    "@haruhimemoe/ui": ["@haruhimemoe/ui@0.3.0", "", { "dependencies": { "tailwind-merge": "3.7.0" }, "peerDependencies": { "next": ">=16.0.0 <17", "react": ">=19.0.0", "react-dom": ">=19.0.0", "tailwindcss": ">=4.1.0 <5" } }, "sha512-kGx7YDuVOf7j5G1+OjUVrjfBGurs4alV9B61RQkqIPxwQh+j78CH0jjhemyY7/VZMBiORa+keGxdFfKiAaNhRw=="],
 
     "@img/colour": ["@img/colour@1.1.0", "", {}, "sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ=="],
 

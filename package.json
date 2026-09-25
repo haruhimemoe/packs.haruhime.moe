@@ -23,10 +23,10 @@
     "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && lefthook install || true"
   },
   "dependencies": {
-    "@haruhimemoe/hinai": "0.1.0",
-    "@haruhimemoe/osu": "0.1.0",
+    "@haruhimemoe/hinai": "0.2.0",
+    "@haruhimemoe/osu": "0.2.0",
     "@haruhimemoe/pool": "0.1.0",
-    "@haruhimemoe/ui": "0.1.0",
+    "@haruhimemoe/ui": "0.3.0",
     "@mdx-js/loader": "3.1.1",
     "@mdx-js/react": "3.1.1",
     "@next/mdx": "16.3.6",
@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.14",
-    "@haruhimemoe/brand": "0.1.0",
+    "@haruhimemoe/brand": "0.3.0",
     "@tailwindcss/postcss": "4.3.3",
     "@testing-library/dom": "10.4.2",
     "@testing-library/jest-dom": "7.0.1",
