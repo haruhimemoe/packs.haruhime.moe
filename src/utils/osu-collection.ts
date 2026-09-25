@@ -2,8 +2,8 @@
  * @file src/utils/osu-collection.ts
  * @desc Pure helpers for the "Add to osu! collection" card: the pack's difficulty MD5s from the
  *       map info the page already loaded (and the maps that can't go in a collection, with why),
- *       the default name for a new collection, and user text for the collection.db errors, each
- *       with the package's code.
+ *       the default name for a new collection, user text for the collection.db errors, each with
+ *       the package's code, and the osu!lazer zip's name.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
  * @modified Fri Sep 25, 2026
@@ -18,6 +18,7 @@ import { bucketsOf, slotTitle, sortSlots } from "@haruhimemoe/pool";
 import { DEFAULT_PACK_NAME } from "@/constants/pack";
 import type { MetaState } from "@/hooks/beatmapMetaState";
 import type { Pool } from "@/schemas/pack";
+import { MAX_FOLDER_NAME, sanitizeFileName } from "@/utils/pack-archive";
 
 /**
  * A map the card leaves out: the mirror and osu! don't know it, or its info has no checksum. One
@@ -131,3 +132,13 @@ export const collectionErrorText = (error: unknown): string => {
       return `packs can't read that file (${code}). ${FILE_HELP}`;
   }
 };
+
+/**
+ * @function lazerZipName
+ * @param packName {string} the pack's name
+ * @returns {string} "<name> collection.zip", safe on Windows and macOS, with every dot in the name
+ *          turned into a space: the zip's name becomes the extracted folder's, and osu!lazer
+ *          ignores a dropped folder with a dot in its name
+ */
+export const lazerZipName = (packName: string): string =>
+  `${sanitizeFileName(defaultCollectionName(packName).replace(/\./g, " "), MAX_FOLDER_NAME)} collection.zip`;

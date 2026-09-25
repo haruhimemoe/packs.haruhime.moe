@@ -1,20 +1,27 @@
 /**
  * @file tests/unit/lib/collections/collection-files.test.ts
  * @desc Reading a picked collection.db (a file over the limit refused before it loads, one
- *       exactly at it read, the reader's errors passed through with code and offset) and the
- *       osu!stable download (a byte-for-byte round trip).
+ *       exactly at it read, the reader's errors passed through with code and offset), the
+ *       osu!stable download (a byte-for-byte round trip), and the osu!lazer zip (collection.db and
+ *       an empty osu!.import.cfg at its root, the name as typed, a name UTF-8 can't encode refused).
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
  * @modified Fri Sep 25, 2026
  */
 
 import { CollectionDbError, readCollectionDb } from "@haruhimemoe/osu/collections";
+import { unzipSync } from "fflate";
 import { describe, expect, it, vi } from "vitest";
-import { readCollectionFile, stableCollectionFile } from "@/lib/collections/collection-files";
+import {
+  lazerCollectionZip,
+  readCollectionFile,
+  stableCollectionFile,
+} from "@/lib/collections/collection-files";
 import {
   bytesOf,
   hex,
   MD5_A,
+  MD5_ABC,
   MD5_EMPTY,
   TV1_EMPTY,
   TV1_TRAILING,
@@ -87,5 +94,31 @@ describe("stableCollectionFile", () => {
     const blob = stableCollectionFile(readCollectionDb(hex(vector)));
     expect(blob.type).toBe("application/octet-stream");
     expect(await bytesOf(blob)).toEqual(hex(vector));
+  });
+});
+
+describe("lazerCollectionZip", () => {
+  it("zips collection.db and an empty osu!.import.cfg at the root, with the name as typed", async () => {
+    const blob = lazerCollectionZip(" Farm ", [MD5_A, MD5_ABC]);
+    expect(blob.type).toBe("application/zip");
+    const files = unzipSync(await bytesOf(blob));
+    expect(Object.keys(files).sort()).toEqual(["collection.db", "osu!.import.cfg"]);
+    expect(files["osu!.import.cfg"]).toHaveLength(0);
+    expect(readCollectionDb(files["collection.db"] ?? new Uint8Array())).toMatchObject({
+      version: 20150203,
+      collections: [{ name: " Farm ", hashes: [MD5_A, MD5_ABC] }],
+      warnings: [],
+    });
+  });
+
+  it("refuses a name UTF-8 can't encode", () => {
+    let caught: unknown;
+    try {
+      lazerCollectionZip("\uD800", [MD5_A]);
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(CollectionDbError);
+    expect(caught).toMatchObject({ code: "invalid_name" });
   });
 });

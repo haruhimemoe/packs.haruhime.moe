@@ -3,8 +3,8 @@
  * @desc The card's pure helpers: hashes from the page's map info (waiting, failures counted by
  *       map, pool order by the pack's own buckets, a map in two slots, the maps left out and why,
  *       one entry per map), the default name for a new collection (trim, control characters, lone
- *       surrogates, the 127-byte cut, always a name addToCollection takes), and the error text
- *       with the package's codes.
+ *       surrogates, the 127-byte cut, always a name addToCollection takes), the error text with
+ *       the package's codes, and the osu!lazer zip's name (no dot but the one before zip).
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
  * @modified Fri Sep 25, 2026
@@ -19,7 +19,12 @@ import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import type { MetaState } from "@/hooks/beatmapMetaState";
 import type { Pool } from "@/schemas/pack";
-import { collectionErrorText, collectionMaps, defaultCollectionName } from "@/utils/osu-collection";
+import {
+  collectionErrorText,
+  collectionMaps,
+  defaultCollectionName,
+  lazerZipName,
+} from "@/utils/osu-collection";
 import { foundWith, MD5_A, MD5_ABC, MD5_DIGEST, metaFrom } from "../../helpers/collections";
 
 // Stored out of pool order on purpose: TB first, NM2 before NM1.
@@ -219,5 +224,32 @@ describe("collectionErrorText", () => {
     [new Error("disk"), "Couldn't read that file. Try again."],
   ])("explains %s", (input, text) => {
     expect(collectionErrorText(input)).toBe(text);
+  });
+});
+
+describe("lazerZipName", () => {
+  it.each([
+    ["SPC Quals", "SPC Quals collection.zip"],
+    ["v1.2 Cup: Finals.", "v1 2 Cup_ Finals collection.zip"],
+    ["", "Untitled pack collection.zip"],
+    ["...", "_ collection.zip"],
+    ["a".repeat(60), `${"a".repeat(48)} collection.zip`],
+  ])("names the zip for %j %j, with no dot but the one before zip", (packName, zipName) => {
+    const name = lazerZipName(packName);
+    expect(name).toBe(zipName);
+    expect(name.slice(0, -".zip".length)).not.toContain(".");
+  });
+
+  it("never puts a dot or a character Windows refuses before .zip", () => {
+    const unit = fc.oneof(
+      fc.integer({ min: 0, max: 0xffff }).map((code) => String.fromCharCode(code)),
+      fc.constantFrom(".", " ", "\t", ":", "/", "\\", "練", "😀"),
+    );
+    fc.assert(
+      fc.property(fc.string({ unit, maxLength: 120 }), (packName) => {
+        const stem = lazerZipName(packName).slice(0, -".zip".length);
+        expect(stem).toMatch(/^[^.<>:"/\\|?*\p{Cc}]+ collection$/u);
+      }),
+    );
   });
 });
