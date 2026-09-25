@@ -7,7 +7,11 @@
  *       comparison hashes both sides with SHA-256 and compares the digests with timingSafeEqual,
  *       so the time taken says nothing about the secret's length or content. A missing or wrong
  *       pools token also counts against the caller's IP (RATE_LIMITS.serviceAuthFail): past the
- *       limit the answer is 429. Every pools refusal is no-store.
+ *       limit the answer is 429 instead of 401. The token is compared before anything is counted,
+ *       so the right one always gets through, even from an IP past the limit (pools shares its
+ *       outbound IPs with other Vercel projects). The counter tells a failing caller to back off;
+ *       it isn't guessing protection. The token's randomness is (.env.example: openssl rand).
+ *       Every pools refusal is no-store.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -72,9 +76,9 @@ export const refuseWithoutCronSecret = (
 /**
  * @function refuseWithoutPoolsToken
  * @param request {Request} a request to /api/service/pools/*
- * @returns {Promise<Response | null>} null when it carries POOLS_SERVICE_TOKEN; otherwise a
- *          no-store 503 (not set up), 401 (missing or wrong, counted against its IP) or 429 (that
- *          IP failed too often this minute)
+ * @returns {Promise<Response | null>} null when it carries POOLS_SERVICE_TOKEN, however often its
+ *          IP failed; otherwise a no-store 503 (not set up), 401 (missing or wrong, counted
+ *          against its IP) or 429 (that IP failed too often this minute)
  */
 export const refuseWithoutPoolsToken = async (request: Request): Promise<Response | null> => {
   const token = configured(getPoolsServiceToken, "pools");

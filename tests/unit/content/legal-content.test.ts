@@ -329,6 +329,13 @@ describe("API copy", () => {
     );
   });
 
+  it("never says that counter stops token guessing: the right token always gets through", () => {
+    // src/lib/machine-auth.ts compares the token before it counts, so the counter only turns a
+    // 401 into a 429. The token's randomness is what stops guessing.
+    expect(read("privacy")).not.toMatch(/token guessing/i);
+    expect(read("privacy")).toContain("an address that keeps failing is told to slow down");
+  });
+
   it("the per-IP counters' windows match the two-minute lifetime the pages state", () => {
     // A counter expires one minute after its window ends (src/lib/rate-limit.ts,
     // src/lib/osu/attributes.ts), so a 60-second window is gone within about two minutes.
