@@ -1,6 +1,6 @@
 /**
  * @file src/constants/pools.ts
- * @desc pools.haruhime.moe publishes past tournament pools as packs: the haruhime pools account
+ * @desc pools.haruhime.moe publishes tournament pools as packs: the haruhime pools account
  *       that owns them. A users record with `system: true` and no linked osu! account, so nobody
  *       can sign in as it (src/lib/auth.ts refuses its sessions too). Its id is fixed, so two
  *       first syncs at once make one record, and queries can name it without a lookup. Also a
@@ -9,7 +9,7 @@
  *       down the rating pairs it tried.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { SITE } from "@/constants/site";
@@ -25,7 +25,7 @@ export const POOLS_ACCOUNT = Object.freeze({
   avatarUrl: `${SITE.url}/brand/packs-icon.svg`,
 });
 
-/** A pools pool id, as the service route takes it (`otdb-58`, `otdb-58-2`). */
+/** A pools pool id, as the service route takes it (`otdb-58`, `otdb-58-2`, `host-k3j9x0ab`). */
 export const POOLS_REF_PATTERN = /^[a-z0-9-]{1,64}$/;
 
 /** `origin.kind` on a pack pools publishes. */

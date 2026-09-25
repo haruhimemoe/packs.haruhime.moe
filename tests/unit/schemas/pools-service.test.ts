@@ -1,10 +1,11 @@
 /**
  * @file tests/unit/schemas/pools-service.test.ts
- * @desc The pools service's ref (a pools pool id) and PUT body: exactly a pack input, unknown keys
- *       refused, visibility required, and every pack input rule still applied.
+ * @desc The pools service's ref (a pools pool id from any source: otdb, a tournament's hosts or a
+ *       community submission) and PUT body: exactly a pack input, unknown keys refused,
+ *       visibility required, and every pack input rule still applied.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -18,9 +19,12 @@ const BODY = {
 };
 
 describe("poolsRefSchema", () => {
-  it.each(["otdb-58", "otdb-58-2", "a", "a".repeat(64)])("takes %j", (ref) => {
-    expect(poolsRefSchema.safeParse(ref).success).toBe(true);
-  });
+  it.each(["otdb-58", "otdb-58-2", "host-k3j9x0ab", "community-0a1b2c3d", "a", "a".repeat(64)])(
+    "takes %j",
+    (ref) => {
+      expect(poolsRefSchema.safeParse(ref).success).toBe(true);
+    },
+  );
 
   it.each(["", "OTDB-58", "otdb_58", "otdb 58", "a".repeat(65), "../x"])("refuses %j", (ref) => {
     expect(poolsRefSchema.safeParse(ref).success).toBe(false);
