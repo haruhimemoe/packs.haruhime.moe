@@ -2,11 +2,11 @@
  * @file tests/components/pack/SavedPackView.test.tsx
  * @desc /p/[slug] view: Download card first (recorded magnet links, then the mirror), pool,
  *       owner-only controls, admins removing a magnet link and pinning a public pack to the top
- *       of /packs, short link + key sharing, Copy ID per map, and https links in the description
- *       (same tab).
+ *       of /packs, short link + key sharing, Copy ID per map, https links in the description
+ *       (same tab), and the "Add to osu! collection" card between the maps and Share.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { encodePackKey } from "@haruhimemoe/pool";
@@ -432,5 +432,14 @@ describe("SavedPackView", () => {
     // The default handler rates nothing and owes nothing: the TB (freemod) slot's pairs failed.
     render(<SavedPackView pack={PACK} isOwner={false} />);
     expect(await screen.findByTitle(MODDED_FAILED_NOTE)).toHaveTextContent("5.97");
+  });
+
+  it("offers the pack to an osu! collection, under the maps and before Share", async () => {
+    render(<SavedPackView pack={PACK} isOwner={false} />);
+    const map = await screen.findByRole("link", { name: "xi - FREEDOM DiVE" });
+    const card = screen.getByRole("region", { name: "Add to osu! collection" });
+    expect(precedes(map, card)).toBe(true);
+    expect(precedes(card, screen.getByRole("region", { name: "Share" }))).toBe(true);
+    expect(within(card).getByLabelText("Your collection.db")).toBeInTheDocument();
   });
 });

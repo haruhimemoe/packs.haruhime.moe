@@ -1,10 +1,11 @@
 /**
  * @file tests/components/pack/PackKeyView.test.tsx
  * @desc /k view: decodes the fragment, loads metadata, Download card before the pool, reacts to
- *       hash changes, saves a copy, retries map info from the Download card, and Copy ID per map.
+ *       hash changes, saves a copy, retries map info from the Download card, Copy ID per map, and
+ *       the "Add to osu! collection" card between the maps and Save.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import "fake-indexeddb/auto";
@@ -15,6 +16,7 @@ import { HttpResponse, http } from "msw";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PackKeyView } from "@/components/pack/PackKeyView";
 import { clearDraft, loadDraft } from "@/lib/storage/drafts";
+import { collectionFile, TV1_EMPTY } from "../../helpers/collections";
 import { HINAI_BATCH_URL, hinaiBatchHandler, setupHinaiServer } from "../../helpers/hinai-server";
 
 const server = setupHinaiServer();
@@ -142,5 +144,20 @@ describe("PackKeyView", () => {
     await user.click(await screen.findByRole("button", { name: "Edit a copy" }));
     expect(await loadDraft()).toEqual(PACK);
     expect(push).toHaveBeenCalledWith("/new");
+  });
+
+  it("offers the pack to an osu! collection, under the maps and before Save", async () => {
+    const user = userEvent.setup();
+    openHash(`#${KEY}`);
+    render(<PackKeyView />);
+    const map = await screen.findByRole("link", { name: "xi - FREEDOM DiVE" });
+    const card = screen.getByRole("region", { name: "Add to osu! collection" });
+    const save = screen.getByRole("region", { name: "Save" });
+    expect(map.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0);
+    expect(card.compareDocumentPosition(save) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0);
+    await user.upload(within(card).getByLabelText("Your collection.db"), collectionFile(TV1_EMPTY));
+    expect(
+      await within(card).findByText('Makes a new collection "SPC Finals" with 2 maps.'),
+    ).toBeInTheDocument();
   });
 });

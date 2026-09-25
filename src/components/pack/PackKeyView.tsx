@@ -2,9 +2,10 @@
  * @file src/components/pack/PackKeyView.tsx
  * @desc /k: decode the key in location.hash, show the Download card at the top, then the pool
  *       with live metadata and star ratings with mods; offer "Edit a copy" and saving to an account.
+ *       The "Add to osu! collection" card sits between the maps and Save.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 "use client";
@@ -19,6 +20,7 @@ import {
 import { Button, Card, PageHeader } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useMemo, useState } from "react";
+import { CollectionPanel } from "@/components/collection/CollectionPanel";
 import { ExportPanel } from "@/components/export/ExportPanel";
 import { KeyPasteForm } from "@/components/pack/KeyPasteForm";
 import { PackKeyField } from "@/components/pack/PackKeyField";
@@ -124,6 +126,7 @@ export function PackKeyView() {
           ratings={stars.ratings}
         />
       </section>
+      <CollectionPanel pack={state.pack} getMeta={meta.get} />
       <Card title="Save">
         <SavePackButton
           pack={state.pack}

@@ -1,10 +1,11 @@
 /**
  * @file tests/components/pack/PackBuilder.test.tsx
  * @desc End-to-end builder flow against the recorded mirror fixture and fake IndexedDB, and a
- *       name holding a lone surrogate (which once crashed the page), Copy ID in the pool.
+ *       name holding a lone surrogate (which once crashed the page), Copy ID in the pool, and the
+ *       "Add to osu! collection" card between Download and Share.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import "fake-indexeddb/auto";
@@ -16,6 +17,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PackBuilder } from "@/components/pack/PackBuilder";
 import { MAX_SLOTS } from "@/constants/pack";
 import { clearDraft, loadDraft, saveDraft } from "@/lib/storage/drafts";
+import { collectionFile, TV1_EMPTY } from "../../helpers/collections";
 import { HINAI_BATCH_URL, hinaiBatchHandler, setupHinaiServer } from "../../helpers/hinai-server";
 
 const server = setupHinaiServer();
@@ -218,5 +220,21 @@ describe("PackBuilder", () => {
     const key = (screen.getByLabelText("Pack key") as HTMLInputElement).value;
     expect(key).toBe("pk1.AQRh77-9AQAB4_YHVE4");
     expect(decodePackKey(key).name).toBe("a\uFFFD");
+  });
+
+  it("offers the draft to an osu! collection, after Download and before Share", async () => {
+    const user = userEvent.setup();
+    await saveDraft({ name: "SPC Quals", slots: [{ mod: "NM", index: 1, beatmapId: 129891 }] });
+    render(<PackBuilder />);
+    await screen.findByRole("link", { name: "xi - FREEDOM DiVE" });
+    const card = screen.getByRole("region", { name: "Add to osu! collection" });
+    const download = screen.getByRole("region", { name: "Download" });
+    const share = screen.getByRole("region", { name: "Share" });
+    expect(download.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0);
+    expect(card.compareDocumentPosition(share) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0);
+    await user.upload(within(card).getByLabelText("Your collection.db"), collectionFile(TV1_EMPTY));
+    expect(
+      await within(card).findByText('Makes a new collection "SPC Quals" with 1 map.'),
+    ).toBeInTheDocument();
   });
 });

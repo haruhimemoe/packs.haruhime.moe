@@ -1,10 +1,11 @@
 /**
  * @file src/components/pack/PackBuilder.tsx
  * @desc The /new experience: name, add one / paste many, live pool, pack key. Anonymous; the draft
- *       autosaves to IndexedDB. Offers saving to an account.
+ *       autosaves to IndexedDB. Offers saving to an account and adding the pool to an osu!
+ *       collection.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 "use client";
@@ -12,6 +13,7 @@
 import { encodePackKey } from "@haruhimemoe/pool";
 import { Card } from "@haruhimemoe/ui";
 import { useMemo } from "react";
+import { CollectionPanel } from "@/components/collection/CollectionPanel";
 import { ExportPanel } from "@/components/export/ExportPanel";
 import { PackEditor } from "@/components/pack/PackEditor";
 import { PackKeyField } from "@/components/pack/PackKeyField";
@@ -49,6 +51,8 @@ export function PackBuilder() {
       {packKey ? (
         <ExportPanel pack={pack} packKey={packKey} getMeta={meta.get} onRetryMeta={meta.retry} />
       ) : null}
+
+      {packKey ? <CollectionPanel pack={pack} getMeta={meta.get} /> : null}
 
       {packKey ? (
         <Card title="Share">

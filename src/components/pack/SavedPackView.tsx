@@ -6,9 +6,10 @@
  *       (same tab, rel nofollow ugc noopener). The owner also sees its visibility, an Edit link,
  *       and can add or remove magnet links; an admin can remove a magnet link from a public or
  *       unlisted pack, and pin a public pack that isn't hidden to the top of /packs (or unpin it).
+ *       The "Add to osu! collection" card sits between the maps and Share.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 "use client";
@@ -16,6 +17,7 @@
 import { encodePackKey } from "@haruhimemoe/pool";
 import { ButtonLink, Card, PageHeader } from "@haruhimemoe/ui";
 import { Fragment, type ReactNode, useId, useMemo, useState } from "react";
+import { CollectionPanel } from "@/components/collection/CollectionPanel";
 import { ExportPanel } from "@/components/export/ExportPanel";
 import type { MagnetTarget } from "@/components/export/TorrentExport";
 import { HiddenNotice } from "@/components/pack/HiddenNotice";
@@ -163,6 +165,7 @@ export function SavedPackView({
           ratings={stars.ratings}
         />
       </section>
+      <CollectionPanel pack={ref} getMeta={meta.get} />
       <Card title="Share">
         <div className="flex flex-col gap-5">
           {isOwner && pack.visibility === "private" ? (
