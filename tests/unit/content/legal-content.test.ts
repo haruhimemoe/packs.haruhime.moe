@@ -3,10 +3,12 @@
  * @desc Guards legal copy: every registered doc has an MDX file, no duplicate h1, the clauses
  *       that cover us stay in the text, every call our server makes to osu! and the mirror (pack
  *       stats included) is disclosed, and no page describes the Google Drive or OneDrive exports
- *       that were never built (a magnet link is the only export a pack records).
+ *       that were never built (a magnet link is the only export a pack records). The haruhime
+ *       pools account's packs are tournament pools from pools.haruhime.moe, which gets them from
+ *       hosts, community submissions and sources like otdb, not from otdb alone.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { existsSync, readFileSync } from "node:fs";
@@ -231,11 +233,16 @@ describe("copyright", () => {
 
   it.each([
     "## Sources",
-    "Packs owned by haruhime pools are past osu! tournament mappools",
-    "[pools.haruhime.moe](https://pools.haruhime.moe)",
-    "[otdb](https://otdb.sheppsu.me) by Sheppsu",
+    "Packs owned by haruhime pools are osu! tournament mappools published from [pools.haruhime.moe](https://pools.haruhime.moe), which credits each pool's sources",
+    "the tournament's hosts",
+    "a community submission",
+    "such as [otdb](https://otdb.sheppsu.me) by Sheppsu",
   ])("credits where tournament pools come from: %j", (phrase) => {
     expect(read("copyright")).toContain(phrase);
+  });
+
+  it("doesn't call every pools pack a past pool", () => {
+    expect(read("copyright")).not.toMatch(/past (osu! )?tournament/i);
   });
 
   it("no longer describes archive packs or links the retired guide", () => {
@@ -243,7 +250,7 @@ describe("copyright", () => {
   });
 
   it("dates the Sources section", () => {
-    expect(LEGAL_DOCS.copyright.lastUpdated).toBe("2026-09-24");
+    expect(LEGAL_DOCS.copyright.lastUpdated).toBe("2026-09-25");
     expect(LEGAL_DOCS["your-privacy-rights"].lastUpdated).toBe("2026-09-24");
   });
 });
@@ -253,7 +260,10 @@ describe("public packs and moderation copy", () => {
     ["terms", "We may hide or delete public or unlisted packs that break these terms"],
     ["terms", "We never review private packs"],
     ["terms", "we may pin public packs to the top of the public packs page or unpin them"],
-    ["terms", "past tournament pools published from pools.haruhime.moe, which can have mistakes"],
+    [
+      "terms",
+      "including tournament pools published from pools.haruhime.moe, which can have mistakes",
+    ],
     ["privacy", "the pack name, description,"],
     ["privacy", "listed on the public packs page with your osu! username and avatar"],
     ["copyright", "a pack name and description"],

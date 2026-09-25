@@ -34,9 +34,15 @@ describe("buildLlmsTxt", () => {
   it.each([
     "packs doesn't host beatmap files.",
     `opens at ${SITE.url}/k# followed by the key, with no account.`,
-    "Packs owned by haruhime pools are past osu! tournament mappools published from pools.haruhime.moe",
+    "Packs owned by haruhime pools are osu! tournament mappools published from pools.haruhime.moe",
+    "from tournament hosts, community submissions and other sources",
+    "each pool's page there credits its sources.",
   ])("notes %j", (phrase) => {
     expect(text).toContain(phrase);
+  });
+
+  it("doesn't call every pools pack a past pool", () => {
+    expect(LLMS_NOTES.join(" ")).not.toMatch(/past (osu! )?tournament/i);
   });
 
   it("has no note about archived pools", () => {

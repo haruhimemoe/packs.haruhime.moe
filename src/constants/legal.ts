@@ -4,7 +4,7 @@
  *       content/legal/<slug>.mdx. Bump lastUpdated in the same commit as any wording change.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 export const LEGAL_SLUGS = [
@@ -24,7 +24,7 @@ export const LEGAL_DOCS: Record<
   terms: {
     title: "Terms of Service",
     description: "The rules for using packs.haruhime.moe.",
-    lastUpdated: "2026-09-24",
+    lastUpdated: "2026-09-25",
   },
   privacy: {
     title: "Privacy Policy",
@@ -41,7 +41,7 @@ export const LEGAL_DOCS: Record<
     title: "Copyright & Takedown",
     description:
       "How to report a saved pack, where to send notices about beatmap files, and where tournament pools come from.",
-    lastUpdated: "2026-09-24",
+    lastUpdated: "2026-09-25",
   },
   disclaimers: {
     title: "Disclaimers",
