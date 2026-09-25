@@ -1,10 +1,10 @@
 /**
  * @file tests/components/layout/Footer.test.tsx
  * @desc Footer: legal links, source link, trademark notice, no-hosting statement, and the
- *       haruhime.moe wordmark and GitHub org links.
+ *       haruhime.moe wordmark, Discord icon and GitHub org links.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
@@ -64,6 +64,32 @@ describe("Footer", () => {
     const svg = link.querySelector("svg");
     expect(svg).toHaveAttribute("aria-hidden", "true");
     expect(svg).toHaveAttribute("viewBox", "0 0 16 16");
+  });
+
+  it("links our Discord server with a decorative Discord icon before the GitHub mark", () => {
+    render(<Footer />);
+    const link = screen.getByRole("link", { name: "Discord" });
+    expect(link).toHaveAttribute("href", "https://discord.gg/bKy9kjMV4y");
+    expect(link).toHaveAttribute("href", SITE.discordUrl);
+    // Same tab, like every other footer link.
+    expect(link).not.toHaveAttribute("target");
+    // An icon only: no visible text, and the link's label names it.
+    expect(link.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    expect(link).toHaveTextContent("");
+    // Beside the GitHub mark in the bottom row, Discord first.
+    const github = screen.getByRole("link", { name: "haruhimemoe on GitHub" });
+    expect(link.parentElement).toBe(github.parentElement);
+    expect(link.nextElementSibling).toBe(github);
+  });
+
+  it("keeps Discord out of the link columns", () => {
+    render(<Footer />);
+    expect(screen.getAllByRole("link", { name: "Discord" })).toHaveLength(1);
+    const about = screen.getByRole("navigation", { name: "About" });
+    const labels = within(about)
+      .getAllByRole("link")
+      .map((l) => l.textContent);
+    expect(labels).toEqual(["Brand", "API", "Source on GitHub", SITE.contactEmail]);
   });
 
   it("keeps one line of fine print with the mirror note and the trademark notice", () => {

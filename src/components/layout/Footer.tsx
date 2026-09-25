@@ -3,10 +3,10 @@
  * @desc Site footer: the library SiteFooter with the Packs / About / Legal link columns (About
  *       links the source on GitHub), clear local data, one line of fine print (the only place
  *       outside the legal pages that says we never store files), and the row linking the
- *       parent brand (haruhime.moe wordmark) and the haruhimemoe GitHub org.
+ *       parent brand (haruhime.moe wordmark), our Discord server and the haruhimemoe GitHub org.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { SiteFooter, type SiteFooterColumn } from "@haruhimemoe/ui";
@@ -52,6 +52,7 @@ export function Footer() {
         </>
       }
       parentHref={SITE.parentUrl}
+      discordHref={SITE.discordUrl}
       githubHref={SITE.githubOrg}
     />
   );

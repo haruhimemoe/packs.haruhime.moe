@@ -1,9 +1,9 @@
 /**
  * @file src/constants/site.ts
- * @desc Site identity, the source repo, the parent brand and GitHub org, navigation, the ppy trademark notice, and the User-Agent our server sends.
+ * @desc Site identity, the source repo, our Discord server, the parent brand and GitHub org, navigation, the ppy trademark notice, and the User-Agent our server sends.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 export const SITE = {
@@ -15,6 +15,8 @@ export const SITE = {
   contactEmail: "contact@haruhime.moe",
   /** Public source repository, linked from the footer. */
   repoUrl: "https://github.com/haruhimemoe/packs.haruhime.moe",
+  /** Our public Discord server, linked from the footer's Discord icon. */
+  discordUrl: "https://discord.gg/bKy9kjMV4y",
   /** The parent brand, linked from the footer wordmark. */
   parentUrl: "https://www.haruhime.moe",
   /** The GitHub organization, linked from the footer's GitHub mark. */
