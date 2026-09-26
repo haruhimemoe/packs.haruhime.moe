@@ -1,14 +1,15 @@
 /**
  * @file tests/components/collection/CollectionPanel.test.tsx
  * @desc The "Add to osu! collection" card: its link to the guide, waiting for map info, pointing
- *       at the Download card's retry, the maps it leaves out and why, nothing to add, a whole
- *       osu!stable flow down to the downloaded bytes with no request, beacon or storage
- *       (IndexedDB included) on the way, the pool changing under a loaded file, and the osu!lazer
- *       side: hidden until it's picked, the zip's name and files with none of those either, the
- *       name used exactly as typed (outer spaces warned about, with the warning read out as the
- *       field's description, empty refused, a name UTF-8 can't encode marked on the field as it's
- *       typed, with its code), a very long name clipped in the preview, a failed save, waiting for
- *       map info, and each side keeping its state when you switch.
+ *       at the Download card's retry, the maps it leaves out and why, nothing to add (with the
+ *       choice and both sides hidden), a whole osu!stable flow down to the downloaded bytes with
+ *       no request, beacon or storage (IndexedDB included) on the way, the pool changing under a
+ *       loaded file, and the osu!lazer side: hidden until it's picked, the zip's name and files
+ *       with none of those either, the name used exactly as typed (outer spaces warned about,
+ *       with the warning read out as the field's description, empty refused, a name UTF-8 can't
+ *       encode marked on the field as it's typed, with its code), a very long name clipped in the
+ *       preview, a failed save, waiting for map info, and each side keeping its state when you
+ *       switch.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
  * @modified Sat Sep 26, 2026
@@ -131,21 +132,32 @@ describe("CollectionPanel", () => {
     ).toBeInTheDocument();
   });
 
-  it("says when there's nothing to add", async () => {
-    const user = userEvent.setup();
+  it("says when there's nothing to add, and shows nothing to do", () => {
     const pack: Pool = { name: "Gone", slots: [{ mod: "NM", index: 1, beatmapId: 104 }] };
-    render(<CollectionPanel pack={pack} getMeta={metaFrom(READY)} download={vi.fn()} />);
+    const { rerender } = render(
+      <CollectionPanel pack={pack} getMeta={metaFrom(READY)} download={vi.fn()} />,
+    );
     expect(
       within(card()).getByText(
         "None of these maps can go in a collection, so there's nothing to add.",
       ),
     ).toBeInTheDocument();
-    await user.upload(
-      within(card()).getByLabelText("Your collection.db"),
-      collectionFile(TV1_EMPTY),
-    );
-    expect(await within(card()).findByLabelText("Collection")).toBeInTheDocument();
-    expect(within(card()).getByRole("button", { name: "Download collection.db" })).toBeDisabled();
+    expect(
+      within(card()).getByText("NM1 (beatmap 104): not found on the mirror or osu!"),
+    ).toBeInTheDocument();
+    expect(within(card()).queryByRole("group")).not.toBeInTheDocument();
+    expect(within(card()).queryByRole("radio")).not.toBeInTheDocument();
+    expect(within(card()).queryByRole("button")).not.toBeInTheDocument();
+    expect(within(card()).getByLabelText("Your collection.db")).not.toBeVisible();
+
+    const withMap: Pool = {
+      ...pack,
+      slots: [...pack.slots, { mod: "NM", index: 2, beatmapId: 101 }],
+    };
+    rerender(<CollectionPanel pack={withMap} getMeta={metaFrom(READY)} download={vi.fn()} />);
+    expect(within(card()).queryByText(/nothing to add/)).not.toBeInTheDocument();
+    expect(within(card()).getByRole("radio", { name: /osu!stable/ })).toBeChecked();
+    expect(within(card()).getByLabelText("Your collection.db")).toBeVisible();
   });
 
   it("adds the pack to a collection and downloads the whole file, with no request or storage", async () => {
