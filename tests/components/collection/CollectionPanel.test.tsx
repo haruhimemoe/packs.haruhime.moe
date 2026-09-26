@@ -5,10 +5,10 @@
  *       osu!stable flow down to the downloaded bytes with no request, beacon or storage
  *       (IndexedDB included) on the way, the pool changing under a loaded file, and the osu!lazer
  *       side: hidden until it's picked, the zip's name and files with none of those either, the
- *       name used exactly as typed
- *       (outer spaces warned about, with the warning read out as the field's description, empty
- *       refused, a name UTF-8 can't encode shown with its code), a failed save, waiting for map
- *       info, and each side keeping its state when you switch.
+ *       name used exactly as typed (outer spaces warned about, with the warning read out as the
+ *       field's description, empty refused, a name UTF-8 can't encode marked on the field as it's
+ *       typed, with its code), a very long name clipped in the preview, a failed save, waiting for
+ *       map info, and each side keeping its state when you switch.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
  * @modified Sat Sep 26, 2026
@@ -22,6 +22,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { CollectionPanel } from "@/components/collection/CollectionPanel";
 import type { MetaState } from "@/hooks/beatmapMetaState";
 import type { Pool } from "@/schemas/pack";
+import { MAX_LABEL_LENGTH } from "@/utils/osu-collection";
 import {
   collectionFile,
   downloaded,
@@ -236,7 +237,7 @@ describe("CollectionPanel for osu!lazer", () => {
     ).toBeInTheDocument();
     expect(
       within(card()).getByText(
-        "Untick Beatmaps, Scores and Skins, leave Collections ticked, and press Import.",
+        'Untick Beatmaps, Scores and Skins, leave Collections ticked, and press "Import content from previous version".',
       ),
     ).toBeInTheDocument();
     expect(
@@ -291,19 +292,46 @@ describe("CollectionPanel for osu!lazer", () => {
     );
   });
 
-  it("shows the code for a name UTF-8 can't encode, and downloads nothing", async () => {
+  it("marks a name UTF-8 can't encode as it's typed, with its code, and downloads nothing", async () => {
     const user = userEvent.setup();
     const download = vi.fn();
     render(<CollectionPanel pack={PACK} getMeta={metaFrom(READY)} download={download} />);
     await toLazer(user);
-    fireEvent.change(within(card()).getByLabelText("Collection name in osu!lazer"), {
-      target: { value: "Farm \uD800" },
-    });
-    await user.click(within(card()).getByRole("button", { name: "Download zip for osu!lazer" }));
-    expect(download).not.toHaveBeenCalled();
-    expect(within(card()).getByRole("alert")).toHaveTextContent(
-      "That name has a broken character, like half of an emoji (invalid_name).",
+    const name = within(card()).getByLabelText("Collection name in osu!lazer");
+    const button = within(card()).getByRole("button", { name: "Download zip for osu!lazer" });
+    fireEvent.change(name, { target: { value: "Farm \uD800" } });
+    expect(name).toHaveAttribute("aria-invalid", "true");
+    expect(name).toHaveAccessibleDescription(
+      /That name has a broken character, like half of an emoji \(invalid_name\)\.$/,
     );
+    expect(button).toBeDisabled();
+    expect(within(card()).queryByText(/^Adds /)).not.toBeInTheDocument();
+    await user.click(button);
+    expect(download).not.toHaveBeenCalled();
+
+    // A whole emoji is fine.
+    fireEvent.change(name, { target: { value: "Farm 🎵" } });
+    expect(name).not.toHaveAttribute("aria-invalid");
+    expect(within(card()).queryByRole("alert")).not.toBeInTheDocument();
+    await user.click(button);
+    const files = unzipSync((await downloaded(download)).bytes);
+    expect(readCollectionDb(files["collection.db"] ?? new Uint8Array()).collections[0]?.name).toBe(
+      "Farm 🎵",
+    );
+  });
+
+  it("clips a very long name in the preview", async () => {
+    const user = userEvent.setup();
+    render(<CollectionPanel pack={PACK} getMeta={metaFrom(READY)} download={vi.fn()} />);
+    await toLazer(user);
+    const long = "L".repeat(MAX_LABEL_LENGTH + 20);
+    fireEvent.change(within(card()).getByLabelText("Collection name in osu!lazer"), {
+      target: { value: long },
+    });
+    const preview = within(card()).getByText(
+      `Adds 2 maps to "${"L".repeat(MAX_LABEL_LENGTH)}…". Maps already in it are skipped.`,
+    );
+    expect(preview).toHaveClass("wrap-anywhere");
   });
 
   it("says when the zip can't be saved, and a second try clears it", async () => {

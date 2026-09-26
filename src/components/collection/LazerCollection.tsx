@@ -4,11 +4,13 @@
  *       (used exactly as typed; empty refused, outer spaces warned about in a note the field
  *       points at with aria-describedby), then a zip holding a collection.db with just this
  *       pack's maps and an empty osu!.import.cfg, for the setup wizard's import from a previous
- *       osu! install, with the steps. Desktop only. A name the zip can't hold, or any other
- *       failure to build it, shows the package's code.
+ *       osu! install, with the steps. Desktop only. A name the zip can't hold (a lone surrogate)
+ *       is the field's own error as it's typed, with the package's code; any failure to build the
+ *       zip shows its code in a separate alert. Long names wrap anywhere, and the preview clips
+ *       them like the osu!stable side.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 "use client";
@@ -17,7 +19,7 @@ import { CollectionDbError } from "@haruhimemoe/osu/collections";
 import { Button, Notice, TextInput } from "@haruhimemoe/ui";
 import { useId, useState } from "react";
 import { lazerCollectionZip } from "@/lib/collections/collection-files";
-import { defaultCollectionName, lazerZipName } from "@/utils/osu-collection";
+import { collectionLabel, defaultCollectionName, lazerZipName } from "@/utils/osu-collection";
 
 export type LazerCollectionProps = {
   /** The pack's name, for the default collection name and the zip's name. */
@@ -31,13 +33,14 @@ export type LazerCollectionProps = {
 const countMaps = (n: number): string => `${n} ${n === 1 ? "map" : "maps"}`;
 
 // lazer takes a tab or a line break in a name, so the only name the zip refuses is one UTF-8
-// can't encode: a lone surrogate, usually half of an emoji. Any other code is about building the
-// zip, never a file the player picked (that's the osu!stable side), so it gets its own sentence.
+// can't encode: a lone surrogate, usually half of an emoji. The field checks for that as the
+// player types, with the package's code.
+const BROKEN_NAME = "That name has a broken character, like half of an emoji (invalid_name).";
+
+// Any code from here on is about building the zip, never the name or a file the player picked
+// (that's the osu!stable side), so it gets its own sentence.
 const zipErrorText = (error: unknown): string => {
   if (!(error instanceof CollectionDbError)) return "Couldn't save the zip. Try again.";
-  if (error.code === "invalid_name") {
-    return `That name has a broken character, like half of an emoji (${error.code}).`;
-  }
   return `Couldn't build the zip (${error.code}). Try again.`;
 };
 
@@ -50,12 +53,13 @@ export function LazerCollection({ packName, hashes, download }: LazerCollectionP
   const name = typedName ?? defaultCollectionName(packName);
   const empty = name.trim() === "";
   const padded = !empty && name !== name.trim();
+  const nameError = empty ? "Type a collection name." : name.isWellFormed() ? null : BROKEN_NAME;
   const count = hashes?.length ?? 0;
   const zipName = lazerZipName(packName);
   const paddedId = `${id}-padded`;
 
   const onDownload = () => {
-    if (hashes === null || hashes.length === 0 || empty) return;
+    if (hashes === null || hashes.length === 0 || nameError !== null) return;
     try {
       download(lazerCollectionZip(name, hashes), zipName);
     } catch (caught) {
@@ -74,7 +78,7 @@ export function LazerCollection({ packName, hashes, download }: LazerCollectionP
         label="Collection name in osu!lazer"
         value={name}
         hint="Type it exactly as it shows in lazer. Case and spaces count: any other name makes a new collection."
-        error={empty ? "Type a collection name." : undefined}
+        error={nameError ?? undefined}
         aria-describedby={padded ? paddedId : undefined}
         onChange={(event) => {
           setTypedName(event.currentTarget.value);
@@ -88,9 +92,9 @@ export function LazerCollection({ packName, hashes, download }: LazerCollectionP
           same name without the space.
         </Notice>
       ) : null}
-      {count > 0 && !empty ? (
-        <p className="text-c2 text-sm">
-          {`Adds ${countMaps(count)} to "${name}". Maps already in it are skipped.`}
+      {count > 0 && nameError === null ? (
+        <p className="wrap-anywhere text-c2 text-sm">
+          {`Adds ${countMaps(count)} to "${collectionLabel(name)}". Maps already in it are skipped.`}
         </p>
       ) : null}
       <div className="flex flex-col gap-1 text-sm">
@@ -107,7 +111,10 @@ export function LazerCollection({ packName, hashes, download }: LazerCollectionP
             Choose the extracted folder as the previous osu! install, or drag the folder onto the
             osu! window. If osu!stable is installed, the field already points at it: change it.
           </li>
-          <li>Untick Beatmaps, Scores and Skins, leave Collections ticked, and press Import.</li>
+          <li>
+            Untick Beatmaps, Scores and Skins, leave Collections ticked, and press "Import content
+            from previous version".
+          </li>
           <li>
             Wait until lazer says it imported the collections. Maps you don't have yet show up once
             you download them.
@@ -118,11 +125,13 @@ export function LazerCollection({ packName, hashes, download }: LazerCollectionP
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <Button onClick={onDownload} disabled={count === 0 || empty}>
+        <Button onClick={onDownload} disabled={count === 0 || nameError !== null}>
           Download zip for osu!lazer
         </Button>
       </div>
-      <Notice live>{status}</Notice>
+      <Notice live className="wrap-anywhere">
+        {status}
+      </Notice>
       {error ? (
         <Notice live tone="error">
           {error}

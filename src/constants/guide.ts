@@ -3,7 +3,7 @@
  * @desc Guide document registry (content/guide/<slug>.mdx).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 export const GUIDE_SLUGS = [
@@ -53,7 +53,7 @@ export const GUIDE_DOCS: Record<
     title: "Add a pack to your osu! collections",
     description:
       "Put a pack's maps in an osu!stable or osu!lazer collection: what happens to your collection.db, the steps for each, and what to do when a map doesn't show.",
-    lastUpdated: "2026-09-25",
+    lastUpdated: "2026-09-26",
   },
   "download-a-torrent": {
     title: "Download a pack with a torrent",

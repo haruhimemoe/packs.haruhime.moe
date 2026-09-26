@@ -6,7 +6,7 @@
  *       what happens to the file.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import { existsSync, readFileSync } from "node:fs";
@@ -242,7 +242,7 @@ describe("osu-collections guide", () => {
     expect(GUIDE_SLUGS).toContain("osu-collections");
     expect(GUIDE_DOCS["osu-collections"]).toMatchObject({
       title: "Add a pack to your osu! collections",
-      lastUpdated: "2026-09-25",
+      lastUpdated: "2026-09-26",
     });
   });
 
