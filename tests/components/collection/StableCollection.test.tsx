@@ -8,7 +8,8 @@
  *       (following the pack, clipped), name errors with their codes (empty, name_too_long,
  *       invalid_name), outer spaces ignored in a typed name unless it's exactly a collection's, a
  *       typed name equal to a collection's adding to it, maps already there (plural), a similar
- *       name, a failed download keeping the
+ *       name, the Download button described by the preview and warning (and aria-disabled, still
+ *       focusable, once there's nothing to add), long names wrapping, a failed download keeping the
  *       file and the pick, a second add building on the first download, the input locked while a
  *       file reads, focus kept on a control after each step, closing osu! before the file is
  *       picked, a list capped at MAX_LISTED_COLLECTIONS with a very long name clipped (and a
@@ -388,6 +389,30 @@ describe("StableCollection", () => {
     expect(screen.getByText('Adds 1 map to "Farm". 1 is already in it.')).toBeInTheDocument();
   });
 
+  it("reads the preview and a similar-name warning out on the Download button", async () => {
+    const { upload, user } = setup();
+    await upload(collectionFile(TV2_FARM));
+    const button = await screen.findByRole("button", { name: "Download collection.db" });
+    expect(button).toHaveAccessibleDescription('Makes a new collection "SPC Quals" with 2 maps.');
+    const name = screen.getByLabelText("Name");
+    await user.clear(name);
+    await user.type(name, "farm");
+    expect(button).toHaveAccessibleDescription(
+      'Makes a new collection "farm" with 2 maps. You already have "Farm". Case and spaces count, so this makes a second collection.',
+    );
+    // Long names wrap on a phone instead of running off the card.
+    expect(screen.getByText(/^You already have "Farm"/)).toHaveClass("wrap-anywhere");
+    expect(screen.getByRole("button", { name: 'Add to "Farm" instead' })).toHaveClass(
+      "wrap-anywhere",
+      "h-auto",
+      "min-h-9",
+      "py-1.5",
+    );
+    await user.clear(name);
+    expect(button).toBeDisabled();
+    expect(button).not.toHaveAccessibleDescription();
+  });
+
   it("keeps the loaded file and the pick when a download fails", async () => {
     const download = vi.fn().mockImplementationOnce(() => {
       throw new Error("blocked");
@@ -460,14 +485,21 @@ describe("StableCollection", () => {
     const { upload, user, download } = setup();
     await upload(collectionFile(TV2_FARM));
     await user.selectOptions(await screen.findByLabelText("Collection"), "Farm (2 maps)");
-    await user.click(screen.getByRole("button", { name: "Download collection.db" }));
+    const button = screen.getByRole("button", { name: "Download collection.db" });
+    await user.click(button);
     expect(
-      screen.getByText('Downloaded collection.db with 1 map added to "Farm".'),
+      screen.getByText(
+        'Downloaded collection.db with 1 map added to "Farm". Now swap it in: the steps are above.',
+      ),
     ).toBeInTheDocument();
     expect(screen.getByText('All of these maps are already in "Farm".')).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Download collection.db" })).toBeDisabled();
-    // The button it was on is disabled now, so focus moves to the next choice.
-    expect(screen.getByLabelText("Collection")).toHaveFocus();
+    // Nothing left to add: the button says why and keeps focus instead of going disabled.
+    expect(button).toHaveAttribute("aria-disabled", "true");
+    expect(button).toBeEnabled();
+    expect(button).toHaveFocus();
+    expect(button).toHaveAccessibleDescription('All of these maps are already in "Farm".');
+    await user.click(button);
+    expect(download).toHaveBeenCalledTimes(1);
 
     await user.selectOptions(screen.getByLabelText("Collection"), "New collection");
     await user.clear(screen.getByLabelText("Name"));

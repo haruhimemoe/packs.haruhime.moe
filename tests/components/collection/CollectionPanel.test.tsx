@@ -170,7 +170,9 @@ describe("CollectionPanel", () => {
       collections: [{ name: "Farm", hashes: [MD5_EMPTY, MD5_A, MD5_ABC] }],
     });
     expect(
-      within(card()).getByText('Downloaded collection.db with 1 map added to "Farm".'),
+      within(card()).getByText(
+        'Downloaded collection.db with 1 map added to "Farm". Now swap it in: the steps are above.',
+      ),
     ).toBeInTheDocument();
     expectNoLeaks();
   });

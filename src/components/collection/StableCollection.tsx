@@ -8,10 +8,12 @@
  *       again. The list shows at most MAX_LISTED_COLLECTIONS names, clipped when very long; a
  *       typed exact name (outer spaces and all) reaches the rest, and any other typed name loses
  *       its outer spaces. Until the map info is ready the preview waits, or points at the retry
- *       when it failed. After a download the edited file stays loaded, so a second add builds on
- *       the first. A focused control that disables or removes itself hands focus on instead of
- *       dropping it to the page: the file input gets it back after a read, and the Download and
- *       "instead" buttons pass it to the Collection select.
+ *       when it failed. The Download button is described by the preview and any similar-name
+ *       warning; with nothing left to add it goes aria-disabled, not disabled, so it stays
+ *       reachable and says why. After a download the edited file stays loaded, so a second add
+ *       builds on the first. A focused control that disables or removes itself hands focus on
+ *       instead of dropping it to the page: the file input gets it back after a read, and the
+ *       "instead" button passes it to the Collection select. Names wrap anywhere on a phone.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
  * @modified Sat Sep 26, 2026
@@ -217,13 +219,25 @@ export function StableCollection({
   // Only a listed collection can be picked; an unlisted one is reached by typing its name.
   const similarListed = listed.has(String(similarIndex));
 
+  const previewId = `${id}-preview`;
+  const similarId = `${id}-similar`;
+  const showSimilar = preview?.kind === "ok" && preview.similarName !== null;
+  // The Download button reads out what it does and any similar-name warning.
+  const downloadDescribedBy =
+    [preview?.kind === "ok" ? previewId : null, showSimilar ? similarId : null]
+      .filter(Boolean)
+      .join(" ") || undefined;
+  // Nothing to add: the button stays focusable (aria-disabled, not disabled), so keyboard and
+  // screen reader users still reach it and hear why.
+  const nothingToAdd = preview?.kind === "ok" && preview.added === 0;
+
   const pick = (value: string) => {
     setPicked(value);
     setStatus("");
   };
 
   const onDownload = () => {
-    if (preview?.kind !== "ok" || !loaded) return;
+    if (preview?.kind !== "ok" || preview.added === 0 || !loaded) return;
     try {
       download(stableCollectionFile(preview.db), COLLECTION_DB_FILENAME);
     } catch (error) {
@@ -239,10 +253,9 @@ export function StableCollection({
     setLoaded({ db: preview.db, unusual: loaded.unusual });
     setPicked(next.some((option) => option.value === index) ? index : NEW);
     setStatus(
-      `Downloaded collection.db with ${countMaps(preview.added)} added to "${collectionLabel(name)}".`,
+      `Downloaded collection.db with ${countMaps(preview.added)} added to "${collectionLabel(name)}". Now swap it in: the steps are above.`,
     );
-    // Everything is in that collection now, so the button disables itself: move on from it.
-    collectionRef.current?.focus();
+    // Everything is in that collection now, so the button goes aria-disabled and keeps focus.
   };
 
   return (
@@ -303,16 +316,19 @@ export function StableCollection({
             </p>
           ) : null}
           {preview?.kind === "ok" ? (
-            <p className="text-c2 text-sm">{previewText(preview, name)}</p>
+            <p id={previewId} className="wrap-anywhere text-c2 text-sm">
+              {previewText(preview, name)}
+            </p>
           ) : null}
           {preview?.kind === "ok" && preview.similarName !== null ? (
             <div className="flex flex-col items-start gap-2">
-              <Notice tone="warning">
+              <Notice id={similarId} tone="warning" className="wrap-anywhere">
                 {`You already have "${collectionLabel(preview.similarName)}". Case and spaces count, so this makes a second collection.`}
               </Notice>
               {similarListed ? (
                 <Button
                   variant="secondary"
+                  className="wrap-anywhere h-auto min-h-9 py-1.5"
                   onClick={() => {
                     // This button goes away with the pick, so focus goes where the pick shows.
                     pick(String(similarIndex));
@@ -341,13 +357,21 @@ export function StableCollection({
             </ol>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button onClick={onDownload} disabled={preview?.kind !== "ok" || preview.added === 0}>
+            <Button
+              onClick={onDownload}
+              disabled={preview?.kind !== "ok"}
+              aria-disabled={nothingToAdd || undefined}
+              aria-describedby={downloadDescribedBy}
+              className="aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
+            >
               Download collection.db
             </Button>
           </div>
         </>
       ) : null}
-      <Notice live>{status}</Notice>
+      <Notice live className="wrap-anywhere">
+        {status}
+      </Notice>
       {saveError ? (
         <Notice live tone="error">
           {saveError}
