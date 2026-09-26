@@ -12,7 +12,7 @@ packs.haruhime.moe: a browser-first osu! beatmap pack builder, with saved packs,
 
 ```
 src/app/          routes only (thin; compose components)
-src/components/   layout/ and feature folders (account/, admin/, auth/, beatmap/, docs/, export/, home/, pack/, packs/); primitives come from @haruhimemoe/ui
+src/components/   layout/ and feature folders (account/, admin/, auth/, beatmap/, collection/, docs/, export/, home/, pack/, packs/); primitives come from @haruhimemoe/ui
 src/hooks/        client hooks (useBeatmapMeta, usePackDraft) + shared hook types
 src/constants/    static data (site, legal registry, mod buckets)
 src/utils/        pure, stateless helpers grouped by domain
@@ -87,6 +87,7 @@ Other user copy moves with the code in the same PR: an API change updates `conte
 - A custom slot's `mods` (`{ kind: "forced", set }` or `{ kind: "free" }`, absent = no mods) and every mod rule come from `@haruhimemoe/pool`. Its shared tables (`DEFAULT_BUCKETS`, `NO_MODS`, `PALETTE` and the rest) are frozen: copy before changing one.
 - The mirror client is `@haruhimemoe/hinai`. Tests never hit the mirror: use `tests/helpers/hinai-server.ts` and the recorded fixtures.
 - Downloads go browser → mirror only (`src/lib/downloads/fetch-sets.ts`) and are cached in OPFS (`src/lib/storage/osz-cache.ts`). Zips are built in the browser (`src/lib/zip/`); the archive layout and `pack.txt` come from `src/utils/pack-archive.ts`, which the torrent export (`src/lib/torrent/`) reuses. Never commit a real `.osz`; tests use synthetic zips.
+- **osu! collections.** The "Add to osu! collection" card (`src/components/collection/`) is on /new, /k and /p. Hashes come only from `BeatmapMeta.checksum` in the page's map info (`collectionMaps` in `src/utils/osu-collection.ts`). A player's `collection.db` is read and written in the browser with `@haruhimemoe/osu/collections` (`src/lib/collections/collection-files.ts`) and never leaves it: no request, form, route or server action carries it, nothing stores it, and nothing logs its names or hashes (`tests/unit/tooling/collection-privacy.test.ts` scans for it and holds the card's imports to a short list; `src/lib/storage/` and `src/lib/packs-api.ts` never go on it). osu!stable gets the whole file back as `collection.db`; osu!lazer gets a zip with `collection.db` and an empty `osu!.import.cfg` at its root, named without dots. If the page ever keeps the file between visits, `privacy.mdx` says so and the page offers a way to clear it. The steps in the card and in `content/guide/osu-collections.mdx` change together.
 
 ## 10. Accounts and data
 

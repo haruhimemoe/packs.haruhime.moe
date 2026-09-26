@@ -1,0 +1,43 @@
+To add a pack to an osu! collection, open the pack on packs and use the "Add to osu! collection" card under its maps. On osu!stable, you load your `collection.db` and download it back with the pack's maps added. On osu!lazer, you download a small zip and import it with lazer's setup wizard. Your `collection.db` is read in your browser: packs doesn't upload it or keep it.
+
+## What a collection holds
+
+An osu! collection is a name and a list of difficulties. osu! doesn't list them by beatmap ID: each difficulty is the MD5 checksum of its `.osu` file. packs takes those checksums from the map info it already loads for the pack, so it doesn't need your maps or your osu! account.
+
+A difficulty you haven't downloaded yet can still go in a collection. osu! hides it until you have the map, then shows it. The card lists any map it can't add: maps the mirror and osu! don't know, and maps whose info has no checksum.
+
+## osu!stable
+
+1. **Find your collection.db.** It's in your osu! folder, next to `osu!.db`. On Windows that's `%LOCALAPPDATA%\osu!` unless you installed osu! somewhere else.
+2. **Load it.** On the pack's page, in "Add to osu! collection", pick osu!stable and choose the file.
+3. **Pick a collection.** Choose one you have, or make a new one. A new one is named after the pack, and you can change the name. Typing the exact name of a collection you have adds to that one. Case counts, and so do spaces inside the name.
+4. **Check the preview.** It says how many maps get added and how many are already in the collection.
+5. **Download collection.db.** The download holds all your collections, with this pack's maps added. Nothing else changes, except that empty map entries are left out if the card found any.
+6. **Swap the file.** Close osu!. Keep a copy of your old `collection.db`, put the new one in the osu! folder named exactly `collection.db`, and start osu!.
+
+Close osu! before you swap the file. osu!stable reads `collection.db` when it starts and saves its own copy later, so it ignores a file swapped while it runs and then writes over it. If your browser saved the download as `collection (1).db`, rename it to `collection.db`.
+
+To add the pack to a second collection, pick it and download again. The second download includes the first change, so only the last file needs to go in the osu! folder.
+
+## osu!lazer
+
+osu!lazer keeps collections in its own database, which a web page can't open, and it can't export them. It can import a `collection.db` through its setup wizard, and it merges what it imports into the collection with the same name. So packs gives you a file with just this pack's maps.
+
+1. **Name the collection.** In "Add to osu! collection", pick osu!lazer and type the collection's name exactly as it shows in lazer. Case and spaces count: any other name makes a new collection.
+2. **Download the zip.** Press "Download zip for osu!lazer".
+3. **Extract it.** You get one folder holding `collection.db` and an empty `osu!.import.cfg`. The empty file is what makes lazer accept the folder.
+4. **Open the setup wizard.** In osu!lazer, open Settings, then General, and press "Run setup wizard". Press Next until you reach the Import step.
+5. **Choose the folder.** Pick the extracted folder as the previous osu! install, or drag the folder onto the osu! window. If osu!stable is installed, the field already points at it: change it.
+6. **Import only collections.** Untick Beatmaps, Scores and Skins, leave Collections ticked, and press Import. Wait until lazer says it imported the collections.
+
+An import only adds. Nothing already in lazer is removed or renamed, and importing the same zip twice adds nothing the second time. This works on desktop: osu!lazer on Android and iOS can't import collections.
+
+## When a map doesn't show up
+
+- **You don't have it yet.** Download the pack. The map shows up in the collection once osu! has it.
+- **The map was updated.** A collection points at one exact version of a difficulty. packs uses the checksum osu! lists today, so a copy you downloaded before an update, or an older copy on the mirror, may not match. Update the map in osu!, and it shows up.
+- **packs left it out.** The card lists the maps it couldn't add, and why.
+
+## Your file
+
+packs reads your `collection.db` in your browser tab. It isn't uploaded, saved or logged, and it's gone when you close the tab.

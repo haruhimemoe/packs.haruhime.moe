@@ -1,10 +1,11 @@
 /**
  * @file tests/components/app/HomePage.test.tsx
  * @desc Home page: headline, primary CTA to the builder, key paste box, the three feature cards,
- *       the FAQ (how public pack filters match and sort, and where Copy ID is, included).
+ *       the FAQ (how public pack filters match and sort, where Copy ID is, and adding a pack to
+ *       an osu! collection, included).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -96,6 +97,14 @@ describe("HomeScreen", () => {
       screen.getByRole("heading", { level: 3, name: "How do I copy a map's ID for !mp map?" }),
     ).toBeInTheDocument();
     expect(screen.getByText(/Press Copy ID on the map's row/)).toBeInTheDocument();
+  });
+
+  it("says how to add a pack to an osu! collection", () => {
+    render(<HomeScreen recent={[]} />);
+    expect(
+      screen.getByRole("heading", { level: 3, name: "Can I add a pack to my osu! collections?" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Use Add to osu! collection on the pack's page/)).toBeInTheDocument();
   });
 
   it("answers the common questions and describes them as FAQ data", () => {

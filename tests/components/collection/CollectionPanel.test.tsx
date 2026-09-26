@@ -1,13 +1,13 @@
 /**
  * @file tests/components/collection/CollectionPanel.test.tsx
- * @desc The "Add to osu! collection" card: waiting for map info, pointing at the Download card's
- *       retry, the maps it leaves out and why, nothing to add, a whole osu!stable flow down to the
- *       downloaded bytes with no request and no storage on the way, the pool changing under a
- *       loaded file, and the osu!lazer side: hidden until it's picked, the zip's name and files
- *       with no request or storage, the name used exactly as typed (outer spaces warned about,
- *       with the warning read out as the field's description, empty refused, a name UTF-8 can't
- *       encode shown with its code), a failed save, waiting for map info, and each side keeping
- *       its state when you switch.
+ * @desc The "Add to osu! collection" card: its link to the guide, waiting for map info, pointing
+ *       at the Download card's retry, the maps it leaves out and why, nothing to add, a whole
+ *       osu!stable flow down to the downloaded bytes with no request and no storage on the way,
+ *       the pool changing under a loaded file, and the osu!lazer side: hidden until it's picked,
+ *       the zip's name and files with no request or storage, the name used exactly as typed
+ *       (outer spaces warned about, with the warning read out as the field's description, empty
+ *       refused, a name UTF-8 can't encode shown with its code), a failed save, waiting for map
+ *       info, and each side keeping its state when you switch.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
  * @modified Fri Sep 25, 2026
@@ -57,6 +57,14 @@ const READY: Record<number, MetaState> = {
 const card = () => screen.getByRole("region", { name: "Add to osu! collection" });
 
 describe("CollectionPanel", () => {
+  it("links the guide", () => {
+    render(<CollectionPanel pack={PACK} getMeta={metaFrom(READY)} download={vi.fn()} />);
+    expect(within(card()).getByRole("link", { name: "How it works" })).toHaveAttribute(
+      "href",
+      "/guide/osu-collections",
+    );
+  });
+
   it("waits for map info", () => {
     render(<CollectionPanel pack={PACK} getMeta={metaFrom({})} download={vi.fn()} />);
     expect(within(card()).getByText("Loading map info…")).toBeInTheDocument();

@@ -1,10 +1,10 @@
 /**
  * @file tests/unit/app/sitemap.test.ts
- * @desc sitemap.xml: static pages, /packs pages, guides, docs, legal, and every indexed public
- *       pack.
+ * @desc sitemap.xml: static pages, /packs pages, guides (osu! collections included), docs,
+ *       legal, and every indexed public pack.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { describe, expect, it, vi } from "vitest";
@@ -45,6 +45,7 @@ describe("sitemap", () => {
       "/guide/make-a-pack",
       "/guide/pack-key",
       "/guide/seed-a-torrent",
+      "/guide/osu-collections",
       "/docs/api",
       "/legal/terms",
       "/legal/privacy",

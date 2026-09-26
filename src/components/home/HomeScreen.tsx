@@ -4,7 +4,7 @@
  *       WebApplication + FAQPage structured data.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { ButtonLink, Card, JsonLd, PageHeader } from "@haruhimemoe/ui";
@@ -67,6 +67,11 @@ export const HOME_FAQ = [
     question: "Can I share a pack as a torrent?",
     answer:
       "Yes. Download the maps, press Make torrent in the Download card, and seed it with a torrent app like qBittorrent. The torrent file is built in your browser, and you do the seeding.",
+  },
+  {
+    question: "Can I add a pack to my osu! collections?",
+    answer:
+      "Yes. Use Add to osu! collection on the pack's page. On osu!stable, load your collection.db and download it back with the maps added. On osu!lazer, download a zip and import it with lazer's setup wizard. Your collection.db is read in your browser and isn't uploaded.",
   },
 ] as const;
 

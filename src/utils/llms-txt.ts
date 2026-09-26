@@ -1,12 +1,12 @@
 /**
  * @file src/utils/llms-txt.ts
  * @desc /llms.txt (llmstxt.org): title, a one-paragraph summary, a few facts a reader needs
- *       first (no file hosting, pack keys, the haruhime pools account), then link sections built
- *       from the page list and the guide, docs, and legal registries, so new docs appear on their
- *       own. Docs link their Markdown copy (/docs/<slug>.md), as llmstxt.org suggests. The public
- *       packs link spells out its query string, and Data covers the search index's keys (the read
- *       that needs no key), from the same constants the code uses. Elsewhere, last, links our
- *       Discord server.
+ *       first (no file hosting, pack keys, the haruhime pools account, the osu! collection card),
+ *       then link sections built from the page list and the guide, docs, and legal registries, so
+ *       new docs appear on their own. Docs link their Markdown copy (/docs/<slug>.md), as
+ *       llmstxt.org suggests. The public packs link spells out its query string, and Data covers
+ *       the search index's keys (the read that needs no key), from the same constants the code
+ *       uses. Elsewhere, last, links our Discord server.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Fri Sep 25, 2026
@@ -36,6 +36,7 @@ export const LLMS_NOTES: readonly string[] = [
   "packs doesn't host beatmap files. The browser downloads each .osz from the beatmap mirror (mirror.hinamizawa.ai) and builds the zip and the torrent itself.",
   `A pack key (pk1., pk2. or pk3.) holds a whole pool in one line of text and opens at ${at("/k#")} followed by the key, with no account. Signed in with osu!, a host can also save a pack and get a short link, ${at("/p/")}{slug}.`,
   "Packs owned by haruhime pools are osu! tournament mappools published from pools.haruhime.moe. pools.haruhime.moe gets its pools from tournament hosts, community submissions and other sources, and each pool's page there credits its sources.",
+  "\"Add to osu! collection\" puts the pack's maps in one of the player's osu! collections. It's on every pack page (/new, /k and /p/{slug}). osu!stable players load their collection.db and download it back with the maps added; osu!lazer players download a zip that lazer's setup wizard imports. The browser reads the file; it never reaches the server.",
 ];
 
 /**
@@ -66,7 +67,7 @@ export const llmsSections = (): LlmsSection[] => [
       {
         title: "Guides",
         url: at("/guide"),
-        description: "Every guide: making a pack, torrents and pack keys.",
+        description: "Every guide: making a pack, osu! collections, torrents and pack keys.",
       },
       {
         title: "Brand",

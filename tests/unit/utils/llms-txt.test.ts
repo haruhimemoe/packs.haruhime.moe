@@ -1,10 +1,10 @@
 /**
  * @file tests/unit/utils/llms-txt.test.ts
  * @desc llms.txt follows the llmstxt.org shape, opens with the notes a reader needs first (no
- *       file hosting, pack keys, the haruhime pools account), is built from the registries
- *       (every guide and legal doc appears, docs by their .md copy), spells out the /packs query
- *       string and the index keys, ends with our Discord server under Elsewhere, and every link
- *       is absolute and on one line.
+ *       file hosting, pack keys, the haruhime pools account, the osu! collection card), is built
+ *       from the registries (every guide and legal doc appears, docs by their .md copy), names
+ *       osu! collections among the guides, spells out the /packs query string and the index keys,
+ *       ends with our Discord server under Elsewhere, and every link is absolute and on one line.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Fri Sep 25, 2026
@@ -39,6 +39,15 @@ describe("buildLlmsTxt", () => {
     "each pool's page there credits its sources.",
   ])("notes %j", (phrase) => {
     expect(text).toContain(phrase);
+  });
+
+  it("notes the osu! collection card and names it among the guides", () => {
+    expect(text).toContain(
+      "\"Add to osu! collection\" puts the pack's maps in one of the player's osu! collections.",
+    );
+    expect(text).toContain("The browser reads the file; it never reaches the server.");
+    const guides = text.split("\n").find((line) => line.startsWith("- [Guides]")) ?? "";
+    expect(guides).toContain("osu! collections");
   });
 
   it("doesn't call every pools pack a past pool", () => {

@@ -11,13 +11,14 @@ The site never hosts beatmap files. Each `.osz` goes from the beatmap mirror str
 - **Downloads:** one zip for the whole pool, with or without videos and backgrounds, and a download cache in your browser so a second pack reuses maps you already have.
 - **Torrents:** a `.torrent` file and a magnet link, built in your browser, with guides to seeding and downloading one.
 - **Star ratings with mods:** each slot shows the ratings for the mods it's played with.
+- **osu! collections:** add a pack's maps to an osu!stable collection (load your `collection.db`, download it back with the maps added) or import them into osu!lazer through its setup wizard. The file stays in your browser.
 - **Accounts (optional):** sign in with osu! to save packs, get a short `/p/<slug>` link, and list a pack publicly.
 - **Public packs:** search, filter by star rating, length, BPM, mods, mode and map count, and sort the packs other hosts chose to share. A few pinned packs sit on top.
 - **API:** read public packs and manage your own from scripts and bots. See [/docs/api](https://packs.haruhime.moe/docs/api).
 
 ## Docs
 
-- [Guides](https://packs.haruhime.moe/guide): making a pack, torrents and pack keys.
+- [Guides](https://packs.haruhime.moe/guide): making a pack, osu! collections, torrents and pack keys.
 - [API docs](https://packs.haruhime.moe/docs/api) and the [OpenAPI document](https://packs.haruhime.moe/api/v1/openapi.json).
 - [llms.txt](https://packs.haruhime.moe/llms.txt): a map of the site for AI assistants. This repo also has its own [llms.txt](llms.txt).
 
@@ -31,7 +32,7 @@ packs uses these shared haruhime.moe packages:
 
 - [`@haruhimemoe/pool`](https://www.npmjs.com/package/@haruhimemoe/pool): the mappool shape, slot and mod rules, pasted-pool parsing, and the pack key codec.
 - [`@haruhimemoe/hinai`](https://www.npmjs.com/package/@haruhimemoe/hinai): the client for the hinai beatmap mirror (metadata and `.osz` downloads).
-- [`@haruhimemoe/osu`](https://www.npmjs.com/package/@haruhimemoe/osu): osu! API v2 shapes, the osu! sign-in settings, and the server client we use for maps the mirror doesn't have, star ratings with mods, and pack stats.
+- [`@haruhimemoe/osu`](https://www.npmjs.com/package/@haruhimemoe/osu): osu! API v2 shapes, the osu! sign-in settings, the server client we use for maps the mirror doesn't have, star ratings with mods and pack stats, and the collection.db reader and writer behind "Add to osu! collection".
 - [`@haruhimemoe/ui`](https://www.npmjs.com/package/@haruhimemoe/ui): the theme and colors the site uses, buttons, cards, form fields, pagination, and the site header, footer and page frame.
 - [`@haruhimemoe/brand`](https://www.npmjs.com/package/@haruhimemoe/brand): the wordmark, icons and link preview image, and the palette file behind the colors on [/brand](https://packs.haruhime.moe/brand).
 

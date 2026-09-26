@@ -1,11 +1,11 @@
 /**
  * @file src/components/collection/CollectionPanel.tsx
- * @desc The "Add to osu! collection" card on /new, /k and /p/[slug]: the pack's difficulty MD5s
- *       from the map info the page already loaded (waiting while it loads, pointing at the
- *       Download card's retry when it failed, listing the maps it leaves out), then a choice of
- *       osu!stable (edit your collection.db) or osu!lazer (a zip for its setup wizard). Both sides
- *       stay mounted, so switching keeps a loaded file or a typed name. Downloads are plain
- *       browser downloads started by the click.
+ * @desc The "Add to osu! collection" card on /new, /k and /p/[slug], with a link to the guide: the
+ *       pack's difficulty MD5s from the map info the page already loaded (waiting while it loads,
+ *       pointing at the Download card's retry when it failed, listing the maps it leaves out),
+ *       then a choice of osu!stable (edit your collection.db) or osu!lazer (a zip for its setup
+ *       wizard). Both sides stay mounted, so switching keeps a loaded file or a typed name.
+ *       Downloads are plain browser downloads started by the click.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
  * @modified Fri Sep 25, 2026
@@ -14,6 +14,7 @@
 "use client";
 
 import { Card, Notice } from "@haruhimemoe/ui";
+import Link from "next/link";
 import { useId, useMemo, useState } from "react";
 import { LazerCollection } from "@/components/collection/LazerCollection";
 import { StableCollection } from "@/components/collection/StableCollection";
@@ -59,7 +60,12 @@ export function CollectionPanel({ pack, getMeta, download = downloadBlob }: Coll
   return (
     <Card title="Add to osu! collection">
       <div className="flex flex-col gap-4">
-        <p className="text-c3 text-sm">Put this pack's maps in one of your osu! collections.</p>
+        <p className="text-c3 text-sm">
+          Put this pack's maps in one of your osu! collections.{" "}
+          <Link href="/guide/osu-collections" className="text-h1 underline hover:text-c1">
+            How it works
+          </Link>
+        </p>
         {maps.status === "loading" ? <p className="text-c3 text-sm">Loading map info…</p> : null}
         {maps.status === "error" ? (
           <Notice tone="error">

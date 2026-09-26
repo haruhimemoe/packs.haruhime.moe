@@ -3,11 +3,12 @@
  * @desc Guide document registry (content/guide/<slug>.mdx).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 export const GUIDE_SLUGS = [
   "make-a-pack",
+  "osu-collections",
   "download-a-torrent",
   "seed-a-torrent",
   "pack-key",
@@ -29,7 +30,7 @@ export const GUIDE_DOCS: Record<
     title: "How to make an osu! mappool pack",
     description:
       "Build a pack from beatmap IDs or links, download it as one zip, and share it with a key.",
-    lastUpdated: "2026-09-24",
+    lastUpdated: "2026-09-25",
     howTo: [
       {
         name: "Open the builder",
@@ -47,6 +48,12 @@ export const GUIDE_DOCS: Record<
       { name: "Download the zip", text: "Press Download maps, then Save .zip." },
       { name: "Share it", text: "Copy the pack key, or save the pack to get a short link." },
     ],
+  },
+  "osu-collections": {
+    title: "Add a pack to your osu! collections",
+    description:
+      "Put a pack's maps in an osu!stable or osu!lazer collection: what happens to your collection.db, the steps for each, and what to do when a map doesn't show.",
+    lastUpdated: "2026-09-25",
   },
   "download-a-torrent": {
     title: "Download a pack with a torrent",

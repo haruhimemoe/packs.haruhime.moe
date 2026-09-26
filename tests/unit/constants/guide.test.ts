@@ -1,10 +1,11 @@
 /**
  * @file tests/unit/constants/guide.test.ts
  * @desc Guide registry, slug guard, the pack key doc staying in sync with the codec, the
- *       make-a-pack tips (Copy ID).
+ *       make-a-pack tips (Copy ID, the osu! collections link), and the osu! collections guide
+ *       covering both flows, why a map may not show, and what happens to the file.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { existsSync, readFileSync } from "node:fs";
@@ -130,7 +131,7 @@ describe("make-a-pack guide", () => {
   it("points to Copy ID", () => {
     expect(text()).toContain('Every map row has a "Copy ID" button that copies its beatmap ID');
     expect(text()).not.toContain("Used in N pools");
-    expect(GUIDE_DOCS["make-a-pack"].lastUpdated).toBe("2026-09-24");
+    expect(GUIDE_DOCS["make-a-pack"].lastUpdated).toBe("2026-09-25");
   });
 
   it("answers the question in its first paragraph and links the builder", () => {
@@ -230,5 +231,58 @@ describe("download-a-torrent guide", () => {
     const step = GUIDE_DOCS["download-a-torrent"].howTo?.find((s) => s.name === "Import the maps");
     expect(step?.text).toContain("A pack made on packs is a folder of .osz files");
     expect(step?.text).toContain("don't open it");
+  });
+});
+
+describe("osu-collections guide", () => {
+  const text = () => readFileSync(file("osu-collections"), "utf8");
+
+  it("is registered and dated", () => {
+    expect(GUIDE_SLUGS).toContain("osu-collections");
+    expect(GUIDE_DOCS["osu-collections"]).toMatchObject({
+      title: "Add a pack to your osu! collections",
+      lastUpdated: "2026-09-25",
+    });
+  });
+
+  it("answers the question in its first paragraph", () => {
+    const first = text().split("\n\n")[0] ?? "";
+    expect(first).toContain('"Add to osu! collection"');
+    expect(first).toContain("osu!stable");
+    expect(first).toContain("osu!lazer");
+    expect(first).toContain("packs doesn't upload it or keep it");
+  });
+
+  it.each([
+    "## What a collection holds",
+    "the MD5 checksum of its `.osu` file",
+    "## osu!stable",
+    "`%LOCALAPPDATA%\\osu!`",
+    "**Download collection.db.**",
+    "named exactly `collection.db`",
+    "Close osu! before you swap the file.",
+    "Keep a copy of your old `collection.db`",
+    "`collection (1).db`",
+    "The second download includes the first change",
+    "## osu!lazer",
+    '"Download zip for osu!lazer"',
+    "an empty `osu!.import.cfg`",
+    '"Run setup wizard"',
+    "Untick Beatmaps, Scores and Skins, leave Collections ticked",
+    "osu!lazer on Android and iOS can't import collections",
+    "## When a map doesn't show up",
+    "Update the map in osu!",
+    "It isn't uploaded, saved or logged",
+  ])("covers %j", (phrase) => {
+    expect(text()).toContain(phrase);
+  });
+
+  it("has no h1 and no em dashes", () => {
+    expect(text()).not.toMatch(/^# /m);
+    expect(text()).not.toContain("—");
+  });
+
+  it("is linked from the make-a-pack guide", () => {
+    expect(readFileSync(file("make-a-pack"), "utf8")).toContain("(/guide/osu-collections)");
   });
 });
