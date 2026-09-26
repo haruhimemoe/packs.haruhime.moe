@@ -2,7 +2,8 @@
  * @file tests/unit/constants/guide.test.ts
  * @desc Guide registry, slug guard, the pack key doc staying in sync with the codec, the
  *       make-a-pack tips (Copy ID, the osu! collections link), and the osu! collections guide
- *       covering both flows, why a map may not show, and what happens to the file.
+ *       covering both flows (osu! closed before the file is picked), why a map may not show, and
+ *       what happens to the file.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Fri Sep 25, 2026
@@ -260,7 +261,8 @@ describe("osu-collections guide", () => {
     "`%LOCALAPPDATA%\\osu!`",
     "**Download collection.db.**",
     "named exactly `collection.db`",
-    "Close osu! before you swap the file.",
+    "**Close osu!.** osu!stable saves collection changes a while after you make them",
+    "Keep it closed until the new file is in place.",
     "Keep a copy of your old `collection.db`",
     "`collection (1).db`",
     "The second download includes the first change",
@@ -280,6 +282,12 @@ describe("osu-collections guide", () => {
   it("has no h1 and no em dashes", () => {
     expect(text()).not.toMatch(/^# /m);
     expect(text()).not.toContain("—");
+  });
+
+  it("closes osu! before the file is picked, not only before the swap", () => {
+    const stable = text().slice(text().indexOf("## osu!stable"), text().indexOf("## osu!lazer"));
+    expect(stable.indexOf("**Close osu!.**")).toBeGreaterThanOrEqual(0);
+    expect(stable.indexOf("**Close osu!.**")).toBeLessThan(stable.indexOf("**Load it.**"));
   });
 
   it("is linked from the make-a-pack guide", () => {

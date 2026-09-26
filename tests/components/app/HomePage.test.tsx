@@ -105,6 +105,9 @@ describe("HomeScreen", () => {
       screen.getByRole("heading", { level: 3, name: "Can I add a pack to my osu! collections?" }),
     ).toBeInTheDocument();
     expect(screen.getByText(/Use Add to osu! collection on the pack's page/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/On osu!stable, close osu!, load your collection\.db/),
+    ).toBeInTheDocument();
   });
 
   it("answers the common questions and describes them as FAQ data", () => {

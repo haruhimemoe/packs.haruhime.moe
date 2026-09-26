@@ -71,7 +71,7 @@ export const HOME_FAQ = [
   {
     question: "Can I add a pack to my osu! collections?",
     answer:
-      "Yes. Use Add to osu! collection on the pack's page. On osu!stable, load your collection.db and download it back with the maps added. On osu!lazer, download a zip and import it with lazer's setup wizard. Your collection.db is read in your browser and isn't uploaded.",
+      "Yes. Use Add to osu! collection on the pack's page. On osu!stable, close osu!, load your collection.db and download it back with the maps added. On osu!lazer, download a zip and import it with lazer's setup wizard. Your collection.db is read in your browser and isn't uploaded.",
   },
 ] as const;
 

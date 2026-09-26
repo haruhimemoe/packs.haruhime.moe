@@ -3,7 +3,9 @@
  * @desc Pure helpers for the "Add to osu! collection" card: the pack's difficulty MD5s from the
  *       map info the page already loaded (and the maps that can't go in a collection, with why),
  *       the default name for a new collection, user text for the collection.db errors, each with
- *       the package's code, and the osu!lazer zip's name.
+ *       the package's code, the osu!lazer zip's name, and how a file's collections show in the
+ *       card (a very long name clipped, the list capped so a hostile file can't make thousands
+ *       of options).
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
  * @modified Fri Sep 25, 2026
@@ -31,6 +33,18 @@ export type CollectionMaps =
   | { status: "loading" }
   | { status: "error"; failed: number }
   | { status: "ready"; hashes: string[]; skipped: SkippedMap[] };
+
+/**
+ * Most collections the card lists. Real files hold far fewer; a hostile one can claim about two
+ * million, which a page can't render. A typed exact name still reaches the rest.
+ */
+export const MAX_LISTED_COLLECTIONS = 2000;
+
+/** Longest name the card shows in full, in characters: every name packs makes (127 bytes) fits. */
+export const MAX_LABEL_LENGTH = 150;
+
+/** One entry in the card's Collection list: the collection's index in the file, and its text. */
+export type CollectionOption = { value: string; label: string };
 
 const utf8 = new TextEncoder();
 const CONTROL = /\p{Cc}/gu;
@@ -142,3 +156,48 @@ export const collectionErrorText = (error: unknown): string => {
  */
 export const lazerZipName = (packName: string): string =>
   `${sanitizeFileName(defaultCollectionName(packName).replace(/\./g, " "), MAX_FOLDER_NAME)} collection.zip`;
+
+/**
+ * @function collectionLabel
+ * @param name {string} a collection's name, as read from the file or typed
+ * @returns {string} "(no name)" for an empty name, else the name, clipped after MAX_LABEL_LENGTH
+ *          characters (whole code points) with "…"
+ */
+export const collectionLabel = (name: string): string => {
+  if (name === "") return "(no name)";
+  // A code point takes at most 2 UTF-16 units, so this slice holds more than MAX_LABEL_LENGTH of
+  // them whenever the name does, without splitting a huge name into an array.
+  const chars = Array.from(name.slice(0, (MAX_LABEL_LENGTH + 1) * 2));
+  return chars.length > MAX_LABEL_LENGTH ? `${chars.slice(0, MAX_LABEL_LENGTH).join("")}…` : name;
+};
+
+const countMaps = (n: number): string => `${n} ${n === 1 ? "map" : "maps"}`;
+
+/**
+ * @function collectionOptions
+ * @param collections {readonly { name: string; hashes: readonly string[] }[]} the file's
+ *        collections, in file order
+ * @param max {number} most options to list (default MAX_LISTED_COLLECTIONS)
+ * @returns {{ options: CollectionOption[]; unlisted: number }} one option per name, for its first
+ *          collection (the one addToCollection adds to), labelled "<name> (N maps)", at most
+ *          `max` of them; `unlisted` counts the names left off the list
+ */
+export const collectionOptions = (
+  collections: readonly { name: string; hashes: readonly string[] }[],
+  max: number = MAX_LISTED_COLLECTIONS,
+): { options: CollectionOption[]; unlisted: number } => {
+  const seen = new Set<string>();
+  const options: CollectionOption[] = [];
+  let unlisted = 0;
+  collections.forEach(({ name, hashes }, index) => {
+    if (seen.has(name)) return;
+    seen.add(name);
+    if (options.length < max) {
+      options.push({
+        value: String(index),
+        label: `${collectionLabel(name)} (${countMaps(hashes.length)})`,
+      });
+    } else unlisted++;
+  });
+  return { options, unlisted };
+};

@@ -8,14 +8,17 @@ A difficulty you haven't downloaded yet can still go in a collection. osu! hides
 
 ## osu!stable
 
-1. **Find your collection.db.** It's in your osu! folder, next to `osu!.db`. On Windows that's `%LOCALAPPDATA%\osu!` unless you installed osu! somewhere else.
-2. **Load it.** On the pack's page, in "Add to osu! collection", pick osu!stable and choose the file.
-3. **Pick a collection.** Choose one you have, or make a new one. A new one is named after the pack, and you can change the name. Typing the exact name of a collection you have adds to that one. Case counts, and so do spaces inside the name.
-4. **Check the preview.** It says how many maps get added and how many are already in the collection.
-5. **Download collection.db.** The download holds all your collections, with this pack's maps added. Nothing else changes, except that empty map entries are left out if the card found any.
-6. **Swap the file.** Close osu!. Keep a copy of your old `collection.db`, put the new one in the osu! folder named exactly `collection.db`, and start osu!.
+1. **Close osu!.** osu!stable saves collection changes a while after you make them, or when it closes, so the file on disk can be behind until then. Keep it closed until the new file is in place.
+2. **Find your collection.db.** It's in your osu! folder, next to `osu!.db`. On Windows that's `%LOCALAPPDATA%\osu!` unless you installed osu! somewhere else.
+3. **Load it.** On the pack's page, in "Add to osu! collection", pick osu!stable and choose the file.
+4. **Pick a collection.** Choose one you have, or make a new one. A new one is named after the pack, and you can change the name. Typing the exact name of a collection you have adds to that one. Case counts, and so do spaces inside the name.
+5. **Check the preview.** It says how many maps get added and how many are already in the collection.
+6. **Download collection.db.** The download holds all your collections, with this pack's maps added. Nothing else changes, except that empty map entries are left out if the card found any.
+7. **Swap the file.** Keep a copy of your old `collection.db`, put the new one in the osu! folder named exactly `collection.db`, and start osu!.
 
-Close osu! before you swap the file. osu!stable reads `collection.db` when it starts and saves its own copy later, so it ignores a file swapped while it runs and then writes over it. If your browser saved the download as `collection (1).db`, rename it to `collection.db`.
+osu! has to stay closed from the moment you load the file until the new one is in place. osu!stable reads `collection.db` when it starts and saves its own copy later, so it ignores a file swapped while it runs and then writes over it, and a file loaded while it runs can miss your latest changes. If your browser saved the download as `collection (1).db`, rename it to `collection.db`.
+
+If you have more collections than the card lists, pick "New collection" and type the exact name of the one you want: the card adds to it.
 
 To add the pack to a second collection, pick it and download again. The second download includes the first change, so only the last file needs to go in the osu! folder.
 

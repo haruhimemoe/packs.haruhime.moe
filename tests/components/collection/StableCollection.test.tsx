@@ -8,13 +8,16 @@
  *       invalid_name), outer spaces ignored in a typed name, a typed name equal to a collection's
  *       adding to it, maps already there (plural), a similar name, a failed download keeping the
  *       file and the pick, a second add building on the first download, the input locked while a
- *       file reads, and focus kept on a control after each step.
+ *       file reads, focus kept on a control after each step, closing osu! before the file is
+ *       picked, a list capped at MAX_LISTED_COLLECTIONS with a very long name clipped (and a
+ *       typed name reaching the rest), and a new file too big to write.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
  * @modified Fri Sep 25, 2026
  */
 
 import {
+  CollectionDbError,
   type CollectionDbRead,
   readCollectionDb,
   writeCollectionDb,
@@ -26,6 +29,7 @@ import {
   StableCollection,
   type StableCollectionProps,
 } from "@/components/collection/StableCollection";
+import { MAX_LABEL_LENGTH, MAX_LISTED_COLLECTIONS } from "@/utils/osu-collection";
 import {
   collectionFile,
   downloaded,
@@ -193,10 +197,22 @@ describe("StableCollection", () => {
     expect(screen.getByRole("button", { name: "Download collection.db" })).toBeDisabled();
   });
 
+  it("says to close osu! before picking the file", () => {
+    setup();
+    expect(
+      screen.getByText(/^Close osu! first, so the file has your latest changes\./),
+    ).toHaveAttribute(
+      "id",
+      screen.getByLabelText("Your collection.db").getAttribute("aria-describedby"),
+    );
+  });
+
   it("shows the steps to swap the file in", async () => {
     const { upload } = setup();
     await upload(collectionFile(TV1_EMPTY));
-    expect(await screen.findByText(/^Close osu! first\./)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/^Keep osu! closed until the new file is in place\./),
+    ).toBeInTheDocument();
     expect(screen.getByText("Keep a copy of your old collection.db.")).toBeInTheDocument();
     expect(
       screen.getByText(
@@ -343,6 +359,52 @@ describe("StableCollection", () => {
     expect(readCollectionDb((await downloaded(download, 1)).bytes).collections).toEqual([
       { name: "Farm", hashes: [MD5_EMPTY, MD5_A, MD5_ABC] },
     ]);
+  });
+
+  it("says when the new file would be too big to write", async () => {
+    const download = vi.fn(() => {
+      throw new CollectionDbError("too_large", "over the limit");
+    });
+    const { upload, user } = setup({ download });
+    await upload(collectionFile(TV2_FARM));
+    await user.click(await screen.findByRole("button", { name: "Download collection.db" }));
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "With these maps, collection.db would be over 64 MiB, more than packs writes (too_large).",
+    );
+  });
+
+  it(`lists at most ${MAX_LISTED_COLLECTIONS} collections, and a typed name reaches the rest`, async () => {
+    const long = "L".repeat(MAX_LABEL_LENGTH + 20);
+    const collections = [
+      { name: long, hashes: [] },
+      ...Array.from({ length: MAX_LISTED_COLLECTIONS + 1 }, (_, i) => ({
+        name: `c${i}`,
+        hashes: [],
+      })),
+    ];
+    const { upload, user, download } = setup({
+      readFile: async () => ({ version: 20150203, collections, warnings: [], omittedWarnings: 0 }),
+    });
+    await upload(collectionFile(TV1_EMPTY));
+    const select = await screen.findByLabelText("Collection");
+    // New collection, then the first MAX_LISTED_COLLECTIONS names.
+    expect(screen.getAllByRole("option")).toHaveLength(MAX_LISTED_COLLECTIONS + 1);
+    expect(optionNames()[1]).toBe(`${"L".repeat(MAX_LABEL_LENGTH)}… (0 maps)`);
+    expect(select).toHaveAccessibleDescription(
+      "Your file has 2 more collections than this list shows. To add to one of them, pick New collection and type its exact name.",
+    );
+
+    const last = `c${MAX_LISTED_COLLECTIONS}`;
+    await user.clear(screen.getByLabelText("Name"));
+    await user.type(screen.getByLabelText("Name"), last);
+    expect(screen.getByText(`Adds 2 maps to "${last}".`)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Download collection.db" }));
+    const written = readCollectionDb((await downloaded(download)).bytes).collections;
+    expect(written).toHaveLength(collections.length);
+    expect(written.at(-1)).toEqual({ name: last, hashes: HASHES });
+    // That collection isn't in the list, so the pick stays on the typed name.
+    expect(select).toHaveValue("new");
+    expect(screen.getByText(`All of these maps are already in "${last}".`)).toBeInTheDocument();
   });
 
   it("builds a second add on the first download", async () => {

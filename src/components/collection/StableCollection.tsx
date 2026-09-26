@@ -1,13 +1,15 @@
 /**
  * @file src/components/collection/StableCollection.tsx
- * @desc The osu!stable side of "Add to osu! collection": pick your collection.db (read in this
- *       tab, not uploaded or kept), choose one of its collections or name a new one, see what
- *       changes, then download the whole file with the pack's maps added. Read and name errors
- *       show the package's code; a good read is announced. The input is locked while a file
- *       reads. After a download the edited file stays loaded, so a second add builds on the
- *       first. A focused control that disables or removes itself hands focus on instead of
- *       dropping it to the page: the file input gets it back after a read, and the Download and
- *       "instead" buttons pass it to the Collection select.
+ * @desc The osu!stable side of "Add to osu! collection": close osu!, pick your collection.db
+ *       (read in this tab, not uploaded or kept), choose one of its collections or name a new
+ *       one, see what changes, then download the whole file with the pack's maps added. Read,
+ *       name and save errors show the package's code; a good read is announced. The input is
+ *       locked while a file reads. The list shows at most MAX_LISTED_COLLECTIONS names, clipped
+ *       when very long; a typed exact name reaches the rest. After a download the edited file
+ *       stays loaded, so a second add builds on the first. A focused control that disables or
+ *       removes itself hands focus on instead of dropping it to the page: the file input gets it
+ *       back after a read, and the Download and "instead" buttons pass it to the Collection
+ *       select.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
  * @modified Fri Sep 25, 2026
@@ -21,16 +23,22 @@ import {
   type CollectionDb,
   CollectionDbError,
   type CollectionDbRead,
+  MAX_COLLECTION_DB_BYTES,
 } from "@haruhimemoe/osu/collections";
 import { Button, Notice, Select, TextInput } from "@haruhimemoe/ui";
 import { type ChangeEvent, useEffect, useId, useMemo, useRef, useState } from "react";
 import { readCollectionFile, stableCollectionFile } from "@/lib/collections/collection-files";
-import { collectionErrorText, defaultCollectionName } from "@/utils/osu-collection";
+import {
+  collectionErrorText,
+  collectionLabel,
+  collectionOptions,
+  defaultCollectionName,
+} from "@/utils/osu-collection";
 
 /** The Select's value for "New collection". Existing collections use their index. */
 const NEW = "new";
 const FILE_HINT =
-  "It's in your osu! folder, next to osu!.db (on Windows, usually %LOCALAPPDATA%\\osu!). packs reads it in this tab. It isn't uploaded or saved.";
+  "Close osu! first, so the file has your latest changes. It's in your osu! folder, next to osu!.db (on Windows, usually %LOCALAPPDATA%\\osu!). packs reads it in this tab. It isn't uploaded or saved.";
 
 export type StableCollectionProps = {
   /** The pack's name, for a new collection's default name. */
@@ -55,10 +63,9 @@ type Preview = { kind: "error"; message: string } | ({ kind: "ok" } & Added);
 
 const countMaps = (n: number): string => `${n} ${n === 1 ? "map" : "maps"}`;
 const countCollections = (n: number): string => `${n} ${n === 1 ? "collection" : "collections"}`;
-const shown = (name: string): string => (name === "" ? "(no name)" : name);
 
 const previewText = (added: Added, name: string): string => {
-  const quoted = `"${shown(name)}"`;
+  const quoted = `"${collectionLabel(name)}"`;
   if (added.created) return `Makes a new collection ${quoted} with ${countMaps(added.added)}.`;
   if (added.added === 0) return `All of these maps are already in ${quoted}.`;
   const already =
@@ -98,10 +105,19 @@ const unusualText = ({ kept, dropped, unlisted }: Unusual): string => {
   return sentences.join(" ");
 };
 
-const saveErrorText = (error: unknown): string =>
-  error instanceof CollectionDbError
-    ? collectionErrorText(error)
-    : "Couldn't save collection.db. Try again.";
+const MAX_MIB = MAX_COLLECTION_DB_BYTES / (1024 * 1024);
+
+const saveErrorText = (error: unknown): string => {
+  if (!(error instanceof CollectionDbError)) return "Couldn't save collection.db. Try again.";
+  // Writing, too_large means the edited file, not the one picked: the read would have refused it.
+  if (error.code === "too_large") {
+    return `With these maps, collection.db would be over ${MAX_MIB} MiB, more than packs writes (${error.code}).`;
+  }
+  return collectionErrorText(error);
+};
+
+const unlistedHint = (unlisted: number): string =>
+  `Your file has ${unlisted} more ${unlisted === 1 ? "collection" : "collections"} than this list shows. To add to one of them, pick New collection and type its exact name.`;
 
 export function StableCollection({
   packName,
@@ -156,14 +172,11 @@ export function StableCollection({
   };
 
   // A name that repeats in the file is listed once: adding goes to its first collection.
-  const options = useMemo(() => {
-    const seen = new Set<string>();
-    return (loaded?.db.collections ?? []).flatMap((collection, index) => {
-      if (seen.has(collection.name)) return [];
-      seen.add(collection.name);
-      return [{ value: String(index), name: collection.name, count: collection.hashes.length }];
-    });
-  }, [loaded]);
+  const { options, unlisted } = useMemo(
+    () => collectionOptions(loaded?.db.collections ?? []),
+    [loaded],
+  );
+  const listed = useMemo(() => new Set(options.map((option) => option.value)), [options]);
 
   const existingName =
     loaded && picked !== NEW ? (loaded.db.collections[Number(picked)]?.name ?? null) : null;
@@ -186,6 +199,8 @@ export function StableCollection({
     preview?.kind === "ok" && preview.similarName !== null && loaded
       ? loaded.db.collections.findIndex((collection) => collection.name === preview.similarName)
       : -1;
+  // Only a listed collection can be picked; an unlisted one is reached by typing its name.
+  const similarListed = listed.has(String(similarIndex));
 
   const pick = (value: string) => {
     setPicked(value);
@@ -201,11 +216,15 @@ export function StableCollection({
       return;
     }
     setSaveError(null);
-    // Keep the edited file: a second add builds on this one.
+    // Keep the edited file: a second add builds on this one. Pick the collection when the list
+    // shows it (a new one lands at the end, past a full list); otherwise the typed name stays,
+    // and it now names that collection.
+    const next = collectionOptions(preview.db.collections).options;
+    const index = String(preview.index);
     setLoaded({ db: preview.db, unusual: loaded.unusual });
-    setPicked(String(preview.index));
+    setPicked(next.some((option) => option.value === index) ? index : NEW);
     setStatus(
-      `Downloaded collection.db with ${countMaps(preview.added)} added to "${shown(name)}".`,
+      `Downloaded collection.db with ${countMaps(preview.added)} added to "${collectionLabel(name)}".`,
     );
     // Everything is in that collection now, so the button disables itself: move on from it.
     collectionRef.current?.focus();
@@ -235,12 +254,13 @@ export function StableCollection({
             id={`${id}-collection`}
             label="Collection"
             value={picked}
+            hint={unlisted > 0 ? unlistedHint(unlisted) : undefined}
             onChange={(event) => pick(event.currentTarget.value)}
           >
             <option value={NEW}>New collection</option>
             {options.map((option) => (
               <option key={option.value} value={option.value}>
-                {`${shown(option.name)} (${countMaps(option.count)})`}
+                {option.label}
               </option>
             ))}
           </Select>
@@ -269,9 +289,9 @@ export function StableCollection({
           {preview?.kind === "ok" && preview.similarName !== null ? (
             <div className="flex flex-col items-start gap-2">
               <Notice tone="warning">
-                {`You already have "${shown(preview.similarName)}". Case and spaces count, so this makes a second collection.`}
+                {`You already have "${collectionLabel(preview.similarName)}". Case and spaces count, so this makes a second collection.`}
               </Notice>
-              {similarIndex >= 0 ? (
+              {similarListed ? (
                 <Button
                   variant="secondary"
                   onClick={() => {
@@ -280,7 +300,7 @@ export function StableCollection({
                     collectionRef.current?.focus();
                   }}
                 >
-                  {`Add to "${shown(preview.similarName)}" instead`}
+                  {`Add to "${collectionLabel(preview.similarName)}" instead`}
                 </Button>
               ) : null}
             </div>
@@ -289,8 +309,9 @@ export function StableCollection({
             <p className="font-bold text-c1">Then, to use it:</p>
             <ol className="flex list-decimal flex-col gap-1 pl-5 text-c2">
               <li>
-                Close osu! first. It reads collection.db when it starts and saves its own copy
-                later, so it ignores a file swapped while it runs, then overwrites it.
+                Keep osu! closed until the new file is in place. It reads collection.db when it
+                starts and saves its own copy later, so it ignores a file swapped while it runs,
+                then overwrites it.
               </li>
               <li>Keep a copy of your old collection.db.</li>
               <li>

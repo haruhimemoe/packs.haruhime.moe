@@ -4,7 +4,9 @@
  *       map, pool order by the pack's own buckets, a map in two slots, the maps left out and why,
  *       one entry per map), the default name for a new collection (trim, control characters, lone
  *       surrogates, the 127-byte cut, always a name addToCollection takes), the error text with
- *       the package's codes, and the osu!lazer zip's name (no dot but the one before zip).
+ *       the package's codes, the osu!lazer zip's name (no dot but the one before zip), how a
+ *       collection's name shows (an empty one, a very long one clipped), and the collection list
+ *       (a repeated name once, at most MAX_LISTED_COLLECTIONS, the rest counted).
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
  * @modified Fri Sep 25, 2026
@@ -21,9 +23,13 @@ import type { MetaState } from "@/hooks/beatmapMetaState";
 import type { Pool } from "@/schemas/pack";
 import {
   collectionErrorText,
+  collectionLabel,
   collectionMaps,
+  collectionOptions,
   defaultCollectionName,
   lazerZipName,
+  MAX_LABEL_LENGTH,
+  MAX_LISTED_COLLECTIONS,
 } from "@/utils/osu-collection";
 import { foundWith, MD5_A, MD5_ABC, MD5_DIGEST, metaFrom } from "../../helpers/collections";
 
@@ -251,5 +257,74 @@ describe("lazerZipName", () => {
         expect(stem).toMatch(/^[^.<>:"/\\|?*\p{Cc}]+ collection$/u);
       }),
     );
+  });
+});
+
+describe("collectionLabel", () => {
+  it.each([
+    ["Farm", "Farm"],
+    [" Farm ", " Farm "],
+    ["", "(no name)"],
+    ["練習", "練習"],
+  ])("shows %j as %j", (name, label) => {
+    expect(collectionLabel(name)).toBe(label);
+  });
+
+  it("shows every name packs can make in full", () => {
+    // A new name is at most 127 UTF-8 bytes, so at most 127 characters.
+    expect(MAX_LABEL_LENGTH).toBeGreaterThanOrEqual(127);
+    expect(collectionLabel("a".repeat(127))).toBe("a".repeat(127));
+  });
+
+  it("clips a longer name from the file on a character boundary", () => {
+    expect(collectionLabel("a".repeat(MAX_LABEL_LENGTH + 1))).toBe(
+      `${"a".repeat(MAX_LABEL_LENGTH)}…`,
+    );
+    const emoji = "😀".repeat(MAX_LABEL_LENGTH + 5);
+    expect(collectionLabel(emoji)).toBe(`${"😀".repeat(MAX_LABEL_LENGTH)}…`);
+  });
+});
+
+describe("collectionOptions", () => {
+  const named = (...names: string[]) => names.map((name) => ({ name, hashes: [MD5_A] }));
+
+  it("lists each name once, the first collection with it, labelled with its map count", () => {
+    expect(
+      collectionOptions([
+        { name: "Farm", hashes: [MD5_A, MD5_ABC] },
+        { name: "", hashes: [] },
+        { name: "Farm", hashes: [] },
+        { name: "Tech", hashes: [MD5_A] },
+      ]),
+    ).toEqual({
+      options: [
+        { value: "0", label: "Farm (2 maps)" },
+        { value: "1", label: "(no name) (0 maps)" },
+        { value: "3", label: "Tech (1 map)" },
+      ],
+      unlisted: 0,
+    });
+  });
+
+  it(`lists at most ${MAX_LISTED_COLLECTIONS} and counts the rest`, () => {
+    const many = named(...Array.from({ length: MAX_LISTED_COLLECTIONS + 3 }, (_, i) => `c${i}`));
+    const { options, unlisted } = collectionOptions([...many, ...named("c0")]);
+    expect(options).toHaveLength(MAX_LISTED_COLLECTIONS);
+    expect(options.at(-1)).toEqual({
+      value: String(MAX_LISTED_COLLECTIONS - 1),
+      label: `c${MAX_LISTED_COLLECTIONS - 1} (1 map)`,
+    });
+    // The repeated c0 at the end doesn't count as a collection you can't pick.
+    expect(unlisted).toBe(3);
+  });
+
+  it("takes a smaller limit", () => {
+    expect(collectionOptions(named("a", "b", "c"), 2)).toEqual({
+      options: [
+        { value: "0", label: "a (1 map)" },
+        { value: "1", label: "b (1 map)" },
+      ],
+      unlisted: 1,
+    });
   });
 });
