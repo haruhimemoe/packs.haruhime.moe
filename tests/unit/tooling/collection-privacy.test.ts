@@ -1,9 +1,10 @@
 /**
  * @file tests/unit/tooling/collection-privacy.test.ts
  * @desc A player's collection.db never leaves the browser: nothing in the collection card's code
- *       makes a request, submits a form, declares a server action, stores anything (cookies, the
- *       Cache API and packs' own src/lib/storage/ included) or logs, and it imports only modules
- *       on a short list, so it can't reach packs' storage or request helpers through an import.
+ *       (both the osu!stable and osu!lazer sides) makes a request, submits a form, declares a
+ *       server action, stores anything (cookies, the Cache API and packs' own src/lib/storage/
+ *       included) or logs, and it imports only modules on a short list, so it can't reach packs'
+ *       storage or request helpers through an import.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
  * @modified Fri Sep 25, 2026
@@ -64,6 +65,7 @@ describe("collection code", () => {
     expect(COLLECTION_CODE).toEqual(
       expect.arrayContaining([
         "src/components/collection/CollectionPanel.tsx",
+        "src/components/collection/LazerCollection.tsx",
         "src/components/collection/StableCollection.tsx",
         "src/lib/collections/collection-files.ts",
         "src/utils/osu-collection.ts",
