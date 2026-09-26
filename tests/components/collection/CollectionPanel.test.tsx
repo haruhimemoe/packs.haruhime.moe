@@ -10,7 +10,7 @@
  *       info, and each side keeping its state when you switch.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import { readCollectionDb } from "@haruhimemoe/osu/collections";
@@ -84,8 +84,11 @@ describe("CollectionPanel", () => {
       collectionFile(TV1_EMPTY),
     );
     expect(
-      await within(card()).findByText("The preview shows once every map's info has loaded."),
+      await within(card()).findByText(
+        `Some map info didn't load. Press "Retry loading maps" in the Download card, and the preview shows once it has.`,
+      ),
     ).toBeInTheDocument();
+    expect(within(card()).queryByText(/The preview shows once/)).not.toBeInTheDocument();
     expect(within(card()).queryByText(/Loading map info/)).not.toBeInTheDocument();
   });
 

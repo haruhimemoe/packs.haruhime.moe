@@ -4,15 +4,17 @@
  *       (read in this tab, not uploaded or kept), choose one of its collections or name a new
  *       one, see what changes, then download the whole file with the pack's maps added. Read,
  *       name and save errors show the package's code; a good read is announced. The input is
- *       locked while a file reads. The list shows at most MAX_LISTED_COLLECTIONS names, clipped
- *       when very long; a typed exact name reaches the rest. After a download the edited file
- *       stays loaded, so a second add builds on the first. A focused control that disables or
- *       removes itself hands focus on instead of dropping it to the page: the file input gets it
- *       back after a read, and the Download and "instead" buttons pass it to the Collection
- *       select.
+ *       locked while a file reads and cleared after each pick, so the same file can be picked
+ *       again. The list shows at most MAX_LISTED_COLLECTIONS names, clipped when very long; a
+ *       typed exact name (outer spaces and all) reaches the rest, and any other typed name loses
+ *       its outer spaces. Until the map info is ready the preview waits, or points at the retry
+ *       when it failed. After a download the edited file stays loaded, so a second add builds on
+ *       the first. A focused control that disables or removes itself hands focus on instead of
+ *       dropping it to the page: the file input gets it back after a read, and the Download and
+ *       "instead" buttons pass it to the Collection select.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 "use client";
@@ -45,6 +47,8 @@ export type StableCollectionProps = {
   packName: string;
   /** The pack's MD5s, or null while the map info isn't ready. */
   hashes: readonly string[] | null;
+  /** True when some map info failed to load (hashes is null then), so it points at the retry. */
+  mapInfoFailed?: boolean;
   /** Saves a file from the click (the card passes downloadBlob). */
   download: (blob: Blob, filename: string) => void;
   /** Test seam. Default: readCollectionFile. */
@@ -122,6 +126,7 @@ const unlistedHint = (unlisted: number): string =>
 export function StableCollection({
   packName,
   hashes,
+  mapInfoFailed = false,
   download,
   readFile = readCollectionFile,
 }: StableCollectionProps) {
@@ -148,8 +153,11 @@ export function StableCollection({
   }, [reading]);
 
   const onFile = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.currentTarget.files?.[0];
+    const input = event.currentTarget;
+    const file = input.files?.[0];
     if (!file) return;
+    // Clear the pick, so picking the same file again (say, after a read error) still fires change.
+    input.value = "";
     setReading(true);
     setReadError(null);
     setStatus("");
@@ -180,8 +188,15 @@ export function StableCollection({
 
   const existingName =
     loaded && picked !== NEW ? (loaded.db.collections[Number(picked)]?.name ?? null) : null;
+  const names = useMemo(
+    () => new Set(loaded?.db.collections.map((collection) => collection.name)),
+    [loaded],
+  );
   const typedOrDefault = typedName ?? defaultCollectionName(packName);
-  const name = existingName ?? typedOrDefault.trim();
+  // A typed name that is exactly one in the file, outer spaces and all, adds to that collection:
+  // that's how an unlisted one with outer spaces is reached. Otherwise outer spaces are dropped,
+  // since a new name can't have them.
+  const name = existingName ?? (names.has(typedOrDefault) ? typedOrDefault : typedOrDefault.trim());
 
   const preview = useMemo((): Preview | null => {
     if (!loaded || !hashes || hashes.length === 0) return null;
@@ -281,7 +296,11 @@ export function StableCollection({
             <Notice tone="error">{preview.message}</Notice>
           ) : null}
           {hashes === null ? (
-            <p className="text-c3 text-sm">The preview shows once every map's info has loaded.</p>
+            <p className="text-c3 text-sm">
+              {mapInfoFailed
+                ? `Some map info didn't load. Press "Retry loading maps" in the Download card, and the preview shows once it has.`
+                : "The preview shows once every map's info has loaded."}
+            </p>
           ) : null}
           {preview?.kind === "ok" ? (
             <p className="text-c2 text-sm">{previewText(preview, name)}</p>

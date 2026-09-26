@@ -8,7 +8,7 @@
  *       Downloads are plain browser downloads started by the click.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 "use client";
@@ -111,7 +111,12 @@ export function CollectionPanel({ pack, getMeta, download = downloadBlob }: Coll
           ))}
         </fieldset>
         <div hidden={client !== "stable"}>
-          <StableCollection packName={pack.name} hashes={hashes} download={download} />
+          <StableCollection
+            packName={pack.name}
+            hashes={hashes}
+            mapInfoFailed={maps.status === "error"}
+            download={download}
+          />
         </div>
         <div hidden={client !== "lazer"}>
           <LazerCollection packName={pack.name} hashes={hashes} download={download} />

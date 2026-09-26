@@ -3,17 +3,19 @@
  * @desc The osu!stable side of the card: read errors with the package's codes (and a good file
  *       clearing them), a good read announced, the collection list (a repeated name once, an
  *       empty name), unusual entries kept and empty map entries left out (singular, plural, past
- *       the reader's list), the steps, the preview waiting for map info, the default name
+ *       the reader's list), the steps, the preview waiting for map info (or pointing at the retry
+ *       when it failed), the same file picked again after a read error, the default name
  *       (following the pack, clipped), name errors with their codes (empty, name_too_long,
- *       invalid_name), outer spaces ignored in a typed name, a typed name equal to a collection's
- *       adding to it, maps already there (plural), a similar name, a failed download keeping the
+ *       invalid_name), outer spaces ignored in a typed name unless it's exactly a collection's, a
+ *       typed name equal to a collection's adding to it, maps already there (plural), a similar
+ *       name, a failed download keeping the
  *       file and the pick, a second add building on the first download, the input locked while a
  *       file reads, focus kept on a control after each step, closing osu! before the file is
  *       picked, a list capped at MAX_LISTED_COLLECTIONS with a very long name clipped (and a
  *       typed name reaching the rest), and a new file too big to write.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import {
@@ -197,6 +199,33 @@ describe("StableCollection", () => {
     expect(screen.getByRole("button", { name: "Download collection.db" })).toBeDisabled();
   });
 
+  it("points at the retry when map info failed", async () => {
+    const { upload } = setup({ hashes: null, mapInfoFailed: true });
+    await upload(collectionFile(TV2_FARM));
+    expect(
+      await screen.findByText(
+        `Some map info didn't load. Press "Retry loading maps" in the Download card, and the preview shows once it has.`,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/The preview shows once every/)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Download collection.db" })).toBeDisabled();
+  });
+
+  it("reads the same file again after a read error", async () => {
+    const readFile = vi
+      .fn<(file: Blob) => Promise<CollectionDbRead>>()
+      .mockRejectedValueOnce(new CollectionDbError("bad_count", "x", { offset: 4 }))
+      .mockResolvedValueOnce(readCollectionDb(hex(TV2_FARM)));
+    const { upload } = setup({ readFile });
+    const file = collectionFile(TV2_FARM);
+    await upload(file);
+    expect(await screen.findByText(/packs can't read that file/)).toBeInTheDocument();
+    expect(screen.getByLabelText("Your collection.db")).toHaveValue("");
+    await upload(file);
+    expect(await screen.findByRole("option", { name: "Farm (2 maps)" })).toBeInTheDocument();
+    expect(readFile).toHaveBeenCalledTimes(2);
+  });
+
   it("says to close osu! before picking the file", () => {
     setup();
     expect(
@@ -309,6 +338,26 @@ describe("StableCollection", () => {
     await user.clear(name);
     await user.type(name, "Fa rm");
     expect(screen.getByText('Makes a new collection "Fa rm" with 2 maps.')).toBeInTheDocument();
+  });
+
+  it("keeps outer spaces when the typed name is exactly one in the file", async () => {
+    const { upload, user, download } = setup();
+    const padded = writeCollectionDb({
+      version: 20150203,
+      collections: [{ name: " Farm ", hashes: [MD5_EMPTY] }],
+    });
+    await upload(new File([padded], "collection.db"));
+    const name = await screen.findByLabelText("Name");
+    await user.clear(name);
+    await user.type(name, "  Farm  ");
+    expect(screen.getByText('Makes a new collection "Farm" with 2 maps.')).toBeInTheDocument();
+    await user.clear(name);
+    await user.type(name, " Farm ");
+    expect(screen.getByText('Adds 2 maps to " Farm ".')).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Download collection.db" }));
+    expect(readCollectionDb((await downloaded(download)).bytes).collections).toEqual([
+      { name: " Farm ", hashes: [MD5_EMPTY, MD5_A, MD5_ABC] },
+    ]);
   });
 
   it("says how many maps are already in the collection", async () => {
