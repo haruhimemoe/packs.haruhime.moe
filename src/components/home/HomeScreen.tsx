@@ -4,7 +4,7 @@
  *       WebApplication + FAQPage structured data.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import { ButtonLink, Card, JsonLd, PageHeader } from "@haruhimemoe/ui";
@@ -71,7 +71,7 @@ export const HOME_FAQ = [
   {
     question: "Can I add a pack to my osu! collections?",
     answer:
-      "Yes. Use Add to osu! collection on the pack's page. On osu!stable, close osu!, load your collection.db and download it back with the maps added. On osu!lazer, download a zip and import it with lazer's setup wizard. Your collection.db is read in your browser and isn't uploaded.",
+      "Yes. Use \"Add to osu! collection\" on the pack's page. On osu!stable, close osu!, load your collection.db and download it back with the maps added, then put it in your osu! folder in place of the old one before you start osu!. On osu!lazer, download a zip and import it with lazer's setup wizard. Your collection.db is read in your browser and isn't uploaded.",
   },
 ] as const;
 

@@ -2,10 +2,10 @@
  * @file tests/components/app/HomePage.test.tsx
  * @desc Home page: headline, primary CTA to the builder, key paste box, the three feature cards,
  *       the FAQ (how public pack filters match and sort, where Copy ID is, and adding a pack to
- *       an osu! collection, included).
+ *       an osu! collection, down to swapping the file in, included).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -104,9 +104,11 @@ describe("HomeScreen", () => {
     expect(
       screen.getByRole("heading", { level: 3, name: "Can I add a pack to my osu! collections?" }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Use Add to osu! collection on the pack's page/)).toBeInTheDocument();
+    expect(screen.getByText(/Use "Add to osu! collection" on the pack's page/)).toBeInTheDocument();
     expect(
-      screen.getByText(/On osu!stable, close osu!, load your collection\.db/),
+      screen.getByText(
+        /On osu!stable, close osu!, load your collection\.db and download it back with the maps added, then put it in your osu! folder in place of the old one before you start osu!\./,
+      ),
     ).toBeInTheDocument();
   });
 
