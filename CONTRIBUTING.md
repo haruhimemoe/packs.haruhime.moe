@@ -1,6 +1,6 @@
 # Contributing
 
-Bug reports and fixes are welcome. For anything bigger than a fix, open an [issue](https://github.com/haruhimemoe/packs.haruhime.moe/issues) first so we can agree on it.
+Bug reports and fixes are welcome. For anything bigger than a fix, open an [issue](https://github.com/haruhimemoe/packs.haruhime.moe/issues) first so we can agree on it. Questions are welcome in our [Discord server](https://discord.gg/bKy9kjMV4y).
 
 Read [AGENTS.md](./AGENTS.md) before changing code. It has the layout, code style and data rules.
 
@@ -14,7 +14,7 @@ cp .env.example .env.local
 bun run dev
 ```
 
-The dev server runs on http://localhost:3000. The anonymous tool (build, key, zip, torrent) works without any variables. Accounts, saved packs and the public pack list need a MongoDB database and an osu! OAuth app: fill in the first five variables in `.env.local` (each one has a comment in `.env.example`).
+The dev server runs on http://localhost:3000. The anonymous tool (build, key, zip, torrent, osu! collections) works without any variables. Accounts, saved packs and the public pack list need a MongoDB database and an osu! OAuth app: fill in the first five variables in `.env.local` (each one has a comment in `.env.example`).
 
 `bun install` also sets up a lefthook pre-commit hook that runs Biome on staged files.
 

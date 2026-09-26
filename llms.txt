@@ -11,7 +11,7 @@
 
 ## Docs
 
-- [README](https://github.com/haruhimemoe/packs.haruhime.moe#readme): what packs does, its features, stack and the shared packages it uses
+- [README](https://github.com/haruhimemoe/packs.haruhime.moe#readme): what packs does, its features, stack, the shared packages it uses and where to get help
 - [AGENTS.md](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/AGENTS.md): conventions, invariants (no file hosting, pack keys, accounts, public packs, the pools service endpoint, pack stats, osu! collections) and file layout for AI coding agents
 - [CONTRIBUTING.md](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/CONTRIBUTING.md): setup, environment variables, tests and the checks a PR must pass
 - [SECURITY.md](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/SECURITY.md): how to report a vulnerability
@@ -28,9 +28,10 @@
 
 - [@haruhimemoe/pool](https://github.com/haruhimemoe/pool): the mappool shape, mod rules, pasted-pool parsing and the pack key codec packs uses
 - [@haruhimemoe/hinai](https://github.com/haruhimemoe/hinai): the client for the hinai beatmap mirror
-- [@haruhimemoe/osu](https://github.com/haruhimemoe/osu): osu! API v2 shapes and the server client
+- [@haruhimemoe/osu](https://github.com/haruhimemoe/osu): osu! API v2 shapes, the server client, and the collection.db reader and writer behind "Add to osu! collection"
 - [@haruhimemoe/ui](https://github.com/haruhimemoe/ui): the React components and theme the site is built from
 - [@haruhimemoe/brand](https://github.com/haruhimemoe/brand): generates the logos, icons and link preview
 - [haruhime Claude Code plugin](https://github.com/haruhimemoe/claude-plugin): skills for osu! tools, including one for packs and its API
+- [pools.haruhime.moe](https://pools.haruhime.moe): osu! tournament mappools, in beta. It gets pools from tournament hosts, community submissions and sources like otdb, and publishes them to packs as packs owned by haruhime pools
 - [haruhime.moe](https://github.com/haruhimemoe/haruhime.moe): the home page for haruhime's osu! tournament tools
 - [Discord](https://discord.gg/bKy9kjMV4y): our public Discord server

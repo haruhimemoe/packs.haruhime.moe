@@ -2,12 +2,13 @@
  * @file tests/unit/content/api-docs-content.test.ts
  * @desc content/docs/api.mdx documents every endpoint in the OpenAPI route table, the real
  *       limits, the headers, every error code the API sends, what PUT does to fields left out,
- *       pins and hidden packs, the owner name, pack stats and every index key, and the Claude
- *       Code plugin;
- *       every doc stays plain Markdown so /docs/<slug>.md can serve it as is.
+ *       pins and hidden packs, the owner name, pack stats and every index key, the Claude Code
+ *       plugin, where to ask for help (our Discord server), and a Changes list that doesn't call
+ *       the haruhime pools packs past pools; every doc stays plain Markdown so /docs/<slug>.md can
+ *       serve it as is.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { readFileSync } from "node:fs";
@@ -23,6 +24,7 @@ import {
 } from "@/constants/pack";
 import { POOLS_ACCOUNT } from "@/constants/pools";
 import { SEARCH_INDEX_LIMIT } from "@/constants/public-packs";
+import { SITE } from "@/constants/site";
 import { errorCodeFor } from "@/lib/api";
 import { API_OPERATIONS } from "@/lib/openapi";
 import { packStatsSchema } from "@/schemas/pack-stats";
@@ -182,9 +184,23 @@ describe("the Claude Code plugin section", () => {
   ])("has %j", (phrase) => {
     expect(text()).toContain(phrase);
   });
+});
+
+describe("help", () => {
+  it("points to our Discord server", () => {
+    expect(text()).toContain("## Help");
+    expect(text()).toContain(`[Discord server](${SITE.discordUrl})`);
+  });
+
+  it("doesn't call the haruhime pools packs past pools in Changes", () => {
+    expect(text()).not.toMatch(/past (osu! )?tournament pools are/i);
+    expect(text()).toContain(
+      "Tournament pools from pools.haruhime.moe are plain packs owned by `haruhime pools`.",
+    );
+  });
 
   it("dates the doc to the change", () => {
-    expect(DOC_DOCS.api.lastUpdated).toBe("2026-09-24");
+    expect(DOC_DOCS.api.lastUpdated).toBe("2026-09-25");
   });
 });
 

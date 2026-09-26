@@ -1,3 +1,5 @@
+<p align="center"><a href="https://packs.haruhime.moe"><picture><source media="(prefers-color-scheme: light)" srcset="https://www.haruhime.moe/brand/repos/packs.haruhime.moe-banner-on-light.svg"><img alt="packs.haruhime.moe" src="https://www.haruhime.moe/brand/repos/packs.haruhime.moe-banner.svg" width="640"></picture></a></p>
+
 # packs.haruhime.moe
 
 Build osu! beatmap packs for tournaments at **https://packs.haruhime.moe**. Paste beatmap IDs, osu! links or spreadsheet rows, sort the maps into a mappool (NM1 to TB, plus your own custom slots), and download the whole pool as one zip or a torrent. Every pack gets a pack key, a short piece of text that rebuilds the same pool when someone pastes it.
@@ -13,7 +15,7 @@ The site never hosts beatmap files. Each `.osz` goes from the beatmap mirror str
 - **Star ratings with mods:** each slot shows the ratings for the mods it's played with.
 - **osu! collections:** add a pack's maps to an osu!stable collection (load your `collection.db`, download it back with the maps added) or import them into osu!lazer through its setup wizard. The file stays in your browser.
 - **Accounts (optional):** sign in with osu! to save packs, get a short `/p/<slug>` link, and list a pack publicly.
-- **Public packs:** search, filter by star rating, length, BPM, mods, mode and map count, and sort the packs other hosts chose to share. A few pinned packs sit on top.
+- **Public packs:** search, filter by star rating, length, BPM, mods, mode and map count, and sort the packs other hosts chose to share. A few pinned packs sit on top. Tournament pools from [pools.haruhime.moe](https://pools.haruhime.moe) (in beta) are listed too, owned by haruhime pools.
 - **API:** read public packs and manage your own from scripts and bots. See [/docs/api](https://packs.haruhime.moe/docs/api).
 
 ## Docs
@@ -40,6 +42,10 @@ packs uses these shared haruhime.moe packages:
 
 MIT. See [LICENSE](LICENSE). Not affiliated with or endorsed by ppy Pty Ltd. osu! is a trademark of ppy Pty Ltd.
 
+## Help
+
+Ask questions in our [Discord server](https://discord.gg/bKy9kjMV4y), and report bugs in [GitHub issues](https://github.com/haruhimemoe/packs.haruhime.moe/issues). Report security issues privately, as [SECURITY.md](SECURITY.md) describes.
+
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Report security issues as described in [SECURITY.md](SECURITY.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md).

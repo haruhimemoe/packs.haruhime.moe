@@ -4,7 +4,7 @@ Rules for any agent (or human) working in this repo. Authoritative; `CLAUDE.md` 
 
 ## 1. What this is
 
-packs.haruhime.moe: a browser-first osu! beatmap pack builder, with saved packs, a public pack list and a public API. What users read about it lives in `README.md`, `content/guide/`, `content/docs/api.mdx` and `content/legal/`; section 7 says what has to stay in step with the code.
+packs.haruhime.moe: a browser-first osu! beatmap pack builder, with saved packs, a public pack list, a public API and a card that adds a pack to a player's osu! collections. What users read about it lives in `README.md`, `content/guide/`, `content/docs/api.mdx` and `content/legal/`; section 7 says what has to stay in step with the code.
 
 **Hard rule: we never host files.** No `.osz`, audio, image, or video bytes may pass through or be stored by our server code. Downloads go browser → mirror; exports are built in the browser.
 
@@ -16,7 +16,7 @@ src/components/   layout/ and feature folders (account/, admin/, auth/, beatmap/
 src/hooks/        client hooks (useBeatmapMeta, usePackDraft) + shared hook types
 src/constants/    static data (site, legal registry, mod buckets)
 src/utils/        pure, stateless helpers grouped by domain
-src/lib/          integration plumbing (API clients, auth, db, storage)
+src/lib/          integration plumbing (API clients, auth, db, storage, the collection files)
 src/services/     server-side DB operations
 src/models/       mongoose models (registered lazily on the shared connection)
 src/schemas/      zod schemas shared by client + server
@@ -71,7 +71,7 @@ osu!-web look from `@haruhimemoe/ui`: `src/app/globals.css` imports its theme (`
 
 Legal pages live in `content/legal/*.mdx`, registered in `src/constants/legal.ts`. When the wording changes, bump `lastUpdated` in the same commit. `tests/unit/content/legal-content.test.ts` guards the required clauses; if a test fails after an edit, the edit removed something that protects us. The Sources section of `content/legal/copyright.mdx` says where the haruhime pools account's packs come from (pools.haruhime.moe, which gets pools from tournament hosts, community submissions and sources like otdb, and credits each pool's sources); don't describe them as otdb's pools or as past pools only. A new per-IP counter gets listed in `privacy.mdx` ("Your IP address") and the table in `your-privacy-rights.mdx`. Every request our server makes to a third party (osu!, the mirror) is described in `privacy.mdx` ("Requests our server makes") and `disclaimers.mdx` ("How our requests identify themselves"); a new one updates both.
 
-Other user copy moves with the code in the same PR: an API change updates `content/docs/api.mdx` (and its Changes list), the OpenAPI operations in `src/lib/openapi.ts` and `tests/unit/content/api-docs-content.test.ts`; a change people see updates the guide that covers it, the homepage FAQ (`HOME_FAQ` in `src/components/home/HomeScreen.tsx`), the README's Features, and `src/utils/llms-txt.ts` when it touches a page, the search index or a keyless read. A guide's `lastUpdated` in `src/constants/guide.ts` moves with its text.
+Other user copy moves with the code in the same PR: an API change updates `content/docs/api.mdx` (and its Changes list), the OpenAPI operations in `src/lib/openapi.ts` and `tests/unit/content/api-docs-content.test.ts`; a change people see updates the guide that covers it, the homepage FAQ (`HOME_FAQ` in `src/components/home/HomeScreen.tsx`), the README's Features, and `src/utils/llms-txt.ts` when it touches a page, the search index or a keyless read. A guide's `lastUpdated` in `src/constants/guide.ts` moves with its text. Our Discord server (`SITE.discordUrl`) goes wherever the docs list help or contact: the footer, the README, CONTRIBUTING.md, SECURITY.md, the API docs and both llms.txt files (`tests/unit/tooling/repo-docs.test.ts` checks the repo's own docs).
 
 ## 8. Commits and PRs
 

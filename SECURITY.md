@@ -5,3 +5,5 @@ Please report vulnerabilities privately to **contact@haruhime.moe** instead of o
 In scope: this repository, the live site at https://packs.haruhime.moe and its API (`/api/v1`). Only the current `main` branch and the live site are supported.
 
 The `@haruhimemoe` packages packs uses have their own repositories and SECURITY.md files; report problems with them there. Report problems in third-party services (osu!, the beatmap mirror) to those services.
+
+For help with anything that isn't a vulnerability, ask in our [Discord server](https://discord.gg/bKy9kjMV4y). Don't post vulnerabilities there.

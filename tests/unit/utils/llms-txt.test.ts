@@ -1,10 +1,11 @@
 /**
  * @file tests/unit/utils/llms-txt.test.ts
  * @desc llms.txt follows the llmstxt.org shape, opens with the notes a reader needs first (no
- *       file hosting, pack keys, the haruhime pools account, the osu! collection card), is built
- *       from the registries (every guide and legal doc appears, docs by their .md copy), names
- *       osu! collections among the guides, spells out the /packs query string and the index keys,
- *       ends with our Discord server under Elsewhere, and every link is absolute and on one line.
+ *       file hosting, pack keys, the haruhime pools account and that pools is in beta, the osu!
+ *       collection card), is built from the registries (every guide and legal doc appears, docs
+ *       by their .md copy), names osu! collections among the guides, spells out the /packs query
+ *       string and the index keys, ends with our Discord server under Elsewhere, and every link
+ *       is absolute and on one line.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Fri Sep 25, 2026
@@ -35,6 +36,7 @@ describe("buildLlmsTxt", () => {
     "packs doesn't host beatmap files.",
     `opens at ${SITE.url}/k# followed by the key, with no account.`,
     "Packs owned by haruhime pools are osu! tournament mappools published from pools.haruhime.moe",
+    "pools.haruhime.moe (in beta)",
     "from tournament hosts, community submissions and other sources",
     "each pool's page there credits its sources.",
   ])("notes %j", (phrase) => {
