@@ -3,10 +3,11 @@
  * @desc The "Add to osu! collection" card: waiting for map info, pointing at the Download card's
  *       retry, the maps it leaves out and why, nothing to add, a whole osu!stable flow down to the
  *       downloaded bytes with no request and no storage on the way, the pool changing under a
- *       loaded file, and the osu!lazer side: the zip's name and files with no request or storage,
- *       the name used exactly as typed (outer spaces warned about, empty refused, a name UTF-8
- *       can't encode shown with its code), a failed save, waiting for map info, and each side
- *       keeping its state when you switch.
+ *       loaded file, and the osu!lazer side: hidden until it's picked, the zip's name and files
+ *       with no request or storage, the name used exactly as typed (outer spaces warned about,
+ *       with the warning read out as the field's description, empty refused, a name UTF-8 can't
+ *       encode shown with its code), a failed save, waiting for map info, and each side keeping
+ *       its state when you switch.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
  * @modified Fri Sep 25, 2026
@@ -190,8 +191,16 @@ describe("CollectionPanel for osu!lazer", () => {
     const download = vi.fn();
     render(<CollectionPanel pack={PACK} getMeta={metaFrom(READY)} download={download} />);
     expect(within(card()).getByRole("radio", { name: /osu!stable/ })).toBeChecked();
+    expect(
+      within(card()).queryByRole("textbox", { name: "Collection name in osu!lazer" }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(card()).queryByRole("button", { name: "Download zip for osu!lazer" }),
+    ).not.toBeInTheDocument();
     await toLazer(user);
-    expect(within(card()).getByLabelText("Collection name in osu!lazer")).toHaveValue("SPC Quals");
+    expect(
+      within(card()).getByRole("textbox", { name: "Collection name in osu!lazer" }),
+    ).toHaveValue("SPC Quals");
     expect(
       within(card()).getByText('Adds 2 maps to "SPC Quals". Maps already in it are skipped.'),
     ).toBeInTheDocument();
@@ -231,6 +240,7 @@ describe("CollectionPanel for osu!lazer", () => {
     await toLazer(user);
     const name = within(card()).getByLabelText("Collection name in osu!lazer");
     const button = within(card()).getByRole("button", { name: "Download zip for osu!lazer" });
+    expect(name).not.toHaveAccessibleDescription(/starts or ends with a space/);
     await user.clear(name);
     expect(within(card()).getByText("Type a collection name.")).toBeInTheDocument();
     expect(button).toBeDisabled();
@@ -243,6 +253,9 @@ describe("CollectionPanel for osu!lazer", () => {
         "This name starts or ends with a space. lazer treats it as a different collection from the same name without the space.",
       ),
     ).toBeInTheDocument();
+    expect(name).toHaveAccessibleDescription(
+      /any other name makes a new collection\. This name starts or ends with a space\. lazer treats it as a different collection/,
+    );
     await user.click(button);
     const files = unzipSync((await downloaded(download)).bytes);
     expect(readCollectionDb(files["collection.db"] ?? new Uint8Array()).collections[0]?.name).toBe(

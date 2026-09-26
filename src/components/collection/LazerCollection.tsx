@@ -1,10 +1,11 @@
 /**
  * @file src/components/collection/LazerCollection.tsx
  * @desc The osu!lazer side of "Add to osu! collection": the collection's name as it shows in lazer
- *       (used exactly as typed; empty refused, outer spaces warned about), then a zip holding a
- *       collection.db with just this pack's maps and an empty osu!.import.cfg, for the setup
- *       wizard's import from a previous osu! install, with the steps. Desktop only. A name the
- *       zip can't hold shows the package's code.
+ *       (used exactly as typed; empty refused, outer spaces warned about in a note the field
+ *       points at with aria-describedby), then a zip holding a collection.db with just this
+ *       pack's maps and an empty osu!.import.cfg, for the setup wizard's import from a previous
+ *       osu! install, with the steps. Desktop only. A name the zip can't hold, or any other
+ *       failure to build it, shows the package's code.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
  * @modified Fri Sep 25, 2026
@@ -16,7 +17,7 @@ import { CollectionDbError } from "@haruhimemoe/osu/collections";
 import { Button, Notice, TextInput } from "@haruhimemoe/ui";
 import { useId, useState } from "react";
 import { lazerCollectionZip } from "@/lib/collections/collection-files";
-import { collectionErrorText, defaultCollectionName, lazerZipName } from "@/utils/osu-collection";
+import { defaultCollectionName, lazerZipName } from "@/utils/osu-collection";
 
 export type LazerCollectionProps = {
   /** The pack's name, for the default collection name and the zip's name. */
@@ -30,13 +31,14 @@ export type LazerCollectionProps = {
 const countMaps = (n: number): string => `${n} ${n === 1 ? "map" : "maps"}`;
 
 // lazer takes a tab or a line break in a name, so the only name the zip refuses is one UTF-8
-// can't encode: a lone surrogate, usually half of an emoji.
+// can't encode: a lone surrogate, usually half of an emoji. Any other code is about building the
+// zip, never a file the player picked (that's the osu!stable side), so it gets its own sentence.
 const zipErrorText = (error: unknown): string => {
   if (!(error instanceof CollectionDbError)) return "Couldn't save the zip. Try again.";
   if (error.code === "invalid_name") {
     return `That name has a broken character, like half of an emoji (${error.code}).`;
   }
-  return collectionErrorText(error);
+  return `Couldn't build the zip (${error.code}). Try again.`;
 };
 
 export function LazerCollection({ packName, hashes, download }: LazerCollectionProps) {
@@ -50,6 +52,7 @@ export function LazerCollection({ packName, hashes, download }: LazerCollectionP
   const padded = !empty && name !== name.trim();
   const count = hashes?.length ?? 0;
   const zipName = lazerZipName(packName);
+  const paddedId = `${id}-padded`;
 
   const onDownload = () => {
     if (hashes === null || hashes.length === 0 || empty) return;
@@ -72,6 +75,7 @@ export function LazerCollection({ packName, hashes, download }: LazerCollectionP
         value={name}
         hint="Type it exactly as it shows in lazer. Case and spaces count: any other name makes a new collection."
         error={empty ? "Type a collection name." : undefined}
+        aria-describedby={padded ? paddedId : undefined}
         onChange={(event) => {
           setTypedName(event.currentTarget.value);
           setStatus("");
@@ -79,7 +83,7 @@ export function LazerCollection({ packName, hashes, download }: LazerCollectionP
         }}
       />
       {padded ? (
-        <Notice tone="warning">
+        <Notice id={paddedId} tone="warning">
           This name starts or ends with a space. lazer treats it as a different collection from the
           same name without the space.
         </Notice>
