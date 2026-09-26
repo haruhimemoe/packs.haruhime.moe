@@ -1,13 +1,14 @@
 /**
  * @file tests/unit/tooling/collection-privacy.test.ts
  * @desc A player's collection.db never leaves the browser: nothing in the collection card's code
- *       (both the osu!stable and osu!lazer sides) makes a request, submits a form, declares a
- *       server action, stores anything (cookies, the Cache API and packs' own src/lib/storage/
- *       included) or logs, and it imports only modules on a short list, so it can't reach packs'
- *       storage or request helpers through an import.
+ *       (both the osu!stable and osu!lazer sides) makes a request (event streams and beacons
+ *       included), submits a form, declares a server action, hands data to another window, a
+ *       worker or the clipboard, navigates, stores anything (cookies, the Cache API, IndexedDB and
+ *       packs' own src/lib/storage/ included) or logs, and it imports only modules on a short
+ *       list, so it can't reach packs' storage or request helpers through an import.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
@@ -26,7 +27,29 @@ const COLLECTION_CODE = [
   "src/utils/osu-collection.ts",
 ];
 const SENDS_OR_KEEPS =
-  /\bfetch\s*\(|FormData|sendBeacon|XMLHttpRequest|WebSocket|localStorage|sessionStorage|indexedDB|idb-keyval|document\.cookie|\bcaches\.|navigator\.storage|@\/lib\/storage\/|console\.|"use server"|<form\b/;
+  /\bfetch\s*\(|FormData|sendBeacon|XMLHttpRequest|WebSocket|EventSource|postMessage|\bnew\s+(?:Shared)?Worker\b|window\.open\b|\blocation\s*=(?!=)|\blocation\.(?:href|assign|replace)\b|navigator\.clipboard|localStorage|sessionStorage|indexedDB|idb-keyval|document\.cookie|\bcaches\.|navigator\.storage|@\/lib\/storage\/|console\.|"use server"|<form\b/;
+
+/** One line per way out the scan must catch. */
+const LEAKS = [
+  'fetch("/api", { body })',
+  "new FormData()",
+  "navigator.sendBeacon(url, bytes)",
+  "new XMLHttpRequest()",
+  "new WebSocket(url)",
+  "new EventSource(url)",
+  "navigator.clipboard.writeText(names)",
+  "window.parent.postMessage(bytes, '*')",
+  'new Worker("/worker.js")',
+  'new SharedWorker("/worker.js")',
+  "window.open(url)",
+  "location = url",
+  "window.location = url",
+  "location.href = url",
+  "localStorage.setItem(k, v)",
+  "indexedDB.open(name)",
+  "document.cookie = names",
+  'console.log("x")',
+];
 
 /** What the collection code may import. An entry ending in "/" allows that whole folder. */
 const ALLOWED_IMPORTS = [
@@ -71,6 +94,14 @@ describe("collection code", () => {
         "src/utils/osu-collection.ts",
       ]),
     );
+  });
+
+  it.each(LEAKS)("the scan catches %s", (line) => {
+    expect(SENDS_OR_KEEPS.test(line)).toBe(true);
+  });
+
+  it("the scan leaves plain comparisons alone", () => {
+    expect(SENDS_OR_KEEPS.test("if (location === here) return;")).toBe(false);
   });
 
   it("never sends, stores or logs anything", () => {

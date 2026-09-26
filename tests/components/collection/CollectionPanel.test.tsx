@@ -2,9 +2,10 @@
  * @file tests/components/collection/CollectionPanel.test.tsx
  * @desc The "Add to osu! collection" card: its link to the guide, waiting for map info, pointing
  *       at the Download card's retry, the maps it leaves out and why, nothing to add, a whole
- *       osu!stable flow down to the downloaded bytes with no request and no storage on the way,
- *       the pool changing under a loaded file, and the osu!lazer side: hidden until it's picked,
- *       the zip's name and files with no request or storage, the name used exactly as typed
+ *       osu!stable flow down to the downloaded bytes with no request, beacon or storage
+ *       (IndexedDB included) on the way, the pool changing under a loaded file, and the osu!lazer
+ *       side: hidden until it's picked, the zip's name and files with none of those either, the
+ *       name used exactly as typed
  *       (outer spaces warned about, with the warning read out as the field's description, empty
  *       refused, a name UTF-8 can't encode shown with its code), a failed save, waiting for map
  *       info, and each side keeping its state when you switch.
@@ -36,7 +37,31 @@ import {
 
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+  Reflect.deleteProperty(navigator, "sendBeacon");
 });
+
+/**
+ * Spies on each way the card could send or keep the file, and returns a check that none was used.
+ * jsdom has no IndexedDB or sendBeacon, so those two are stand-ins the card would reach if it
+ * tried.
+ */
+const watchLeaks = () => {
+  const openDb = vi.fn();
+  const sendBeacon = vi.fn(() => true);
+  vi.stubGlobal("indexedDB", { open: openDb });
+  Object.defineProperty(navigator, "sendBeacon", { configurable: true, value: sendBeacon });
+  const spies = [
+    vi.spyOn(globalThis, "fetch"),
+    vi.spyOn(XMLHttpRequest.prototype, "send"),
+    vi.spyOn(Storage.prototype, "setItem"),
+    openDb,
+    sendBeacon,
+  ];
+  return () => {
+    for (const spy of spies) expect(spy).not.toHaveBeenCalled();
+  };
+};
 
 const PACK: Pool = {
   name: "SPC Quals",
@@ -123,9 +148,7 @@ describe("CollectionPanel", () => {
   });
 
   it("adds the pack to a collection and downloads the whole file, with no request or storage", async () => {
-    const fetchSpy = vi.spyOn(globalThis, "fetch");
-    const send = vi.spyOn(XMLHttpRequest.prototype, "send");
-    const setItem = vi.spyOn(Storage.prototype, "setItem");
+    const expectNoLeaks = watchLeaks();
     const user = userEvent.setup();
     const download = vi.fn();
     render(<CollectionPanel pack={PACK} getMeta={metaFrom(READY)} download={download} />);
@@ -148,9 +171,7 @@ describe("CollectionPanel", () => {
     expect(
       within(card()).getByText('Downloaded collection.db with 1 map added to "Farm".'),
     ).toBeInTheDocument();
-    expect(fetchSpy).not.toHaveBeenCalled();
-    expect(send).not.toHaveBeenCalled();
-    expect(setItem).not.toHaveBeenCalled();
+    expectNoLeaks();
   });
 
   it("follows the pool when it changes under a loaded file", async () => {
@@ -195,9 +216,7 @@ describe("CollectionPanel for osu!lazer", () => {
     user.click(within(card()).getByRole("radio", { name: /osu!lazer/ }));
 
   it("downloads a zip for lazer's setup wizard, with the pack's name and maps", async () => {
-    const fetchSpy = vi.spyOn(globalThis, "fetch");
-    const send = vi.spyOn(XMLHttpRequest.prototype, "send");
-    const setItem = vi.spyOn(Storage.prototype, "setItem");
+    const expectNoLeaks = watchLeaks();
     const user = userEvent.setup();
     const download = vi.fn();
     render(<CollectionPanel pack={PACK} getMeta={metaFrom(READY)} download={download} />);
@@ -239,9 +258,7 @@ describe("CollectionPanel for osu!lazer", () => {
         "Downloaded SPC Quals collection.zip. Follow the steps above to import it.",
       ),
     ).toBeInTheDocument();
-    expect(fetchSpy).not.toHaveBeenCalled();
-    expect(send).not.toHaveBeenCalled();
-    expect(setItem).not.toHaveBeenCalled();
+    expectNoLeaks();
   });
 
   it("uses the name as typed, warns about outer spaces and refuses an empty one", async () => {
