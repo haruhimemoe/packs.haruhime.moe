@@ -4,11 +4,11 @@
  *       limits, the headers, every error code the API sends, what PUT does to fields left out,
  *       pins and hidden packs, the owner name, pack stats and every index key, the Claude Code
  *       plugin, where to ask for help (our Discord server), and a Changes list that doesn't call
- *       the haruhime pools packs past pools; every doc stays plain Markdown so /docs/<slug>.md can
- *       serve it as is.
+ *       the haruhime pools packs past pools and puts removed endpoints and keys in the past tense;
+ *       every doc stays plain Markdown so /docs/<slug>.md can serve it as is.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import { readFileSync } from "node:fs";
@@ -91,8 +91,21 @@ describe("content/docs/api.mdx", () => {
     );
     const changes = text().slice(text().indexOf("## Changes"));
     expect(changes.indexOf("removed map usage")).toBeLessThan(
-      changes.indexOf("list the archive pools a map was used in"),
+      changes.indexOf("listed the archive pools a map was used in"),
     );
+  });
+
+  it("puts the removed endpoints and keys in the past tense", () => {
+    const changes = text().slice(text().indexOf("## Changes"));
+    expect(changes).toContain(
+      "listed the archive pools a map was used in, until the removal above. They needed no key.",
+    );
+    expect(changes).toContain(
+      "archive packs (past tournament pools) carried `archive`, and their index entries carried `x`, `xk` and `xu`, until the removal above.",
+    );
+    expect(changes).not.toContain("list the archive pools a map was used in");
+    expect(changes).not.toContain("They need no key.");
+    expect(changes).not.toContain("carry `archive`");
   });
 });
 
@@ -200,7 +213,7 @@ describe("help", () => {
   });
 
   it("dates the doc to the change", () => {
-    expect(DOC_DOCS.api.lastUpdated).toBe("2026-09-25");
+    expect(DOC_DOCS.api.lastUpdated).toBe("2026-09-26");
   });
 });
 

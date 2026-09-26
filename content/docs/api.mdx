@@ -201,7 +201,7 @@ Questions about the API, or something not working as this page says? Ask in our 
 ## Changes
 
 - 2026-09-24: removed map usage (`GET /beatmaps/{id}/usage` and `GET /beatmaps/usage`), the `archive` field on pack objects, the index keys `x`, `xk` and `xu`, and the `source` filter on /packs (`source=`). They were live for about a day. Tournament pools from pools.haruhime.moe are plain packs owned by `haruhime pools`.
-- 2026-09-24: `GET /beatmaps/{id}/usage` and `GET /beatmaps/usage` list the archive pools a map was used in. They need no key.
-- 2026-09-24: archive packs (past tournament pools) carry `archive`, and their index entries carry `x`, `xk` and `xu`. The index lists them after community packs.
+- 2026-09-24: `GET /beatmaps/{id}/usage` and `GET /beatmaps/usage` listed the archive pools a map was used in, until the removal above. They needed no key.
+- 2026-09-24: archive packs (past tournament pools) carried `archive`, and their index entries carried `x`, `xk` and `xu`, until the removal above. The index listed them after community packs.
 - 2026-09-24: pack objects carry `stats`, and the search index carries them in short form. Index entries carry `t` (created) and are newest created first.
 - 2026-09-23: `GET /me/packs` is paged like `GET /packs`.

@@ -13,7 +13,7 @@ The site never hosts beatmap files. Each `.osz` goes from the beatmap mirror str
 - **Downloads:** one zip for the whole pool, with or without videos and backgrounds, and a download cache in your browser so a second pack reuses maps you already have.
 - **Torrents:** a `.torrent` file and a magnet link, built in your browser, with guides to seeding and downloading one.
 - **Star ratings with mods:** each slot shows the ratings for the mods it's played with.
-- **osu! collections:** add a pack's maps to an osu!stable collection (load your `collection.db`, download it back with the maps added) or import them into osu!lazer through its setup wizard. The file stays in your browser.
+- **osu! collections:** add a pack's maps to an osu!stable collection (load your `collection.db`, download it back with the maps added) or import them into osu!lazer through its setup wizard. Your collection.db stays in your browser.
 - **Accounts (optional):** sign in with osu! to save packs, get a short `/p/<slug>` link, and list a pack publicly.
 - **Public packs:** search, filter by star rating, length, BPM, mods, mode and map count, and sort the packs other hosts chose to share. A few pinned packs sit on top. Tournament pools from [pools.haruhime.moe](https://pools.haruhime.moe) (in beta) are listed too, owned by haruhime pools.
 - **API:** read public packs and manage your own from scripts and bots. See [/docs/api](https://packs.haruhime.moe/docs/api).
