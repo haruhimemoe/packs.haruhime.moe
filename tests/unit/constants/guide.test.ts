@@ -259,6 +259,8 @@ describe("osu-collections guide", () => {
     "the MD5 checksum of its `.osu` file",
     "## osu!stable",
     "`%LOCALAPPDATA%\\osu!`",
+    "paste `%LOCALAPPDATA%\\osu!` into the file picker's address bar",
+    "No `collection.db` yet? Make any collection in osu!, close osu!, then load the file it writes.",
     "**Download collection.db.**",
     "named exactly `collection.db`",
     "**Close osu!.** osu!stable saves collection changes a while after you make them",

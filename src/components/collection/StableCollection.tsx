@@ -42,7 +42,7 @@ import {
 /** The Select's value for "New collection". Existing collections use their index. */
 const NEW = "new";
 const FILE_HINT =
-  "Close osu! first, so the file has your latest changes. It's in your osu! folder, next to osu!.db (on Windows, usually %LOCALAPPDATA%\\osu!). packs reads it in this tab. It isn't uploaded or saved.";
+  "Close osu! first, so the file has your latest changes. It's in your osu! folder, next to osu!.db. On Windows that's usually %LOCALAPPDATA%\\osu!, in the hidden AppData folder: paste %LOCALAPPDATA%\\osu! into the file picker's address bar to get there. packs reads it in this tab. It isn't uploaded or saved. No collection.db yet? Make any collection in osu!, close osu!, then load the file it writes.";
 
 export type StableCollectionProps = {
   /** The pack's name, for a new collection's default name. */

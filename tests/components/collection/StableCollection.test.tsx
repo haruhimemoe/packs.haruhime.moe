@@ -237,6 +237,17 @@ describe("StableCollection", () => {
     );
   });
 
+  it("says how to reach the hidden folder, and what to do with no file yet", () => {
+    setup();
+    const input = screen.getByLabelText("Your collection.db");
+    expect(input).toHaveAccessibleDescription(
+      /in the hidden AppData folder: paste %LOCALAPPDATA%\\osu! into the file picker's address bar to get there\./,
+    );
+    expect(input).toHaveAccessibleDescription(
+      /No collection\.db yet\? Make any collection in osu!, close osu!, then load the file it writes\.$/,
+    );
+  });
+
   it("shows the steps to swap the file in", async () => {
     const { upload } = setup();
     await upload(collectionFile(TV1_EMPTY));
