@@ -4,10 +4,11 @@
  *       401, a failing IP 429, the right one through; no cross-site guard, since it reads no
  *       cookies), the ref (400), the pools account's pack for that pool deleted (204) with its
  *       page, /packs, the index, the homepage and the sitemap marked stale, and nothing else
- *       touched (another pool's pack, the account's other packs, another owner's pack with that
- *       origin id), 404 when there's none, 410 for a pool a moderator deleted, no tombstone
- *       written (a later PUT creates the pack again), and the stats job the save scheduled never
- *       bringing it back. The mirror and osu! are MSW.
+ *       touched (another pool's pack, the account's other packs, another owner's pack or another
+ *       origin kind with that origin id), 404 when there's none (never creating the pools
+ *       account), 410 for a pool a moderator deleted (nothing touched, even a pack mid-delete),
+ *       no tombstone written (a later PUT creates the pack again), and the stats job the save
+ *       scheduled never bringing it back. The mirror and osu! are MSW.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -184,6 +185,9 @@ describe("DELETE /api/service/pools/{ref}: answers", () => {
     expect(response.status).toBe(404);
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(await codeOf(response)).toBe("not_found");
+    expect(paths()).toEqual([]);
+    // Never creates the pools account, unlike a sync.
+    expect(await getDb().collection("user").countDocuments({})).toBe(0);
     await publish();
     expect((await remove()).status).toBe(204);
     vi.mocked(revalidatePath).mockClear();
