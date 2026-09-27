@@ -7,17 +7,21 @@
  *       cross-site guard. `ref` is the pools pool id; the body is exactly a pack input (unknown
  *       keys are a 400) with visibility required, and private is a 422. Answers 201 { slug,
  *       state: "created", listed }, 200 with state "updated" or "unchanged", or 410 gone when a
- *       moderator deleted the pool's pack. Never cached.
+ *       moderator deleted the pool's pack. DELETE: the pool went private or was deleted in pools,
+ *       so its pack goes: same token check and ref, no body read; 204 when the pools account's
+ *       pack for that pool was deleted, 404 not_found when there's none, 410 gone (nothing done)
+ *       when a moderator deleted it. It writes no tombstone, so a later PUT creates the pack
+ *       again. Never cached.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { jsonError, parseJsonBody } from "@/lib/api";
 import { refuseWithoutPoolsToken } from "@/lib/machine-auth";
 import { withHeaders } from "@/lib/rate-limit";
 import { poolsPackBodySchema, poolsRefSchema } from "@/schemas/pools-service";
-import { syncPoolsPack } from "@/services/pools-sync";
+import { deletePoolsPack, syncPoolsPack } from "@/services/pools-sync";
 
 type Context = { params: Promise<{ ref: string }> };
 
@@ -25,6 +29,7 @@ const NO_STORE = { "Cache-Control": "no-store" };
 const BAD_REF = "Use a pools pool id: 1 to 64 lowercase letters, digits and dashes.";
 const PRIVATE_POOL = "A pools pack is public or unlisted, never private.";
 const POOL_GONE = "A moderator deleted this pool's pack, so it won't be created again.";
+const NO_PACK = "This pool has no pack.";
 
 const noStore = (response: Response): Response => withHeaders(response, NO_STORE);
 
@@ -44,4 +49,15 @@ export async function PUT(request: Request, { params }: Context) {
     status: answer.state === "created" ? 201 : 200,
     headers: NO_STORE,
   });
+}
+
+export async function DELETE(request: Request, { params }: Context) {
+  const refused = await refuseWithoutPoolsToken(request);
+  if (refused) return refused;
+  const { ref } = await params;
+  if (!poolsRefSchema.safeParse(ref).success) return noStore(jsonError(400, BAD_REF));
+  const result = await deletePoolsPack(ref);
+  if (result === "gone") return noStore(jsonError(410, POOL_GONE, "gone"));
+  if (result === "missing") return noStore(jsonError(404, NO_PACK));
+  return new Response(null, { status: 204, headers: NO_STORE });
 }

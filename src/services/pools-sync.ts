@@ -8,15 +8,19 @@
  *       deleted_origins and is never created again: the sync checks it first, and again after a
  *       create or a failed update, because a moderator's delete can land in between (the pack it
  *       just made is deleted again). Saves spend the pools-sync share of the osu! budget on their
- *       stats. Every write marks the pack's page and every public list stale.
+ *       stats. A pool that went private or was deleted in pools loses its pack
+ *       (DELETE /api/service/pools/{ref}): the pools account's pack with that origin is deleted,
+ *       with no tombstone, so a later sync creates it again; a tombstoned pool is left alone.
+ *       Every write marks the pack's page and every public list stale.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import "server-only";
 import {
   DELETED_ORIGINS_COLLECTION,
+  POOLS_ACCOUNT,
   POOLS_ORIGIN_KIND,
   POOLS_SYNC_SUBJECT,
 } from "@/constants/pools";
@@ -148,4 +152,31 @@ export const syncPoolsPack = async (
   }
   touch(pack.slug);
   return { slug: pack.slug, state: "created", listed: isListed(pack) };
+};
+
+/** What a delete from pools did: removed the pool's pack, found none, or found its tombstone. */
+export type PoolsDeleteResult = "deleted" | "missing" | "gone";
+
+/**
+ * @function deletePoolsPack
+ * @param ref {string} a validated pools pool id
+ * @returns {Promise<PoolsDeleteResult>} "deleted" when the pools account's pack for that pool is
+ *          gone (its stats with it); "missing" when there's no such pack (another owner's pack
+ *          with that origin id doesn't count); "gone" when a moderator deleted it, touching
+ *          nothing. Writes no tombstone, so a later sync creates the pack again.
+ * @throws when the database fails
+ */
+export const deletePoolsPack = async (ref: string): Promise<PoolsDeleteResult> => {
+  if (await isTombstoned(ref)) return "gone";
+  const doc = await (await connectedPackModel())
+    .findOneAndDelete({
+      "origin.kind": POOLS_ORIGIN_KIND,
+      "origin.id": ref,
+      ownerId: POOLS_ACCOUNT.id,
+    })
+    .select("slug")
+    .lean();
+  if (!doc) return "missing";
+  touch(doc.slug);
+  return "deleted";
 };
