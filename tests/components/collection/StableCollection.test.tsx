@@ -16,7 +16,7 @@
  *       typed name reaching the rest), and a new file too big to write.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import {
@@ -490,7 +490,8 @@ describe("StableCollection", () => {
     // That collection isn't in the list, so the pick stays on the typed name.
     expect(select).toHaveValue("new");
     expect(screen.getByText(`All of these maps are already in "${last}".`)).toBeInTheDocument();
-  });
+    // Over 2,000 options re-render on every typed letter: slow in jsdom on CI runners.
+  }, 30_000);
 
   it("builds a second add on the first download", async () => {
     const { upload, user, download } = setup();
