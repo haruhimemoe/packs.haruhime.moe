@@ -37,7 +37,7 @@ export function ClearLocalDataButton({ clear = clearLocalData }: { clear?: () =>
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
       <InlineConfirm
         trigger="Clear local data"
-        triggerProps={{ variant: "ghost", className: "h-7 px-3 text-xs" }}
+        triggerProps={{ variant: "ghost", className: "-ml-3 h-7 px-3 text-xs" }}
         question="Delete your saved draft and downloaded maps from this browser?"
         confirmLabel="Delete"
         pendingLabel="Deleting…"

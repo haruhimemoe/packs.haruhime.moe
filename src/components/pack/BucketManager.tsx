@@ -82,7 +82,7 @@ export function BucketManager({
                 setDragging(null);
               }}
               onDragEnd={() => setDragging(null)}
-              className="flex flex-wrap items-center gap-3 rounded-[10px] bg-b5 p-3"
+              className="flex flex-wrap items-center gap-2 rounded-[10px] bg-b5 p-3 sm:gap-3"
             >
               <span aria-hidden="true" className="cursor-grab select-none text-c4">
                 ⋮⋮
