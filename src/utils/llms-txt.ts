@@ -9,7 +9,7 @@
  *       the same constants the code uses. Elsewhere, last, links our Discord server.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { RULESETS } from "@haruhimemoe/pool";
@@ -35,7 +35,7 @@ const list = (values: readonly string[]): string => values.join(", ");
 export const LLMS_NOTES: readonly string[] = [
   "packs doesn't host beatmap files. The browser downloads each .osz from the beatmap mirror (mirror.hinamizawa.ai) and builds the zip and the torrent itself.",
   `A pack key (pk1., pk2. or pk3.) holds a whole pool in one line of text and opens at ${at("/k#")} followed by the key, with no account. Signed in with osu!, a host can also save a pack and get a short link, ${at("/p/")}{slug}.`,
-  "Packs owned by haruhime pools are osu! tournament mappools published from pools.haruhime.moe (in beta). pools.haruhime.moe gets its pools from tournament hosts, community submissions and other sources, and each pool's page there credits its sources.",
+  "Packs owned by haruhime pools are osu! tournament mappools published from pools.haruhime.moe (in beta), haruhime's mappool builder: hosts build pools there, and it also gets pools from tournament hosts, community submissions and other sources, and each pool's page there credits its sources.",
   "\"Add to osu! collection\" puts the pack's maps in one of the player's osu! collections. It's on every pack page (/new, /k and /p/{slug}). osu!stable players load their collection.db and download it back with the maps added; osu!lazer players download a zip that lazer's setup wizard imports. The browser reads the file; it never reaches the server.",
 ];
 

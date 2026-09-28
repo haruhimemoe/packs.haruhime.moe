@@ -1,6 +1,15 @@
 {
   "name": "packs.haruhime.moe",
   "version": "0.1.0",
+  "description": "Build an osu! beatmap pack from a tournament mappool: one download, a pack key, saved packs, a public pack list and an API.",
+  "homepage": "https://packs.haruhime.moe",
+  "bugs": "https://github.com/haruhimemoe/packs.haruhime.moe/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/haruhimemoe/packs.haruhime.moe.git"
+  },
+  "license": "MIT",
+  "author": "David (https://dvh.sh)",
   "private": true,
   "type": "module",
   "packageManager": "bun@1.4.2",

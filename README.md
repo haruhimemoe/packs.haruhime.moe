@@ -15,7 +15,7 @@ The site never hosts beatmap files. Each `.osz` goes from the beatmap mirror str
 - **Star ratings with mods:** each slot shows the ratings for the mods it's played with.
 - **osu! collections:** add a pack's maps to an osu!stable collection (load your `collection.db`, download it back with the maps added) or import them into osu!lazer through its setup wizard. Your collection.db stays in your browser.
 - **Accounts (optional):** sign in with osu! to save packs, get a short `/p/<slug>` link, and list a pack publicly.
-- **Public packs:** search, filter by star rating, length, BPM, mods, mode and map count, and sort the packs other hosts chose to share. A few pinned packs sit on top. Tournament pools from [pools.haruhime.moe](https://pools.haruhime.moe) (in beta) are listed too, owned by haruhime pools.
+- **Public packs:** search, filter by star rating, length, BPM, mods, mode and map count, and sort the packs other hosts chose to share. A few pinned packs sit on top. Tournament pools from [pools.haruhime.moe](https://pools.haruhime.moe) (in beta), haruhime's mappool builder, are listed too, owned by haruhime pools.
 - **API:** read public packs and manage your own from scripts and bots. See [/docs/api](https://packs.haruhime.moe/docs/api).
 
 ## Docs
@@ -38,6 +38,10 @@ packs uses these shared haruhime.moe packages:
 - [`@haruhimemoe/ui`](https://www.npmjs.com/package/@haruhimemoe/ui): the theme and colors the site uses, buttons, cards, form fields, pagination, and the site header, footer and page frame.
 - [`@haruhimemoe/next-kit`](https://www.npmjs.com/package/@haruhimemoe/next-kit): the server plumbing packs shares with pools.haruhime.moe: JSON errors and body parsing, rate limits and the osu! API budget in MongoDB, sign-in with osu!, env checks, the database client, and the test helpers.
 - [`@haruhimemoe/brand`](https://www.npmjs.com/package/@haruhimemoe/brand): the wordmark, icons and link preview image, and the palette file behind the colors on [/brand](https://packs.haruhime.moe/brand).
+
+## Changes
+
+What changed for people using the site or the API is in [CHANGELOG.md](CHANGELOG.md). Every change on `main` goes live. To report a vulnerability, see [SECURITY.md](SECURITY.md).
 
 ## License
 

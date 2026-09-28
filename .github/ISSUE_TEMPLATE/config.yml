@@ -1,1 +1,8 @@
 blank_issues_enabled: false
+contact_links:
+  - name: Ask a question
+    url: https://discord.gg/bKy9kjMV4y
+    about: Questions and help with packs go to the haruhime.moe Discord server.
+  - name: Report a vulnerability
+    url: https://github.com/haruhimemoe/packs.haruhime.moe/security/advisories/new
+    about: Report security problems privately, never in a public issue. SECURITY.md has the details.

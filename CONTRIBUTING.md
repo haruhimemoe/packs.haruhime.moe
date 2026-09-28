@@ -20,20 +20,24 @@ The dev server runs on http://localhost:3000. The anonymous tool (build, key, zi
 
 ## Making a change
 
-1. Branch from `main` (`feat/<topic>`, `fix/<topic>`).
+Outside contributors work through pull requests:
+
+1. Fork the repo and branch from `main` (`feat/<topic>`, `fix/<topic>`).
 2. Write a failing test in `tests/`, make it pass, and keep commits small.
-3. If people will see the change, update the copy that describes it in the same PR: the guide, the API docs, the homepage FAQ or the legal pages. AGENTS.md section 7 lists them.
+3. If people will see the change, update the copy that describes it in the same PR: the guide, the API docs, the homepage FAQ, the legal pages and [CHANGELOG.md](./CHANGELOG.md). AGENTS.md section 7 lists them.
 4. Run the full check before opening a PR:
 
    ```sh
-   bun run check && bun run typecheck && bun run test && SKIP_ENV_VALIDATION=true bun run build
+   bun run check && bun run typecheck && bun run test:coverage && SKIP_ENV_VALIDATION=true bun run build
    ```
 
-5. Open a PR using the template. CI must be green before merge.
+5. Open a PR using the template. A maintainer merges it once CI is green.
+
+The maintainer (or their coding agent) pushes straight to `main` after the same full check passes locally. `main` has no branch protection, so that check is what keeps it green.
 
 Use [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, `chore:`, `test:`, `refactor:`).
 
-Releases are cut by the maintainers.
+There are no releases: Vercel deploys every push to `main` to packs.haruhime.moe within a few minutes. Changes people can notice are listed in [CHANGELOG.md](./CHANGELOG.md).
 
 ## Tests
 
@@ -43,7 +47,7 @@ Releases are cut by the maintainers.
 - `tests/components/`: React components in jsdom.
 - `tests/integration/`: route handlers and services against an in-memory MongoDB (mongodb-memory-server). The first run downloads the MongoDB binary.
 
-Tests never hit the network: HTTP is mocked with recorded fixtures in `tests/fixtures/`.
+Tests never hit the network: HTTP is mocked with msw, using the mirror's recorded answers from `@haruhimemoe/hinai/testing` and our own recorded fixtures in `tests/fixtures/`.
 
 ## Scripts
 
