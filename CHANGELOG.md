@@ -18,6 +18,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - The first start after this change adds indexes to the sign-in collections (one user per osu! id, one link per osu! account, sessions by token). Existing duplicates are logged and that index is skipped until they're merged.
 - Visitors together can use at most 30 of the 50 osu! API calls a minute; the other 20 stay for the daily stats job and the pools service, so a few busy visitors can't stall pack stats. A star rating osu! won't give (a map it doesn't have, or mods it won't rate) is remembered for an hour instead of being asked for again on every page view.
 - Starting a sign-in is limited to 10 a minute per IP address, counted across all server instances. Sign-in state rows from abandoned sign-ins now expire on their own.
+- The stat tiles on a pack's page count a forced DT or HT slot's length and BPM at that speed, as the saved stats behind the `/packs` filters already did.
+- HD on its own doesn't change a star rating, so a slot's HD rating is its rating without mods and the page no longer asks osu! for it.
 
 ### Fixed
 
