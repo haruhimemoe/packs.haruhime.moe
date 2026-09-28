@@ -9,7 +9,7 @@
  *       that backfill writes down the rating pairs it tried.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { SITE } from "@/constants/site";
@@ -24,9 +24,6 @@ export const POOLS_ACCOUNT = Object.freeze({
   email: "pools@packs.invalid",
   avatarUrl: `${SITE.url}/brand/packs-icon.svg`,
 });
-
-/** A pools pool id, as the service route takes it (`otdb-58`, `otdb-58-2`, `host-k3j9x0ab`). */
-export const POOLS_REF_PATTERN = /^[a-z0-9-]{1,64}$/;
 
 /** `origin.kind` on a pack pools publishes. */
 export const POOLS_ORIGIN_KIND = "pools";

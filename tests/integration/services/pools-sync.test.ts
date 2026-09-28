@@ -8,9 +8,10 @@
  *       gives up (the pack stays) when the hide changes under every try.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import type { PackInput } from "@haruhimemoe/pool/service";
 import { ObjectId } from "mongodb";
 import { revalidatePath } from "next/cache";
 import { describe, expect, it, vi } from "vitest";
@@ -21,7 +22,6 @@ import {
 } from "@/constants/pools";
 import { getDb } from "@/lib/db";
 import { getPackModel } from "@/models/Pack";
-import type { PackInput } from "@/schemas/saved-pack";
 import { adminDeletePack, setPackHidden } from "@/services/moderation";
 import { createPack } from "@/services/packs";
 import { ensurePoolsAccount } from "@/services/pools-account";

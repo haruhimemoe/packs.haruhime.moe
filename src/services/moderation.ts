@@ -16,19 +16,20 @@
  */
 
 import "server-only";
+import type { PackVisibility } from "@haruhimemoe/pool/service";
 import { type Document, ObjectId } from "mongodb";
 import type { PipelineStage } from "mongoose";
 import { ADMIN_PAGE_SIZE } from "@/constants/public-packs";
 import { revalidatePack, revalidatePublicPacks } from "@/lib/revalidate";
 import { UNPIN } from "@/models/Pack";
 import { type AdminPackPage, type AdminPackRow, adminPackRowSchema } from "@/schemas/public-pack";
-import { slugSchema, type Visibility } from "@/schemas/saved-pack";
+import { slugSchema } from "@/schemas/saved-pack";
 import { connectedPackModel } from "@/services/packs";
 import { forgetHiddenOrigin, tombstoneOrigin } from "@/services/pools-sync";
 import { escapeRegExp } from "@/utils/text";
 
 /** What admins moderate: anything others can reach. */
-export const MODERATED: { visibility: { $in: Visibility[] } } = {
+export const MODERATED: { visibility: { $in: PackVisibility[] } } = {
   visibility: { $in: ["public", "unlisted"] },
 };
 

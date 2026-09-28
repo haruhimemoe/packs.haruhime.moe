@@ -5,12 +5,12 @@
  *       the saved-pack cap). Stats are computed after the response (services/pack-stats.ts).
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { packInputSchema } from "@haruhimemoe/pool/service";
 import { BAD_PAGE, jsonError, parseJsonBody } from "@/lib/api";
 import { withApiKey } from "@/lib/api-auth";
-import { packInputSchema } from "@/schemas/saved-pack";
 import { listPublicApiPacks, toApiPack } from "@/services/api-packs";
 import { createPack, PackLimitError } from "@/services/packs";
 import { clientIp, rateLimitSubject } from "@/utils/client-ip";

@@ -4,7 +4,7 @@
  *       are added (new codes become custom slots); bad lines stay in the box with a reason.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -12,6 +12,7 @@
 import {
   bucketsOf,
   insertBeforeTb,
+  MAX_SLOTS,
   parsePoolText,
   planMerge,
   type SlotLineError,
@@ -19,7 +20,6 @@ import {
 } from "@haruhimemoe/pool";
 import { Button, fieldClasses } from "@haruhimemoe/ui";
 import { type FormEvent, useId, useState } from "react";
-import { MAX_SLOTS } from "@/constants/pack";
 import type { BucketEntry, CustomBucket, PoolSlot } from "@/schemas/pack";
 
 type BulkPasteInputProps = {

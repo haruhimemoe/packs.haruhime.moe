@@ -6,13 +6,13 @@
  *       Registered lazily on the shared connection so importing it needs no env.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
+import { PACK_VISIBILITIES } from "@haruhimemoe/pool/service";
 import { type Connection, Schema } from "mongoose";
 import { getModelConnection } from "@/lib/db";
-import { VISIBILITIES } from "@/schemas/saved-pack";
 
 // Validation is zod's job (packInputSchema); the model only stores what the API accepted.
 const slotSchema = new Schema(
@@ -100,7 +100,7 @@ const packSchema = new Schema(
     // Set by a moderator: off /packs, and 404 for everyone but the owner and admins.
     hiddenAt: { type: Date },
     hiddenBy: { type: Schema.Types.ObjectId },
-    visibility: { type: String, enum: [...VISIBILITIES], required: true },
+    visibility: { type: String, enum: [...PACK_VISIBILITIES], required: true },
     // Set by an admin (src/services/pins.ts): shown in the "Pinned" row on /packs, by pinOrder.
     // Public packs that aren't hidden only; hiding or leaving public unsets both. Absent = not
     // pinned (never null, so the partial index below covers every pinned pack).

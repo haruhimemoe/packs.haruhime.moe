@@ -3,14 +3,14 @@
  * @desc Bulk paste: adds good lines, keeps and explains bad ones.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { MAX_SLOTS } from "@haruhimemoe/pool";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { BulkPasteInput } from "@/components/pack/BulkPasteInput";
-import { MAX_SLOTS } from "@/constants/pack";
 
 describe("BulkPasteInput", () => {
   it("adds valid lines, reports and keeps invalid ones", async () => {

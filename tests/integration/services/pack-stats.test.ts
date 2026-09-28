@@ -13,6 +13,7 @@
  * @modified Thu Sep 24, 2026
  */
 
+import type { PackInput } from "@haruhimemoe/pool/service";
 import { revalidatePath } from "next/cache";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PACK_STATS_JOB_LIMIT } from "@/constants/pack-stats";
@@ -20,7 +21,6 @@ import { POOLS_ACCOUNT } from "@/constants/pools";
 import { MAX_OSU_FETCHES_PER_REQUEST } from "@/constants/star-ratings";
 import { getDb } from "@/lib/db";
 import { getPackModel } from "@/models/Pack";
-import type { PackInput } from "@/schemas/saved-pack";
 import { countPacksNeedingStats, refreshPackStats, runPackStatsJob } from "@/services/pack-stats";
 import { createPack, getPackForViewer, updatePack } from "@/services/packs";
 import { createTestUser } from "../../helpers/auth";

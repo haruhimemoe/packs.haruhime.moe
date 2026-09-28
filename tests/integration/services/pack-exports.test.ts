@@ -5,17 +5,17 @@
  *       (a custom slot's mods included), and only canonical links stored or shown (old rows too).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { encodePackKey } from "@haruhimemoe/pool";
+import type { PackInput } from "@haruhimemoe/pool/service";
 import { ObjectId } from "mongodb";
 import { describe, expect, it } from "vitest";
 import { MAX_PACK_EXPORTS } from "@/constants/pack";
 import { TRACKERS } from "@/constants/trackers";
 import { getPackModel } from "@/models/Pack";
 import type { BucketEntry } from "@/schemas/pack";
-import type { PackInput } from "@/schemas/saved-pack";
 import { addMagnet, ExportLimitError, removeMagnet, StalePackError } from "@/services/pack-exports";
 import { createPack, getPackForViewer, updatePack } from "@/services/packs";
 import { setupTestDb } from "../../helpers/db";

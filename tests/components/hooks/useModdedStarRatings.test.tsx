@@ -1,12 +1,12 @@
 /**
  * @file tests/components/hooks/useModdedStarRatings.test.tsx
  * @desc useModdedStarRatings with a fake fetcher and fake timers: the canonical query, forced and
- *       freemod results, mania, waiting for metadata, the editor delay, retries every 5 s while
+ *       freemod results (HD alone never asked for), mania, waiting for metadata, the editor delay, retries every 5 s while
  *       pending (at most 12), giving up, refused pairs, network errors, stopping on unmount, and
  *       no request when everything is known. Plus fetchStarRatings and usePoolStarRatings.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
@@ -56,7 +56,7 @@ const slot = (mod: string | null, index: number, beatmapId: number): PoolSlot =>
 });
 const modsFor = (entries: [PoolSlot, SlotMods][]) =>
   new Map(entries.map(([s, m]) => [slotKey(s), m]));
-const HD: SlotMods = { kind: "forced", set: ["HD"] };
+const HR: SlotMods = { kind: "forced", set: ["HR"] };
 const FREE: SlotMods = { kind: "free" };
 /** A fetcher that answers from a list of responses in turn (the last one repeats). */
 const answers = (...responses: (StarRatingsResponse | Error)[]) => {
@@ -83,38 +83,40 @@ afterEach(() => {
 describe("useModdedStarRatings", () => {
   it("asks for the pool's pairs in canonical order and fills in each slot", async () => {
     const fetchRatings = answers({
-      ratings: { "7:HD": 7.1, "8:EZ": 7.5, "8:HD": 8.1, "8:HDHR": 8.3, "8:HR": 8.2 },
+      ratings: { "7:HR": 7.1, "8:EZ": 7.5, "8:HDHR": 8.3, "8:HR": 8.2 },
       pending: [],
     });
-    const hd = slot("HD", 1, 7);
+    const hr = slot("HR", 1, 7);
     const fm = slot("FM", 1, 8);
     const get = metaGetter([meta(7), meta(8)]);
     const mods = modsFor([
-      [hd, HD],
+      [hr, HR],
       [fm, FREE],
     ]);
     const { result } = renderHook(() =>
-      useModdedStarRatings([hd, fm], get, mods, { fetchRatings }),
+      useModdedStarRatings([hr, fm], get, mods, { fetchRatings }),
     );
     await advance(0);
-    expect(fetchRatings).toHaveBeenCalledExactlyOnceWith("7:HD,8:EZ,8:HD,8:HDHR,8:HR");
-    expect(result.current.get("b:HD#1")).toEqual([{ mods: "HD", stars: 7.1 }]);
+    // HD alone keeps the plain rating (changesStarRating), so nobody asks osu! for it.
+    expect(fetchRatings).toHaveBeenCalledExactlyOnceWith("7:HR,8:EZ,8:HDHR,8:HR");
+    expect(result.current.get("b:HR#1")).toEqual([{ mods: "HR", stars: 7.1 }]);
     expect(result.current.get("b:FM#1")).toEqual([
-      { mods: "HD", stars: 8.1 },
+      { mods: "HD", stars: 5 },
       { mods: "HR", stars: 8.2 },
       { mods: "HDHR", stars: 8.3 },
       { mods: "EZ", stars: 7.5 },
     ]);
   });
 
-  it("asks only for HD on a mania freemod slot", async () => {
-    const fetchRatings = answers({ ratings: { "8:HD": 3 }, pending: [] });
+  it("asks nothing for a mania freemod slot, whose only set (HD) keeps the plain rating", async () => {
+    const fetchRatings = answers({ ratings: {}, pending: [] });
     const fm = slot("FM", 1, 8);
     const get = metaGetter([meta(8, { mode: "mania" })]);
     const mods = modsFor([[fm, FREE]]);
-    renderHook(() => useModdedStarRatings([fm], get, mods, { fetchRatings }));
-    await advance(0);
-    expect(fetchRatings).toHaveBeenCalledExactlyOnceWith("8:HD");
+    const { result } = renderHook(() => useModdedStarRatings([fm], get, mods, { fetchRatings }));
+    await advance(10_000);
+    expect(fetchRatings).not.toHaveBeenCalled();
+    expect(result.current.get("b:FM#1")).toEqual([{ mods: "HD", stars: 5 }]);
   });
 
   it("sends nothing when no slot has mods", async () => {
@@ -128,11 +130,11 @@ describe("useModdedStarRatings", () => {
   });
 
   it("waits for metadata", async () => {
-    const fetchRatings = answers({ ratings: { "7:HD": 7.1 }, pending: [] });
-    const hd = slot("HD", 1, 7);
-    const mods = modsFor([[hd, HD]]);
+    const fetchRatings = answers({ ratings: { "7:HR": 7.1 }, pending: [] });
+    const hr = slot("HR", 1, 7);
+    const mods = modsFor([[hr, HR]]);
     const { rerender } = renderHook(
-      ({ get }) => useModdedStarRatings([hd], get, mods, { fetchRatings }),
+      ({ get }) => useModdedStarRatings([hr], get, mods, { fetchRatings }),
       { initialProps: { get: metaGetter([]) } },
     );
     await advance(1000);
@@ -144,98 +146,98 @@ describe("useModdedStarRatings", () => {
 
   it("in the editor, asks 1.5 s after the last change, once", async () => {
     const fetchRatings = answers({ ratings: {}, pending: [] });
-    const a = slot("HD", 1, 7);
-    const b = slot("HD", 2, 8);
+    const a = slot("HR", 1, 7);
+    const b = slot("HR", 2, 8);
     const get = metaGetter([meta(7), meta(8)]);
     const { rerender } = renderHook(
       ({ slots, mods }) => useModdedStarRatings(slots, get, mods, { delayMs: 1500, fetchRatings }),
-      { initialProps: { slots: [a], mods: modsFor([[a, HD]]) } },
+      { initialProps: { slots: [a], mods: modsFor([[a, HR]]) } },
     );
     await advance(1000);
     rerender({
       slots: [a, b],
       mods: modsFor([
-        [a, HD],
-        [b, HD],
+        [a, HR],
+        [b, HR],
       ]),
     });
     await advance(1499);
     expect(fetchRatings).not.toHaveBeenCalled();
     await advance(1);
-    expect(fetchRatings).toHaveBeenCalledExactlyOnceWith("7:HD,8:HD");
+    expect(fetchRatings).toHaveBeenCalledExactlyOnceWith("7:HR,8:HR");
   });
 
   it("asks again every 5 s while pairs are pending", async () => {
     const fetchRatings = answers(
-      { ratings: { "7:HD": 7.1 }, pending: ["8:HD"] },
-      { ratings: { "7:HD": 7.1 }, pending: ["8:HD"] },
-      { ratings: { "7:HD": 7.1, "8:HD": 8.1 }, pending: [] },
+      { ratings: { "7:HR": 7.1 }, pending: ["8:HR"] },
+      { ratings: { "7:HR": 7.1 }, pending: ["8:HR"] },
+      { ratings: { "7:HR": 7.1, "8:HR": 8.1 }, pending: [] },
     );
-    const a = slot("HD", 1, 7);
-    const b = slot("HD", 2, 8);
+    const a = slot("HR", 1, 7);
+    const b = slot("HR", 2, 8);
     const get = metaGetter([meta(7), meta(8)]);
     const mods = modsFor([
-      [a, HD],
-      [b, HD],
+      [a, HR],
+      [b, HR],
     ]);
     const { result } = renderHook(() => useModdedStarRatings([a, b], get, mods, { fetchRatings }));
     await advance(0);
-    expect(result.current.get("b:HD#1")).toEqual([{ mods: "HD", stars: 7.1 }]);
-    expect(result.current.has("b:HD#2")).toBe(false);
+    expect(result.current.get("b:HR#1")).toEqual([{ mods: "HR", stars: 7.1 }]);
+    expect(result.current.has("b:HR#2")).toBe(false);
     await advance(4999);
     expect(fetchRatings).toHaveBeenCalledTimes(1);
     await advance(1);
     expect(fetchRatings).toHaveBeenCalledTimes(2);
     await advance(5000);
-    expect(result.current.get("b:HD#2")).toEqual([{ mods: "HD", stars: 8.1 }]);
+    expect(result.current.get("b:HR#2")).toEqual([{ mods: "HR", stars: 8.1 }]);
     await advance(60_000);
     expect(fetchRatings).toHaveBeenCalledTimes(3);
   });
 
   it("gives up after 12 retries and shows the rating without mods", async () => {
-    const fetchRatings = answers({ ratings: {}, pending: ["7:HD"] });
-    const hd = slot("HD", 1, 7);
+    const fetchRatings = answers({ ratings: {}, pending: ["7:HR"] });
+    const hr = slot("HR", 1, 7);
     const get = metaGetter([meta(7)]);
-    const mods = modsFor([[hd, HD]]);
-    const { result } = renderHook(() => useModdedStarRatings([hd], get, mods, { fetchRatings }));
+    const mods = modsFor([[hr, HR]]);
+    const { result } = renderHook(() => useModdedStarRatings([hr], get, mods, { fetchRatings }));
     await advance(0);
     await advance(12 * 5000);
     expect(fetchRatings).toHaveBeenCalledTimes(13);
-    expect(result.current.get("b:HD#1")).toEqual([]);
+    expect(result.current.get("b:HR#1")).toEqual([]);
     await advance(60_000);
     expect(fetchRatings).toHaveBeenCalledTimes(13);
   });
 
   it("fails a pair the server left out, without retrying", async () => {
     const fetchRatings = answers({ ratings: {}, pending: [] });
-    const hd = slot("HD", 1, 7);
+    const hr = slot("HR", 1, 7);
     const get = metaGetter([meta(7)]);
-    const mods = modsFor([[hd, HD]]);
-    const { result } = renderHook(() => useModdedStarRatings([hd], get, mods, { fetchRatings }));
+    const mods = modsFor([[hr, HR]]);
+    const { result } = renderHook(() => useModdedStarRatings([hr], get, mods, { fetchRatings }));
     await advance(0);
-    expect(result.current.get("b:HD#1")).toEqual([]);
+    expect(result.current.get("b:HR#1")).toEqual([]);
     await advance(60_000);
     expect(fetchRatings).toHaveBeenCalledOnce();
   });
 
   it("treats a network error as pending", async () => {
-    const fetchRatings = answers(new Error("offline"), { ratings: { "7:HD": 7.1 }, pending: [] });
-    const hd = slot("HD", 1, 7);
+    const fetchRatings = answers(new Error("offline"), { ratings: { "7:HR": 7.1 }, pending: [] });
+    const hr = slot("HR", 1, 7);
     const get = metaGetter([meta(7)]);
-    const mods = modsFor([[hd, HD]]);
-    const { result } = renderHook(() => useModdedStarRatings([hd], get, mods, { fetchRatings }));
+    const mods = modsFor([[hr, HR]]);
+    const { result } = renderHook(() => useModdedStarRatings([hr], get, mods, { fetchRatings }));
     await advance(0);
-    expect(result.current.has("b:HD#1")).toBe(false);
+    expect(result.current.has("b:HR#1")).toBe(false);
     await advance(5000);
-    expect(result.current.get("b:HD#1")).toEqual([{ mods: "HD", stars: 7.1 }]);
+    expect(result.current.get("b:HR#1")).toEqual([{ mods: "HR", stars: 7.1 }]);
   });
 
   it("stops asking when the page goes away", async () => {
-    const fetchRatings = answers({ ratings: {}, pending: ["7:HD"] });
-    const hd = slot("HD", 1, 7);
+    const fetchRatings = answers({ ratings: {}, pending: ["7:HR"] });
+    const hr = slot("HR", 1, 7);
     const get = metaGetter([meta(7)]);
-    const mods = modsFor([[hd, HD]]);
-    const { unmount } = renderHook(() => useModdedStarRatings([hd], get, mods, { fetchRatings }));
+    const mods = modsFor([[hr, HR]]);
+    const { unmount } = renderHook(() => useModdedStarRatings([hr], get, mods, { fetchRatings }));
     await advance(0);
     unmount();
     await advance(60_000);
@@ -243,13 +245,13 @@ describe("useModdedStarRatings", () => {
   });
 
   it("sends nothing when every pair is already known", async () => {
-    const fetchRatings = answers({ ratings: { "7:HD": 7.1, "8:HD": 8.1 }, pending: [] });
-    const a = slot("HD", 1, 7);
-    const b = slot("HD", 2, 8);
+    const fetchRatings = answers({ ratings: { "7:HR": 7.1, "8:HR": 8.1 }, pending: [] });
+    const a = slot("HR", 1, 7);
+    const b = slot("HR", 2, 8);
     const get = metaGetter([meta(7), meta(8)]);
     const both = modsFor([
-      [a, HD],
-      [b, HD],
+      [a, HR],
+      [b, HR],
     ]);
     const { rerender } = renderHook(
       ({ slots }) => useModdedStarRatings(slots, get, both, { fetchRatings }),
@@ -265,7 +267,7 @@ describe("useModdedStarRatings", () => {
 describe("usePoolStarRatings", () => {
   it("derives each slot's mods from the pack and counts forced slots with their mods", async () => {
     const fetchRatings = answers({
-      ratings: { "7:EZ": 4.5, "8:EZ": 7.5, "8:HD": 8.1, "8:HDHR": 8.3, "8:HR": 8.2 },
+      ratings: { "7:EZ": 4.5, "8:EZ": 7.5, "8:HDHR": 8.3, "8:HR": 8.2 },
       pending: [],
     });
     const pack = {
@@ -286,6 +288,15 @@ describe("usePoolStarRatings", () => {
     await advance(0);
     expect(result.current.starsOf(pack.slots[0] as PoolSlot, meta(7))).toBe(4.5);
     expect(result.current.starsOf(pack.slots[1] as PoolSlot, meta(8))).toBe(5);
+  });
+
+  it("gives each slot its speed: 1.5 on a DT slot, 1 on a freemod or EZ one", () => {
+    const pack = { slots: [slot("DT", 1, 7), slot("FM", 1, 8), slot("NM", 1, 9)] };
+    const get = metaGetter([meta(7), meta(8), meta(9)]);
+    const fetchRatings = answers({ ratings: {}, pending: [] });
+    const { result } = renderHook(() => usePoolStarRatings(pack, get, { fetchRatings }));
+    const [dt, fm, nm] = pack.slots as [PoolSlot, PoolSlot, PoolSlot];
+    expect([dt, fm, nm].map(result.current.speedOf)).toEqual([1.5, 1, 1]);
   });
 });
 

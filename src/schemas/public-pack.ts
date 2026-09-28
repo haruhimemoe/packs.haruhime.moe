@@ -6,13 +6,14 @@
  *       (src/schemas/pack-stats.ts) when it has them.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { packVisibilitySchema } from "@haruhimemoe/pool/service";
 import { z } from "zod";
 import { MAX_PINNED_PACKS } from "@/constants/public-packs";
 import { indexStatsSchema } from "@/schemas/pack-stats";
-import { slugSchema, visibilitySchema } from "@/schemas/saved-pack";
+import { slugSchema } from "@/schemas/saved-pack";
 
 export const publicPackCardSchema = z.object({
   slug: slugSchema,
@@ -68,7 +69,7 @@ export const adminPackRowSchema = z.object({
   ownerName: z.string(),
   /** Null for a system account's pack (haruhime pools): it has no osu! profile. */
   ownerOsuId: z.number().int().positive().nullable(),
-  visibility: visibilitySchema.exclude(["private"]),
+  visibility: packVisibilitySchema.exclude(["private"]),
   slotCount: z.number().int().nonnegative(),
   updatedAt: z.string(),
   hiddenAt: z.string().nullable(),

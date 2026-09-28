@@ -7,9 +7,10 @@
  *       owner doesn't own.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { packInputSchema } from "@haruhimemoe/pool/service";
 import { z } from "zod";
 import { API_DOCS_PATH, API_PAGE_SIZE, RATE_LIMITS } from "@/constants/api";
 import { SITE } from "@/constants/site";
@@ -19,7 +20,7 @@ import {
   apiPackPageResponseSchema,
   apiPackResponseSchema,
 } from "@/schemas/api";
-import { packInputSchema, slugSchema } from "@/schemas/saved-pack";
+import { slugSchema } from "@/schemas/saved-pack";
 
 type JsonObject = Record<string, unknown>;
 type Io = "input" | "output";

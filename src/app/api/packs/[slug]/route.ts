@@ -14,6 +14,7 @@
  * @modified Thu Sep 24, 2026
  */
 
+import { packInputSchema } from "@haruhimemoe/pool/service";
 import { RATE_LIMITS } from "@/constants/api";
 import {
   jsonError,
@@ -24,7 +25,6 @@ import {
 } from "@/lib/api";
 import { getUserFromHeaders } from "@/lib/auth";
 import { refuseOverLimit } from "@/lib/rate-limit";
-import { packInputSchema } from "@/schemas/saved-pack";
 import { deletePack, getPackForViewer, updatePack } from "@/services/packs";
 import { isPackPinned } from "@/services/pins";
 import { clientIp, rateLimitSubject } from "@/utils/client-ip";

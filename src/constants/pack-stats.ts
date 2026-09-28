@@ -1,15 +1,13 @@
 /**
  * @file src/constants/pack-stats.ts
- * @desc Pack stats: the mod codes a pack's stats can hold, which forced mods change
- *       star rating and speed, how much osu! and mirror work one stats run may do, and how long
- *       incomplete stats wait between retries. Shared by the server (which computes stats) and the
- *       browser (which filters on them).
+ * @desc Pack stats: the mod codes a pack's stats can hold, how much osu! and mirror work one
+ *       stats run may do, and how long incomplete stats wait between retries. Shared by the server
+ *       (which computes stats) and the browser (which filters on them). Which mods change a star
+ *       rating or the speed comes from @haruhimemoe/pool (changesStarRating, speedRate).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
-
-import type { ModAcronym } from "@haruhimemoe/pool";
 
 /**
  * Every mod code a pack's `stats.mods` can hold, in filter-chip order: the six built-in buckets,
@@ -18,18 +16,6 @@ import type { ModAcronym } from "@haruhimemoe/pool";
 export const STAT_MOD_CODES = ["NM", "HD", "HR", "DT", "FM", "TB", "EZ", "HT", "FL"] as const;
 
 export type StatModCode = (typeof STAT_MOD_CODES)[number];
-
-/**
- * Forced mods that change a map's star rating. A slot forcing any of them counts with osu!'s
- * rating for its whole forced set; every other slot counts with the plain rating.
- */
-export const RATING_MODS: readonly ModAcronym[] = Object.freeze(["EZ", "HR", "DT", "HT", "FL"]);
-
-/** How fast a forced DT or HT plays: length divides by it, BPM multiplies by it. */
-export const SPEED_RATES: Readonly<Partial<Record<ModAcronym, number>>> = Object.freeze({
-  DT: 1.5,
-  HT: 0.75,
-});
 
 /**
  * Packs one run of the stats job takes (the daily cron and the admin button). 25 packs of 64

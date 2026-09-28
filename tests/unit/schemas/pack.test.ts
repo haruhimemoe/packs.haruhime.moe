@@ -4,12 +4,11 @@
  *       bucket rules: complete bucket list, custom codes, slots pointing at real buckets.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
-import { MOD_BUCKETS } from "@haruhimemoe/pool";
+import { MAX_SLOTS, MOD_BUCKETS } from "@haruhimemoe/pool";
 import { describe, expect, it } from "vitest";
-import { MAX_SLOTS } from "@/constants/pack";
 import { poolDraftSchema, poolSchema, slotKey, storedSlotModsSchema } from "@/schemas/pack";
 
 const slot = (mod: string | null, index: number, beatmapId = 129891) => ({ mod, index, beatmapId });

@@ -7,7 +7,7 @@
  *       its slot keeps the rating without mods.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -26,6 +26,7 @@ import {
   STAR_FAILED,
   type StarPairResult,
   slotModsMap,
+  slotSpeedOf,
   starPairsFor,
 } from "@/utils/slot-stars";
 
@@ -132,8 +133,8 @@ export const useModdedStarRatings = (
  * @param pack {{ slots; buckets? }} the pool and its bucket list
  * @param metaById {(beatmapId: number) => MetaState} metadata lookup
  * @param options {StarRatingsOptions} passed to useModdedStarRatings
- * @returns {{ modsBySlot; ratings; starsOf }} each slot's mods, its ratings with mods, and the
- *          stars pack stats should count for it
+ * @returns {{ modsBySlot; ratings; starsOf; speedOf }} each slot's mods, its ratings with mods,
+ *          the stars pack stats should count for it, and how fast it plays
  */
 export const usePoolStarRatings = (
   pack: { slots: readonly PoolSlot[]; buckets?: readonly BucketEntry[] | undefined },
@@ -143,10 +144,12 @@ export const usePoolStarRatings = (
   modsBySlot: Map<string, SlotMods>;
   ratings: ModdedStarRatings;
   starsOf: (slot: PoolSlot, meta: BeatmapMeta) => number;
+  speedOf: (slot: PoolSlot) => number;
 } => {
   const { slots, buckets } = pack;
   const modsBySlot = useMemo(() => slotModsMap(slots, bucketsOf({ buckets })), [slots, buckets]);
   const ratings = useModdedStarRatings(slots, metaById, modsBySlot, options);
   const starsOf = useMemo(() => moddedStarsOf(modsBySlot, ratings), [modsBySlot, ratings]);
-  return { modsBySlot, ratings, starsOf };
+  const speedOf = useMemo(() => slotSpeedOf(modsBySlot), [modsBySlot]);
+  return { modsBySlot, ratings, starsOf, speedOf };
 };

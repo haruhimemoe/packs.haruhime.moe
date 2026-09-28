@@ -18,10 +18,10 @@
  * @modified Sun Sep 27, 2026
  */
 
+import { poolsPackBodySchema, poolsRefSchema } from "@haruhimemoe/pool/service";
 import { jsonError, parseJsonBody } from "@/lib/api";
 import { refuseWithoutPoolsToken } from "@/lib/machine-auth";
 import { withHeaders } from "@/lib/rate-limit";
-import { poolsPackBodySchema, poolsRefSchema } from "@/schemas/pools-service";
 import { deletePoolsPack, syncPoolsPack } from "@/services/pools-sync";
 
 type Context = { params: Promise<{ ref: string }> };

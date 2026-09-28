@@ -3,16 +3,12 @@
  * @desc Saved pack schemas: API input defaults and limits, slug shape, response DTOs.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { packInputSchema } from "@haruhimemoe/pool/service";
 import { describe, expect, it } from "vitest";
-import {
-  packInputSchema,
-  savedPackSchema,
-  savedPackSummarySchema,
-  slugSchema,
-} from "@/schemas/saved-pack";
+import { savedPackSchema, savedPackSummarySchema, slugSchema } from "@/schemas/saved-pack";
 
 const SLOTS = [{ mod: "NM", index: 1, beatmapId: 129891 }];
 

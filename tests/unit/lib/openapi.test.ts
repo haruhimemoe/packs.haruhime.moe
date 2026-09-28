@@ -6,14 +6,14 @@
  *       their 404 as "not yours".
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { packInputSchema } from "@haruhimemoe/pool/service";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { API_OPERATIONS, buildOpenApiDocument } from "@/lib/openapi";
 import { apiPackSchema } from "@/schemas/api";
-import { packInputSchema } from "@/schemas/saved-pack";
 
 const ROUTE_MODULES: Record<string, () => Promise<Record<string, unknown>>> = {
   "/me": () => import("@/app/api/v1/me/route"),

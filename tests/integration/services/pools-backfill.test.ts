@@ -14,13 +14,13 @@
  * @modified Thu Sep 24, 2026
  */
 
+import type { PackInput } from "@haruhimemoe/pool/service";
 import { describe, expect, it } from "vitest";
 import { POOLS_ACCOUNT, POOLS_BACKFILL_COLLECTION, POOLS_SYNC_SUBJECT } from "@/constants/pools";
 import { OSU_API_BUDGET, RATE_LIMITS_COLLECTION } from "@/constants/star-ratings";
 import { getDb } from "@/lib/db";
 import { osuBudgetWindow, osuSubjectWindow } from "@/lib/osu/attributes";
 import { getPackModel } from "@/models/Pack";
-import type { PackInput } from "@/schemas/saved-pack";
 import {
   countPacksNeedingStats,
   type PoolsBackfillResult,

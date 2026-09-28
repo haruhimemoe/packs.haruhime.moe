@@ -10,13 +10,12 @@
 
 import "fake-indexeddb/auto";
 import { HINAI_BATCH_URL, hinaiBatchHandler } from "@haruhimemoe/hinai/testing";
-import { decodePackKey } from "@haruhimemoe/pool";
+import { decodePackKey, MAX_SLOTS } from "@haruhimemoe/pool";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { HttpResponse, http } from "msw";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PackBuilder } from "@/components/pack/PackBuilder";
-import { MAX_SLOTS } from "@/constants/pack";
 import { clearDraft, loadDraft, saveDraft } from "@/lib/storage/drafts";
 import { collectionFile, TV1_EMPTY } from "../../helpers/collections";
 import { setupHinaiServer } from "../../helpers/hinai-server";

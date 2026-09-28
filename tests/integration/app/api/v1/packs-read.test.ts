@@ -4,10 +4,11 @@
  *       admin, the system account's packs like any other), and /api/v1/me/packs (every own pack, paged).
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { encodePackKey } from "@haruhimemoe/pool";
+import type { PackInput } from "@haruhimemoe/pool/service";
 import { ObjectId } from "mongodb";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GET as MY_PACKS } from "@/app/api/v1/me/packs/route";
@@ -17,7 +18,6 @@ import { API_PAGE_SIZE, UNKNOWN_OWNER_NAME } from "@/constants/api";
 import { getDb } from "@/lib/db";
 import { getPackModel } from "@/models/Pack";
 import { apiPackPageResponseSchema, apiPackResponseSchema } from "@/schemas/api";
-import type { PackInput } from "@/schemas/saved-pack";
 import { setPackHidden } from "@/services/moderation";
 import { createPack } from "@/services/packs";
 import { ensurePoolsAccount } from "@/services/pools-account";

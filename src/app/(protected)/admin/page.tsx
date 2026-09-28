@@ -4,14 +4,14 @@
  *       site 404, so the page never confirms it exists. Dynamic: admin traffic only.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { MAX_NAME_LENGTH } from "@haruhimemoe/pool";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AdminScreen } from "@/components/admin/AdminScreen";
 import { RestoreSignedIn } from "@/components/auth/RestoreSignedIn";
-import { MAX_NAME_LENGTH } from "@/constants/pack";
 import { requireUser } from "@/lib/auth-session";
 import { listPacksForAdmin } from "@/services/moderation";
 import { listPinnedForAdmin } from "@/services/pins";

@@ -15,6 +15,7 @@
 
 import "server-only";
 import { bucketsOf, canonicalBuckets, encodePackKey } from "@haruhimemoe/pool";
+import type { PackInput } from "@haruhimemoe/pool/service";
 import { nanoid } from "nanoid";
 import { MAX_SAVED_PACKS, OWN_PAGE_SIZE, SLUG_LENGTH } from "@/constants/pack";
 import { connectDb } from "@/lib/db";
@@ -23,7 +24,6 @@ import { getPackModel, UNPIN } from "@/models/Pack";
 import type { Pool } from "@/schemas/pack";
 import { type PackStats, packStatsSchema } from "@/schemas/pack-stats";
 import {
-  type PackInput,
   type SavedPack,
   type SavedPackSummary,
   savedPackSchema,

@@ -21,6 +21,8 @@ type PackStatsProps<S extends { beatmapId: number }> = {
   getState: (beatmapId: number) => MetaState;
   /** The stars a slot counts with (forced slots with their mods). Default: the plain rating. */
   starsOf?: (slot: S, meta: BeatmapMeta) => number;
+  /** How fast a slot plays (a forced DT is 1.5), for its length and BPM. Default: 1. */
+  speedOf?: (slot: S) => number;
 };
 
 const range = (low: string, high: string): string => (low === high ? low : `${low}–${high}`);
@@ -29,8 +31,9 @@ export function PackStats<S extends { beatmapId: number }>({
   slots,
   getState,
   starsOf,
+  speedOf,
 }: PackStatsProps<S>) {
-  const stats = packStats(slots, getState, starsOf);
+  const stats = packStats(slots, getState, starsOf, speedOf);
   if (stats.status === "empty") return null;
 
   const tiles: [string, string][] = [["Maps", String(stats.maps)]];

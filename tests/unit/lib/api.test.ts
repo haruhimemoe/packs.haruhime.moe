@@ -5,12 +5,12 @@
  *       bodyless cookie mutations.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { MAX_SLOTS } from "@haruhimemoe/pool";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-import { MAX_SLOTS } from "@/constants/pack";
 import {
   ERROR_CODES,
   errorCodeFor,

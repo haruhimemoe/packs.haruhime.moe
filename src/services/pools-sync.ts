@@ -21,6 +21,7 @@
  */
 
 import "server-only";
+import type { PackInput, PoolsSyncAnswer } from "@haruhimemoe/pool/service";
 import { ObjectId } from "mongodb";
 import {
   DELETED_ORIGINS_COLLECTION,
@@ -31,8 +32,7 @@ import {
 } from "@/constants/pools";
 import { connectedDb } from "@/lib/db";
 import { revalidatePack, revalidatePublicPacks } from "@/lib/revalidate";
-import type { PoolsSyncAnswer } from "@/schemas/pools-service";
-import type { PackInput, SavedPack } from "@/schemas/saved-pack";
+import type { SavedPack } from "@/schemas/saved-pack";
 import {
   connectedPackModel,
   createPack,

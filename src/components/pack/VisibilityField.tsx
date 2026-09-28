@@ -3,18 +3,18 @@
  * @desc Radio group for a saved pack's visibility.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
+import { PACK_VISIBILITIES, type PackVisibility } from "@haruhimemoe/pool/service";
 import { useId } from "react";
 import { VISIBILITY_OPTIONS } from "@/constants/visibility";
-import { VISIBILITIES, type Visibility } from "@/schemas/saved-pack";
 
 type VisibilityFieldProps = {
-  value: Visibility;
-  onChange: (value: Visibility) => void;
+  value: PackVisibility;
+  onChange: (value: PackVisibility) => void;
   disabled?: boolean;
 };
 
@@ -23,7 +23,7 @@ export function VisibilityField({ value, onChange, disabled }: VisibilityFieldPr
   return (
     <fieldset className="flex flex-col gap-2" disabled={disabled}>
       <legend className="mb-1 font-bold text-c3 text-sm">Who can open it</legend>
-      {VISIBILITIES.map((option) => (
+      {PACK_VISIBILITIES.map((option) => (
         <label key={option} className="flex items-start gap-2 text-sm">
           <input
             type="radio"

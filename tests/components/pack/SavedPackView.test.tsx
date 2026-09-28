@@ -409,11 +409,10 @@ describe("SavedPackView", () => {
     server.use(
       http.get("*/api/osu/star-ratings", ({ request }) => {
         expect(new URL(request.url).searchParams.get("q")).toBe(
-          "1872396:EZ,1872396:HD,1872396:HDHR,1872396:HR",
+          "1872396:EZ,1872396:HDHR,1872396:HR",
         );
         return HttpResponse.json({
           ratings: {
-            "1872396:HD": 6.16,
             "1872396:HR": 6.32,
             "1872396:HDHR": 6.44,
             "1872396:EZ": 5.63,
@@ -425,7 +424,8 @@ describe("SavedPackView", () => {
     render(<SavedPackView pack={PACK} isOwner={false} />);
     await screen.findByText("HDHR 6.44");
     expect(screen.getByText("With mods:").parentElement).toHaveTextContent(
-      "HD 6.16 · HR 6.32 · HDHR 6.44 · EZ 5.63",
+      // HD alone keeps the plain rating, so the page shows it without asking osu!.
+      "HD 5.97 · HR 6.32 · HDHR 6.44 · EZ 5.63",
     );
   });
 

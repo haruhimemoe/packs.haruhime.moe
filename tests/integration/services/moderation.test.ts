@@ -6,15 +6,15 @@
  *       tombstone can't be written stays.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import type { PackInput } from "@haruhimemoe/pool/service";
 import { ObjectId } from "mongodb";
 import { describe, expect, it } from "vitest";
 import { DELETED_ORIGINS_COLLECTION } from "@/constants/pools";
 import { getDb } from "@/lib/db";
 import { getPackModel } from "@/models/Pack";
-import type { PackInput } from "@/schemas/saved-pack";
 import { adminDeletePack, listPacksForAdmin, setPackHidden } from "@/services/moderation";
 import { createPack } from "@/services/packs";
 import { ensurePoolsAccount } from "@/services/pools-account";

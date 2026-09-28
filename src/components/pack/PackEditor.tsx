@@ -4,12 +4,12 @@
  *       star ratings with mods.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
-import { bucketsOf } from "@haruhimemoe/pool";
+import { bucketsOf, MAX_NAME_LENGTH, MAX_SLOTS } from "@haruhimemoe/pool";
 import { Button, Card, TextInput } from "@haruhimemoe/ui";
 import { type Dispatch, useId, useState } from "react";
 import { AddBeatmapForm } from "@/components/pack/AddBeatmapForm";
@@ -17,7 +17,7 @@ import { BucketManager } from "@/components/pack/BucketManager";
 import { BulkPasteInput } from "@/components/pack/BulkPasteInput";
 import { PackStats } from "@/components/pack/PackStats";
 import { PoolTable } from "@/components/pack/PoolTable";
-import { DEFAULT_PACK_NAME, MAX_NAME_LENGTH, MAX_SLOTS } from "@/constants/pack";
+import { DEFAULT_PACK_NAME } from "@/constants/pack";
 import { EDITOR_STAR_DELAY_MS } from "@/constants/star-ratings";
 import type { BeatmapMetaApi } from "@/hooks/useBeatmapMeta";
 import { usePoolStarRatings } from "@/hooks/useModdedStarRatings";
@@ -125,7 +125,12 @@ export function PackEditor({ pack, dispatch, ready, meta }: PackEditorProps) {
             ) : null}
           </div>
         </div>
-        <PackStats slots={pack.slots} getState={meta.get} starsOf={stars.starsOf} />
+        <PackStats
+          slots={pack.slots}
+          getState={meta.get}
+          starsOf={stars.starsOf}
+          speedOf={stars.speedOf}
+        />
         <PoolTable
           slots={pack.slots}
           buckets={buckets}

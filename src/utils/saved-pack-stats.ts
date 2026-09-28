@@ -9,29 +9,29 @@
  *       form. Pure: metadata and ratings come in.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
 import {
   bucketsOf,
+  changesStarRating,
   isModBucket,
   type ModAcronym,
   RULESETS,
   type Ruleset,
   type SlotMods,
+  speedRate,
 } from "@haruhimemoe/pool";
 import {
   PACK_STATS_RETRY_MAX_DAYS,
-  RATING_MODS,
-  SPEED_RATES,
   STAT_MOD_CODES,
   type StatModCode,
 } from "@/constants/pack-stats";
 import type { StarPair } from "@/constants/star-ratings";
 import { type BucketEntry, type PoolSlot, slotKey } from "@/schemas/pack";
 import type { IndexStats, PackStats } from "@/schemas/pack-stats";
-import { slotModsMap, starPairKey } from "@/utils/slot-stars";
+import { forcedSet, slotModsMap, starPairKey } from "@/utils/slot-stars";
 
 /** The metadata stats need, from the mirror or osu!. */
 export type StatsMeta = Pick<BeatmapMeta, "mode" | "bpm" | "lengthSeconds" | "starRating">;
@@ -55,19 +55,11 @@ export type PackStatsRecord = Omit<PackStats, "computedAt"> & { computedAt: Date
  * @function ratedSetFor
  * @param mods {SlotMods | undefined} what a slot plays with
  * @returns {readonly ModAcronym[] | null} its forced set when that changes the star rating
- *          (holds EZ, HR, DT, HT or FL), otherwise null (the plain rating counts)
+ *          (changesStarRating from @haruhimemoe/pool), otherwise null (the plain rating counts)
  */
-const ratedSetFor = (mods: SlotMods | undefined): readonly ModAcronym[] | null =>
-  mods?.kind === "forced" && mods.set.some((mod) => RATING_MODS.includes(mod)) ? mods.set : null;
-
-/** 1 for normal speed; 1.5 with a forced DT, 0.75 with a forced HT. */
-const speedOf = (mods: SlotMods | undefined): number => {
-  if (mods?.kind !== "forced") return 1;
-  for (const mod of mods.set) {
-    const rate = SPEED_RATES[mod];
-    if (rate !== undefined) return rate;
-  }
-  return 1;
+const ratedSetFor = (mods: SlotMods | undefined): readonly ModAcronym[] | null => {
+  const set = forcedSet(mods);
+  return changesStarRating(set) ? set : null;
 };
 
 /**
@@ -127,7 +119,7 @@ export const computeStats = (
       continue;
     }
     modes.add(meta.mode);
-    const speed = speedOf(mods);
+    const speed = speedRate(forcedSet(mods));
     lengths.push(meta.lengthSeconds / speed);
     bpms.push(meta.bpm * speed);
     const set = ratedSetFor(mods);

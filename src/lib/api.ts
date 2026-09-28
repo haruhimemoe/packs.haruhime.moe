@@ -6,11 +6,11 @@
  *       that without a CORS preflight) and small.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { MAX_SLOTS } from "@haruhimemoe/pool";
 import type { z } from "zod";
-import { MAX_SLOTS } from "@/constants/pack";
 import { SITE } from "@/constants/site";
 import type { ApiErrorBody } from "@/schemas/api";
 import { beatmapIdSchema } from "@/schemas/pack";

@@ -7,14 +7,14 @@
  *       stats are computed after the response, on the caller's share of the osu! budget.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { packInputSchema } from "@haruhimemoe/pool/service";
 import { RATE_LIMITS } from "@/constants/api";
 import { BAD_PAGE, jsonError, parseJsonBody, SIGN_IN_REQUIRED } from "@/lib/api";
 import { getUserFromHeaders } from "@/lib/auth";
 import { refuseOverLimit } from "@/lib/rate-limit";
-import { packInputSchema } from "@/schemas/saved-pack";
 import { createPack, listPacks, PackLimitError } from "@/services/packs";
 import { clientIp, rateLimitSubject } from "@/utils/client-ip";
 import { pageFromQuery } from "@/utils/paging";

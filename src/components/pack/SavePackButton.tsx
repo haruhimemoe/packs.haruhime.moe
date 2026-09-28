@@ -4,11 +4,12 @@
  *       beforeSignIn has put the pack somewhere it will survive the redirect).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
+import type { PackInputBody } from "@haruhimemoe/pool/service";
 import { Button } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
@@ -16,7 +17,7 @@ import { DEFAULT_PACK_NAME } from "@/constants/pack";
 import { useAccount } from "@/hooks/useAccount";
 import { PacksApiError, packsApi } from "@/lib/packs-api";
 import type { Pool } from "@/schemas/pack";
-import type { PackInputBody, SavedPack } from "@/schemas/saved-pack";
+import type { SavedPack } from "@/schemas/saved-pack";
 import { signInHref } from "@/utils/safe-next";
 
 type SavePackButtonProps = {

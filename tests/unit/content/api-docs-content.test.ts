@@ -8,20 +8,17 @@
  *       every doc stays plain Markdown so /docs/<slug>.md can serve it as is.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { MAX_NAME_LENGTH, MAX_SLOTS } from "@haruhimemoe/pool";
+import { MAX_DESCRIPTION_LENGTH } from "@haruhimemoe/pool/service";
 import { describe, expect, it } from "vitest";
 import { API_PAGE_SIZE, OPENAPI_PATH, RATE_LIMITS, UNKNOWN_OWNER_NAME } from "@/constants/api";
 import { DOC_DOCS, DOC_SLUGS } from "@/constants/docs";
-import {
-  DESCRIPTION_EXCERPT_LENGTH,
-  MAX_DESCRIPTION_LENGTH,
-  MAX_NAME_LENGTH,
-  MAX_SLOTS,
-} from "@/constants/pack";
+import { DESCRIPTION_EXCERPT_LENGTH } from "@/constants/pack";
 import { POOLS_ACCOUNT } from "@/constants/pools";
 import { SEARCH_INDEX_LIMIT } from "@/constants/public-packs";
 import { SITE } from "@/constants/site";

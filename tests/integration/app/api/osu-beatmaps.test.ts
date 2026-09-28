@@ -7,16 +7,16 @@
  *       per-IP share of osu! calls, spent across this route and star ratings.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { MAX_SLOTS } from "@haruhimemoe/pool";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { GET } from "@/app/api/osu/beatmaps/route";
 import { GET as getStarRatings } from "@/app/api/osu/star-ratings/route";
 import { RATE_LIMITS } from "@/constants/api";
-import { MAX_SLOTS } from "@/constants/pack";
 import { SERVER_USER_AGENT } from "@/constants/site";
 import { OSU_API_BUDGET, RATE_LIMITS_COLLECTION } from "@/constants/star-ratings";
 import { getDb } from "@/lib/db";

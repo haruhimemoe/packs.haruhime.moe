@@ -17,6 +17,7 @@
  * @modified Sun Sep 27, 2026
  */
 
+import type { PackInput } from "@haruhimemoe/pool/service";
 import { ObjectId } from "mongodb";
 import { revalidatePath } from "next/cache";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -29,7 +30,6 @@ import {
 } from "@/constants/pools";
 import { getDb } from "@/lib/db";
 import { getPackModel } from "@/models/Pack";
-import type { PackInput } from "@/schemas/saved-pack";
 import { adminDeletePack, setPackHidden } from "@/services/moderation";
 import { runPoolsStatsBackfill } from "@/services/pack-stats";
 import { createPack } from "@/services/packs";

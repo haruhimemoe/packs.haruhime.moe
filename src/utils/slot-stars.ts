@@ -13,12 +13,14 @@
 import { formatStars } from "@haruhimemoe/osu/format";
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
 import {
+  changesStarRating,
   type ModAcronym,
   modSetsFor,
   modsLabel,
   NO_MODS,
   type SlotMods,
   slotModsFor,
+  speedRate,
 } from "@haruhimemoe/pool";
 import type { MetaState } from "@/hooks/beatmapMetaState";
 import { type BucketEntry, type PoolSlot, slotKey } from "@/schemas/pack";
@@ -127,7 +129,12 @@ export type StarPairResult = number | typeof STAR_FAILED;
 export const starPairKey = (beatmapId: number, set: readonly ModAcronym[]): string =>
   `${beatmapId}:${modsLabel(set)}`;
 
-type SlotSets = { key: string; beatmapId: number; sets: readonly (readonly ModAcronym[])[] };
+type SlotSets = {
+  key: string;
+  beatmapId: number;
+  nomod: number;
+  sets: readonly (readonly ModAcronym[])[];
+};
 
 const slotSets = (
   slots: readonly PoolSlot[],
@@ -139,7 +146,8 @@ const slotSets = (
     const mods = modsBySlot.get(key);
     const state = metaById(slot.beatmapId);
     if (!mods || mods.kind === "none" || state.status !== "found") return [];
-    return [{ key, beatmapId: slot.beatmapId, sets: modSetsFor(mods, state.meta.mode) }];
+    const { mode, starRating } = state.meta;
+    return [{ key, beatmapId: slot.beatmapId, nomod: starRating, sets: modSetsFor(mods, mode) }];
   });
 
 /**
@@ -147,7 +155,8 @@ const slotSets = (
  * @param slots {readonly PoolSlot[]} the pool
  * @param metaById {(beatmapId: number) => MetaState} metadata lookup (the ruleset decides freemod sets)
  * @param modsBySlot {ReadonlyMap<string, SlotMods>} slotKey -> mods
- * @returns {string[]} every pair the pool needs, unique and sorted: the canonical ?q= list
+ * @returns {string[]} every pair the pool needs osu! for, unique and sorted: the canonical ?q=
+ *          list. A set that doesn't change the rating (HD alone) needs no pair.
  */
 export const starPairsFor = (
   slots: readonly PoolSlot[],
@@ -156,7 +165,7 @@ export const starPairsFor = (
 ): string[] => {
   const pairs = new Set<string>();
   for (const { beatmapId, sets } of slotSets(slots, metaById, modsBySlot)) {
-    for (const set of sets) pairs.add(starPairKey(beatmapId, set));
+    for (const set of sets) if (changesStarRating(set)) pairs.add(starPairKey(beatmapId, set));
   }
   return [...pairs].sort();
 };
@@ -168,7 +177,8 @@ export const starPairsFor = (
  * @param modsBySlot {ReadonlyMap<string, SlotMods>} slotKey -> mods
  * @param results {ReadonlyMap<string, StarPairResult>} pair -> answer so far
  * @returns {Map<string, ModdedRating[]>} slotKey -> ratings in display order; a slot is absent
- *          while any of its pairs is unknown, and [] once any of them failed
+ *          while any of its pairs is unknown, and [] once any of them failed. A set that doesn't
+ *          change the rating counts with the plain one.
  */
 export const ratingsForSlots = (
   slots: readonly PoolSlot[],
@@ -177,8 +187,10 @@ export const ratingsForSlots = (
   results: ReadonlyMap<string, StarPairResult>,
 ): Map<string, ModdedRating[]> => {
   const out = new Map<string, ModdedRating[]>();
-  for (const { key, beatmapId, sets } of slotSets(slots, metaById, modsBySlot)) {
-    const values = sets.map((set) => results.get(starPairKey(beatmapId, set)));
+  for (const { key, beatmapId, nomod, sets } of slotSets(slots, metaById, modsBySlot)) {
+    const values = sets.map((set) =>
+      changesStarRating(set) ? results.get(starPairKey(beatmapId, set)) : nomod,
+    );
     if (values.includes(STAR_FAILED)) {
       out.set(key, []);
     } else if (values.every((value) => typeof value === "number")) {
@@ -190,3 +202,24 @@ export const ratingsForSlots = (
   }
   return out;
 };
+
+const NO_SET: readonly ModAcronym[] = Object.freeze([]);
+
+/**
+ * @function forcedSet
+ * @param mods {SlotMods | undefined} what a slot plays with
+ * @returns {readonly ModAcronym[]} its forced set, or none for a freemod slot or no mods
+ */
+export const forcedSet = (mods: SlotMods | undefined): readonly ModAcronym[] =>
+  mods?.kind === "forced" ? mods.set : NO_SET;
+
+/**
+ * @function slotSpeedOf
+ * @param modsBySlot {ReadonlyMap<string, SlotMods>} slotKey -> mods
+ * @returns {(slot: PoolSlot) => number} how fast a slot plays: speedRate of its forced set (1.5
+ *          with DT, 0.75 with HT, else 1); freemod slots play at normal speed
+ */
+export const slotSpeedOf =
+  (modsBySlot: ReadonlyMap<string, SlotMods>) =>
+  (slot: PoolSlot): number =>
+    speedRate(forcedSet(modsBySlot.get(slotKey(slot))));

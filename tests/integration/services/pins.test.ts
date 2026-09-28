@@ -6,15 +6,15 @@
  *       use the partial pin index, never a collection scan.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import type { PackInput } from "@haruhimemoe/pool/service";
 import { ObjectId } from "mongodb";
 import { revalidatePath } from "next/cache";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MAX_PINNED_PACKS } from "@/constants/public-packs";
 import { getPackModel } from "@/models/Pack";
-import type { PackInput } from "@/schemas/saved-pack";
 import { setPackHidden } from "@/services/moderation";
 import { createPack, updatePack } from "@/services/packs";
 import {

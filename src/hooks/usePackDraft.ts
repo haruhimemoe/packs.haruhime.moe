@@ -5,7 +5,7 @@
  *       rename keeps no lone surrogate (each becomes U+FFFD), so the key encoder can't throw.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -14,6 +14,7 @@ import {
   addBucket,
   addBuckets,
   addSlot,
+  MAX_NAME_LENGTH,
   mergeSlots,
   moveBucket,
   moveSlot,
@@ -25,7 +26,7 @@ import {
   setBucketMods,
 } from "@haruhimemoe/pool";
 import { type Dispatch, useEffect, useReducer, useState } from "react";
-import { DEFAULT_PACK_NAME, MAX_NAME_LENGTH } from "@/constants/pack";
+import { DEFAULT_PACK_NAME } from "@/constants/pack";
 import { loadDraft, saveDraft } from "@/lib/storage/drafts";
 import type { CustomBucket, Pool, PoolSlot, SlotBucket } from "@/schemas/pack";
 

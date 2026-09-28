@@ -7,14 +7,14 @@
  *       cards); no database under CI builds, and the system account's packs listed like any other.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import type { PackInput } from "@haruhimemoe/pool/service";
 import { ObjectId } from "mongodb";
 import { describe, expect, it, vi } from "vitest";
 import { getPackModel } from "@/models/Pack";
 import { searchIndexSchema } from "@/schemas/public-pack";
-import type { PackInput } from "@/schemas/saved-pack";
 import { createPack } from "@/services/packs";
 import { pinPack, reorderPins } from "@/services/pins";
 import { ensurePoolsAccount } from "@/services/pools-account";

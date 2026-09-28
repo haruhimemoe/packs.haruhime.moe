@@ -5,7 +5,7 @@
  *       whose ID was copied last says "Copied.": a press starts every other row's Copy ID over.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -15,6 +15,7 @@ import {
   bucketOptionLabel,
   DEFAULT_BUCKETS,
   isCustomBucket,
+  MAX_SLOT_INDEX,
   NO_SLOT_NAME,
   nextSlotIndex,
   type SlotMods,
@@ -24,7 +25,6 @@ import {
 import { useState } from "react";
 import { type MoveTarget, SlotRow } from "@/components/pack/SlotRow";
 import { NO_SLOT_VALUE } from "@/constants/mods";
-import { MAX_SLOT_INDEX } from "@/constants/pack";
 import type { MetaState } from "@/hooks/beatmapMetaState";
 import type { ModdedStarRatings } from "@/hooks/useModdedStarRatings";
 import { type BucketEntry, type PoolSlot, type SlotBucket, slotKey } from "@/schemas/pack";

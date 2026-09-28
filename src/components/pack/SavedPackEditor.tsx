@@ -3,11 +3,12 @@
  * @desc /p/[slug]/edit: edit a saved pack in memory (no IndexedDB draft), then save or delete.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
+import type { PackInputBody, PackVisibility } from "@haruhimemoe/pool/service";
 import { Button, ButtonLink, Card, PageHeader } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
 import { useMemo, useReducer, useState } from "react";
@@ -19,7 +20,7 @@ import { DEFAULT_PACK_NAME } from "@/constants/pack";
 import { useBeatmapMeta } from "@/hooks/useBeatmapMeta";
 import { draftReducer } from "@/hooks/usePackDraft";
 import { PacksApiError, packsApi } from "@/lib/packs-api";
-import type { PackInputBody, SavedPack, Visibility } from "@/schemas/saved-pack";
+import type { SavedPack } from "@/schemas/saved-pack";
 
 type SavedPackEditorProps = {
   pack: SavedPack;
@@ -41,7 +42,7 @@ export function SavedPackEditor({
       ? { name: saved.name, slots: saved.slots, buckets: saved.buckets }
       : { name: saved.name, slots: saved.slots },
   );
-  const [visibility, setVisibility] = useState<Visibility>(saved.visibility);
+  const [visibility, setVisibility] = useState<PackVisibility>(saved.visibility);
   const [description, setDescription] = useState(saved.description ?? "");
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState<string | null>(null);

@@ -5,9 +5,10 @@
  *       can show it as-is.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import type { PackInputBody } from "@haruhimemoe/pool/service";
 import { z } from "zod";
 import { type ApiKeyCreated, apiErrorSchema, apiKeyCreatedSchema } from "@/schemas/api";
 import { type PackExport, packExportsSchema } from "@/schemas/pack-export";
@@ -18,7 +19,7 @@ import {
   type PinnedPack,
   pinnedPackSchema,
 } from "@/schemas/public-pack";
-import { type PackInputBody, type SavedPack, savedPackSchema } from "@/schemas/saved-pack";
+import { type SavedPack, savedPackSchema } from "@/schemas/saved-pack";
 
 export class PacksApiError extends Error {
   readonly status: number | null;

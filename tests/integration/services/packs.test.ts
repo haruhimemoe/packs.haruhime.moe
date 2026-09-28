@@ -5,16 +5,16 @@
  *       indexes, and a pack's origin (stored, never returned, one pack per origin).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import type { PackInput } from "@haruhimemoe/pool/service";
 import { ObjectId } from "mongodb";
 import { revalidatePath } from "next/cache";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MAX_SAVED_PACKS, OWN_PAGE_SIZE } from "@/constants/pack";
 import { getDb } from "@/lib/db";
 import { getPackModel } from "@/models/Pack";
-import type { PackInput } from "@/schemas/saved-pack";
 import { deleteAccount } from "@/services/account";
 import {
   createPack,

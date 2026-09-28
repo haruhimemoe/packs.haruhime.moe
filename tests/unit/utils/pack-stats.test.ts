@@ -4,7 +4,7 @@
  *       a custom starsOf for modded ratings.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
@@ -123,6 +123,25 @@ describe("packStats with modded ratings", () => {
     expect(result).toMatchObject({
       status: "ready",
       summary: { averageStars: 4.5, minStars: 3, maxStars: 6 },
+    });
+  });
+});
+
+describe("packStats with speed", () => {
+  it("shortens and speeds up a DT slot the way the saved stats on /packs do", () => {
+    const pool = [
+      { mod: "DT", beatmapId: 1 },
+      { mod: "NM", beatmapId: 2 },
+    ];
+    const result = packStats(
+      pool,
+      states({ 1: found(meta(1, 5, 180, 90)), 2: found(meta(2, 5, 150, 90)) }),
+      undefined,
+      (slot) => (slot.mod === "DT" ? 1.5 : 1),
+    );
+    expect(result).toMatchObject({
+      status: "ready",
+      summary: { totalLength: 150, averageLength: 75, minBpm: 150, maxBpm: 270 },
     });
   });
 });

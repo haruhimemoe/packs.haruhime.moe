@@ -1,20 +1,13 @@
 /**
  * @file src/utils/text.ts
- * @desc Plain-text helpers for pack descriptions: normalization, excerpts, page meta descriptions,
- *       and regex escaping for admin name filters.
+ * @desc Plain-text helpers: excerpts of pack descriptions, page meta descriptions, and regex
+ *       escaping for admin name filters. Descriptions are normalized by @haruhimemoe/pool/service.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 const META_DESCRIPTION_LENGTH = 160;
-
-/**
- * @function normalizeDescription
- * @param text {string} raw textarea value
- * @returns {string} CRLF and CR turned into LF, trimmed
- */
-export const normalizeDescription = (text: string): string => text.replace(/\r\n?/g, "\n").trim();
 
 /**
  * @function excerpt

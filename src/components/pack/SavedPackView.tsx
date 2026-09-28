@@ -9,7 +9,7 @@
  *       The "Add to osu! collection" card sits between the maps and Share.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -156,7 +156,12 @@ export function SavedPackView({
         <h2 id={mapsHeadingId} className="sr-only">
           Maps
         </h2>
-        <PackStats slots={ref.slots} getState={meta.get} starsOf={stars.starsOf} />
+        <PackStats
+          slots={ref.slots}
+          getState={meta.get}
+          starsOf={stars.starsOf}
+          speedOf={stars.speedOf}
+        />
         <PoolTable
           slots={ref.slots}
           buckets={ref.buckets}

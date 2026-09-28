@@ -7,7 +7,7 @@
       "dependencies": {
         "@haruhimemoe/hinai": "0.3.0",
         "@haruhimemoe/osu": "0.3.0",
-        "@haruhimemoe/pool": "0.1.0",
+        "@haruhimemoe/pool": "0.2.0",
         "@haruhimemoe/ui": "0.3.0",
         "@mdx-js/loader": "3.1.1",
         "@mdx-js/react": "3.1.1",
@@ -137,7 +137,7 @@
 
     "@haruhimemoe/osu": ["@haruhimemoe/osu@0.3.0", "", { "peerDependencies": { "zod": "^4.0.16" } }, "sha512-crTv5aR/tAhu8XUckhr18+msQOOWzrP3fGRDpQjs2ebUt8YI4j8o5FyOKKcYXfhy1HO7dV6/EeNQUAn7uOmiZg=="],
 
-    "@haruhimemoe/pool": ["@haruhimemoe/pool@0.1.0", "", { "peerDependencies": { "zod": "^4.0.16" } }, "sha512-iEjd8qA9eeuaBHBprxvTmRjAnnb/TpmK0RBmC33XN0Zh59aFLd5iRtKJqxxpsn3yUuuFuVRMSIhBv4W5FAUpuA=="],
+    "@haruhimemoe/pool": ["@haruhimemoe/pool@0.2.0", "", { "peerDependencies": { "zod": "^4.0.16" } }, "sha512-08MqwWGnHduAw5M1Bxo22A43PsFHmuBDToksOy9Jk8V9JZW/EGg4QVX9a7UqZNx1xdc+OOPczFcUONGvS6jgpg=="],
 
     "@haruhimemoe/ui": ["@haruhimemoe/ui@0.3.0", "", { "dependencies": { "tailwind-merge": "3.7.0" }, "peerDependencies": { "next": ">=16.0.0 <17", "react": ">=19.0.0", "react-dom": ">=19.0.0", "tailwindcss": ">=4.1.0 <5" } }, "sha512-kGx7YDuVOf7j5G1+OjUVrjfBGurs4alV9B61RQkqIPxwQh+j78CH0jjhemyY7/VZMBiORa+keGxdFfKiAaNhRw=="],
 

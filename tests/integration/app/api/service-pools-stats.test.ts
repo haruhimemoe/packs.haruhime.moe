@@ -5,15 +5,15 @@
  *       pools has published a pack. The mirror and osu! are MSW.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import type { PackInput } from "@haruhimemoe/pool/service";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { POST } from "@/app/api/service/pools/stats/route";
 import { POOLS_ACCOUNT } from "@/constants/pools";
 import { getDb } from "@/lib/db";
 import { getPackModel } from "@/models/Pack";
-import type { PackInput } from "@/schemas/saved-pack";
 import { createPack } from "@/services/packs";
 import { setupTestDb } from "../../../helpers/db";
 import { apiRequest } from "../../../helpers/requests";

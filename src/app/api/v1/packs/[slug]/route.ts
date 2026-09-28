@@ -5,12 +5,12 @@
  *       that changes the maps clears the stats and computes new ones after the response.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { packInputSchema } from "@haruhimemoe/pool/service";
 import { jsonError, PACK_NOT_FOUND, parseJsonBody } from "@/lib/api";
 import { withApiKey } from "@/lib/api-auth";
-import { packInputSchema } from "@/schemas/saved-pack";
 import { getApiPack, toApiPack } from "@/services/api-packs";
 import { deletePack, updatePack } from "@/services/packs";
 import { clientIp, rateLimitSubject } from "@/utils/client-ip";

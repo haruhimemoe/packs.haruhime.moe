@@ -3,12 +3,12 @@
  * @desc Packs' stored pool shape still validates with the package, and a full pool keeps its key.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { decodePackKey, encodePackKey, type Pool, poolSchema } from "@haruhimemoe/pool";
+import { packInputSchema } from "@haruhimemoe/pool/service";
 import { describe, expect, it } from "vitest";
-import { packInputSchema } from "@/schemas/saved-pack";
 
 const pool: Pool = {
   name: "SPC Finals",

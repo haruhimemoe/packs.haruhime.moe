@@ -5,7 +5,7 @@
  *       back, and the stars pack stats use.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
@@ -14,6 +14,7 @@ import { describe, expect, it } from "vitest";
 import type { MetaState } from "@/hooks/beatmapMetaState";
 import type { BucketEntry, PoolSlot } from "@/schemas/pack";
 import {
+  forcedSet,
   MODDED_FAILED_NOTE,
   MODDED_LOADING_NOTE,
   moddedStarsOf,
@@ -21,6 +22,7 @@ import {
   STAR_FAILED,
   type StarPairResult,
   slotModsMap,
+  slotSpeedOf,
   slotStars,
   starPairKey,
   starPairsFor,
@@ -165,22 +167,22 @@ describe("star-rating pairs", () => {
       getter({ 7: full(7), 8: full(8), 9: full(9, "mania") }),
       mods,
     );
-    // 8:HD comes from both HD1 and FM1 but is asked for once; 10 (DT1) isn't loaded yet;
-    // 9 is mania, so its freemod slot only needs HD.
-    expect(pairs).toEqual(["8:EZ", "8:HD", "8:HDHR", "8:HR", "9:HD"]);
+    // HD alone keeps the plain rating, so neither HD1 nor either freemod HD set is asked for;
+    // 10 (DT1) isn't loaded yet; 9 is mania, whose freemod only has HD, so it needs nothing.
+    expect(pairs).toEqual(["8:EZ", "8:HDHR", "8:HR"]);
   });
 
   it("gives each slot its ratings in display order once every pair is known", () => {
     const results = new Map<string, StarPairResult>([
-      ["8:HD", 6.1],
       ["8:HR", 6.2],
       ["8:HDHR", 6.3],
       ["8:EZ", 4.5],
     ]);
     const ratings = ratingsForSlots(slots, getter({ 8: full(8) }), mods, results);
-    expect(ratings.get("b:HD#1")).toEqual([{ mods: "HD", stars: 6.1 }]);
+    // HD alone counts with the plain rating (5) without asking osu!.
+    expect(ratings.get("b:HD#1")).toEqual([{ mods: "HD", stars: 5 }]);
     expect(ratings.get("b:FM#1")).toEqual([
-      { mods: "HD", stars: 6.1 },
+      { mods: "HD", stars: 5 },
       { mods: "HR", stars: 6.2 },
       { mods: "HDHR", stars: 6.3 },
       { mods: "EZ", stars: 4.5 },
@@ -189,12 +191,32 @@ describe("star-rating pairs", () => {
   });
 
   it("leaves a slot out while a pair is unknown, and gives [] once one failed", () => {
-    const waiting = new Map<string, StarPairResult>([["8:HD", 6.1]]);
+    const waiting = new Map<string, StarPairResult>([["8:HR", 6.2]]);
     expect(ratingsForSlots(slots, getter({ 8: full(8) }), mods, waiting).has("b:FM#1")).toBe(false);
     const failed = new Map<string, StarPairResult>([
-      ["8:HD", 6.1],
+      ["8:EZ", 4.5],
       ["8:HR", STAR_FAILED],
     ]);
     expect(ratingsForSlots(slots, getter({ 8: full(8) }), mods, failed).get("b:FM#1")).toEqual([]);
+  });
+});
+
+describe("forcedSet and slotSpeedOf", () => {
+  const slots: PoolSlot[] = [
+    { mod: "DT", index: 1, beatmapId: 1 },
+    { mod: "FM", index: 1, beatmapId: 2 },
+    { mod: "NM", index: 1, beatmapId: 3 },
+    { mod: null, index: 0, beatmapId: 4 },
+  ];
+  const mods = slotModsMap(slots, BUCKETS);
+
+  it("gives a forced slot's set and nothing for freemod or no mods", () => {
+    expect(forcedSet({ kind: "forced", set: ["HD", "DT"] })).toEqual(["HD", "DT"]);
+    expect(forcedSet({ kind: "free" })).toEqual([]);
+    expect(forcedSet(undefined)).toEqual([]);
+  });
+
+  it("plays a DT slot at 1.5 and every other slot at 1", () => {
+    expect(slots.map(slotSpeedOf(mods))).toEqual([1.5, 1, 1, 1]);
   });
 });

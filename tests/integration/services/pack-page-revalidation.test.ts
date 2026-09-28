@@ -3,14 +3,14 @@
  * @desc Every change that alters /p/[slug] revalidates that slug's cached page.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { encodePackKey } from "@haruhimemoe/pool";
+import type { PackInput } from "@haruhimemoe/pool/service";
 import { ObjectId } from "mongodb";
 import { revalidatePath } from "next/cache";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { PackInput } from "@/schemas/saved-pack";
 import { deleteAccount } from "@/services/account";
 import { adminDeletePack, setPackHidden } from "@/services/moderation";
 import { addMagnet, removeMagnet } from "@/services/pack-exports";

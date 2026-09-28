@@ -1,19 +1,13 @@
 /**
  * @file tests/unit/utils/text.test.ts
- * @desc Description normalization, excerpts, page meta descriptions, regex escaping.
+ * @desc Excerpts, page meta descriptions, regex escaping.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { describe, expect, it } from "vitest";
-import { escapeRegExp, excerpt, metaDescription, normalizeDescription } from "@/utils/text";
-
-describe("normalizeDescription", () => {
-  it("turns CRLF and CR into LF and trims", () => {
-    expect(normalizeDescription("  one\r\ntwo\rthree \n")).toBe("one\ntwo\nthree");
-  });
-});
+import { escapeRegExp, excerpt, metaDescription } from "@/utils/text";
 
 describe("excerpt", () => {
   it("keeps short text, collapsing whitespace", () => {
