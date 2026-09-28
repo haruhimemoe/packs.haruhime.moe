@@ -9,9 +9,8 @@
 import { safeNextPath } from "@haruhimemoe/next-kit/server";
 import { Notice, PageHeader, TextLink } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
-import { SignInWithOsu } from "@/components/auth/SignInWithOsu";
 import { DEFAULT_AFTER_SIGN_IN } from "@/constants/site";
-import { RestoreSignedIn } from "@/lib/account";
+import { RestoreSignedIn, SignInWithOsu } from "@/lib/account";
 import { getCurrentUser } from "@/lib/auth-session";
 
 export const metadata: Metadata = { title: "Sign in", robots: { index: false } };

@@ -12,7 +12,7 @@ packs.haruhime.moe: a browser-first osu! beatmap pack builder, with saved packs,
 
 ```
 src/app/          routes only (thin; compose components)
-src/components/   layout/ and feature folders (account/, admin/, auth/, beatmap/, collection/, docs/, export/, home/, pack/, packs/); primitives come from @haruhimemoe/ui
+src/components/   layout/ and feature folders (account/, admin/, beatmap/, collection/, docs/, export/, home/, pack/, packs/); primitives come from @haruhimemoe/ui
 src/hooks/        client hooks (useBeatmapMeta, usePackDraft, usePoolStarRatings and the rest)
 src/constants/    static data (site, legal registry, mod buckets)
 src/utils/        pure, stateless helpers grouped by domain
@@ -92,7 +92,7 @@ Other user copy moves with the code in the same PR: an API change updates `conte
 
 ## 10. Accounts and data
 
-- Sign-in is osu! only: better-auth from `createOsuAuth` in `@haruhimemoe/next-kit/auth` (`src/lib/auth.ts`). The browser side (the signed-in marker, `useAccount`, `markSignedOut`, `RestoreSignedIn`) is `src/lib/account.ts`, from `createAccount` in `@haruhimemoe/next-kit/auth-react`. Starting a sign-in is counted per IP in `rate_limits` (`RATE_LIMITS.signIn`, `src/app/api/auth/[...all]/route.ts`).
+- Sign-in is osu! only: better-auth from `createOsuAuth` in `@haruhimemoe/next-kit/auth` (`src/lib/auth.ts`). The browser side (the signed-in marker, `useAccount`, `markSignedOut`, `RestoreSignedIn`, and the `SignInWithOsu` and `SignOutButton` buttons) is `src/lib/account.ts`, from `createAccount` and `createAuthComponents` in `@haruhimemoe/next-kit/auth-react`. Starting a sign-in is counted per IP in `rate_limits` (`RATE_LIMITS.signIn`, `src/app/api/auth/[...all]/route.ts`).
 - The Next.js server plumbing (JSON errors, body parsing, the client IP, rate limits, the osu! budget, bearer auth, env parsing, the Mongo client and index builds, security.txt, and the test helpers) comes from `@haruhimemoe/next-kit`. `src/lib/api.ts`, `rate-limit.ts`, `machine-auth.ts`, `db.ts`, `db-indexes.ts`, `src/lib/osu/budget.ts` and `src/env.ts` only wire it to packs' names; a missing piece belongs in the package.
 - Server env comes from `src/env.ts` (on `@haruhimemoe/next-kit/env`): `getServerEnv()` validates the five variables every osu! app needs on first use; `ADMIN_OSU_IDS`, `CRON_SECRET` and `POOLS_SERVICE_TOKEN` have their own readers, called on every use and never memoized. Don't read `process.env` elsewhere on the server; add every new variable to `src/env.ts` and `.env.example`.
 - Nothing may touch env, the database, or better-auth at import time. `/`, `/new`, `/k`, `/guide`, and `/legal` must build and run with no database env; `/packs` and `/packs/index.json` prerender empty under `SKIP_ENV_VALIDATION=true`. Real builds (preview and production deploys) prerender them against the database, so those environments need the full server env and the database must accept connections from the build machines. Never set `SKIP_ENV_VALIDATION` outside CI: it also empties `/packs` at runtime. A production server (`VERCEL_ENV=production` when `VERCEL_ENV` is set, so Vercel Preview still starts; otherwise `NODE_ENV=production`; never during `next build`) with the flag set refuses to start while `BETTER_AUTH_SECRET`, `OSU_CLIENT_SECRET` or `MONGODB_URI` would be a placeholder (`src/instrumentation.ts`, `assertNoPlaceholderSecrets` in `src/env.ts`).

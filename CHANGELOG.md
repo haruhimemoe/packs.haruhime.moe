@@ -8,6 +8,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- The Sign in with osu! and Sign out buttons come from `@haruhimemoe/next-kit/auth-react` 0.2.0 (`createAuthComponents`), shared with pools, and ui moves to 0.5.0. A sign-in error now shows as a bold rose line under the button instead of a notice box.
 - The site's server plumbing now comes from [@haruhimemoe/next-kit](https://github.com/haruhimemoe/next-kit), which pools.haruhime.moe shares. Where the two copies differed, packs takes pools' behavior:
   - A 503 without a code of its own answers `unavailable`, not `internal_error`. (packs' own 503s, from the cron and the pools service routes, keep `not_configured`.)
   - A request body that's too large or doesn't pass validation says "That request is too large." or "That request isn't valid." Pack saves still say "That pack is too large."
