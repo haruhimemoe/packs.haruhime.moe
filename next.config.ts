@@ -7,7 +7,7 @@
  *       and a rewrite that serves each doc's Markdown copy at /docs/<slug>.md.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import createMDX from "@next/mdx";
@@ -15,12 +15,20 @@ import type { NextConfig } from "next";
 
 const withMDX = createMDX({ extension: /\.mdx?$/ });
 
-/** Sent on every route. frame-ancestors (and X-Frame-Options for older browsers) stop clickjacking. */
+/**
+ * Sent on every route. frame-ancestors (and X-Frame-Options for older browsers) stop clickjacking.
+ * The rest of the CSP needs no nonces: no plugins (object-src), no <base> that could send relative
+ * URLs elsewhere (base-uri), and no form posting off-site (form-action). script-src waits for the
+ * nonce work.
+ */
 const SECURITY_HEADERS = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Frame-Options", value: "DENY" },
-  { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
+  {
+    key: "Content-Security-Policy",
+    value: "frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'",
+  },
 ];
 
 const nextConfig: NextConfig = {

@@ -4,7 +4,7 @@
  *       X-Powered-By.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -22,7 +22,8 @@ describe("security headers", () => {
       "X-Content-Type-Options": "nosniff",
       "Referrer-Policy": "strict-origin-when-cross-origin",
       "X-Frame-Options": "DENY",
-      "Content-Security-Policy": "frame-ancestors 'none'",
+      "Content-Security-Policy":
+        "frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'",
     });
   });
 

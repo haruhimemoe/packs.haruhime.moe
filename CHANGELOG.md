@@ -27,3 +27,5 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Security
 
 - `/.well-known/security.txt` lists GitHub private vulnerability reporting as the first contact.
+- The Content-Security-Policy also blocks plugins (`object-src 'none'`), a `<base>` pointing elsewhere (`base-uri 'self'`) and forms posting off-site (`form-action 'self'`).
+- CI runs every GitHub Action from a pinned commit SHA.
