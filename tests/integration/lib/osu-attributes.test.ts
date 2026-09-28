@@ -89,7 +89,7 @@ const seeded = (seed: number) => () => {
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 };
 const stars = () =>
-  getDb().collection<{ _id: string; stars: number | null; fetchedAt: Date; nullUntil?: Date }>(
+  getDb().collection<{ _id: string; stars?: number; fetchedAt: Date; nullUntil?: Date }>(
     STAR_RATINGS_COLLECTION,
   );
 const counters = () =>
@@ -205,8 +205,31 @@ describe("getStarRatings", () => {
     const result = await getStarRatings([pair(404, "HD"), pair(7, "HD")], deps());
     expect(result).toEqual({ ratings: { "7:HD": 7.1 }, pending: [] });
     const refused = await stars().findOne({ _id: "404:HD" });
-    expect(refused?.stars).toBeNull();
     expect(refused?.nullUntil?.getTime()).toBe(NOW + NULL_RATING_TTL_MS);
+  });
+
+  it("stores a refusal with no stars field, so a build that reads every cached row as a rating (a rollback) finds none", async () => {
+    await getStarRatings([pair(404, "HD")], deps());
+    const refused = await stars().findOne({ _id: "404:HD" });
+    expect(refused).not.toBeNull();
+    expect(refused).not.toHaveProperty("stars");
+  });
+
+  it("replaces a remembered refusal with the rating osu! gives once the hour has passed", async () => {
+    await stars().insertOne({
+      _id: "7:HD",
+      fetchedAt: new Date(NOW - NULL_RATING_TTL_MS - 1),
+      nullUntil: new Date(NOW - 1),
+    });
+    expect(await getStarRatings([pair(7, "HD")], deps())).toEqual({
+      ratings: { "7:HD": 7.1 },
+      pending: [],
+    });
+    expect(await stars().findOne({ _id: "7:HD" })).toEqual({
+      _id: "7:HD",
+      stars: 7.1,
+      fetchedAt: new Date(NOW),
+    });
   });
 
   it("doesn't ask osu! again for a refused pair within the hour, then asks once it's passed", async () => {

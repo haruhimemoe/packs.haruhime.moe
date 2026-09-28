@@ -28,9 +28,12 @@ import { getOsuClient } from "@/lib/osu/client";
 import { shuffled } from "@/utils/shuffle";
 import { runPool } from "@/utils/task-pool";
 
-/** Counters outlive their window by a minute, like the ones in src/lib/rate-limit.ts. */
-/** A cached rating; stars null (with nullUntil) when osu! wouldn't rate the pair. */
-type StarDoc = { _id: string; stars: number | null; fetchedAt: Date; nullUntil?: Date };
+/**
+ * A cached rating, or (nullUntil, no stars) a pair osu! wouldn't rate. A refusal leaves `stars`
+ * out rather than writing `stars: null`: builds before the refusal cache read every row's `stars`
+ * as a rating, so a rollback would serve null ratings and count them as 0 stars in pack stats.
+ */
+type StarDoc = { _id: string; stars?: number; fetchedAt: Date; nullUntil?: Date };
 
 export type StarRatingsResult = { ratings: Record<string, number>; pending: string[] };
 
@@ -86,7 +89,7 @@ export const getStarRatings = async (
   try {
     const hits = await cache.find({ _id: { $in: pairs.map((p) => p.key) } }).toArray();
     for (const hit of hits) {
-      if (hit.stars !== null) ratings[hit._id] = hit.stars;
+      if (typeof hit.stars === "number") ratings[hit._id] = hit.stars;
       // osu! wouldn't rate it within the hour: answer as it did then, without asking again.
       else if (hit.nullUntil && hit.nullUntil.getTime() > now()) refusedByOsu.add(hit._id);
     }
@@ -122,15 +125,19 @@ export const getStarRatings = async (
         // osu! has no such map, or won't rate these mods: the slot keeps its rating without mods,
         // and the pair isn't asked about again for an hour, so a bad pair can't drain the budget.
         if (stars !== null) ratings[pair.key] = stars;
-        const at = now();
-        const remembered =
-          stars === null
-            ? { stars, fetchedAt: new Date(at), nullUntil: new Date(at + NULL_RATING_TTL_MS) }
-            : { stars, fetchedAt: new Date(at) };
+        const fetchedAt = new Date(now());
         await cache
           .updateOne(
             { _id: pair.key },
-            stars === null ? { $set: remembered } : { $set: remembered, $unset: { nullUntil: "" } },
+            stars === null
+              ? {
+                  $set: {
+                    fetchedAt,
+                    nullUntil: new Date(fetchedAt.getTime() + NULL_RATING_TTL_MS),
+                  },
+                  $unset: { stars: "" },
+                }
+              : { $set: { stars, fetchedAt }, $unset: { nullUntil: "" } },
             { upsert: true },
           )
           .catch((error: unknown) =>
