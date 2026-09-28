@@ -5,7 +5,7 @@
  *       their mods; a form adds new ones. No-slot maps always come first and aren't listed here.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -22,8 +22,8 @@ import {
 import { Button, fieldClasses, TextInput } from "@haruhimemoe/ui";
 import { type FormEvent, useId, useState } from "react";
 import { ColorPicker } from "@/components/pack/ColorPicker";
-import { ModBadge } from "@/components/pack/ModBadge";
 import { ModsField } from "@/components/pack/ModsField";
+import { SlotBadge } from "@/components/pack/SlotBadge";
 import type { BucketEntry, PoolSlot } from "@/schemas/pack";
 
 type BucketManagerProps = {
@@ -164,7 +164,7 @@ export function BucketManager({
               <span aria-hidden="true" className="cursor-grab select-none text-c4">
                 ⋮⋮
               </span>
-              <ModBadge entry={entry} />
+              <SlotBadge entry={entry} />
               {/* A custom slot's badge already shows its code. */}
               {isCustomBucket(entry) ? null : <span className="font-bold text-c1">{name}</span>}
               <span className="text-c4 text-sm">({count})</span>

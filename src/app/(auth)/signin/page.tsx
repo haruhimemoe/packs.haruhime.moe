@@ -3,12 +3,11 @@
  * @desc /signin?next=: osu! sign-in. Signed-in visitors go straight to `next`.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
-import { PageHeader } from "@haruhimemoe/ui";
+import { PageHeader, TextLink } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { RestoreSignedIn } from "@/components/auth/RestoreSignedIn";
 import { SignInWithOsu } from "@/components/auth/SignInWithOsu";
 import { getCurrentUser } from "@/lib/auth-session";
@@ -38,10 +37,7 @@ export default async function SignInPage({ searchParams }: PageProps<"/signin">)
       <SignInWithOsu next={next} />
       <p className="text-c4 text-xs">
         We keep your osu! id, username, avatar, and country. See the{" "}
-        <Link href="/legal/privacy" className="underline underline-offset-2 hover:text-c1">
-          privacy policy
-        </Link>
-        .
+        <TextLink href="/legal/privacy">privacy policy</TextLink>.
       </p>
     </div>
   );

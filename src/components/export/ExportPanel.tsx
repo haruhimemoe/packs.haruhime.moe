@@ -7,12 +7,12 @@
  *       the card offers the retry itself (onRetryMeta).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
-import { Button, Card } from "@haruhimemoe/ui";
+import { Button, Card, cx } from "@haruhimemoe/ui";
 import { type ReactNode, useId, useState } from "react";
 import { DownloadOptions } from "@/components/export/DownloadOptions";
 import { DownloadProgress } from "@/components/export/DownloadProgress";
@@ -28,7 +28,6 @@ import { usePackDownloads } from "@/hooks/usePackDownloads";
 import type { FetchSetsDeps } from "@/lib/downloads/fetch-sets";
 import type { DownloadChoices } from "@/schemas/download-choices";
 import type { Pool } from "@/schemas/pack";
-import { cn } from "@/utils/cn";
 
 export type ExportPanelProps = {
   pack: Pool;
@@ -123,7 +122,7 @@ export function ExportPanel({
         {/* Always this element, so the card gaining a Torrent section keeps the flow's state. */}
         <section
           aria-labelledby={hasTorrentLinks ? mirrorHeadingId : undefined}
-          className={cn("flex flex-col gap-4", hasTorrentLinks && "border-b3 border-t pt-4")}
+          className={cx("flex flex-col gap-4", hasTorrentLinks && "border-b3 border-t pt-4")}
         >
           {hasTorrentLinks ? (
             <h3 id={mirrorHeadingId} className="font-bold text-c1">

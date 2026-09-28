@@ -1,14 +1,15 @@
 /**
  * @file src/constants/palette.ts
- * @desc Badge colors: the fixed built-in bucket colors, the classes for the 10 custom bucket colors
- *       (indexed like @haruhimemoe/pool's PALETTE, whose index is the stored color id), and the
- *       no-slot badge. Class names are written out in full so Tailwind finds them.
+ * @desc Custom bucket colors: the classes for the 10 palette colors, indexed like
+ *       @haruhimemoe/pool's PALETTE (whose index is the stored color id). Built-in buckets and
+ *       no-slot maps take their colors from @haruhimemoe/ui's ModBadge. Class names are written
+ *       out in full so Tailwind finds them.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
-import type { ModBucket, PALETTE_SIZE } from "@haruhimemoe/pool";
+import type { PALETTE_SIZE } from "@haruhimemoe/pool";
 
 /** Background class per palette color id: PALETTE_STYLES[id] styles PALETTE[id]. Append only. */
 export const PALETTE_STYLES = [
@@ -23,15 +24,3 @@ export const PALETTE_STYLES = [
   "bg-indigo-300",
   "bg-stone-300",
 ] as const satisfies readonly string[] & { length: typeof PALETTE_SIZE };
-
-export const BUILT_IN_BADGE: Record<ModBucket, string> = {
-  NM: "bg-sky-400",
-  HD: "bg-amber-300",
-  HR: "bg-rose-400",
-  DT: "bg-violet-400",
-  FM: "bg-emerald-400",
-  TB: "bg-orange-400",
-};
-
-/** No slot: no color, just a quiet grey pill. */
-export const NO_SLOT_BADGE = "bg-b3 text-c2";

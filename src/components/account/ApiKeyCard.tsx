@@ -7,13 +7,12 @@
  *       outcome is announced in the polite `status` live region.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
-import { Button, Card, fieldClasses } from "@haruhimemoe/ui";
-import Link from "next/link";
+import { Button, Card, fieldClasses, TextLink } from "@haruhimemoe/ui";
 import { useEffect, useRef, useState } from "react";
 import { API_DOCS_PATH } from "@/constants/api";
 import { PacksApiError, packsApi } from "@/lib/packs-api";
@@ -143,9 +142,7 @@ export function ApiKeyCard({
       <p className="text-c3 text-sm">
         Scripts and bots can use a key to read public packs and manage yours. Anyone with the key
         can change your packs, so keep it secret.{" "}
-        <Link href={API_DOCS_PATH} className="text-h1 underline hover:text-c1">
-          Read the API docs
-        </Link>
+        <TextLink href={API_DOCS_PATH}>Read the API docs</TextLink>
       </p>
       <div className="mt-3 flex flex-col gap-3">
         {revealed !== null ? (

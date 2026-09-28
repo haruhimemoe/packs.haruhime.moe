@@ -15,7 +15,7 @@
 "use client";
 
 import { encodePackKey } from "@haruhimemoe/pool";
-import { ButtonLink, Card, PageHeader } from "@haruhimemoe/ui";
+import { ButtonLink, Card, PageHeader, TextLink } from "@haruhimemoe/ui";
 import { Fragment, type ReactNode, useId, useMemo, useState } from "react";
 import { CollectionPanel } from "@/components/collection/CollectionPanel";
 import { ExportPanel } from "@/components/export/ExportPanel";
@@ -43,14 +43,9 @@ import { isPinnable } from "@/utils/pins";
 const describe = (description: string): ReactNode =>
   descriptionParts(description).map((part) =>
     part.kind === "link" ? (
-      <a
-        key={part.at}
-        href={part.href}
-        rel="nofollow ugc noopener"
-        className="text-h1 underline-offset-2 hover:underline"
-      >
+      <TextLink key={part.at} href={part.href} rel="nofollow ugc noopener">
         {part.href}
-      </a>
+      </TextLink>
     ) : (
       <Fragment key={part.at}>{part.text}</Fragment>
     ),

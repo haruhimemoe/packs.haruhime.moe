@@ -4,13 +4,12 @@
  *       magnet link (in this browser), explain seeding, and let a saved pack's owner list the link.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
-import { Button, TextInput } from "@haruhimemoe/ui";
-import Link from "next/link";
+import { Button, TextInput, TextLink } from "@haruhimemoe/ui";
 import { useEffect, useId, useRef, useState } from "react";
 import { PacksApiError } from "@/lib/packs-api";
 import {
@@ -207,9 +206,7 @@ export function TorrentExport({
             A torrent only works while someone seeds it. Save the .zip too, unzip it, then open the
             .torrent in qBittorrent and set its save location to the folder that holds “
             {input.plan.folder}”. It checks the files and starts seeding.{" "}
-            <Link href="/guide/seed-a-torrent" className="text-h1 underline hover:text-c1">
-              Seeding guide
-            </Link>
+            <TextLink href="/guide/seed-a-torrent">Seeding guide</TextLink>
           </p>
         </div>
       ) : (

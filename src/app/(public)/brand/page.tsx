@@ -4,14 +4,13 @@
  *       Static. Also the site's Organization structured data.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
-import { Card, JsonLd, PageHeader } from "@haruhimemoe/ui";
+import { Card, cx, JsonLd, PageHeader, TextLink } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { BRAND_ASSETS, BRAND_COLORS } from "@/constants/brand";
 import { SITE } from "@/constants/site";
-import { cn } from "@/utils/cn";
 
 export const metadata: Metadata = {
   title: "Brand",
@@ -25,14 +24,7 @@ export default function BrandPage() {
       <PageHeader
         title="Brand"
         lead="packs builds one download from an osu! tournament mappool. It's run by haruhime.moe. For anything not covered here, write to us."
-        meta={
-          <a
-            href={`mailto:${SITE.contactEmail}`}
-            className="underline underline-offset-2 hover:text-c1"
-          >
-            {SITE.contactEmail}
-          </a>
-        }
+        meta={<TextLink href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</TextLink>}
       />
       <Card title="Name">
         <p className="text-sm">
@@ -45,7 +37,7 @@ export default function BrandPage() {
           {BRAND_ASSETS.map((asset) => (
             <li key={asset.href} className="flex flex-col gap-2">
               <div
-                className={cn(
+                className={cx(
                   "flex h-28 items-center justify-center rounded-[10px] p-4",
                   asset.background === "dark" ? "bg-b6" : "bg-white",
                 )}

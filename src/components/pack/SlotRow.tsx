@@ -6,20 +6,25 @@
  *       their own line below lg, so the map keeps room for its title.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
 import { beatmapUrl, coverUrl } from "@haruhimemoe/osu/shapes";
 import { type SlotMods, slotTitle } from "@haruhimemoe/pool";
-import { Button, CopyButton, fieldClasses } from "@haruhimemoe/ui";
+import {
+  BeatmapStats,
+  Button,
+  CopyButton,
+  fieldClasses,
+  StarRating,
+  TextLink,
+} from "@haruhimemoe/ui";
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { Fragment, useState } from "react";
-import { BeatmapStats } from "@/components/beatmap/BeatmapStats";
-import { StarRating } from "@/components/beatmap/StarRating";
-import { ModBadge } from "@/components/pack/ModBadge";
+import { SlotBadge } from "@/components/pack/SlotBadge";
 import { NO_SLOT_VALUE } from "@/constants/mods";
 import type { MetaState } from "@/hooks/beatmapMetaState";
 import type { BucketEntry, PoolSlot, SlotBucket } from "@/schemas/pack";
@@ -71,20 +76,28 @@ const body = (
             className="size-12 shrink-0 rounded-md object-cover"
           />
           <div className="min-w-0 flex-1">
-            <a
+            <TextLink
+              variant="plain"
               href={beatmapUrl(meta.beatmapId)}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block max-w-full truncate align-top font-bold text-c1 hover:underline"
+              className="inline-block max-w-full truncate align-top"
             >
               {meta.artist} - {meta.title}
-            </a>
+            </TextLink>
             <p className="truncate text-c3 text-sm">
               [{meta.version}] mapped by {meta.creator}
             </p>
             <div className="mt-1 flex flex-wrap items-center gap-2">
               <StarRating value={stars.stars} title={stars.title} label={stars.label} />
-              <BeatmapStats meta={meta} />
+              <BeatmapStats
+                cs={meta.cs}
+                ar={meta.ar}
+                od={meta.od}
+                hp={meta.hp}
+                bpm={meta.bpm}
+                lengthSeconds={meta.lengthSeconds}
+              />
             </div>
             {stars.freemod ? (
               <p className="mt-1 text-c4 text-xs">
@@ -143,7 +156,7 @@ export function SlotRow({
       {/* One line from sm up when viewing. Editing adds Move and Remove, which leave the map
         too little room below lg, so there the controls take a line of their own under it. */}
       <div className={editable ? EDIT_ROW : VIEW_ROW}>
-        <ModBadge entry={entry} index={slot.index} />
+        <SlotBadge entry={entry} index={slot.index} />
         {body(slot, state, slotMods, ratings)}
         <div className={editable ? EDIT_ACTIONS : VIEW_ACTIONS}>
           {/* The slot's ID, so it works before the map loads. Phones: its own line under the

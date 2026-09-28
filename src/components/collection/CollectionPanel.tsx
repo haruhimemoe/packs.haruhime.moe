@@ -9,13 +9,12 @@
  *       and the maps left out show. Downloads are plain browser downloads started by the click.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
-import { Card, Notice } from "@haruhimemoe/ui";
-import Link from "next/link";
+import { Card, Notice, TextLink } from "@haruhimemoe/ui";
 import { useId, useMemo, useState } from "react";
 import { LazerCollection } from "@/components/collection/LazerCollection";
 import { StableCollection } from "@/components/collection/StableCollection";
@@ -65,9 +64,7 @@ export function CollectionPanel({ pack, getMeta, download = downloadBlob }: Coll
       <div className="flex flex-col gap-4">
         <p className="text-c3 text-sm">
           Put this pack's maps in one of your osu! collections.{" "}
-          <Link href="/guide/osu-collections" className="text-h1 underline hover:text-c1">
-            How it works
-          </Link>
+          <TextLink href="/guide/osu-collections">How it works</TextLink>
         </p>
         {maps.status === "loading" ? <p className="text-c3 text-sm">Loading map info…</p> : null}
         {maps.status === "error" ? (

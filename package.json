@@ -26,13 +26,12 @@
     "@haruhimemoe/hinai": "0.3.0",
     "@haruhimemoe/osu": "0.3.0",
     "@haruhimemoe/pool": "0.2.0",
-    "@haruhimemoe/ui": "0.3.0",
+    "@haruhimemoe/ui": "0.4.0",
     "@mdx-js/loader": "3.1.1",
     "@mdx-js/react": "3.1.1",
     "@next/mdx": "16.3.6",
     "better-auth": "1.7.5",
     "client-zip": "2.5.1",
-    "clsx": "2.1.1",
     "fflate": "0.8.3",
     "idb-keyval": "6.3.0",
     "mongodb": "7.6.0",
@@ -42,7 +41,6 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "server-only": "0.0.1",
-    "tailwind-merge": "3.7.0",
     "zod": "4.6.5"
   },
   "devDependencies": {

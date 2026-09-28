@@ -3,15 +3,15 @@
  * @desc Palette swatches as a labelled radio group (each swatch named by its color).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
 import { PALETTE } from "@haruhimemoe/pool";
+import { cx } from "@haruhimemoe/ui";
 import { useId } from "react";
 import { PALETTE_STYLES } from "@/constants/palette";
-import { cn } from "@/utils/cn";
 
 type ColorPickerProps = {
   legend: string;
@@ -49,7 +49,7 @@ export function ColorPicker({
           />
           <span
             aria-hidden="true"
-            className={cn(
+            className={cx(
               "size-5 rounded-full ring-2 ring-transparent ring-offset-2 peer-checked:ring-c1 peer-focus-visible:ring-h1",
               offsetClass,
               PALETTE_STYLES[id],

@@ -7,8 +7,8 @@
  */
 
 import { formatBytes } from "@haruhimemoe/osu/format";
+import { cx } from "@haruhimemoe/ui";
 import type { SetStatus } from "@/lib/downloads/fetch-sets";
-import { cn } from "@/utils/cn";
 
 export type ProgressRow = { key: string; label: string; title: string; setId: number };
 
@@ -65,7 +65,7 @@ export function DownloadProgress({ rows, statuses }: DownloadProgressProps) {
               <span className="w-10 shrink-0 font-bold text-c1">{row.label}</span>
               <span className="min-w-0 flex-1 truncate text-c2">{row.title}</span>
               <span
-                className={cn(
+                className={cx(
                   "ml-auto text-right",
                   status?.status === "failed" ? "text-rose-300" : "text-c4",
                 )}

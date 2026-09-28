@@ -4,7 +4,7 @@
  *       beatmap ID for "!mp map").
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
@@ -187,8 +187,9 @@ describe("SlotRow star ratings with mods", () => {
     );
     const badge = screen.getByTitle("7.80★ without mods");
     expect(badge).toHaveTextContent("8.14");
-    expect(screen.getByText("with HD, 7.80 without mods")).toHaveClass("sr-only");
-    expect(badge).toContainElement(screen.getByText("with HD, 7.80 without mods"));
+    expect(badge.querySelector(".sr-only")).toHaveTextContent(
+      /^8\.14 stars, with HD, 7\.80 without mods$/,
+    );
   });
 
   it("keeps the plain rating while calculating, and says the one with mods is loading", () => {
@@ -202,8 +203,7 @@ describe("SlotRow star ratings with mods", () => {
     );
     const badge = screen.getByTitle(MODDED_LOADING_NOTE);
     expect(badge).toHaveTextContent("7.80");
-    expect(screen.getByText(MODDED_LOADING_NOTE)).toHaveClass("sr-only");
-    expect(badge).toContainElement(screen.getByText(MODDED_LOADING_NOTE));
+    expect(badge.querySelector(".sr-only")).toHaveTextContent(`7.80 stars, ${MODDED_LOADING_NOTE}`);
     expect(screen.queryByTitle(/★ without mods/)).toBeNull();
   });
 
@@ -219,13 +219,13 @@ describe("SlotRow star ratings with mods", () => {
     );
     const badge = screen.getByTitle(MODDED_FAILED_NOTE);
     expect(badge).toHaveTextContent("7.80");
-    expect(screen.getByText(MODDED_FAILED_NOTE)).toHaveClass("sr-only");
-    expect(badge).toContainElement(screen.getByText(MODDED_FAILED_NOTE));
+    expect(badge.querySelector(".sr-only")).toHaveTextContent(`7.80 stars, ${MODDED_FAILED_NOTE}`);
   });
 
   it("adds no screen-reader note to a slot without mods", () => {
     inList(<SlotRow slot={SLOT} entry={{ code: "NM" }} state={found} />);
-    expect(screen.getByText("7.80").querySelectorAll(".sr-only")).toHaveLength(1);
+    const badge = screen.getByText("7.80").parentElement as HTMLElement;
+    expect(badge.querySelector(".sr-only")).toHaveTextContent(/^7\.80 stars$/);
   });
 
   it("adds the freemod row under the plain rating", () => {

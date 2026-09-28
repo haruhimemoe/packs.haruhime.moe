@@ -6,7 +6,7 @@
  *       Freemod.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -20,8 +20,8 @@ import {
   type SlotMods,
   toggleMod,
 } from "@haruhimemoe/pool";
+import { cx } from "@haruhimemoe/ui";
 import { Fragment, useId, useState } from "react";
-import { cn } from "@/utils/cn";
 
 type ModsFieldProps = {
   code: string;
@@ -100,7 +100,7 @@ export function ModsField({ code, value, disabled = false, onChange }: ModsField
                     if (blocked) return;
                     toggle(mod);
                   }}
-                  className={cn(
+                  className={cx(
                     "rounded-full px-2.5 py-0.5 font-bold text-xs transition-colors",
                     blocked ? "cursor-not-allowed opacity-40" : "",
                     picked ? "bg-h1 text-b6" : "bg-b3 text-c2 hover:bg-b2",

@@ -4,10 +4,10 @@
  *       WebApplication + FAQPage structured data.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Mon Sep 28, 2026
  */
 
-import { ButtonLink, Card, JsonLd, PageHeader } from "@haruhimemoe/ui";
+import { ButtonLink, Card, JsonLd, PageHeader, TextLink } from "@haruhimemoe/ui";
 import Link from "next/link";
 import { KeyPasteForm } from "@/components/pack/KeyPasteForm";
 import { PublicPackList } from "@/components/packs/PublicPackList";
@@ -144,9 +144,7 @@ export function HomeScreen({ recent }: { recent: readonly PublicPackCard[] }) {
                 {question === "What's a pack key?" ? (
                   <>
                     {" "}
-                    <Link href="/guide/pack-key" className="text-h1 underline hover:text-c1">
-                      How pack keys work
-                    </Link>
+                    <TextLink href="/guide/pack-key">How pack keys work</TextLink>
                   </>
                 ) : null}
               </p>

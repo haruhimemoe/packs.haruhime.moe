@@ -4,16 +4,15 @@
  *       pinned packs panel, and the pack stats panel.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
-import { Button, PageHeader, Pagination, TextInput } from "@haruhimemoe/ui";
+import { Button, cx, PageHeader, Pagination, TextInput } from "@haruhimemoe/ui";
 import Link from "next/link";
 import { AdminPackTable } from "@/components/admin/AdminPackTable";
 import { PackStatsBackfill } from "@/components/admin/PackStatsBackfill";
 import { PinnedPacks } from "@/components/admin/PinnedPacks";
 import type { AdminPackPage, PinnedPack } from "@/schemas/public-pack";
-import { cn } from "@/utils/cn";
 import { adminHref } from "@/utils/paging";
 
 type AdminScreenProps = AdminPackPage & {
@@ -24,7 +23,7 @@ type AdminScreenProps = AdminPackPage & {
 };
 
 const tabClasses = (active: boolean): string =>
-  cn(
+  cx(
     "rounded-full px-3 py-1 font-bold text-sm transition-colors",
     active ? "bg-b3 text-c1" : "text-c3 hover:text-c1",
   );

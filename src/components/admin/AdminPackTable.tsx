@@ -6,12 +6,13 @@
  *       haruhime pools account, which has none.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
-import { Button } from "@haruhimemoe/ui";
+import { userUrl } from "@haruhimemoe/osu/shapes";
+import { Button, TextLink } from "@haruhimemoe/ui";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -112,14 +113,14 @@ export function AdminPackTable({ rows, api = packsApi }: AdminPackTableProps) {
                     // A system account (haruhime pools) has no osu! profile to link.
                     <span className="text-c2">{row.ownerName}</span>
                   ) : (
-                    <a
-                      href={`https://osu.ppy.sh/users/${row.ownerOsuId}`}
+                    <TextLink
+                      variant="plain"
+                      href={userUrl(row.ownerOsuId)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-c2 hover:underline"
                     >
                       {row.ownerName}
-                    </a>
+                    </TextLink>
                   )}
                 </td>
                 <td className="py-2 pr-3 text-c2">{VISIBILITY_OPTIONS[row.visibility].label}</td>
