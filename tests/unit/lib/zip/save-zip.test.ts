@@ -3,15 +3,15 @@
  * @desc saveZip: stream to a picked file, cancel, refused picker, and the Blob fallback.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { fakeOsz } from "@haruhimemoe/hinai/testing";
 import { unzipSync } from "fflate";
 import { describe, expect, it, vi } from "vitest";
 import { saveZip } from "@/lib/zip/save-zip";
 import type { Pool } from "@/schemas/pack";
 import { planArchive } from "@/utils/pack-archive";
-import { fakeOsz } from "../../../helpers/hinai-downloads";
 
 const PACK: Pool = { name: "SPC Quals", slots: [{ mod: "NM", index: 1, beatmapId: 1 }] };
 const INPUT = {

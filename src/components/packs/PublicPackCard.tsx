@@ -5,14 +5,14 @@
  *       default order), or when it was last updated for lists sorted that way.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { formatDuration, formatRange, formatStars } from "@haruhimemoe/osu/format";
 import Image from "next/image";
 import Link from "next/link";
 import type { PublicPackCard as PublicPack } from "@/schemas/public-pack";
 import { formatShortDate } from "@/utils/date";
-import { formatDuration, formatRange, formatStars } from "@/utils/format";
 
 const DOT = <span aria-hidden="true">·</span>;
 

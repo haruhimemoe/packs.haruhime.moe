@@ -5,13 +5,13 @@
  *       which ratings osu! gives (or refuses), and whether a side is down; the calls are recorded.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { HINAI_BATCH_URL } from "@haruhimemoe/hinai/testing";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, beforeEach } from "vitest";
-import { HINAI_BATCH_URL } from "./hinai-server";
 
 export type RowOverrides = {
   mode?: "osu" | "taiko" | "fruits" | "mania";

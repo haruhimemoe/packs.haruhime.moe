@@ -4,16 +4,16 @@
  *       and a clock-proof .osz fixture so the byte-exact check can't straddle a timestamp step.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { fakeOsz } from "@haruhimemoe/hinai/testing";
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
 import { strFromU8, unzipSync } from "fflate";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { packZipSize, packZipStream } from "@/lib/zip/pack-zip";
 import type { Pool } from "@/schemas/pack";
 import { planArchive } from "@/utils/pack-archive";
-import { fakeOsz } from "../../../helpers/hinai-downloads";
 
 const meta = (beatmapId: number, beatmapsetId: number): BeatmapMeta => ({
   beatmapId,
@@ -65,16 +65,6 @@ const bytesOf = async (stream: ReadableStream<Uint8Array>) =>
 
 afterEach(() => {
   vi.useRealTimers();
-});
-
-describe("fakeOsz fixture", () => {
-  it("makes the same bytes whatever the clock says (zip timestamps have 2-second steps)", () => {
-    vi.useFakeTimers({ toFake: ["Date"] });
-    vi.setSystemTime(new Date("2026-09-22T12:00:00.000Z"));
-    const before = fakeOsz(10);
-    vi.setSystemTime(new Date("2026-09-22T12:00:02.000Z"));
-    expect(fakeOsz(10)).toEqual(before);
-  });
 });
 
 describe("packZipStream", () => {

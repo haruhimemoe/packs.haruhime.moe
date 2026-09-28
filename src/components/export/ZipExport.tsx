@@ -4,16 +4,16 @@
  *       the browser allows, else built in memory with a warning for huge packs).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
+import { formatBytes } from "@haruhimemoe/osu/format";
 import { Button } from "@haruhimemoe/ui";
 import { useEffect, useId, useState } from "react";
 import { BLOB_FALLBACK_WARN_BYTES, type PackZipInput, packZipSize } from "@/lib/zip/pack-zip";
 import { getSaveFilePicker, type SaveOutcome, saveZip } from "@/lib/zip/save-zip";
-import { formatBytes } from "@/utils/format";
 
 export type ZipExportProps = {
   input: PackZipInput;

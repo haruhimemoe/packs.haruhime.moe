@@ -3,12 +3,17 @@
  * @desc Stats tiles above a pool: maps, length, averages, ranges. Computed from loaded metadata.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import {
+  formatBpm,
+  formatDuration,
+  formatLongDuration,
+  formatStars,
+} from "@haruhimemoe/osu/format";
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
 import type { MetaState } from "@/hooks/beatmapMetaState";
-import { formatBpm, formatDuration, formatLongDuration, formatStars } from "@/utils/format";
 import { packStats } from "@/utils/pack-stats";
 
 type PackStatsProps<S extends { beatmapId: number }> = {

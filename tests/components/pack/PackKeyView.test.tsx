@@ -5,10 +5,11 @@
  *       the "Add to osu! collection" card between the maps and Save.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "fake-indexeddb/auto";
+import { HINAI_BATCH_URL, hinaiBatchHandler } from "@haruhimemoe/hinai/testing";
 import { encodePackKey } from "@haruhimemoe/pool";
 import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -17,7 +18,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PackKeyView } from "@/components/pack/PackKeyView";
 import { clearDraft, loadDraft } from "@/lib/storage/drafts";
 import { collectionFile, TV1_EMPTY } from "../../helpers/collections";
-import { HINAI_BATCH_URL, hinaiBatchHandler, setupHinaiServer } from "../../helpers/hinai-server";
+import { setupHinaiServer } from "../../helpers/hinai-server";
 
 const server = setupHinaiServer();
 const { push } = vi.hoisted(() => ({ push: vi.fn() }));

@@ -5,9 +5,15 @@
  *       background removal), and the same flows through the real mirror client against MSW.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import {
+  fakeOsz,
+  HINAI_AVAILABILITY_URL,
+  HINAI_DOWNLOAD_URL,
+  hinaiUnknownSetHandler,
+} from "@haruhimemoe/hinai/testing";
 import { unzipSync } from "fflate";
 import { HttpResponse, http } from "msw";
 import { describe, expect, it, vi } from "vitest";
@@ -21,12 +27,6 @@ import {
 import { HinaiError, mirror } from "@/lib/mirror";
 import { OszRewriteError } from "@/lib/osz/zip-names";
 import { cacheFileName, createOszCache, type OszCache } from "@/lib/storage/osz-cache";
-import {
-  fakeOsz,
-  HINAI_AVAILABILITY_URL,
-  HINAI_DOWNLOAD_URL,
-  hinaiUnknownSetHandler,
-} from "../../../helpers/hinai-downloads";
 import { setupHinaiServer } from "../../../helpers/hinai-server";
 import { makeOsz, makeStreamedOsz, noise, osuFile } from "../../../helpers/osz-fixtures";
 

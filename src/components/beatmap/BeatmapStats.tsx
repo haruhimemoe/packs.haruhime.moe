@@ -3,11 +3,11 @@
  * @desc Compact CS / AR / OD / HP / BPM / length row.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { formatBpm, formatDuration, formatStat } from "@haruhimemoe/osu/format";
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
-import { formatBpm, formatDuration, formatStat } from "@/utils/format";
 
 export function BeatmapStats({ meta }: { meta: BeatmapMeta }) {
   const stats = [

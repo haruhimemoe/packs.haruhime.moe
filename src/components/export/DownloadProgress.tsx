@@ -3,12 +3,12 @@
  * @desc Overall and per-slot download state while a pack's sets come down from the mirror.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { formatBytes } from "@haruhimemoe/osu/format";
 import type { SetStatus } from "@/lib/downloads/fetch-sets";
 import { cn } from "@/utils/cn";
-import { formatBytes } from "@/utils/format";
 
 export type ProgressRow = { key: string; label: string; title: string; setId: number };
 

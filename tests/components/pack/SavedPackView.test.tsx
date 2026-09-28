@@ -6,9 +6,10 @@
  *       (same tab), and the "Add to osu! collection" card between the maps and Share.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { HINAI_BATCH_URL, hinaiBatchHandler } from "@haruhimemoe/hinai/testing";
 import { encodePackKey } from "@haruhimemoe/pool";
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -19,7 +20,7 @@ import { PacksApiError } from "@/lib/packs-api";
 import type { SavedPack } from "@/schemas/saved-pack";
 import { PIN_LIMIT } from "@/utils/pins";
 import { MODDED_FAILED_NOTE } from "@/utils/slot-stars";
-import { HINAI_BATCH_URL, hinaiBatchHandler, setupHinaiServer } from "../../helpers/hinai-server";
+import { setupHinaiServer } from "../../helpers/hinai-server";
 
 const server = setupHinaiServer();
 

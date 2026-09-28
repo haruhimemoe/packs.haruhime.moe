@@ -5,10 +5,11 @@
  *       "Add to osu! collection" card between Download and Share.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "fake-indexeddb/auto";
+import { HINAI_BATCH_URL, hinaiBatchHandler } from "@haruhimemoe/hinai/testing";
 import { decodePackKey } from "@haruhimemoe/pool";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -18,7 +19,7 @@ import { PackBuilder } from "@/components/pack/PackBuilder";
 import { MAX_SLOTS } from "@/constants/pack";
 import { clearDraft, loadDraft, saveDraft } from "@/lib/storage/drafts";
 import { collectionFile, TV1_EMPTY } from "../../helpers/collections";
-import { HINAI_BATCH_URL, hinaiBatchHandler, setupHinaiServer } from "../../helpers/hinai-server";
+import { setupHinaiServer } from "../../helpers/hinai-server";
 
 const server = setupHinaiServer();
 vi.mock("@/hooks/useAccount", () => ({ useAccount: () => ({ status: "signed-out" }) }));

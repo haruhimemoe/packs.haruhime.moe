@@ -4,10 +4,10 @@
  *       and an optional label read to screen readers after the stars.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
-import { formatStars } from "@/utils/format";
+import { formatStars } from "@haruhimemoe/osu/format";
 import { starRatingColor, starRatingTextColor } from "@/utils/star-rating";
 
 export function StarRating({

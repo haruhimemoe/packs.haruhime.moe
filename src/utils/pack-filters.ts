@@ -13,6 +13,7 @@
  * @modified Thu Sep 24, 2026
  */
 
+import { formatDuration } from "@haruhimemoe/osu/format";
 import { RULESETS, type Ruleset } from "@haruhimemoe/pool";
 import {
   BPM_RANGE,
@@ -26,7 +27,6 @@ import {
 } from "@/constants/pack-filters";
 import { STAT_MOD_CODES, type StatModCode } from "@/constants/pack-stats";
 import type { SearchIndexEntry } from "@/schemas/public-pack";
-import { formatDuration } from "@/utils/format";
 import { type PreparedEntry, searchPrepared } from "@/utils/search";
 
 /** A chosen range: `[low, high]`, `high` null for no upper limit. */

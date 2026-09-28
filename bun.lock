@@ -5,8 +5,8 @@
     "": {
       "name": "packs.haruhime.moe",
       "dependencies": {
-        "@haruhimemoe/hinai": "0.2.0",
-        "@haruhimemoe/osu": "0.2.0",
+        "@haruhimemoe/hinai": "0.3.0",
+        "@haruhimemoe/osu": "0.3.0",
         "@haruhimemoe/pool": "0.1.0",
         "@haruhimemoe/ui": "0.3.0",
         "@mdx-js/loader": "3.1.1",
@@ -133,9 +133,9 @@
 
     "@haruhimemoe/brand": ["@haruhimemoe/brand@0.3.0", "", { "dependencies": { "@resvg/resvg-js": "2.6.2", "opentype.js": "2.0.0" }, "bin": { "haruhime-brand": "dist/cli.js" } }, "sha512-zJiduBLsEnHrjx18z/+dqLZBBAqzlzQyeBC1JkNt7OzVRQX92kwws3ttu+qvFcjfJjROlVCaxUvX9iQxDMyOWg=="],
 
-    "@haruhimemoe/hinai": ["@haruhimemoe/hinai@0.2.0", "", { "dependencies": { "@haruhimemoe/osu": "^0.2.0" }, "peerDependencies": { "zod": "^4.0.16" } }, "sha512-4N9kFqiMHZ6OgkCxO/+fcqZEYA0MzAMiQgvlsk1S3rWgwktWue4Zz97FUSoUSDFdZtQ/tMoeSLfCU71Pkt7kMw=="],
+    "@haruhimemoe/hinai": ["@haruhimemoe/hinai@0.3.0", "", { "dependencies": { "@haruhimemoe/osu": "^0.3.0" }, "peerDependencies": { "msw": "^2.0.0", "zod": "^4.0.16" }, "optionalPeers": ["msw"] }, "sha512-uKkbYECnlc92JZPeIfoQ9oldm6ShQJV8ysP9/8f1xfaLgw8nersEVbNn/R9XA4l6gLeD9JSAL4e47/Dzl0HcRw=="],
 
-    "@haruhimemoe/osu": ["@haruhimemoe/osu@0.2.0", "", { "peerDependencies": { "zod": "^4.0.16" } }, "sha512-m7H/a2msQRteu+L4oSmte3VvQRzu2PgncGBh2/dbtTcpzPNg7Qq8YzJir/UiWHHesF1ppfGgK5P4Mmxb2mWGZA=="],
+    "@haruhimemoe/osu": ["@haruhimemoe/osu@0.3.0", "", { "peerDependencies": { "zod": "^4.0.16" } }, "sha512-crTv5aR/tAhu8XUckhr18+msQOOWzrP3fGRDpQjs2ebUt8YI4j8o5FyOKKcYXfhy1HO7dV6/EeNQUAn7uOmiZg=="],
 
     "@haruhimemoe/pool": ["@haruhimemoe/pool@0.1.0", "", { "peerDependencies": { "zod": "^4.0.16" } }, "sha512-iEjd8qA9eeuaBHBprxvTmRjAnnb/TpmK0RBmC33XN0Zh59aFLd5iRtKJqxxpsn3yUuuFuVRMSIhBv4W5FAUpuA=="],
 

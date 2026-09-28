@@ -7,9 +7,10 @@
  *       each slot gets back, and the stars pack stats use. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { formatStars } from "@haruhimemoe/osu/format";
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
 import {
   type ModAcronym,
@@ -21,7 +22,6 @@ import {
 } from "@haruhimemoe/pool";
 import type { MetaState } from "@/hooks/beatmapMetaState";
 import { type BucketEntry, type PoolSlot, slotKey } from "@/schemas/pack";
-import { formatStars } from "@/utils/format";
 
 /** One star rating with mods: the mods label ("HDDT") and the stars. */
 export type ModdedRating = { mods: string; stars: number };
