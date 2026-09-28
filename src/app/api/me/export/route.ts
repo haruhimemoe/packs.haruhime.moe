@@ -4,10 +4,10 @@
  *       packs-data-{username}-{yyyy-mm-dd}.json. Signed-in only; never cached anywhere.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Sep 28, 2026
  */
 
-import { jsonError } from "@/lib/api";
+import { jsonError } from "@haruhimemoe/next-kit/server";
 import { getUserFromHeaders } from "@/lib/auth";
 import { exportAccountData } from "@/services/account-export";
 import { accountExportFileName } from "@/utils/account-export";

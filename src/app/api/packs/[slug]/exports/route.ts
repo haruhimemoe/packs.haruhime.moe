@@ -6,19 +6,14 @@
  *       DELETE reads no body, so it refuses requests from other origins (refuseCrossSite).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { jsonError, parseJsonBody } from "@haruhimemoe/next-kit/server";
 import { RATE_LIMITS } from "@/constants/api";
-import {
-  jsonError,
-  PACK_NOT_FOUND,
-  parseJsonBody,
-  refuseCrossSite,
-  SIGN_IN_REQUIRED,
-} from "@/lib/api";
+import { PACK_NOT_FOUND, refuseCrossSite, SIGN_IN_REQUIRED } from "@/lib/api";
 import { getUserFromHeaders } from "@/lib/auth";
-import { refuseOverLimit } from "@/lib/rate-limit";
+import { limiter } from "@/lib/rate-limit";
 import { magnetSchema, packExportInputSchema } from "@/schemas/pack-export";
 import {
   addMagnet,
@@ -34,7 +29,7 @@ export async function POST(request: Request, { params }: Context) {
   const { slug } = await params;
   const user = await getUserFromHeaders(request.headers);
   if (!user) return jsonError(401, SIGN_IN_REQUIRED);
-  const limited = await refuseOverLimit(RATE_LIMITS.apiWrite, user.id);
+  const limited = await limiter.refuseOverLimit(RATE_LIMITS.apiWrite, user.id);
   if (limited) return limited;
   const body = await parseJsonBody(request, packExportInputSchema, {
     tooLarge: "That magnet link is too long.",
@@ -65,7 +60,7 @@ export async function DELETE(request: Request, { params }: Context) {
   const { slug } = await params;
   const user = await getUserFromHeaders(request.headers);
   if (!user) return jsonError(401, SIGN_IN_REQUIRED);
-  const limited = await refuseOverLimit(RATE_LIMITS.apiWrite, user.id);
+  const limited = await limiter.refuseOverLimit(RATE_LIMITS.apiWrite, user.id);
   if (limited) return limited;
   const url = magnetSchema.safeParse(new URL(request.url).searchParams.get("url") ?? "");
   if (!url.success) {

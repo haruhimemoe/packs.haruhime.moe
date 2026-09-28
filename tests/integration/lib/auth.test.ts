@@ -7,21 +7,21 @@
  *       Nobody can sign in as a system account (haruhime pools), however a sign-in reaches it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { OSU_PROVIDER_ID } from "@haruhimemoe/next-kit/auth";
+import { TEST_OSU_APP_ENV } from "@haruhimemoe/next-kit/testing";
 import { makeSignature } from "better-auth/crypto";
 import { ObjectId } from "mongodb";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { GET, POST } from "@/app/api/auth/[...all]/route";
-import { OSU_PROVIDER_ID } from "@/constants/auth";
+import { SIGNED_IN_COOKIE } from "@/constants/site";
 import { getAuth, getUserFromHeaders, isSystemUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { SIGNED_IN_COOKIE } from "@/lib/signed-in-marker";
 import { ensurePoolsAccount } from "@/services/pools-account";
 import { createTestUser } from "../../helpers/auth";
 import { setupTestDb } from "../../helpers/db";
-import { TEST_SERVER_ENV } from "../../helpers/server-env";
 
 vi.stubEnv("ADMIN_OSU_IDS", "12231334");
 
@@ -395,7 +395,7 @@ describe("system accounts", () => {
         ipAddress: "",
         userAgent: "",
       });
-    const signature = await makeSignature(token, TEST_SERVER_ENV.BETTER_AUTH_SECRET);
+    const signature = await makeSignature(token, TEST_OSU_APP_ENV.BETTER_AUTH_SECRET);
     const cookie = `better-auth.session_token=${encodeURIComponent(`${token}.${signature}`)}`;
     expect(await getUserFromHeaders(new Headers({ cookie }))).toBeNull();
   });

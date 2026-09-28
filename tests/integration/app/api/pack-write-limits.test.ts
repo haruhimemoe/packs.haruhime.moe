@@ -5,9 +5,10 @@
  *       Past it: 429 with Retry-After. The web and the API share one allowance.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { rateLimitId, windowFor } from "@haruhimemoe/next-kit/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DELETE as DELETE_EXPORT, POST as POST_EXPORT } from "@/app/api/packs/[slug]/exports/route";
 import { DELETE, PUT } from "@/app/api/packs/[slug]/route";
@@ -16,7 +17,6 @@ import { POST as V1_POST } from "@/app/api/v1/packs/route";
 import { RATE_LIMITS } from "@/constants/api";
 import { RATE_LIMITS_COLLECTION } from "@/constants/star-ratings";
 import { getDb } from "@/lib/db";
-import { rateLimitId, windowFor } from "@/lib/rate-limit";
 import { createApiKey } from "@/services/api-keys";
 import { createPack } from "@/services/packs";
 import { createTestUser } from "../../../helpers/auth";

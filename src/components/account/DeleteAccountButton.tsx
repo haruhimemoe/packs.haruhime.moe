@@ -12,7 +12,7 @@
 
 import { InlineConfirm, Notice } from "@haruhimemoe/ui";
 import { useState } from "react";
-import { markSignedOut } from "@/hooks/useAccount";
+import { markSignedOut } from "@/lib/account";
 import { PacksApiError, packsApi } from "@/lib/packs-api";
 
 type DeleteAccountButtonProps = {

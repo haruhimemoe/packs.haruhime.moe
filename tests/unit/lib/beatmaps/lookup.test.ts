@@ -5,13 +5,13 @@
  *       the pool when it fails.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
 import { HttpResponse, http } from "msw";
-import { setupServer } from "msw/node";
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { type BeatmapSource, fetchOsuFallback, withFallback } from "@/lib/beatmaps/lookup";
 
 const meta = (id: number): BeatmapMeta => ({
@@ -71,15 +71,12 @@ describe("withFallback", () => {
 describe("fetchOsuFallback", () => {
   const URL_ = "http://localhost/api/osu/beatmaps";
   let seen: string | null = null;
-  const server = setupServer(
+  const server = setupMsw(
     http.get(URL_, ({ request }) => {
       seen = new URL(request.url).searchParams.get("ids");
       return HttpResponse.json({ beatmaps: [meta(300)] });
     }),
   );
-  beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
-  afterEach(() => server.resetHandlers());
-  afterAll(() => server.close());
 
   const NOTHING = { beatmaps: [], unchecked: [] };
 

@@ -3,14 +3,14 @@
  * @desc Save flow: sign-in detour (flushing the pack first), saving once, server messages.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import type { Account } from "@haruhimemoe/next-kit/auth-react";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SavePackButton } from "@/components/pack/SavePackButton";
-import type { Account } from "@/hooks/useAccount";
 import { PacksApiError } from "@/lib/packs-api";
 import type { SavedPack } from "@/schemas/saved-pack";
 
@@ -19,7 +19,7 @@ const { push, account } = vi.hoisted(() => ({
   account: { current: { status: "signed-out" } as Account },
 }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
-vi.mock("@/hooks/useAccount", () => ({ useAccount: () => account.current }));
+vi.mock("@/lib/account", () => ({ useAccount: () => account.current }));
 
 const PACK = { name: "  ", slots: [{ mod: "NM" as const, index: 1, beatmapId: 129891 }] };
 const SAVED: SavedPack = {

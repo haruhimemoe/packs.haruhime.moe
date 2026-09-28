@@ -6,10 +6,11 @@
  *       refuses requests from other origins (refuseCrossSite).
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
-import { jsonError, refuseCrossSite } from "@/lib/api";
+import { jsonError } from "@haruhimemoe/next-kit/server";
+import { refuseCrossSite } from "@/lib/api";
 import { getUserFromHeaders } from "@/lib/auth";
 import { magnetSchema } from "@/schemas/pack-export";
 import { adminRemoveMagnet, ExportConflictError } from "@/services/pack-exports";

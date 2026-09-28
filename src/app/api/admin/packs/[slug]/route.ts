@@ -6,10 +6,11 @@
  *       (refuseCrossSite).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
-import { jsonError, parseJsonBody, refuseCrossSite } from "@/lib/api";
+import { jsonError, parseJsonBody } from "@haruhimemoe/next-kit/server";
+import { refuseCrossSite } from "@/lib/api";
 import { getUserFromHeaders, type SessionUser } from "@/lib/auth";
 import { moderationBodySchema } from "@/schemas/public-pack";
 import { adminDeletePack, setPackHidden } from "@/services/moderation";

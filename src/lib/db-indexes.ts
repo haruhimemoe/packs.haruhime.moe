@@ -1,59 +1,36 @@
 /**
  * @file src/lib/db-indexes.ts
- * @desc Indexes on collections Mongoose doesn't manage (better-auth's). The session TTL index makes
- *       MongoDB delete a sign-in session about a minute after it expires, which the privacy policy
- *       promises. Also the 30-day TTL on cached star ratings, and the TTL on rate-limit counters (the
- *       rate_limits collection src/lib/rate-limit.ts and the osu! budget share), and the TTL on
- *       the pools backfill's record of tried pairs, and one hide marker per pools pool (a unique
- *       originId, so two deletes at once can't leave two). createIndex is a no-op when the index
- *       already exists.
+ * @desc Every index packs builds on connect (connectDb runs @haruhimemoe/next-kit's
+ *       ensureIndexes over this list, one index at a time, never failing the connect): better-auth's
+ *       (one user per osu! id, one link per account, sessions by token and user, the session TTL),
+ *       the rate_limits TTL, the star-rating cache's TTL, the pools backfill ledger's TTL, the TTL
+ *       on better-auth's OAuth state rows (verification), and one hide marker per pool. Pack indexes come from the mongoose model.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
-import type { Db } from "mongodb";
+import { AUTH_INDEX_SPECS } from "@haruhimemoe/next-kit/auth";
+import { type IndexSpec, ttlIndex } from "@haruhimemoe/next-kit/mongo";
+import { counterTtlIndex } from "@haruhimemoe/next-kit/server";
 import { HIDDEN_ORIGINS_COLLECTION, POOLS_BACKFILL_COLLECTION } from "@/constants/pools";
 import {
-  RATE_LIMITS_COLLECTION,
   STAR_RATINGS_COLLECTION,
   STAR_RATINGS_TTL_INDEX,
   STAR_RATINGS_TTL_SECONDS,
 } from "@/constants/star-ratings";
 
-export const SESSION_TTL_INDEX = "session_expiresAt_ttl";
-
-/**
- * @function ensureIndexes
- * @param db {Db} the packs database
- * @returns {Promise<void>} resolves even when an index can't be created (logged, never thrown):
- *          a missing TTL index must not take the site down
- */
-export const ensureIndexes = async (db: Db): Promise<void> => {
-  try {
-    await Promise.all([
-      db
-        .collection("session")
-        .createIndex({ expiresAt: 1 }, { name: SESSION_TTL_INDEX, expireAfterSeconds: 0 }),
-      db
-        .collection(STAR_RATINGS_COLLECTION)
-        .createIndex(
-          { fetchedAt: 1 },
-          { name: STAR_RATINGS_TTL_INDEX, expireAfterSeconds: STAR_RATINGS_TTL_SECONDS },
-        ),
-      // Default name. src/lib/rate-limit.ts creates no index of its own and relies on this one.
-      db
-        .collection(RATE_LIMITS_COLLECTION)
-        .createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
-      // The pools stats backfill's record of tried pairs (src/services/pack-stats.ts).
-      db
-        .collection(POOLS_BACKFILL_COLLECTION)
-        .createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
-      // Hide markers for pools packs (src/services/pools-sync.ts): one per pool.
-      db.collection(HIDDEN_ORIGINS_COLLECTION).createIndex({ originId: 1 }, { unique: true }),
-    ]);
-  } catch (error) {
-    console.error("db: couldn't create indexes", error);
-  }
-};
+/** The indexes connectDb builds, in no particular order (each is built on its own). */
+export const PACKS_INDEX_SPECS: readonly IndexSpec[] = Object.freeze([
+  ...AUTH_INDEX_SPECS,
+  // Spent rate-limit and osu! budget counters (src/lib/rate-limit.ts, src/lib/osu/budget.ts).
+  counterTtlIndex(),
+  ttlIndex(STAR_RATINGS_COLLECTION, "fetchedAt", STAR_RATINGS_TTL_SECONDS, STAR_RATINGS_TTL_INDEX),
+  // The pools stats backfill's record of tried pairs (src/services/pools-stats-backfill.ts).
+  ttlIndex(POOLS_BACKFILL_COLLECTION, "expiresAt"),
+  // OAuth state rows: an abandoned sign-in leaves one behind until it expires.
+  ttlIndex("verification", "expiresAt"),
+  // Hide markers for pools packs (src/services/pools-sync.ts): one per pool.
+  { collection: HIDDEN_ORIGINS_COLLECTION, key: { originId: 1 }, unique: true },
+]);

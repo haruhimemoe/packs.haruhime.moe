@@ -13,6 +13,7 @@
 
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { errorCodeFor } from "@haruhimemoe/next-kit/server";
 import { MAX_NAME_LENGTH, MAX_SLOTS } from "@haruhimemoe/pool";
 import { MAX_DESCRIPTION_LENGTH } from "@haruhimemoe/pool/service";
 import { describe, expect, it } from "vitest";
@@ -22,7 +23,6 @@ import { DESCRIPTION_EXCERPT_LENGTH } from "@/constants/pack";
 import { POOLS_ACCOUNT } from "@/constants/pools";
 import { SEARCH_INDEX_LIMIT } from "@/constants/public-packs";
 import { SITE } from "@/constants/site";
-import { errorCodeFor } from "@/lib/api";
 import { API_OPERATIONS } from "@/lib/openapi";
 import { packStatsSchema } from "@/schemas/pack-stats";
 

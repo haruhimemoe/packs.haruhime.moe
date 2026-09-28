@@ -4,13 +4,13 @@
  *       with the signed session cookie a browser would send.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { OSU_PROVIDER_ID } from "@haruhimemoe/next-kit/auth";
+import { TEST_OSU_APP_ENV } from "@haruhimemoe/next-kit/testing";
 import { makeSignature } from "better-auth/crypto";
-import { OSU_PROVIDER_ID } from "@/constants/auth";
 import { getAuth } from "@/lib/auth";
-import { TEST_SERVER_ENV } from "./server-env";
 
 let nextOsuId = 1000;
 
@@ -42,7 +42,7 @@ export const createTestUser = async (
     accountId: String(osuId),
   });
   const session = await ctx.internalAdapter.createSession(user.id, false, options.session);
-  const signature = await makeSignature(session.token, TEST_SERVER_ENV.BETTER_AUTH_SECRET);
+  const signature = await makeSignature(session.token, TEST_OSU_APP_ENV.BETTER_AUTH_SECRET);
   const cookie = `better-auth.session_token=${encodeURIComponent(`${session.token}.${signature}`)}`;
   return { id: user.id, osuId, username, cookie };
 };

@@ -5,14 +5,14 @@
  *       flushes it (tests/helpers/after.ts).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { stubOsuAppEnv } from "@haruhimemoe/next-kit/testing";
 import { beforeEach, inject, vi } from "vitest";
 import { clearAfter } from "../helpers/after";
-import { stubServerEnv } from "../helpers/server-env";
 
-stubServerEnv({ MONGODB_URI: inject("mongoUri") });
+stubOsuAppEnv({ MONGODB_URI: inject("mongoUri") });
 // CI sets SKIP_ENV_VALIDATION for the whole job (for `next build`); integration tests use a real
 // in-memory database, so the public-list services must not take their "no database" path.
 vi.stubEnv("SKIP_ENV_VALIDATION", "");

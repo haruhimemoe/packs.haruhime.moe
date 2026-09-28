@@ -10,6 +10,7 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { rateLimitId, windowFor } from "@haruhimemoe/next-kit/server";
 import { MAX_SLOTS } from "@haruhimemoe/pool";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
@@ -20,8 +21,7 @@ import { RATE_LIMITS } from "@/constants/api";
 import { SERVER_USER_AGENT } from "@/constants/site";
 import { OSU_API_BUDGET, RATE_LIMITS_COLLECTION } from "@/constants/star-ratings";
 import { getDb } from "@/lib/db";
-import { osuBudgetWindow } from "@/lib/osu/attributes";
-import { rateLimitId, windowFor } from "@/lib/rate-limit";
+import { osuBudgetWindow } from "@/lib/osu/budget";
 import fixture from "../../../fixtures/osu/beatmaps.json";
 import { setupTestDb } from "../../../helpers/db";
 

@@ -4,7 +4,7 @@
  *       have no saved-pack cap, so their count shows no limit.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { ButtonLink, Card, PageHeader, Pagination } from "@haruhimemoe/ui";
@@ -12,10 +12,10 @@ import type { Metadata } from "next";
 import { ApiKeyCard } from "@/components/account/ApiKeyCard";
 import { DeleteAccountButton } from "@/components/account/DeleteAccountButton";
 import { DownloadDataLink } from "@/components/account/DownloadDataLink";
-import { RestoreSignedIn } from "@/components/auth/RestoreSignedIn";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { MyPacksList } from "@/components/pack/MyPacksList";
 import { MAX_SAVED_PACKS } from "@/constants/pack";
+import { RestoreSignedIn } from "@/lib/account";
 import { requireUser } from "@/lib/auth-session";
 import { getApiKeyInfo } from "@/services/api-keys";
 import { listPacks } from "@/services/packs";

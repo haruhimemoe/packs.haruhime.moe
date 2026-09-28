@@ -4,14 +4,14 @@
  *       use getUserFromHeaders(request.headers) from lib/auth instead.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
+import { signInHref } from "@haruhimemoe/next-kit/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getUserFromHeaders, type SessionUser } from "@/lib/auth";
-import { signInHref } from "@/utils/safe-next";
 
 /**
  * @function getCurrentUser

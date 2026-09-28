@@ -5,7 +5,7 @@
  *       routes), and where the docs live.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 /** Can't be mistaken for a pack key (pk1.). */
@@ -47,6 +47,11 @@ export const RATE_LIMITS = {
   serviceAuthFail: { scope: "service-auth-fail", limit: 10, windowSeconds: 60 },
   /** Create or regenerate on /me, per user. */
   keyCreate: { scope: "key-create", limit: 10, windowSeconds: 3600 },
+  /**
+   * Starting an osu! sign-in (POST /api/auth/sign-in/*), per IP. Each start writes an OAuth
+   * state row; better-auth's own limiter counts per server instance, this one across them.
+   */
+  signIn: { scope: "sign-in", limit: 10, windowSeconds: 60 },
   /**
    * GET /api/osu/star-ratings, per IP. A pool view asks once, then every 5 s at most 12 times
    * (13 a minute); the editor asks 1.5 s after the last change. 120 leaves room for several tabs

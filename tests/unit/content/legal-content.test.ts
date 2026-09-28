@@ -8,7 +8,7 @@
  *       hosts, community submissions and sources like otdb, not from otdb alone.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { existsSync, readFileSync } from "node:fs";
@@ -118,6 +118,7 @@ describe("privacy", () => {
     "signed in or not",
     "so one visitor can't use up the site's osu! API quota",
     "deleted automatically within about two minutes",
+    "Each time you press Sign in with osu!, our server counts it per IP address",
     "in server memory only",
     "never written to the database",
     "gone when the server instance restarts",
@@ -251,7 +252,7 @@ describe("copyright", () => {
 
   it("dates the Sources section", () => {
     expect(LEGAL_DOCS.copyright.lastUpdated).toBe("2026-09-25");
-    expect(LEGAL_DOCS["your-privacy-rights"].lastUpdated).toBe("2026-09-24");
+    expect(LEGAL_DOCS["your-privacy-rights"].lastUpdated).toBe("2026-09-28");
   });
 });
 
@@ -319,6 +320,7 @@ describe("API copy", () => {
   it.each([
     "Rate-limit counters for osu! lookups",
     "Sign-in rate-limit counts",
+    "Counters of sign-ins you start, keyed by your IP address",
     "server memory only",
     "/64 network",
     "Our server never forwards your IP address to osu!",

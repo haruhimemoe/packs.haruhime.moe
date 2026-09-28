@@ -4,10 +4,11 @@
  *       (refuseCrossSite): it reads no body.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
-import { jsonError, refuseCrossSite } from "@/lib/api";
+import { jsonError } from "@haruhimemoe/next-kit/server";
+import { refuseCrossSite } from "@/lib/api";
 import { getUserFromHeaders } from "@/lib/auth";
 import { deleteAccount } from "@/services/account";
 

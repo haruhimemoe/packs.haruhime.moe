@@ -5,13 +5,13 @@
  *       signed-in marker is present: cached pack pages carry no per-viewer data.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
 import { useEffect, useState } from "react";
-import { hasSignedInMarker } from "@/lib/signed-in-marker";
+import { signedInMarker } from "@/lib/account";
 import type { SavedPack } from "@/schemas/saved-pack";
 
 export type PackAccess =
@@ -42,7 +42,7 @@ export const usePackAccess = (
   // "anonymous" first, so the cached server render never says "Loading".
   const [access, setAccess] = useState<PackAccess>({ status: "anonymous" });
   useEffect(() => {
-    if (slug === null || !hasSignedInMarker(readCookie())) {
+    if (slug === null || !signedInMarker.has(readCookie())) {
       setAccess({ status: "anonymous" });
       return;
     }

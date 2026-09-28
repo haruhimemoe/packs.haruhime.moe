@@ -15,34 +15,23 @@
  * @modified Wed Sep 23, 2026
  */
 
+import { clientIp, jsonError, rateLimitSubject } from "@haruhimemoe/next-kit/server";
 import { RATE_LIMITS } from "@/constants/api";
-import { BAD_BEATMAP_IDS, jsonError, parseBeatmapIds } from "@/lib/api";
-import { connectedDb } from "@/lib/db";
+import { BAD_BEATMAP_IDS, parseBeatmapIds } from "@/lib/api";
 import { getOsuClient } from "@/lib/osu";
-import { takeOsuBudget } from "@/lib/osu/attributes";
-import { refuseOverLimit } from "@/lib/rate-limit";
-import { clientIp, rateLimitSubject } from "@/utils/client-ip";
+import { osuBudgetGate } from "@/lib/osu/budget";
+import { limiter } from "@/lib/rate-limit";
 
 const CDN_CACHE = "public, s-maxage=86400, stale-while-revalidate=604800";
 
 export async function GET(request: Request) {
   const subject = rateLimitSubject(clientIp(request.headers));
-  const limited = await refuseOverLimit(RATE_LIMITS.osuBeatmaps, subject);
+  const limited = await limiter.refuseOverLimit(RATE_LIMITS.osuBeatmaps, subject);
   if (limited) return limited;
   const ids = parseBeatmapIds(new URL(request.url).searchParams.get("ids"));
   if (!ids) return jsonError(400, BAD_BEATMAP_IDS);
   // After the first "no" (or a failing counter), later batches stay unchecked without counting.
-  let refused = false;
-  const beforeCall = async (): Promise<boolean> => {
-    if (refused) return false;
-    try {
-      refused = !(await takeOsuBudget(await connectedDb(), Date.now(), subject));
-    } catch (error) {
-      console.error("[osu] fallback lookup: osu! budget counter unavailable:", error);
-      refused = true;
-    }
-    return !refused;
-  };
+  const beforeCall = osuBudgetGate(subject);
   try {
     const { found, unchecked } = await getOsuClient().getBeatmaps(ids, { beforeCall });
     return Response.json(

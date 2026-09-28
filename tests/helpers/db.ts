@@ -1,21 +1,21 @@
 /**
  * @file tests/helpers/db.ts
- * @desc setupTestDb(): empty every collection before each test, close the client after the file.
+ * @desc setupTestDb: @haruhimemoe/next-kit's, over packs' database and every collection packs
+ *       writes (better-auth's included), emptied before each test and closed after the file.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
-import { afterAll, beforeEach } from "vitest";
+import {
+  BETTER_AUTH_COLLECTIONS,
+  setupTestDb as setupKitTestDb,
+} from "@haruhimemoe/next-kit/testing";
 import { closeDb, connectDb, getDb } from "@/lib/db";
 
-/** Our collections plus better-auth's (mongodb adapter defaults). */
+/** Our collections; better-auth's come from BETTER_AUTH_COLLECTIONS. */
 const COLLECTIONS = [
   "packs",
-  "user",
-  "session",
-  "account",
-  "verification",
   "star_ratings",
   "rate_limits",
   "api_keys",
@@ -26,12 +26,12 @@ const COLLECTIONS = [
 
 /**
  * @function setupTestDb
- * @returns {void} registers beforeEach (clear) and afterAll (close) hooks
+ * @returns {void} registers beforeEach (connect and clear) and afterAll (close) hooks
  */
-export const setupTestDb = (): void => {
-  beforeEach(async () => {
-    await connectDb();
-    await Promise.all(COLLECTIONS.map((name) => getDb().collection(name).deleteMany({})));
+export const setupTestDb = (): void =>
+  setupKitTestDb({
+    connect: connectDb,
+    db: getDb,
+    close: closeDb,
+    collections: [...COLLECTIONS, ...BETTER_AUTH_COLLECTIONS],
   });
-  afterAll(closeDb);
-};

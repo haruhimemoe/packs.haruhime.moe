@@ -7,16 +7,14 @@
  *       `unlimited`). The record is keyed on its fixed id, so first calls racing still make one.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { isDuplicateKeyError } from "@haruhimemoe/next-kit/mongo";
 import "server-only";
 import { ObjectId } from "mongodb";
 import { POOLS_ACCOUNT } from "@/constants/pools";
 import { connectedDb } from "@/lib/db";
-
-const isDuplicateKey = (error: unknown): boolean =>
-  typeof error === "object" && error !== null && "code" in error && error.code === 11000;
 
 /**
  * @function ensurePoolsAccount
@@ -44,7 +42,7 @@ export const ensurePoolsAccount = async (now: Date = new Date()): Promise<string
     );
   } catch (error) {
     // Two first calls at once: the other one created it.
-    if (!isDuplicateKey(error)) throw error;
+    if (!isDuplicateKeyError(error)) throw error;
   }
   return POOLS_ACCOUNT.id;
 };

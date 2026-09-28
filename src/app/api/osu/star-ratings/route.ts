@@ -9,22 +9,21 @@
  *       come back pending).
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { clientIp, jsonError, rateLimitSubject } from "@haruhimemoe/next-kit/server";
 import { RATE_LIMITS } from "@/constants/api";
 import { MAX_STAR_PAIRS } from "@/constants/star-ratings";
-import { jsonError } from "@/lib/api";
 import { getStarRatings } from "@/lib/osu/attributes";
-import { refuseOverLimit } from "@/lib/rate-limit";
+import { limiter } from "@/lib/rate-limit";
 import { starPairsQuerySchema } from "@/schemas/star-ratings";
-import { clientIp, rateLimitSubject } from "@/utils/client-ip";
 
 const CDN_CACHE = "public, s-maxage=86400, stale-while-revalidate=604800";
 
 export async function GET(request: Request) {
   const subject = rateLimitSubject(clientIp(request.headers));
-  const refused = await refuseOverLimit(RATE_LIMITS.osuStarRatings, subject);
+  const refused = await limiter.refuseOverLimit(RATE_LIMITS.osuStarRatings, subject);
   if (refused) return refused;
   const parsed = starPairsQuerySchema.safeParse(new URL(request.url).searchParams.get("q") ?? "");
   if (!parsed.success) {

@@ -8,12 +8,12 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { clientIp, jsonError, rateLimitSubject } from "@haruhimemoe/next-kit/server";
 import { packInputSchema } from "@haruhimemoe/pool/service";
-import { jsonError, PACK_NOT_FOUND, parseJsonBody } from "@/lib/api";
+import { PACK_NOT_FOUND, parsePackBody } from "@/lib/api";
 import { withApiKey } from "@/lib/api-auth";
 import { getApiPack, toApiPack } from "@/services/api-packs";
 import { deletePack, updatePack } from "@/services/packs";
-import { clientIp, rateLimitSubject } from "@/utils/client-ip";
 
 type Context = { params: Promise<{ slug: string }> };
 
@@ -26,7 +26,7 @@ export const GET = withApiKey<Context>(async (_request, caller, { params }) => {
 
 export const PUT = withApiKey<Context>(async (request, caller, { params }) => {
   const { slug } = await params;
-  const body = await parseJsonBody(request, packInputSchema);
+  const body = await parsePackBody(request, packInputSchema);
   if (!body.ok) return body.response;
   const pack = await updatePack(slug, caller.id, body.data, {
     subject: rateLimitSubject(clientIp(request.headers)),

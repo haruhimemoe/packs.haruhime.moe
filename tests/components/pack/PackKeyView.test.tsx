@@ -23,7 +23,7 @@ import { setupHinaiServer } from "../../helpers/hinai-server";
 const server = setupHinaiServer();
 const { push } = vi.hoisted(() => ({ push: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
-vi.mock("@/hooks/useAccount", () => ({ useAccount: () => ({ status: "signed-out" }) }));
+vi.mock("@/lib/account", () => ({ useAccount: () => ({ status: "signed-out" }) }));
 
 const PACK = {
   name: "SPC Finals",

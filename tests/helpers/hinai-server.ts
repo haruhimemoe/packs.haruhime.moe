@@ -9,9 +9,9 @@
  */
 
 import { hinaiBatchHandler, hinaiDownloadHandlers } from "@haruhimemoe/hinai/testing";
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { HttpResponse, http } from "msw";
-import { type SetupServer, setupServer } from "msw/node";
-import { afterAll, afterEach, beforeAll } from "vitest";
+import type { SetupServer } from "msw/node";
 
 /** Our own osu! fallback route: in component tests it knows no extra maps. */
 export const osuFallbackHandler = http.get("*/api/osu/beatmaps", () =>
@@ -28,15 +28,5 @@ export const starRatingsHandler = http.get("*/api/osu/star-ratings", () =>
  * @returns {SetupServer} server with the mirror and our two osu! routes; lifecycle hooks
  *          registered, and any request nothing handles fails the test
  */
-export const setupHinaiServer = (): SetupServer => {
-  const server = setupServer(
-    hinaiBatchHandler,
-    osuFallbackHandler,
-    starRatingsHandler,
-    ...hinaiDownloadHandlers,
-  );
-  beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
-  afterEach(() => server.resetHandlers());
-  afterAll(() => server.close());
-  return server;
-};
+export const setupHinaiServer = (): SetupServer =>
+  setupMsw(hinaiBatchHandler, osuFallbackHandler, starRatingsHandler, ...hinaiDownloadHandlers);

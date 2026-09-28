@@ -3,7 +3,7 @@
  * @desc Signs out, returns home, and refreshes server components.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -11,7 +11,7 @@
 import { Button } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { markSignedOut } from "@/hooks/useAccount";
+import { markSignedOut } from "@/lib/account";
 import { authClient } from "@/lib/auth-client";
 
 const defaultSignOut = async (): Promise<void> => {

@@ -1,16 +1,17 @@
 /**
  * @file tests/integration/lib/db-indexes.test.ts
- * @desc Indexes we add to collections we don't own through Mongoose: the TTL index that deletes
- *       expired better-auth sessions, and proof that better-auth stores expiresAt as a Date
- *       (a TTL index silently ignores any other type), plus the TTL indexes on cached star ratings
- *       and rate-limit counters, and on the pools backfill's record of tried pairs, and the unique
- *       originId on pools hide markers.
+ * @desc Indexes connectDb builds (PACKS_INDEX_SPECS, through next-kit's ensureIndexes): every
+ *       one exists, the session TTL (and proof that better-auth stores expiresAt as a Date, which
+ *       a TTL index needs), the TTLs on cached star ratings, rate-limit counters, the pools
+ *       backfill's record of tried pairs and sign-in state rows, and one hide marker per pool.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
-import { describe, expect, it, vi } from "vitest";
+import { AUTH_INDEXES } from "@haruhimemoe/next-kit/auth";
+import { indexName } from "@haruhimemoe/next-kit/mongo";
+import { describe, expect, it } from "vitest";
 import { HIDDEN_ORIGINS_COLLECTION, POOLS_BACKFILL_COLLECTION } from "@/constants/pools";
 import {
   RATE_LIMITS_COLLECTION,
@@ -19,44 +20,33 @@ import {
   STAR_RATINGS_TTL_SECONDS,
 } from "@/constants/star-ratings";
 import { connectDb, getDb } from "@/lib/db";
-import { ensureIndexes, SESSION_TTL_INDEX } from "@/lib/db-indexes";
+import { PACKS_INDEX_SPECS } from "@/lib/db-indexes";
 import { createTestUser } from "../../helpers/auth";
 import { setupTestDb } from "../../helpers/db";
 
 setupTestDb();
 
-describe("ensureIndexes", () => {
+describe("PACKS_INDEX_SPECS", () => {
+  it("connectDb builds every one", async () => {
+    await connectDb();
+    for (const spec of PACKS_INDEX_SPECS) {
+      const names = (await getDb().collection(spec.collection).indexes()).map((i) => i.name);
+      expect(names, spec.collection).toContain(indexName(spec));
+    }
+  });
+
   it("connectDb leaves a TTL index on session.expiresAt that expires rows at expiresAt", async () => {
     await connectDb();
     const indexes = await getDb().collection("session").indexes();
-    const ttl = indexes.find((index) => index.name === SESSION_TTL_INDEX);
+    const ttl = indexes.find((index) => index.name === AUTH_INDEXES.sessionTtl);
     expect(ttl?.key).toEqual({ expiresAt: 1 });
     expect(ttl?.expireAfterSeconds).toBe(0);
-  });
-
-  it("is safe to run again", async () => {
-    await ensureIndexes(getDb());
-    await ensureIndexes(getDb());
-    const names = (await getDb().collection("session").indexes()).map((index) => index.name);
-    expect(names.filter((name) => name === SESSION_TTL_INDEX)).toHaveLength(1);
   });
 
   it("better-auth stores session.expiresAt as a Date, so the TTL index applies", async () => {
     await createTestUser();
     const row = await getDb().collection("session").findOne({});
     expect(row?.expiresAt).toBeInstanceOf(Date);
-  });
-
-  it("logs and carries on when the index can't be created", async () => {
-    const error = vi.spyOn(console, "error").mockImplementation(() => {});
-    const db = {
-      collection: () => ({
-        createIndex: () => Promise.reject(new Error("not authorized")),
-      }),
-    } as unknown as Parameters<typeof ensureIndexes>[0];
-    await expect(ensureIndexes(db)).resolves.toBeUndefined();
-    expect(error).toHaveBeenCalledWith("db: couldn't create indexes", expect.any(Error));
-    error.mockRestore();
   });
 
   it("expires cached star ratings 30 days after they were fetched", async () => {
@@ -91,6 +81,13 @@ describe("ensureIndexes", () => {
     await markers.insertOne({ originId: "otdb-58", hiddenAt: new Date() });
     await expect(markers.insertOne({ originId: "otdb-58", hiddenAt: new Date() })).rejects.toThrow(
       /duplicate key/,
+    );
+  });
+
+  it("expires sign-in state rows (verification) at expiresAt", async () => {
+    await connectDb();
+    expect(await getDb().collection("verification").indexes()).toContainEqual(
+      expect.objectContaining({ key: { expiresAt: 1 }, expireAfterSeconds: 0 }),
     );
   });
 });

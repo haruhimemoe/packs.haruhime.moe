@@ -3,7 +3,7 @@
  * @desc Header: home link, main nav links, wraps on narrow screens.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
@@ -11,7 +11,7 @@ import { describe, expect, it, vi } from "vitest";
 import { Header } from "@/components/layout/Header";
 import { NAV_LINKS } from "@/constants/site";
 
-vi.mock("@/hooks/useAccount", () => ({ useAccount: () => ({ status: "signed-out" }) }));
+vi.mock("@/lib/account", () => ({ useAccount: () => ({ status: "signed-out" }) }));
 
 describe("Header", () => {
   it("links the wordmark home", () => {

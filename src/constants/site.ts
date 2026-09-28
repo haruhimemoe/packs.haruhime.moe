@@ -3,7 +3,7 @@
  * @desc Site identity, the source repo, our Discord server, the parent brand and GitHub org, navigation, the ppy trademark notice, and the User-Agent our server sends.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 export const SITE = {
@@ -26,6 +26,15 @@ export const SITE = {
 } as const;
 
 /** Sent as User-Agent on every request our server makes to the osu! API (see /legal/disclaimers). */
+/** GitHub private vulnerability reporting: the first place to report a security problem. */
+export const SECURITY_REPORT_URL = `${SITE.repoUrl}/security/advisories/new`;
+
+/** Where sign-in goes when it has no safe `next`. */
+export const DEFAULT_AFTER_SIGN_IN = "/me";
+
+/** The readable "signed in" marker cookie: set with the session, holds no secret. */
+export const SIGNED_IN_COOKIE = "packs-signed-in";
+
 export const SERVER_USER_AGENT = `${SITE.title} (+${SITE.url}; ${SITE.contactEmail})`;
 
 export const NAV_LINKS: readonly { href: string; label: string }[] = [

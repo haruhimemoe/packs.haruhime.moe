@@ -6,13 +6,13 @@
  *       still pending (absent). The mirror and osu! are MSW.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { describe, expect, it } from "vitest";
 import { OSU_API_BUDGET, RATE_LIMITS_COLLECTION } from "@/constants/star-ratings";
 import { getDb } from "@/lib/db";
-import { osuBudgetWindow } from "@/lib/osu/attributes";
+import { osuBudgetWindow } from "@/lib/osu/budget";
 import { lookupModRatings, lookupStatsMeta } from "@/lib/pack-stats";
 import { setupTestDb } from "../../helpers/db";
 import { beatmapRow, onMirror, setupStatsLookups } from "../../helpers/stats-lookups";

@@ -7,23 +7,24 @@
  *       is for servers and bots.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
-import "server-only";
-import { RATE_LIMITS } from "@/constants/api";
-import { jsonError } from "@/lib/api";
-import { bearerToken } from "@/lib/api-key";
 import {
-  hitRateLimit,
+  clientIp,
+  jsonError,
   type RateLimitResult,
   rateLimitHeaders,
+  rateLimitSubject,
   tooManyRequests,
   windowFor,
   withHeaders,
-} from "@/lib/rate-limit";
+} from "@haruhimemoe/next-kit/server";
+import "server-only";
+import { RATE_LIMITS } from "@/constants/api";
+import { bearerToken } from "@/lib/api-key";
+import { limiter } from "@/lib/rate-limit";
 import { type ApiCaller, authenticateApiKey } from "@/services/api-keys";
-import { clientIp, rateLimitSubject } from "@/utils/client-ip";
 
 export const MISSING_KEY = "Send your API key in the Authorization header: Bearer hpk_…";
 export const INVALID_KEY = "That API key isn't valid. It may have been revoked or replaced.";
@@ -68,7 +69,7 @@ export const withApiKey =
       return serverError(error, uncounted());
     }
     if (!caller) {
-      const failures = await hitRateLimit(
+      const failures = await limiter.hit(
         RATE_LIMITS.authFail,
         rateLimitSubject(clientIp(request.headers)),
       );
@@ -80,11 +81,11 @@ export const withApiKey =
         failures,
       );
     }
-    const requests = await hitRateLimit(RATE_LIMITS.api, caller.id);
+    const requests = await limiter.hit(RATE_LIMITS.api, caller.id);
     if (!requests.allowed) return finish(tooManyRequests(requests), requests);
     let shown = requests;
     if (WRITE_METHODS.has(request.method)) {
-      const writes = await hitRateLimit(RATE_LIMITS.apiWrite, caller.id);
+      const writes = await limiter.hit(RATE_LIMITS.apiWrite, caller.id);
       if (!writes.allowed) return finish(tooManyRequests(writes), writes);
       // Show whichever counter runs out first.
       if (writes.remaining < requests.remaining) shown = writes;

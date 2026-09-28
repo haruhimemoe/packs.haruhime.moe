@@ -1,11 +1,12 @@
 /**
  * @file src/constants/star-ratings.ts
- * @desc Star ratings with mods: the Mongo cache, the global osu! API budget (the same document
- *       shape as the rate limits in src/lib/rate-limit.ts) and each IP's share of it, per-request
- *       limits, and the browser's timing. Shared by the server and the browser.
+ * @desc Star ratings with mods: the Mongo cache (and how long a refused pair is remembered), the
+ *       osu! API budget (global, each IP's share, and all visitors' share; counted like the rate
+ *       limits, src/lib/osu/budget.ts), per-request limits, and the browser's timing. Shared by
+ *       the server and the browser.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { ModAcronym } from "@haruhimemoe/pool";
@@ -34,6 +35,20 @@ export const OSU_API_BUDGET_PER_IP = {
   limit: 20,
   windowSeconds: 60,
 } as const;
+
+/**
+ * What every visitor together may spend of OSU_API_BUDGET: 30 of its 50 a minute. The other 20
+ * are kept for server work (the stats job and the pools service), so visitors can't starve it.
+ */
+export const OSU_API_BUDGET_VISITORS = {
+  scope: "osu-api-visitors",
+  subject: "all",
+  limit: 30,
+  windowSeconds: 60,
+} as const;
+
+/** How long a pair osu! wouldn't rate is remembered (no call for it until then): an hour. */
+export const NULL_RATING_TTL_MS = 3_600_000;
 
 export const MAX_OSU_FETCHES_PER_REQUEST = 20;
 export const OSU_FETCH_CONCURRENCY = 4;

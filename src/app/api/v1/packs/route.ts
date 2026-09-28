@@ -8,12 +8,12 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { clientIp, jsonError, rateLimitSubject } from "@haruhimemoe/next-kit/server";
 import { packInputSchema } from "@haruhimemoe/pool/service";
-import { BAD_PAGE, jsonError, parseJsonBody } from "@/lib/api";
+import { BAD_PAGE, parsePackBody } from "@/lib/api";
 import { withApiKey } from "@/lib/api-auth";
 import { listPublicApiPacks, toApiPack } from "@/services/api-packs";
 import { createPack, PackLimitError } from "@/services/packs";
-import { clientIp, rateLimitSubject } from "@/utils/client-ip";
 import { pageFromQuery } from "@/utils/paging";
 
 export const GET = withApiKey(async (request) => {
@@ -23,7 +23,7 @@ export const GET = withApiKey(async (request) => {
 });
 
 export const POST = withApiKey(async (request, caller) => {
-  const body = await parseJsonBody(request, packInputSchema);
+  const body = await parsePackBody(request, packInputSchema);
   if (!body.ok) return body.response;
   try {
     const pack = await createPack(caller.id, body.data, {

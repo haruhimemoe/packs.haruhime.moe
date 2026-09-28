@@ -7,30 +7,34 @@
  *       and onAsk naming each pair osu! was asked about. osu! is MSW.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { createOsuClient } from "@haruhimemoe/osu";
 import type { ModAcronym } from "@haruhimemoe/pool";
 import { HttpResponse, http } from "msw";
-import { setupServer } from "msw/node";
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+import { POOLS_SYNC_SUBJECT } from "@/constants/pools";
 import {
   MAX_OSU_FETCHES_PER_REQUEST,
+  NULL_RATING_TTL_MS,
   OSU_API_BUDGET,
   OSU_API_BUDGET_PER_IP,
+  OSU_API_BUDGET_VISITORS,
   OSU_FETCH_CONCURRENCY,
   RATE_LIMITS_COLLECTION,
   STAR_RATINGS_COLLECTION,
   type StarPair,
 } from "@/constants/star-ratings";
 import { getDb } from "@/lib/db";
+import { getStarRatings } from "@/lib/osu/attributes";
 import {
-  getStarRatings,
   osuBudgetWindow,
   osuSubjectWindow,
+  osuVisitorsWindow,
   takeOsuBudget,
-} from "@/lib/osu/attributes";
+} from "@/lib/osu/budget";
 import { setupTestDb } from "../../helpers/db";
 
 setupTestDb();
@@ -41,7 +45,7 @@ let active = 0;
 let peak = 0;
 let delayMs = 0;
 
-const server = setupServer(
+setupMsw(
   http.post("https://osu.ppy.sh/oauth/token", () =>
     HttpResponse.json({ token_type: "Bearer", expires_in: 86400, access_token: "t" }),
   ),
@@ -58,9 +62,6 @@ const server = setupServer(
     return HttpResponse.json({ attributes: { star_rating: Number(params.id) + mods.length / 10 } });
   }),
 );
-beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
 beforeEach(() => {
   calls = [];
   active = 0;
@@ -88,7 +89,9 @@ const seeded = (seed: number) => () => {
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 };
 const stars = () =>
-  getDb().collection<{ _id: string; stars: number; fetchedAt: Date }>(STAR_RATINGS_COLLECTION);
+  getDb().collection<{ _id: string; stars: number | null; fetchedAt: Date; nullUntil?: Date }>(
+    STAR_RATINGS_COLLECTION,
+  );
 const counters = () =>
   getDb().collection<{ _id: string; count: number; expiresAt: Date }>(RATE_LIMITS_COLLECTION);
 
@@ -198,10 +201,21 @@ describe("getStarRatings", () => {
     expect(count).toBeLessThanOrEqual(OSU_API_BUDGET.limit + OSU_FETCH_CONCURRENCY);
   });
 
-  it("leaves out a pair osu! refuses, serves the rest, and caches nothing for it", async () => {
+  it("leaves out a pair osu! refuses, serves the rest, and remembers the refusal for an hour", async () => {
     const result = await getStarRatings([pair(404, "HD"), pair(7, "HD")], deps());
     expect(result).toEqual({ ratings: { "7:HD": 7.1 }, pending: [] });
-    expect(await stars().findOne({ _id: "404:HD" })).toBeNull();
+    const refused = await stars().findOne({ _id: "404:HD" });
+    expect(refused?.stars).toBeNull();
+    expect(refused?.nullUntil?.getTime()).toBe(NOW + NULL_RATING_TTL_MS);
+  });
+
+  it("doesn't ask osu! again for a refused pair within the hour, then asks once it's passed", async () => {
+    await getStarRatings([pair(404, "HD")], deps());
+    calls.length = 0;
+    expect(await getStarRatings([pair(404, "HD")], deps())).toEqual({ ratings: {}, pending: [] });
+    expect(calls).toEqual([]);
+    await getStarRatings([pair(404, "HD")], deps(NOW + NULL_RATING_TTL_MS + 1));
+    expect(calls).toHaveLength(1);
   });
 
   it("marks a pair pending when osu! fails", async () => {
@@ -230,9 +244,34 @@ describe("osu! budget window", () => {
 
   it("counts every call in the window", async () => {
     for (let i = 0; i < OSU_API_BUDGET.limit; i++)
-      expect(await takeOsuBudget(getDb(), NOW)).toBe(true);
-    expect(await takeOsuBudget(getDb(), NOW)).toBe(false);
+      expect(await takeOsuBudget(undefined, NOW)).toBe(true);
+    expect(await takeOsuBudget(undefined, NOW)).toBe(false);
     expect((await counters().findOne({ _id: osuBudgetWindow(NOW).id }))?.count).toBe(51);
+  });
+});
+
+describe("visitors' share of the osu! budget (audit: three IPs could spend it all)", () => {
+  it("stops all visitors together at 30 a minute and keeps the rest for server work", async () => {
+    const ips = ["203.0.113.1", "203.0.113.2", "203.0.113.3"];
+    let granted = 0;
+    for (const ip of ips) {
+      for (let i = 0; i < OSU_API_BUDGET_PER_IP.limit; i++) {
+        if (await takeOsuBudget(ip, NOW)) granted++;
+      }
+    }
+    expect(granted).toBe(OSU_API_BUDGET_VISITORS.limit);
+    expect((await counters().findOne({ _id: osuVisitorsWindow(NOW).id }))?.count).toBe(60);
+    expect((await counters().findOne({ _id: osuBudgetWindow(NOW).id }))?.count).toBe(30);
+    // The stats job (no subject) and the pools service still get the other 20.
+    for (let i = 0; i < 10; i++) expect(await takeOsuBudget(undefined, NOW)).toBe(true);
+    for (let i = 0; i < 10; i++) expect(await takeOsuBudget(POOLS_SYNC_SUBJECT, NOW)).toBe(true);
+    expect(await takeOsuBudget(undefined, NOW)).toBe(false);
+  });
+
+  it("never counts server work against the visitors' share", async () => {
+    await takeOsuBudget(undefined, NOW);
+    await takeOsuBudget(POOLS_SYNC_SUBJECT, NOW);
+    expect(await counters().findOne({ _id: osuVisitorsWindow(NOW).id })).toBeNull();
   });
 });
 
@@ -246,17 +285,17 @@ describe("per-subject share of the osu! budget", () => {
 
   it("refuses a subject past its share without touching the global counter", async () => {
     for (let i = 0; i < OSU_API_BUDGET_PER_IP.limit; i++)
-      expect(await takeOsuBudget(getDb(), NOW, "203.0.113.9")).toBe(true);
-    expect(await takeOsuBudget(getDb(), NOW, "203.0.113.9")).toBe(false);
+      expect(await takeOsuBudget("203.0.113.9", NOW)).toBe(true);
+    expect(await takeOsuBudget("203.0.113.9", NOW)).toBe(false);
     expect((await counters().findOne({ _id: osuBudgetWindow(NOW).id }))?.count).toBe(20);
-    expect(await takeOsuBudget(getDb(), NOW, "198.51.100.7")).toBe(true);
+    expect(await takeOsuBudget("198.51.100.7", NOW)).toBe(true);
     expect((await counters().findOne({ _id: osuBudgetWindow(NOW).id }))?.count).toBe(21);
   });
 
   it("still refuses when the global budget is spent, even with share left", async () => {
     const { id, expiresAt } = osuBudgetWindow(NOW);
     await counters().insertOne({ _id: id, count: OSU_API_BUDGET.limit, expiresAt });
-    expect(await takeOsuBudget(getDb(), NOW, "203.0.113.9")).toBe(false);
+    expect(await takeOsuBudget("203.0.113.9", NOW)).toBe(false);
   });
 
   it("stops getStarRatings calling osu! once the subject's share is spent", async () => {

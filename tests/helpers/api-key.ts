@@ -4,14 +4,14 @@
  *       counters for the current window, and a frozen clock (Date only, so driver timers run).
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { rateLimitId } from "@haruhimemoe/next-kit/server";
 import { vi } from "vitest";
 import type { RateLimitRule } from "@/constants/api";
 import { RATE_LIMITS_COLLECTION } from "@/constants/star-ratings";
 import { connectedDb } from "@/lib/db";
-import { rateLimitId } from "@/lib/rate-limit";
 import { createApiKey } from "@/services/api-keys";
 
 /** 10 s into a minute, so RateLimit-Reset is 50. */

@@ -4,7 +4,7 @@
  *       and nothing that belongs to anyone else. The key goes before the packs.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { ObjectId } from "mongodb";
@@ -15,7 +15,7 @@ import { RATE_LIMITS } from "@/constants/api";
 import { RATE_LIMITS_COLLECTION } from "@/constants/star-ratings";
 import { getUserFromHeaders } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { hitRateLimit } from "@/lib/rate-limit";
+import { limiter } from "@/lib/rate-limit";
 import { getApiKeyModel } from "@/models/ApiKey";
 import { getPackModel } from "@/models/Pack";
 import { authenticateApiKey, createApiKey } from "@/services/api-keys";
@@ -109,9 +109,9 @@ describe("DELETE /api/me", () => {
     const staying = await createTestUser();
     const gone = await createApiKey(leaving.id);
     const kept = await createApiKey(staying.id);
-    await hitRateLimit(RATE_LIMITS.api, leaving.id);
-    await hitRateLimit(RATE_LIMITS.keyCreate, leaving.id);
-    await hitRateLimit(RATE_LIMITS.api, staying.id);
+    await limiter.hit(RATE_LIMITS.api, leaving.id);
+    await limiter.hit(RATE_LIMITS.keyCreate, leaving.id);
+    await limiter.hit(RATE_LIMITS.api, staying.id);
 
     const response = await DELETE(
       apiRequest("/api/me", { method: "DELETE", cookie: leaving.cookie }),

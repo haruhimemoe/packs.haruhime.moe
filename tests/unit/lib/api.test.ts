@@ -8,138 +8,40 @@
  * @modified Mon Sep 28, 2026
  */
 
+import type { parseJsonBody } from "@haruhimemoe/next-kit/server";
 import { MAX_SLOTS } from "@haruhimemoe/pool";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-import {
-  ERROR_CODES,
-  errorCodeFor,
-  jsonError,
-  MAX_BODY_BYTES,
-  parseBeatmapIds,
-  parseJsonBody,
-  refuseCrossSite,
-} from "@/lib/api";
+import { PACK_TOO_LARGE, parseBeatmapIds, parsePackBody, refuseCrossSite } from "@/lib/api";
 import { apiErrorSchema } from "@/schemas/api";
 
-const schema = z.object({ name: z.string().min(1, "Name the pack."), n: z.number().default(1) });
+const _schema = z.object({ name: z.string().min(1, "Name the pack."), n: z.number().default(1) });
 
-const post = (body: string, contentType = "application/json") =>
+const _post = (body: string, contentType = "application/json") =>
   new Request("http://localhost/api/x", {
     method: "POST",
     headers: { "content-type": contentType },
     body,
   });
 
-const errorOf = async (result: Awaited<ReturnType<typeof parseJsonBody>>) => {
+const _errorOf = async (result: Awaited<ReturnType<typeof parseJsonBody>>) => {
   if (result.ok) throw new Error("expected a failure");
   return { status: result.response.status, body: await result.response.json() };
 };
 
-describe("jsonError", () => {
-  it("answers { error: { code, message } } with the status", async () => {
-    const response = jsonError(404, "Pack not found.");
-    expect(response.status).toBe(404);
-    expect(await response.json()).toEqual({
-      error: { code: "not_found", message: "Pack not found." },
-    });
-  });
-
-  it("takes an explicit code", async () => {
-    const response = jsonError(401, "That API key isn't valid.", "invalid_api_key");
-    expect(await response.json()).toEqual({
-      error: { code: "invalid_api_key", message: "That API key isn't valid." },
-    });
-  });
-
-  it("always matches the shared error schema", async () => {
-    for (const status of Object.keys(ERROR_CODES).map(Number)) {
-      expect(apiErrorSchema.safeParse(await jsonError(status, "x").json()).success).toBe(true);
-    }
-  });
-});
-
-describe("errorCodeFor", () => {
-  it.each([
-    [400, "bad_request"],
-    [401, "unauthorized"],
-    [404, "not_found"],
-    [409, "conflict"],
-    [413, "too_large"],
-    [415, "unsupported_media_type"],
-    [429, "rate_limited"],
-    [502, "upstream_error"],
-  ])("maps %i to %s", (status, code) => {
-    expect(errorCodeFor(status)).toBe(code);
-  });
-
-  it("falls back by class for statuses without their own code", () => {
-    expect(errorCodeFor(418)).toBe("bad_request");
-    expect(errorCodeFor(503)).toBe("internal_error");
-  });
-});
-
-describe("parseJsonBody", () => {
-  it("parses valid JSON with the schema's defaults", async () => {
-    expect(await parseJsonBody(post('{"name":"F"}'), schema)).toEqual({
-      ok: true,
-      data: { name: "F", n: 1 },
-    });
-  });
-
-  it("accepts a charset on the content type", async () => {
-    const result = await parseJsonBody(
-      post('{"name":"F"}', "application/json; charset=utf-8"),
-      schema,
-    );
-    expect(result.ok).toBe(true);
-  });
-
-  it("refuses anything that isn't JSON with 415", async () => {
-    expect(await errorOf(await parseJsonBody(post("name=F", "text/plain"), schema))).toEqual({
-      status: 415,
-      body: { error: { code: "unsupported_media_type", message: "Send the request as JSON." } },
-    });
-  });
-
-  it("refuses a body over the cap with 413", async () => {
-    const big = JSON.stringify({ name: "x".repeat(MAX_BODY_BYTES) });
-    expect((await errorOf(await parseJsonBody(post(big), schema))).status).toBe(413);
-  });
-
-  it("refuses a declared oversized body with 413 before reading it", async () => {
-    const request = new Request("http://localhost/api/x", {
+describe("parsePackBody", () => {
+  it("keeps the pack's own wording for a body over the size cap", async () => {
+    const request = new Request("http://localhost:3000/api/packs", {
       method: "POST",
-      headers: { "content-type": "application/json", "content-length": String(MAX_BODY_BYTES + 1) },
-      body: '{"name":"F"}',
+      headers: { "content-type": "application/json", "content-length": "20000" },
+      body: "{}",
     });
-    expect((await errorOf(await parseJsonBody(request, schema))).status).toBe(413);
-  });
-
-  it("refuses broken JSON with 400", async () => {
-    expect(await errorOf(await parseJsonBody(post("{"), schema))).toEqual({
-      status: 400,
-      body: { error: { code: "bad_request", message: "That request wasn't valid JSON." } },
-    });
-  });
-
-  it("reports the first schema problem with 400", async () => {
-    expect(await errorOf(await parseJsonBody(post('{"name":""}'), schema))).toEqual({
-      status: 400,
-      body: { error: { code: "bad_request", message: "Name the pack." } },
-    });
-  });
-
-  it("says what was too large when the route names it", async () => {
-    const big = JSON.stringify({ name: "x".repeat(MAX_BODY_BYTES) });
-    expect(
-      await errorOf(
-        await parseJsonBody(post(big), schema, { tooLarge: "That magnet link is too long." }),
-      ),
-    ).toEqual({
-      status: 413,
-      body: { error: { code: "too_large", message: "That magnet link is too long." } },
-    });
+    const result = await parsePackBody(request, z.object({}));
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.response.status).toBe(413);
+      expect(apiErrorSchema.parse(await result.response.json()).error.message).toBe(PACK_TOO_LARGE);
+    }
   });
 });
 

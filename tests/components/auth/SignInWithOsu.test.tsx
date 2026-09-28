@@ -3,7 +3,7 @@
  * @desc Starts osu! sign-in toward the given destination; shows failures.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -23,7 +23,8 @@ describe("SignInWithOsu", () => {
     expect(social).toHaveBeenCalledWith({
       provider: "osu",
       callbackURL: "/new",
-      errorCallbackURL: "/signin?error=oauth",
+      // better-auth adds error=<code>; next survives, so trying again still lands on /new.
+      errorCallbackURL: "/signin?next=%2Fnew",
     });
   });
 

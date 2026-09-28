@@ -10,13 +10,13 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { clientIp, jsonError, rateLimitSubject } from "@haruhimemoe/next-kit/server";
 import { packInputSchema } from "@haruhimemoe/pool/service";
 import { RATE_LIMITS } from "@/constants/api";
-import { BAD_PAGE, jsonError, parseJsonBody, SIGN_IN_REQUIRED } from "@/lib/api";
+import { BAD_PAGE, parsePackBody, SIGN_IN_REQUIRED } from "@/lib/api";
 import { getUserFromHeaders } from "@/lib/auth";
-import { refuseOverLimit } from "@/lib/rate-limit";
+import { limiter } from "@/lib/rate-limit";
 import { createPack, listPacks, PackLimitError } from "@/services/packs";
-import { clientIp, rateLimitSubject } from "@/utils/client-ip";
 import { pageFromQuery } from "@/utils/paging";
 
 /** Session-scoped reads: never a shared cache, never a stale copy on the caller's next load. */
@@ -33,9 +33,9 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const user = await getUserFromHeaders(request.headers);
   if (!user) return jsonError(401, SIGN_IN_REQUIRED);
-  const limited = await refuseOverLimit(RATE_LIMITS.apiWrite, user.id);
+  const limited = await limiter.refuseOverLimit(RATE_LIMITS.apiWrite, user.id);
   if (limited) return limited;
-  const body = await parseJsonBody(request, packInputSchema);
+  const body = await parsePackBody(request, packInputSchema);
   if (!body.ok) return body.response;
   try {
     return Response.json(

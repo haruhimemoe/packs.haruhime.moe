@@ -9,16 +9,16 @@
 
 "use client";
 
+import { signInHref } from "@haruhimemoe/next-kit/auth-react";
 import type { PackInputBody } from "@haruhimemoe/pool/service";
 import { Button, Notice } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { DEFAULT_PACK_NAME } from "@/constants/pack";
-import { useAccount } from "@/hooks/useAccount";
+import { useAccount } from "@/lib/account";
 import { PacksApiError, packsApi } from "@/lib/packs-api";
 import type { Pool } from "@/schemas/pack";
 import type { SavedPack } from "@/schemas/saved-pack";
-import { signInHref } from "@/utils/safe-next";
 
 type SavePackButtonProps = {
   pack: Pool;

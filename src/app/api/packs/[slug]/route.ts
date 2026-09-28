@@ -14,20 +14,14 @@
  * @modified Thu Sep 24, 2026
  */
 
+import { clientIp, jsonError, rateLimitSubject } from "@haruhimemoe/next-kit/server";
 import { packInputSchema } from "@haruhimemoe/pool/service";
 import { RATE_LIMITS } from "@/constants/api";
-import {
-  jsonError,
-  PACK_NOT_FOUND,
-  parseJsonBody,
-  refuseCrossSite,
-  SIGN_IN_REQUIRED,
-} from "@/lib/api";
+import { PACK_NOT_FOUND, parsePackBody, refuseCrossSite, SIGN_IN_REQUIRED } from "@/lib/api";
 import { getUserFromHeaders } from "@/lib/auth";
-import { refuseOverLimit } from "@/lib/rate-limit";
+import { limiter } from "@/lib/rate-limit";
 import { deletePack, getPackForViewer, updatePack } from "@/services/packs";
 import { isPackPinned } from "@/services/pins";
-import { clientIp, rateLimitSubject } from "@/utils/client-ip";
 
 type Context = { params: Promise<{ slug: string }> };
 
@@ -52,9 +46,9 @@ export async function PUT(request: Request, { params }: Context) {
   const { slug } = await params;
   const user = await getUserFromHeaders(request.headers);
   if (!user) return jsonError(401, SIGN_IN_REQUIRED);
-  const limited = await refuseOverLimit(RATE_LIMITS.apiWrite, user.id);
+  const limited = await limiter.refuseOverLimit(RATE_LIMITS.apiWrite, user.id);
   if (limited) return limited;
-  const body = await parseJsonBody(request, packInputSchema);
+  const body = await parsePackBody(request, packInputSchema);
   if (!body.ok) return body.response;
   const pack = await updatePack(slug, user.id, body.data, {
     subject: rateLimitSubject(clientIp(request.headers)),
@@ -69,7 +63,7 @@ export async function DELETE(request: Request, { params }: Context) {
   const { slug } = await params;
   const user = await getUserFromHeaders(request.headers);
   if (!user) return jsonError(401, SIGN_IN_REQUIRED);
-  const limited = await refuseOverLimit(RATE_LIMITS.apiWrite, user.id);
+  const limited = await limiter.refuseOverLimit(RATE_LIMITS.apiWrite, user.id);
   if (limited) return limited;
   if (!(await deletePack(slug, user.id))) return jsonError(404, PACK_NOT_FOUND);
   return new Response(null, { status: 204 });

@@ -6,13 +6,19 @@
  *       refuse requests from other origins (refuseCrossSite).
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import {
+  jsonError,
+  rateLimitHeaders,
+  tooManyRequests,
+  withHeaders,
+} from "@haruhimemoe/next-kit/server";
 import { RATE_LIMITS } from "@/constants/api";
-import { jsonError, refuseCrossSite } from "@/lib/api";
+import { refuseCrossSite } from "@/lib/api";
 import { getUserFromHeaders } from "@/lib/auth";
-import { hitRateLimit, rateLimitHeaders, tooManyRequests, withHeaders } from "@/lib/rate-limit";
+import { limiter } from "@/lib/rate-limit";
 import { createApiKey, getApiKeyInfo, revokeApiKey } from "@/services/api-keys";
 
 const SIGN_IN = "Sign in with osu! to manage your API key.";
@@ -30,7 +36,7 @@ export async function POST(request: Request) {
   if (crossSite) return crossSite;
   const user = await getUserFromHeaders(request.headers);
   if (!user) return jsonError(401, SIGN_IN);
-  const limit = await hitRateLimit(RATE_LIMITS.keyCreate, user.id);
+  const limit = await limiter.hit(RATE_LIMITS.keyCreate, user.id);
   if (!limit.allowed) return withHeaders(tooManyRequests(limit), NO_STORE);
   return Response.json(await createApiKey(user.id), {
     status: 201,

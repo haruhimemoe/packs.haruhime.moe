@@ -6,14 +6,14 @@
  *       "Pinned" row shows on every page of the plain list and goes away with any filter.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { HttpResponse, http } from "msw";
-import { setupServer } from "msw/node";
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import PublicPacksPage from "@/app/(public)/packs/page";
 import PublicPacksPageN from "@/app/(public)/packs/page/[n]/page";
 import type { PublicPackCard } from "@/schemas/public-pack";
@@ -48,16 +48,12 @@ vi.mock("@/services/public-packs", () => ({
 }));
 
 const indexRequests = vi.fn();
-const server = setupServer(
+setupMsw(
   http.get("*/packs/index.json", () => {
     indexRequests();
     return HttpResponse.json(fixture);
   }),
 );
-
-beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
 
 beforeEach(() => {
   indexRequests.mockClear();

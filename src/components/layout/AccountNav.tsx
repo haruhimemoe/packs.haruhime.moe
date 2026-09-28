@@ -4,14 +4,14 @@
  *       after load.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
 import Image from "next/image";
 import Link from "next/link";
-import { useAccount } from "@/hooks/useAccount";
+import { useAccount } from "@/lib/account";
 
 export function AccountNav() {
   const account = useAccount();

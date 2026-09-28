@@ -7,10 +7,11 @@
  *       requests from other origins (refuseCrossSite). Never cached.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
-import { jsonError, refuseCrossSite } from "@/lib/api";
+import { jsonError } from "@haruhimemoe/next-kit/server";
+import { refuseCrossSite } from "@/lib/api";
 import { getUserFromHeaders } from "@/lib/auth";
 import { runPackStatsJob } from "@/services/pack-stats";
 

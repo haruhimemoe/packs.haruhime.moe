@@ -16,11 +16,11 @@
  */
 
 import "server-only";
+import { isEnvValidationSkipped } from "@haruhimemoe/next-kit/env";
 import type { PipelineStage } from "mongoose";
 import { UNKNOWN_OWNER_NAME } from "@/constants/api";
 import { DESCRIPTION_EXCERPT_LENGTH } from "@/constants/pack";
 import { MAX_PINNED_PACKS, PUBLIC_PAGE_SIZE, SEARCH_INDEX_LIMIT } from "@/constants/public-packs";
-import { isEnvValidationSkipped } from "@/env";
 import type { IndexStats } from "@/schemas/pack-stats";
 import {
   type PublicPackCard,

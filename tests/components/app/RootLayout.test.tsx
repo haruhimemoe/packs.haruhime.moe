@@ -4,7 +4,7 @@
  *       header, the page inside the #main landmark, and the packs footer, in that order.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { within } from "@testing-library/react";
@@ -12,7 +12,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("next/font/google", () => ({ Nunito: () => ({ variable: "font-nunito" }) }));
-vi.mock("@/hooks/useAccount", () => ({ useAccount: () => ({ status: "signed-out" }) }));
+vi.mock("@/lib/account", () => ({ useAccount: () => ({ status: "signed-out" }) }));
 
 const { default: RootLayout } = await import("@/app/layout");
 

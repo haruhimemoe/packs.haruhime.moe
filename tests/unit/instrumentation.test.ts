@@ -5,16 +5,16 @@
  *       start fine.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { EnvError } from "@haruhimemoe/next-kit/env";
+import { TEST_OSU_APP_ENV } from "@haruhimemoe/next-kit/testing";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { EnvError } from "@/env";
 import { register } from "@/instrumentation";
-import { TEST_SERVER_ENV } from "../helpers/server-env";
 
 const start = (env: Record<string, string | undefined>) => {
-  for (const key of ["NEXT_PHASE", "VERCEL_ENV", ...Object.keys(TEST_SERVER_ENV)]) {
+  for (const key of ["NEXT_PHASE", "VERCEL_ENV", ...Object.keys(TEST_OSU_APP_ENV)]) {
     vi.stubEnv(key, undefined);
   }
   vi.stubEnv("NEXT_RUNTIME", "nodejs");
@@ -46,7 +46,7 @@ describe("register (server start)", () => {
     ).resolves.toBeUndefined();
     await expect(
       start({
-        ...TEST_SERVER_ENV,
+        ...TEST_OSU_APP_ENV,
         MONGODB_URI: "mongodb://db.example:27017",
         NODE_ENV: "production",
         SKIP_ENV_VALIDATION: "true",

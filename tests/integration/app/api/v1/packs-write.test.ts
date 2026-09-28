@@ -6,9 +6,10 @@
  *       saved-pack cap.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { rateLimitId } from "@haruhimemoe/next-kit/server";
 import { encodePackKey } from "@haruhimemoe/pool";
 import { ObjectId } from "mongodb";
 import { revalidatePath } from "next/cache";
@@ -20,7 +21,6 @@ import { RATE_LIMITS, type RateLimitRule } from "@/constants/api";
 import { MAX_SAVED_PACKS } from "@/constants/pack";
 import { RATE_LIMITS_COLLECTION } from "@/constants/star-ratings";
 import { connectedDb } from "@/lib/db";
-import { rateLimitId } from "@/lib/rate-limit";
 import { getPackModel } from "@/models/Pack";
 import { apiPackResponseSchema } from "@/schemas/api";
 import { createApiKey } from "@/services/api-keys";

@@ -18,10 +18,10 @@
  * @modified Sun Sep 27, 2026
  */
 
+import { jsonError, withHeaders } from "@haruhimemoe/next-kit/server";
 import { poolsPackBodySchema, poolsRefSchema } from "@haruhimemoe/pool/service";
-import { jsonError, parseJsonBody } from "@/lib/api";
+import { parsePackBody } from "@/lib/api";
 import { refuseWithoutPoolsToken } from "@/lib/machine-auth";
-import { withHeaders } from "@/lib/rate-limit";
 import { deletePoolsPack, syncPoolsPack } from "@/services/pools-sync";
 
 type Context = { params: Promise<{ ref: string }> };
@@ -39,7 +39,7 @@ export async function PUT(request: Request, { params }: Context) {
   if (refused) return refused;
   const { ref } = await params;
   if (!poolsRefSchema.safeParse(ref).success) return noStore(jsonError(400, BAD_REF));
-  const body = await parseJsonBody(request, poolsPackBodySchema);
+  const body = await parsePackBody(request, poolsPackBodySchema);
   if (!body.ok) return noStore(body.response);
   if (body.data.visibility === "private") {
     return noStore(jsonError(422, PRIVATE_POOL, "unprocessable"));

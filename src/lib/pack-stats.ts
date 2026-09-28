@@ -8,20 +8,19 @@
  *       and a map osu! says doesn't exist comes back as null.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
 import { createHinaiClient, HINAI_BATCH_LIMIT, type HinaiClient } from "@haruhimemoe/hinai";
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
-import type { Db } from "mongodb";
 import { after } from "next/server";
 import { MAX_OSU_METADATA_CALLS, MIRROR_LOOKUP_CONCURRENCY } from "@/constants/pack-stats";
 import { SERVER_USER_AGENT } from "@/constants/site";
 import type { StarPair } from "@/constants/star-ratings";
-import { connectedDb } from "@/lib/db";
 import { getOsuClient, type OsuClient } from "@/lib/osu";
-import { getStarRatings, takeOsuBudget } from "@/lib/osu/attributes";
+import { getStarRatings } from "@/lib/osu/attributes";
+import { takeOsuBudget } from "@/lib/osu/budget";
 import type { ModRatings } from "@/utils/saved-pack-stats";
 import { runPool } from "@/utils/task-pool";
 
@@ -53,7 +52,6 @@ export const afterResponse = (task: () => Promise<void>): void => {
 type MetaDeps = {
   mirror?: Pick<HinaiClient, "getBeatmaps">;
   osu?: Pick<OsuClient, "getBeatmaps">;
-  db?: () => Promise<Db>;
   now?: () => number;
   /** The caller's rate-limit subject; omitted (the daily job), only the global budget counts. */
   subject?: string | undefined;
@@ -69,7 +67,7 @@ const chunks = <T>(items: readonly T[], size: number): T[][] =>
 /**
  * @function lookupStatsMeta
  * @param ids {readonly number[]} beatmap ids (duplicates fine)
- * @param deps {MetaDeps} mirror and osu! clients, database, clock (tests), subject, osu! call cap
+ * @param deps {MetaDeps} mirror and osu! clients, clock (tests), subject, osu! call cap
  * @returns {Promise<Map<number, BeatmapMeta | null>>} metadata for every id the mirror or osu!
  *          answered, and null for each id osu! says doesn't exist. Ids in a failed mirror call go
  *          to osu! too. osu! is asked only within the budget and the call cap; ids it couldn't
@@ -80,7 +78,6 @@ export const lookupStatsMeta = async (
   {
     mirror = getServerMirror(),
     osu = getOsuClient(),
-    db = connectedDb,
     now = Date.now,
     subject,
     maxOsuCalls = MAX_OSU_METADATA_CALLS,
@@ -110,7 +107,7 @@ export const lookupStatsMeta = async (
   const beforeCall = async (): Promise<boolean> => {
     if (refused || calls >= maxOsuCalls) return false;
     try {
-      refused = !(await takeOsuBudget(await db(), now(), subject));
+      refused = !(await takeOsuBudget(subject, now()));
     } catch (error) {
       console.error("[stats] osu! budget counter unavailable:", error);
       refused = true;

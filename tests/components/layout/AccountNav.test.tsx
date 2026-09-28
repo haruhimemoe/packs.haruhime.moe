@@ -4,18 +4,18 @@
  *       linking to /me when signed in.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import type { Account } from "@haruhimemoe/next-kit/auth-react";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { AccountNav } from "@/components/layout/AccountNav";
-import type { Account } from "@/hooks/useAccount";
 
 const { account } = vi.hoisted(() => ({
   account: { current: { status: "loading" } as Account },
 }));
-vi.mock("@/hooks/useAccount", () => ({ useAccount: () => account.current }));
+vi.mock("@/lib/account", () => ({ useAccount: () => account.current }));
 
 describe("AccountNav", () => {
   it("shows no link while loading", () => {

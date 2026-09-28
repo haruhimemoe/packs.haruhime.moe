@@ -6,9 +6,10 @@
  *       system account (haruhime pools). lastUsedAt is written at most once an hour.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { isDuplicateKeyError } from "@haruhimemoe/next-kit/mongo";
 import "server-only";
 import { ObjectId } from "mongodb";
 import { LAST_USED_INTERVAL_MS } from "@/constants/api";
@@ -31,9 +32,6 @@ const toApiKeyInfo = (doc: ApiKeyRecord): ApiKeyInfo => ({
   createdAt: doc.createdAt.toISOString(),
   lastUsedAt: doc.lastUsedAt ? doc.lastUsedAt.toISOString() : null,
 });
-
-const isDuplicateKey = (error: unknown): boolean =>
-  typeof error === "object" && error !== null && "code" in error && error.code === 11000;
 
 const connectedApiKeyModel = async () => {
   await connectDb();
@@ -78,7 +76,7 @@ export const createApiKey = async (
       .lean();
   // Two creates racing for a user with no key can both try to insert; the loser just updates.
   const doc = await upsert().catch((error: unknown) => {
-    if (!isDuplicateKey(error)) throw error;
+    if (!isDuplicateKeyError(error)) throw error;
     return upsert();
   });
   if (!doc) throw new Error("api key upsert returned no document");

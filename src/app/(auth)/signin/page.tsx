@@ -6,18 +6,21 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { safeNextPath } from "@haruhimemoe/next-kit/server";
 import { Notice, PageHeader, TextLink } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
-import { RestoreSignedIn } from "@/components/auth/RestoreSignedIn";
 import { SignInWithOsu } from "@/components/auth/SignInWithOsu";
+import { DEFAULT_AFTER_SIGN_IN } from "@/constants/site";
+import { RestoreSignedIn } from "@/lib/account";
 import { getCurrentUser } from "@/lib/auth-session";
-import { safeNextPath } from "@/utils/safe-next";
 
 export const metadata: Metadata = { title: "Sign in", robots: { index: false } };
 
 export default async function SignInPage({ searchParams }: PageProps<"/signin">) {
   const params = await searchParams;
-  const next = safeNextPath(typeof params.next === "string" ? params.next : null);
+  const next = safeNextPath(typeof params.next === "string" ? params.next : null, {
+    fallback: DEFAULT_AFTER_SIGN_IN,
+  });
   // Already signed in: continue to `next` through the browser, so a session without the readable
   // signed-in marker gets it (and the header catches up) on the way.
   if (await getCurrentUser()) return <RestoreSignedIn next={next} />;

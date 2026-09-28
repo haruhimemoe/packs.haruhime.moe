@@ -6,9 +6,10 @@
  *       limit (429 with Retry-After), and the per-IP share of osu! calls (IPv6 by its /64).
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { rateLimitId, windowFor } from "@haruhimemoe/next-kit/server";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
@@ -22,8 +23,7 @@ import {
   RATE_LIMITS_COLLECTION,
 } from "@/constants/star-ratings";
 import { getDb } from "@/lib/db";
-import { osuBudgetWindow, osuSubjectWindow } from "@/lib/osu/attributes";
-import { rateLimitId, windowFor } from "@/lib/rate-limit";
+import { osuBudgetWindow, osuSubjectWindow } from "@/lib/osu/budget";
 import { setupTestDb } from "../../../helpers/db";
 
 setupTestDb();

@@ -8,18 +8,15 @@
 
 "use client";
 
+import { osuSignIn } from "@haruhimemoe/next-kit/auth-react";
 import { Button, Notice } from "@haruhimemoe/ui";
 import { useState } from "react";
-import { OSU_PROVIDER_ID } from "@/constants/auth";
 import { authClient } from "@/lib/auth-client";
 
 const startOsuSignIn = async (next: string): Promise<void> => {
   // genericOAuth providers register as social providers in better-auth 1.7.
-  const { error } = await authClient.signIn.social({
-    provider: OSU_PROVIDER_ID,
-    callbackURL: next,
-    errorCallbackURL: "/signin?error=oauth",
-  });
+  // An error comes back to /signin with `next` kept, so trying again still lands there.
+  const { error } = await authClient.signIn.social(osuSignIn(next));
   if (error) throw new Error(error.message ?? "Couldn't start osu! sign-in. Try again.");
 };
 

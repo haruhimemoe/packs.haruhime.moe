@@ -11,7 +11,7 @@ import { MAX_NAME_LENGTH } from "@haruhimemoe/pool";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AdminScreen } from "@/components/admin/AdminScreen";
-import { RestoreSignedIn } from "@/components/auth/RestoreSignedIn";
+import { RestoreSignedIn } from "@/lib/account";
 import { requireUser } from "@/lib/auth-session";
 import { listPacksForAdmin } from "@/services/moderation";
 import { listPinnedForAdmin } from "@/services/pins";

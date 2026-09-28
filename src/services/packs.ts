@@ -13,6 +13,7 @@
  * @modified Sun Sep 27, 2026
  */
 
+import { isDuplicateKeyError } from "@haruhimemoe/next-kit/mongo";
 import "server-only";
 import { bucketsOf, canonicalBuckets, encodePackKey } from "@haruhimemoe/pool";
 import type { PackInput } from "@haruhimemoe/pool/service";
@@ -126,9 +127,6 @@ export const toSavedPack = (doc: PackRecord): SavedPack => {
   });
 };
 
-const isDuplicateKey = (error: unknown): boolean =>
-  typeof error === "object" && error !== null && "code" in error && error.code === 11000;
-
 /** The pools pool a pack pools.haruhime.moe publishes comes from (never sent anywhere). */
 export type PackOrigin = { kind: string; id: string };
 
@@ -139,7 +137,7 @@ export type PackOrigin = { kind: string; id: string };
  * @returns {boolean} true for a duplicate-key error on that index
  */
 export const duplicateKeyOn = (error: unknown, path: string): boolean =>
-  isDuplicateKey(error) &&
+  isDuplicateKeyError(error) &&
   typeof error === "object" &&
   error !== null &&
   "keyPattern" in error &&
@@ -217,7 +215,11 @@ export const createPack = async (
       return toSavedPack(doc.toObject());
     } catch (error) {
       // A slug collision gets a new slug; a pack with the same origin is the caller's to handle.
-      if (attempt < SLUG_ATTEMPTS && isDuplicateKey(error) && !duplicateKeyOn(error, "origin.id")) {
+      if (
+        attempt < SLUG_ATTEMPTS &&
+        isDuplicateKeyError(error) &&
+        !duplicateKeyOn(error, "origin.id")
+      ) {
         continue;
       }
       throw error;

@@ -4,10 +4,11 @@
  *       updated first, API_PAGE_SIZE a page (the same envelope as GET /api/v1/packs).
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
-import { BAD_PAGE, jsonError } from "@/lib/api";
+import { jsonError } from "@haruhimemoe/next-kit/server";
+import { BAD_PAGE } from "@/lib/api";
 import { withApiKey } from "@/lib/api-auth";
 import { listOwnApiPacks } from "@/services/api-packs";
 import { pageFromQuery } from "@/utils/paging";

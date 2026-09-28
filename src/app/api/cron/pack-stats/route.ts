@@ -7,7 +7,7 @@
  *       neither does any work. Never cached.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { refuseWithoutCronSecret } from "@/lib/machine-auth";
@@ -19,7 +19,10 @@ export const maxDuration = 60;
 const NO_STORE = { "Cache-Control": "no-store" };
 
 export async function GET(request: Request) {
-  const refused = refuseWithoutCronSecret(request, "The stats job isn't set up on this server.");
+  const refused = await refuseWithoutCronSecret(
+    request,
+    "The stats job isn't set up on this server.",
+  );
   if (refused) return refused;
   return Response.json(await runPackStatsJob(), { headers: NO_STORE });
 }

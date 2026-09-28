@@ -21,7 +21,7 @@ import { collectionFile, TV1_EMPTY } from "../../helpers/collections";
 import { setupHinaiServer } from "../../helpers/hinai-server";
 
 const server = setupHinaiServer();
-vi.mock("@/hooks/useAccount", () => ({ useAccount: () => ({ status: "signed-out" }) }));
+vi.mock("@/lib/account", () => ({ useAccount: () => ({ status: "signed-out" }) }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
 const ready = async () => {
