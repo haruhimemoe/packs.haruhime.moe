@@ -16,7 +16,7 @@ import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
 import { bucketsOf, type SlotMods } from "@haruhimemoe/pool";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { STAR_MAX_RETRIES, STAR_RETRY_MS } from "@/constants/star-ratings";
-import type { MetaState } from "@/hooks/beatmapMetaState";
+import type { MetaState } from "@/schemas/beatmap-meta";
 import type { BucketEntry, PoolSlot } from "@/schemas/pack";
 import { type StarRatingsResponse, starRatingsResponseSchema } from "@/schemas/star-ratings";
 import {

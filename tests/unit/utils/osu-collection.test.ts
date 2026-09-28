@@ -9,7 +9,7 @@
  *       (a repeated name once, at most MAX_LISTED_COLLECTIONS, the rest counted).
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import {
@@ -19,7 +19,7 @@ import {
 } from "@haruhimemoe/osu/collections";
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import type { MetaState } from "@/hooks/beatmapMetaState";
+import type { MetaState } from "@/schemas/beatmap-meta";
 import type { Pool } from "@/schemas/pack";
 import {
   collectionErrorText,

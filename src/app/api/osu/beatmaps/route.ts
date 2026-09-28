@@ -18,8 +18,8 @@
 import { clientIp, jsonError, rateLimitSubject } from "@haruhimemoe/next-kit/server";
 import { RATE_LIMITS } from "@/constants/api";
 import { BAD_BEATMAP_IDS, parseBeatmapIds } from "@/lib/api";
-import { getOsuClient } from "@/lib/osu";
 import { osuBudgetGate } from "@/lib/osu/budget";
+import { getOsuClient } from "@/lib/osu/client";
 import { limiter } from "@/lib/rate-limit";
 
 const CDN_CACHE = "public, s-maxage=86400, stale-while-revalidate=604800";

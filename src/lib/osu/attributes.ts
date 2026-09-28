@@ -12,6 +12,7 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { OsuApiError, type OsuClient } from "@haruhimemoe/osu";
 import "server-only";
 import type { Db } from "mongodb";
 import {
@@ -22,8 +23,8 @@ import {
   type StarPair,
 } from "@/constants/star-ratings";
 import { connectedDb } from "@/lib/db";
-import { getOsuClient, OsuApiError, type OsuClient } from "@/lib/osu";
 import { takeOsuBudget } from "@/lib/osu/budget";
+import { getOsuClient } from "@/lib/osu/client";
 import { shuffled } from "@/utils/shuffle";
 import { runPool } from "@/utils/task-pool";
 

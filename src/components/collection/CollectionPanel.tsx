@@ -18,10 +18,11 @@ import { Card, Notice, RadioGroup, TextLink } from "@haruhimemoe/ui";
 import { useMemo, useState } from "react";
 import { LazerCollection } from "@/components/collection/LazerCollection";
 import { StableCollection } from "@/components/collection/StableCollection";
-import type { MetaState } from "@/hooks/beatmapMetaState";
 import { downloadBlob } from "@/lib/zip/save-zip";
+import type { MetaState } from "@/schemas/beatmap-meta";
 import type { Pool } from "@/schemas/pack";
 import { collectionMaps, type SkippedMap } from "@/utils/osu-collection";
+import { countOf } from "@/utils/text";
 
 export type CollectionPanelProps = {
   pack: Pool;
@@ -49,8 +50,6 @@ const REASONS: Record<SkippedMap["reason"], string> = {
   "no-checksum": "no checksum in its map info",
 };
 
-const countMaps = (n: number): string => `${n} ${n === 1 ? "map" : "maps"}`;
-
 export function CollectionPanel({ pack, getMeta, download = downloadBlob }: CollectionPanelProps) {
   const maps = useMemo(() => collectionMaps(pack, getMeta), [pack, getMeta]);
   const hashes = maps.status === "ready" ? maps.hashes : null;
@@ -68,13 +67,13 @@ export function CollectionPanel({ pack, getMeta, download = downloadBlob }: Coll
         {maps.status === "loading" ? <p className="text-c3 text-sm">Loading map info…</p> : null}
         {maps.status === "error" ? (
           <Notice tone="error">
-            {`Map info didn't load for ${countMaps(maps.failed)}. Retry loading maps in the Download card first.`}
+            {`Map info didn't load for ${countOf(maps.failed, "map")}. Retry loading maps in the Download card first.`}
           </Notice>
         ) : null}
         {maps.status === "ready" && maps.skipped.length > 0 ? (
           <Notice tone="warning" as="div">
             <p>
-              {`${countMaps(maps.skipped.length)} can't go in a collection and ${maps.skipped.length === 1 ? "is" : "are"} left out:`}
+              {`${countOf(maps.skipped.length, "map")} can't go in a collection and ${maps.skipped.length === 1 ? "is" : "are"} left out:`}
             </p>
             <ul className="list-disc pl-5">
               {maps.skipped.map((map) => (

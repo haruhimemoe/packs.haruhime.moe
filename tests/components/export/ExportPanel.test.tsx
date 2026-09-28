@@ -6,9 +6,10 @@
  *       retrying map info from the card.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { HinaiError } from "@haruhimemoe/hinai";
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -16,13 +17,12 @@ import { useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ExportPanel } from "@/components/export/ExportPanel";
 import { MagnetLinks } from "@/components/pack/MagnetLinks";
-import type { MetaState } from "@/hooks/beatmapMetaState";
 import type { FetchSetsDeps } from "@/lib/downloads/fetch-sets";
-import { HinaiError } from "@/lib/mirror";
 import type { BuildOptions, BuiltTorrent } from "@/lib/torrent/build-torrent";
 import type { PackTorrentInput } from "@/lib/torrent/pack-torrent";
 import type { PackZipInput } from "@/lib/zip/pack-zip";
 import type { SaveOutcome } from "@/lib/zip/save-zip";
+import type { MetaState } from "@/schemas/beatmap-meta";
 import type { Pool } from "@/schemas/pack";
 import type { PackExport } from "@/schemas/pack-export";
 

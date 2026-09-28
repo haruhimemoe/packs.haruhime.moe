@@ -38,6 +38,7 @@ import type { SavedPack } from "@/schemas/saved-pack";
 import { descriptionParts } from "@/utils/description-links";
 import { infohashOf } from "@/utils/magnet";
 import { isPinnable } from "@/utils/pins";
+import { countOf } from "@/utils/text";
 
 /** A description as text, with every https:// link in it made a real link. */
 const describe = (description: string): ReactNode =>
@@ -102,7 +103,7 @@ export function SavedPackView({
   const ids = useMemo(() => ref.slots.map((s) => s.beatmapId), [ref]);
   const meta = useBeatmapMeta(ids);
   const stars = usePoolStarRatings(ref, meta.get);
-  const count = `${pack.slots.length} ${pack.slots.length === 1 ? "map" : "maps"}`;
+  const count = `${countOf(pack.slots.length, "map")}`;
   const [exports, setExports] = useState<readonly PackExport[]>(pack.exports ?? []);
   const magnets = useMemo<MagnetTarget | undefined>(
     () =>

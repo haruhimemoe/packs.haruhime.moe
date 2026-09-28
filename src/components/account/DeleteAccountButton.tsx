@@ -14,6 +14,7 @@ import { InlineConfirm, Notice } from "@haruhimemoe/ui";
 import { useState } from "react";
 import { markSignedOut } from "@/lib/account";
 import { PacksApiError, packsApi } from "@/lib/packs-api";
+import { countOf } from "@/utils/text";
 
 type DeleteAccountButtonProps = {
   packCount: number;
@@ -53,7 +54,7 @@ export function DeleteAccountButton({
     <div className="flex flex-col gap-3">
       <InlineConfirm
         trigger="Delete account"
-        question={`This deletes your account and ${packCount} saved ${packCount === 1 ? "pack" : "packs"}. Their short links stop working. Pack keys you've shared still open.`}
+        question={`This deletes your account and ${countOf(packCount, "saved pack")}. Their short links stop working. Pack keys you've shared still open.`}
         confirmLabel="Delete my account"
         pendingLabel="Deleting…"
         onConfirm={run}

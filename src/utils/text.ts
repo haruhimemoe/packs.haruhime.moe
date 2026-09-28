@@ -1,6 +1,6 @@
 /**
  * @file src/utils/text.ts
- * @desc Plain-text helpers: excerpts of pack descriptions, page meta descriptions, and regex
+ * @desc Plain-text helpers: counts with their noun ("1 map", "3 maps"), excerpts of pack descriptions, page meta descriptions, and regex
  *       escaping for admin name filters. Descriptions are normalized by @haruhimemoe/pool/service.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
@@ -8,6 +8,16 @@
  */
 
 const META_DESCRIPTION_LENGTH = 160;
+
+/**
+ * @function countOf
+ * @param count {number} how many
+ * @param singular {string} the noun for one ("map")
+ * @param plural {string} the noun for any other count (default: singular + "s")
+ * @returns {string} "1 map", "0 maps", "3 collections"
+ */
+export const countOf = (count: number, singular: string, plural = `${singular}s`): string =>
+  `${count} ${count === 1 ? singular : plural}`;
 
 /**
  * @function excerpt
@@ -31,7 +41,7 @@ export const excerpt = (text: string, max: number): string => {
 export const metaDescription = (description: string | undefined, slotCount: number): string =>
   description
     ? excerpt(description, META_DESCRIPTION_LENGTH)
-    : `${slotCount} ${slotCount === 1 ? "map" : "maps"}. An osu! beatmap pack.`;
+    : `${countOf(slotCount, "map")}. An osu! beatmap pack.`;
 
 /**
  * @function escapeRegExp

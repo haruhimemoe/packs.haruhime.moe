@@ -8,7 +8,7 @@
  *       list, so it can't reach packs' storage or request helpers through an import.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
@@ -64,10 +64,12 @@ const ALLOWED_IMPORTS = [
   "@/lib/zip/save-zip",
   "@/utils/osu-collection",
   "@/utils/pack-archive",
+  // Pure string formatting ("3 maps"): nothing that can send or keep a file.
+  "@/utils/text",
   "@/constants/pack",
 ];
 /** Allowed only through `import type`, which leaves nothing in the built code. */
-const TYPE_ONLY_IMPORTS = ["@/hooks/beatmapMetaState", "@/schemas/pack"];
+const TYPE_ONLY_IMPORTS = ["@/schemas/beatmap-meta", "@/schemas/pack"];
 
 const TYPE_IMPORT = /\bimport\s+type\s[^;]*?\bfrom\s*["']([^"']+)["']/g;
 // `from "x"` (imports and re-exports), `import "x"`, `import("x")` and `require("x")`.

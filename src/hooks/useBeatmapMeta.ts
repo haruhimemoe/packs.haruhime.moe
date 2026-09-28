@@ -6,15 +6,15 @@
  *       wanted (ids changed, unmounted) is aborted.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { MetaState } from "@/hooks/beatmapMetaState";
 import { type BeatmapSource, beatmapLookup } from "@/lib/beatmaps/lookup";
 import { mirrorErrorText } from "@/lib/mirror";
+import type { MetaState } from "@/schemas/beatmap-meta";
 
 const LOADING: MetaState = { status: "loading" };
 const FALLBACK_ERROR = "Something went wrong loading beatmaps. Try again.";

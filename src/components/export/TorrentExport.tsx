@@ -24,6 +24,7 @@ import {
   saveTorrentFile,
 } from "@/lib/torrent/pack-torrent";
 import type { ArchivePlan } from "@/utils/pack-archive";
+import { countOf } from "@/utils/text";
 
 export type TorrentExportProps = {
   input: PackTorrentInput;
@@ -48,8 +49,6 @@ type State =
   | { phase: "making"; percent: number }
   | { phase: "made"; built: BuiltTorrent }
   | { phase: "error" };
-
-const maps = (n: number): string => `${n} ${n === 1 ? "map" : "maps"}`;
 
 /**
  * @function TorrentExport
@@ -152,7 +151,9 @@ export function TorrentExport({
             </>
           ) : (
             <Button onClick={start} disabled={!canHash}>
-              {failedSlots > 0 ? `Make torrent without ${maps(failedSlots)}` : "Make torrent"}
+              {failedSlots > 0
+                ? `Make torrent without ${countOf(failedSlots, "map")}`
+                : "Make torrent"}
             </Button>
           )}
         </div>

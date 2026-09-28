@@ -4,12 +4,10 @@
  *       the plain words a person sees when it fails (keyed by HinaiError.code, never its message).
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { createHinaiClient, type HinaiClient, HinaiError } from "@haruhimemoe/hinai";
-
-export { backoffDelayMs, HinaiError, OSZ_MIME, setDownloadUrl } from "@haruhimemoe/hinai";
 
 /** One client for the app. Browsers send no User-Agent (it would force a CORS preflight). */
 export const mirror: HinaiClient = createHinaiClient();

@@ -13,7 +13,7 @@ packs.haruhime.moe: a browser-first osu! beatmap pack builder, with saved packs,
 ```
 src/app/          routes only (thin; compose components)
 src/components/   layout/ and feature folders (account/, admin/, auth/, beatmap/, collection/, docs/, export/, home/, pack/, packs/); primitives come from @haruhimemoe/ui
-src/hooks/        client hooks (useBeatmapMeta, usePackDraft) + shared hook types
+src/hooks/        client hooks (useBeatmapMeta, usePackDraft, usePoolStarRatings and the rest)
 src/constants/    static data (site, legal registry, mod buckets)
 src/utils/        pure, stateless helpers grouped by domain
 src/lib/          integration plumbing (API clients, auth, db, storage, the collection files)

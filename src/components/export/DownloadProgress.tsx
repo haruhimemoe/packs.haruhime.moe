@@ -8,9 +8,9 @@
 
 import { formatBytes } from "@haruhimemoe/osu/format";
 import { cx } from "@haruhimemoe/ui";
+import type { ProgressRow } from "@/hooks/usePackDownloads";
 import type { SetStatus } from "@/lib/downloads/fetch-sets";
-
-export type ProgressRow = { key: string; label: string; title: string; setId: number };
+import { countOf } from "@/utils/text";
 
 const statusText = (status: SetStatus | undefined): string => {
   switch (status?.status) {
@@ -54,7 +54,7 @@ export function DownloadProgress({ rows, statuses }: DownloadProgressProps) {
           className="h-2 w-full accent-h1"
         />
         <output className="text-c3 text-sm">
-          {ready} of {setIds.length} {setIds.length === 1 ? "set" : "sets"} ready
+          {ready} of {countOf(setIds.length, "set")} ready
         </output>
       </div>
       <ul className="flex flex-col gap-1 text-sm">

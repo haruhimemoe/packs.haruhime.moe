@@ -21,7 +21,7 @@ import userEvent from "@testing-library/user-event";
 import { unzipSync } from "fflate";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CollectionPanel } from "@/components/collection/CollectionPanel";
-import type { MetaState } from "@/hooks/beatmapMetaState";
+import type { MetaState } from "@/schemas/beatmap-meta";
 import type { Pool } from "@/schemas/pack";
 import { MAX_LABEL_LENGTH } from "@/utils/osu-collection";
 import {

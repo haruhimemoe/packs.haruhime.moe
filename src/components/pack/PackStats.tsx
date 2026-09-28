@@ -13,7 +13,7 @@ import {
   formatStars,
 } from "@haruhimemoe/osu/format";
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
-import type { MetaState } from "@/hooks/beatmapMetaState";
+import type { MetaState } from "@/schemas/beatmap-meta";
 import { packStats } from "@/utils/pack-stats";
 
 type PackStatsProps<S extends { beatmapId: number }> = {

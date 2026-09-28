@@ -6,7 +6,7 @@
  *       page of the plain list; any search, filter or sort replaces both.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { PageHeader, Pagination } from "@haruhimemoe/ui";
@@ -14,6 +14,7 @@ import { PublicPackBrowser } from "@/components/packs/PublicPackBrowser";
 import { PublicPackList } from "@/components/packs/PublicPackList";
 import type { PublicPackCard, PublicPackPage } from "@/schemas/public-pack";
 import { publicPageHref } from "@/utils/paging";
+import { countOf } from "@/utils/text";
 
 type PublicPacksScreenProps = PublicPackPage & {
   /** Pinned packs in pin order (listPinnedPacks). Empty or absent: no pinned row. */
@@ -46,7 +47,7 @@ export function PublicPacksScreen({
         lead={
           total === 0
             ? "Packs hosts share publicly show up here."
-            : `${total} ${total === 1 ? "pack" : "packs"} shared by hosts.`
+            : `${countOf(total, "pack")} shared by hosts.`
         }
       />
       <PublicPackBrowser>

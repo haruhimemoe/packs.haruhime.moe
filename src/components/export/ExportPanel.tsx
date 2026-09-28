@@ -19,12 +19,13 @@ import { DownloadProgress } from "@/components/export/DownloadProgress";
 import { TorrentExport, type TorrentSeams } from "@/components/export/TorrentExport";
 import type { MagnetTarget } from "@/components/export/TorrentMadePanel";
 import { ZipExport, type ZipSeams } from "@/components/export/ZipExport";
-import type { MetaState } from "@/hooks/beatmapMetaState";
 import { useDownloadChoices } from "@/hooks/useDownloadChoices";
 import { usePackDownloads } from "@/hooks/usePackDownloads";
 import type { FetchSetsDeps } from "@/lib/downloads/fetch-sets";
+import type { MetaState } from "@/schemas/beatmap-meta";
 import type { DownloadChoices } from "@/schemas/download-choices";
 import type { Pool } from "@/schemas/pack";
+import { countOf } from "@/utils/text";
 
 export type ExportPanelProps = {
   pack: Pool;
@@ -44,8 +45,6 @@ export type ExportPanelProps = {
   zip?: ZipSeams;
   torrent?: TorrentSeams;
 };
-
-const maps = (n: number): string => `${n} ${n === 1 ? "map" : "maps"}`;
 
 export function ExportPanel({
   pack,
@@ -149,7 +148,7 @@ export function ExportPanel({
           {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
           {plan && downloads.backgroundsKeptSlots > 0 ? (
             <p className="text-amber-300 text-sm">
-              {`Couldn't remove backgrounds from ${maps(downloads.backgroundsKeptSlots)}. They're included as downloaded.`}
+              {`Couldn't remove backgrounds from ${countOf(downloads.backgroundsKeptSlots, "map")}. They're included as downloaded.`}
             </p>
           ) : null}
           {plan ? (

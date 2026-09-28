@@ -9,7 +9,7 @@
 
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
 import { describe, expect, it } from "vitest";
-import type { MetaState } from "@/hooks/beatmapMetaState";
+import type { MetaState } from "@/schemas/beatmap-meta";
 import { packStats } from "@/utils/pack-stats";
 
 const meta = (

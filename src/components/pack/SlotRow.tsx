@@ -19,7 +19,7 @@ import type { ReactNode } from "react";
 import { Fragment, useId, useState } from "react";
 import { SlotBadge } from "@/components/pack/SlotBadge";
 import { NO_SLOT_VALUE } from "@/constants/mods";
-import type { MetaState } from "@/hooks/beatmapMetaState";
+import type { MetaState } from "@/schemas/beatmap-meta";
 import type { BucketEntry, PoolSlot, SlotBucket } from "@/schemas/pack";
 import { type ModdedRating, slotStars } from "@/utils/slot-stars";
 

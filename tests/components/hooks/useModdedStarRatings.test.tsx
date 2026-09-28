@@ -13,13 +13,13 @@ import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
 import { NO_MODS, type SlotMods } from "@haruhimemoe/pool";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { MetaState } from "@/hooks/beatmapMetaState";
 import {
   fetchStarRatings,
   type StarRatingsFetcher,
   useModdedStarRatings,
   usePoolStarRatings,
 } from "@/hooks/useModdedStarRatings";
+import type { MetaState } from "@/schemas/beatmap-meta";
 import { type PoolSlot, slotKey } from "@/schemas/pack";
 import type { StarRatingsResponse } from "@/schemas/star-ratings";
 

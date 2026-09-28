@@ -7,7 +7,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { escapeRegExp, excerpt, metaDescription } from "@/utils/text";
+import { countOf, escapeRegExp, excerpt, metaDescription } from "@/utils/text";
 
 describe("excerpt", () => {
   it("keeps short text, collapsing whitespace", () => {
@@ -47,5 +47,14 @@ describe("escapeRegExp", () => {
     const text = "a.b*c+?^${}()|[]\\";
     expect(new RegExp(escapeRegExp(text)).test(text)).toBe(true);
     expect(new RegExp(escapeRegExp("a.b")).test("axb")).toBe(false);
+  });
+});
+
+describe("countOf", () => {
+  it("says one with the singular and any other count with the plural", () => {
+    expect(countOf(1, "map")).toBe("1 map");
+    expect(countOf(0, "map")).toBe("0 maps");
+    expect(countOf(3, "collection")).toBe("3 collections");
+    expect(countOf(2, "match", "matches")).toBe("2 matches");
   });
 });

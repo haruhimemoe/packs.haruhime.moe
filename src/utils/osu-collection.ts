@@ -8,7 +8,7 @@
  *       of options).
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import {
@@ -18,9 +18,10 @@ import {
 } from "@haruhimemoe/osu/collections";
 import { bucketsOf, slotTitle, sortSlots } from "@haruhimemoe/pool";
 import { DEFAULT_PACK_NAME } from "@/constants/pack";
-import type { MetaState } from "@/hooks/beatmapMetaState";
+import type { MetaState } from "@/schemas/beatmap-meta";
 import type { Pool } from "@/schemas/pack";
 import { MAX_FOLDER_NAME, sanitizeFileName } from "@/utils/pack-archive";
+import { countOf } from "@/utils/text";
 
 /**
  * A map the card leaves out: the mirror and osu! don't know it, or its info has no checksum. One
@@ -171,8 +172,6 @@ export const collectionLabel = (name: string): string => {
   return chars.length > MAX_LABEL_LENGTH ? `${chars.slice(0, MAX_LABEL_LENGTH).join("")}…` : name;
 };
 
-const countMaps = (n: number): string => `${n} ${n === 1 ? "map" : "maps"}`;
-
 /**
  * @function collectionOptions
  * @param collections {readonly { name: string; hashes: readonly string[] }[]} the file's
@@ -195,7 +194,7 @@ export const collectionOptions = (
     if (options.length < max) {
       options.push({
         value: String(index),
-        label: `${collectionLabel(name)} (${countMaps(hashes.length)})`,
+        label: `${collectionLabel(name)} (${countOf(hashes.length, "map")})`,
       });
     } else unlisted++;
   });

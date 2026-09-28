@@ -31,6 +31,7 @@ import { useBeatmapMeta } from "@/hooks/useBeatmapMeta";
 import { usePoolStarRatings } from "@/hooks/useModdedStarRatings";
 import { saveDraft } from "@/lib/storage/drafts";
 import type { Pool } from "@/schemas/pack";
+import { countOf } from "@/utils/text";
 
 type ViewState =
   | { status: "reading" }
@@ -97,7 +98,7 @@ export function PackKeyView() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title={state.pack.name}
-        meta={`${state.pack.slots.length} ${state.pack.slots.length === 1 ? "map" : "maps"}`}
+        meta={`${countOf(state.pack.slots.length, "map")}`}
         actions={
           <div className="flex flex-col items-end gap-1">
             <Button onClick={editCopy} disabled={saving}>

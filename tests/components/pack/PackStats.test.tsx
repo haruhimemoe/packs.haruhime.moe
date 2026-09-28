@@ -3,14 +3,14 @@
  * @desc Stats tiles: loading dots, values, equal ranges, skipped-map note, empty pool.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { PackStats } from "@/components/pack/PackStats";
-import type { MetaState } from "@/hooks/beatmapMetaState";
+import type { MetaState } from "@/schemas/beatmap-meta";
 
 const meta = (
   beatmapId: number,

@@ -25,8 +25,8 @@ import {
 import { useState } from "react";
 import { type MoveTarget, SlotRow } from "@/components/pack/SlotRow";
 import { NO_SLOT_VALUE } from "@/constants/mods";
-import type { MetaState } from "@/hooks/beatmapMetaState";
 import type { ModdedStarRatings } from "@/hooks/useModdedStarRatings";
+import type { MetaState } from "@/schemas/beatmap-meta";
 import { type BucketEntry, type PoolSlot, type SlotBucket, slotKey } from "@/schemas/pack";
 
 type PoolTableProps = {

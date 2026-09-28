@@ -20,6 +20,7 @@ import { ColorPicker } from "@/components/pack/ColorPicker";
 import { ModsField } from "@/components/pack/ModsField";
 import { SlotBadge } from "@/components/pack/SlotBadge";
 import type { BucketEntry, PoolSlot } from "@/schemas/pack";
+import { countOf } from "@/utils/text";
 
 type BucketManagerProps = {
   buckets: readonly BucketEntry[];
@@ -32,8 +33,6 @@ type BucketManagerProps = {
   onRemove: (code: string) => void;
   onSetMods: (code: string, mods: SlotMods) => void;
 };
-
-const maps = (n: number) => `${n} ${n === 1 ? "map" : "maps"}`;
 
 /**
  * @function BucketManager
@@ -67,7 +66,7 @@ export function BucketManager({
           return (
             <li
               key={entry.code}
-              aria-label={`${name} slot, ${maps(count)}`}
+              aria-label={`${name} slot, ${countOf(count, "map")}`}
               // An input inside a draggable row can't be text-selected in Firefox.
               draggable={!disabled && renaming !== entry.code}
               onDragStart={(event) => {

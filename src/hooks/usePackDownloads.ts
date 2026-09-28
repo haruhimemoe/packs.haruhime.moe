@@ -5,20 +5,22 @@
  *       options, and the plan.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
 import { slotLabel } from "@haruhimemoe/pool";
-import type { ProgressRow } from "@/components/export/DownloadProgress";
-import type { MetaState } from "@/hooks/beatmapMetaState";
 import { useDownloadQueue } from "@/hooks/useDownloadQueue";
 import { DEFAULT_FETCH_DEPS, type FetchSetsDeps, type SetStatus } from "@/lib/downloads/fetch-sets";
+import type { MetaState } from "@/schemas/beatmap-meta";
 import { DEFAULT_DOWNLOAD_CHOICES, type DownloadChoices } from "@/schemas/download-choices";
 import { type Pool, slotKey } from "@/schemas/pack";
 import { type ArchivePlan, planArchive } from "@/utils/pack-archive";
+
+/** One slot in the download list: its label, the map's title, and the set it downloads. */
+export type ProgressRow = { key: string; label: string; title: string; setId: number };
 
 export type PackDownloadsInput = {
   pack: Pool;

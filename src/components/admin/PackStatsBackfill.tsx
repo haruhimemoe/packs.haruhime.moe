@@ -14,21 +14,22 @@ import { AsyncButton, Card } from "@haruhimemoe/ui";
 import { PACK_STATS_JOB_LIMIT } from "@/constants/pack-stats";
 import { PacksApiError, packsApi } from "@/lib/packs-api";
 import type { PackStatsJob } from "@/schemas/pack-stats";
+import { countOf } from "@/utils/text";
 
 type PackStatsBackfillProps = {
   api?: Pick<typeof packsApi, "fillPackStats">;
 };
 
-const packs = (count: number): string => `${count} ${count === 1 ? "pack" : "packs"}`;
-
 const summary = ({ updated, remaining, waiting }: PackStatsJob): string => {
   const retry = "missing some details and will be tried again later.";
-  const parts = [`Updated ${packs(updated)}.`];
+  const parts = [`Updated ${countOf(updated, "pack")}.`];
   if (remaining > 0) {
     parts.push(`${remaining} still ${remaining === 1 ? "needs" : "need"} stats.`);
     if (waiting > 0) parts.push(`${waiting} more ${waiting === 1 ? "is" : "are"} ${retry}`);
   } else if (waiting > 0) {
-    parts.push(`Nothing else is due. ${packs(waiting)} ${waiting === 1 ? "is" : "are"} ${retry}`);
+    parts.push(
+      `Nothing else is due. ${countOf(waiting, "pack")} ${waiting === 1 ? "is" : "are"} ${retry}`,
+    );
   } else {
     parts.push("Every pack has stats.");
   }

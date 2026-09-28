@@ -14,6 +14,7 @@ import { Button } from "@haruhimemoe/ui";
 import { useEffect, useId, useState } from "react";
 import { BLOB_FALLBACK_WARN_BYTES, type PackZipInput, packZipSize } from "@/lib/zip/pack-zip";
 import { getSaveFilePicker, type SaveOutcome, saveZip } from "@/lib/zip/save-zip";
+import { countOf } from "@/utils/text";
 
 export type ZipExportProps = {
   input: PackZipInput;
@@ -41,8 +42,6 @@ const SAVE_MESSAGES: Record<SaveState, string> = {
   cancelled: "",
   error: "Couldn't save the zip. Try again.",
 };
-
-const maps = (n: number): string => `${n} ${n === 1 ? "map" : "maps"}`;
 
 export function ZipExport({
   input,
@@ -89,7 +88,7 @@ export function ZipExport({
           onClick={onSave}
           disabled={saveState === "saving"}
         >
-          {failedSlots > 0 ? `Save .zip without ${maps(failedSlots)}` : "Save .zip"}
+          {failedSlots > 0 ? `Save .zip without ${countOf(failedSlots, "map")}` : "Save .zip"}
         </Button>
       </div>
       <output className="text-c3 text-sm">{SAVE_MESSAGES[saveState]}</output>

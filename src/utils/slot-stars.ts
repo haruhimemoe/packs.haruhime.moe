@@ -22,7 +22,7 @@ import {
   slotModsFor,
   speedRate,
 } from "@haruhimemoe/pool";
-import type { MetaState } from "@/hooks/beatmapMetaState";
+import type { MetaState } from "@/schemas/beatmap-meta";
 import { type BucketEntry, type PoolSlot, slotKey } from "@/schemas/pack";
 
 /** One star rating with mods: the mods label ("HDDT") and the stars. */

@@ -11,7 +11,7 @@
  */
 
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
-import type { MetaState } from "@/hooks/beatmapMetaState";
+import type { MetaState } from "@/schemas/beatmap-meta";
 
 export type StatsSummary = {
   totalLength: number;

@@ -38,6 +38,7 @@ import {
   collectionOptions,
   defaultCollectionName,
 } from "@/utils/osu-collection";
+import { countOf } from "@/utils/text";
 
 /** The Select's value for "New collection". Existing collections use their index. */
 const NEW = "new";
@@ -67,18 +68,15 @@ type Loaded = { db: CollectionDb; unusual: Unusual };
 type Added = ReturnType<typeof addToCollection>;
 type Preview = { kind: "error"; message: string } | ({ kind: "ok" } & Added);
 
-const countMaps = (n: number): string => `${n} ${n === 1 ? "map" : "maps"}`;
-const countCollections = (n: number): string => `${n} ${n === 1 ? "collection" : "collections"}`;
-
 const previewText = (added: Added, name: string): string => {
   const quoted = `"${collectionLabel(name)}"`;
-  if (added.created) return `Makes a new collection ${quoted} with ${countMaps(added.added)}.`;
+  if (added.created) return `Makes a new collection ${quoted} with ${countOf(added.added, "map")}.`;
   if (added.added === 0) return `All of these maps are already in ${quoted}.`;
   const already =
     added.alreadyPresent === 0
       ? ""
-      : ` ${added.alreadyPresent} ${added.alreadyPresent === 1 ? "is" : "are"} already in it.`;
-  return `Adds ${countMaps(added.added)} to ${quoted}.${already}`;
+      : ` ${countOf(added.alreadyPresent, "is", "are")} already in it.`;
+  return `Adds ${countOf(added.added, "map")} to ${quoted}.${already}`;
 };
 
 const unusualOf = (read: CollectionDbRead): Unusual => {
@@ -123,7 +121,7 @@ const saveErrorText = (error: unknown): string => {
 };
 
 const unlistedHint = (unlisted: number): string =>
-  `Your file has ${unlisted} more ${unlisted === 1 ? "collection" : "collections"} than this list shows. To add to one of them, pick New collection and type its exact name.`;
+  `Your file has ${countOf(unlisted, "more collection")} than this list shows. To add to one of them, pick New collection and type its exact name.`;
 
 export function StableCollection({
   packName,
@@ -171,7 +169,7 @@ export function StableCollection({
         unusual: unusualOf(read),
       });
       setPicked(NEW);
-      setStatus(`Read collection.db: ${countCollections(read.collections.length)}.`);
+      setStatus(`Read collection.db: ${countOf(read.collections.length, "collection")}.`);
     } catch (error) {
       setLoaded(null);
       setReadError(collectionErrorText(error));
@@ -253,7 +251,7 @@ export function StableCollection({
     setLoaded({ db: preview.db, unusual: loaded.unusual });
     setPicked(next.some((option) => option.value === index) ? index : NEW);
     setStatus(
-      `Downloaded collection.db with ${countMaps(preview.added)} added to "${collectionLabel(name)}". Now swap it in: the steps are above.`,
+      `Downloaded collection.db with ${countOf(preview.added, "map")} added to "${collectionLabel(name)}". Now swap it in: the steps are above.`,
     );
     // Everything is in that collection now, so the button goes aria-disabled and keeps focus.
   };

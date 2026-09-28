@@ -13,6 +13,7 @@ import { PackStatsBackfill } from "@/components/admin/PackStatsBackfill";
 import { PinnedPacks } from "@/components/admin/PinnedPacks";
 import type { AdminPackPage, PinnedPack } from "@/schemas/public-pack";
 import { adminHref } from "@/utils/paging";
+import { countOf } from "@/utils/text";
 
 type AdminScreenProps = AdminPackPage & {
   hiddenOnly: boolean;
@@ -61,9 +62,7 @@ export function AdminScreen({
           </Button>
         </form>
       </search>
-      <p className="text-c4 text-sm">
-        {total} {total === 1 ? "pack" : "packs"}
-      </p>
+      <p className="text-c4 text-sm">{countOf(total, "pack")}</p>
       <AdminPackTable rows={rows} />
       <Pagination
         page={page}

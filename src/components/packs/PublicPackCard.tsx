@@ -13,6 +13,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { PublicPackCard as PublicPack } from "@/schemas/public-pack";
 import { formatShortDate } from "@/utils/date";
+import { countOf } from "@/utils/text";
 
 const DOT = <span aria-hidden="true">·</span>;
 
@@ -42,9 +43,7 @@ export function PublicPackCard({ pack, date = "added" }: PublicPackCardProps) {
         ) : null}
         <span>{pack.ownerName}</span>
         {DOT}
-        <span>
-          {pack.slotCount} {pack.slotCount === 1 ? "map" : "maps"}
-        </span>
+        <span>{countOf(pack.slotCount, "map")}</span>
         {stars ? (
           <>
             {DOT}

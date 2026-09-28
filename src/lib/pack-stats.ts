@@ -11,6 +11,7 @@
  * @modified Mon Sep 28, 2026
  */
 
+import type { OsuClient } from "@haruhimemoe/osu";
 import "server-only";
 import { createHinaiClient, HINAI_BATCH_LIMIT, type HinaiClient } from "@haruhimemoe/hinai";
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
@@ -18,9 +19,9 @@ import { after } from "next/server";
 import { MAX_OSU_METADATA_CALLS, MIRROR_LOOKUP_CONCURRENCY } from "@/constants/pack-stats";
 import { SERVER_USER_AGENT } from "@/constants/site";
 import type { StarPair } from "@/constants/star-ratings";
-import { getOsuClient, type OsuClient } from "@/lib/osu";
 import { getStarRatings } from "@/lib/osu/attributes";
 import { takeOsuBudget } from "@/lib/osu/budget";
+import { getOsuClient } from "@/lib/osu/client";
 import type { ModRatings } from "@/utils/saved-pack-stats";
 import { runPool } from "@/utils/task-pool";
 

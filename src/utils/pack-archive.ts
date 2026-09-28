@@ -6,7 +6,7 @@
  *       and macOS.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { type BeatmapMeta, beatmapUrl } from "@haruhimemoe/osu/shapes";
@@ -14,6 +14,7 @@ import { bucketsOf, slotLabel, sortSlots } from "@haruhimemoe/pool";
 import { DEFAULT_PACK_NAME } from "@/constants/pack";
 import { DEFAULT_DOWNLOAD_CHOICES, type DownloadChoices } from "@/schemas/download-choices";
 import type { Pool, PoolSlot } from "@/schemas/pack";
+import { countOf } from "@/utils/text";
 
 // Windows "Extract All" nests the zip-name folder around our folder, so the folder name appears
 // twice in the path: 28 (C:\Users\name\Downloads\) + 2 × 48 + 2 + 100 stays under MAX_PATH (260).
@@ -146,7 +147,7 @@ export const planArchive = ({
   const count = pack.slots.length;
   const packTxt = [
     name,
-    `${count} ${count === 1 ? "map" : "maps"}, made with packs.haruhime.moe`,
+    `${countOf(count, "map")}, made with packs.haruhime.moe`,
     "",
     `Pack key: ${packKey}`,
     `Open it: ${siteUrl}/k#${packKey}`,

@@ -11,7 +11,7 @@
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
 import { NO_MODS, type SlotMods } from "@haruhimemoe/pool";
 import { describe, expect, it } from "vitest";
-import type { MetaState } from "@/hooks/beatmapMetaState";
+import type { MetaState } from "@/schemas/beatmap-meta";
 import type { BucketEntry, PoolSlot } from "@/schemas/pack";
 import {
   forcedSet,

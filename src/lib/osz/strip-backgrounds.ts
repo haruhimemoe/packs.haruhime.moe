@@ -8,11 +8,11 @@
  *       MD5s, names and the output bytes stay the same every time.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { OSZ_MIME } from "@haruhimemoe/hinai";
 import { inflateSync } from "fflate";
-import { OSZ_MIME } from "@/lib/mirror";
 import {
   type LocalEntry,
   locateLocalEntry,

@@ -4,11 +4,12 @@
  *       status codes or millisecond counts; the caller's fallback for anything else.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { HinaiError } from "@haruhimemoe/hinai";
 import { describe, expect, it } from "vitest";
-import { HinaiError, mirrorErrorText } from "@/lib/mirror";
+import { mirrorErrorText } from "@/lib/mirror";
 
 /** A message that must never reach the UI. */
 const RAW = "raw 503 after 10000 ms (upstream_relay_shed)";

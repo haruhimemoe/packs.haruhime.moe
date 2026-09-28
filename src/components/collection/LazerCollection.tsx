@@ -20,6 +20,7 @@ import { Button, Notice, TextInput } from "@haruhimemoe/ui";
 import { useId, useState } from "react";
 import { lazerCollectionZip } from "@/lib/collections/collection-files";
 import { collectionLabel, defaultCollectionName, lazerZipName } from "@/utils/osu-collection";
+import { countOf } from "@/utils/text";
 
 export type LazerCollectionProps = {
   /** The pack's name, for the default collection name and the zip's name. */
@@ -29,8 +30,6 @@ export type LazerCollectionProps = {
   /** Saves a file from the click (the card passes downloadBlob). */
   download: (blob: Blob, filename: string) => void;
 };
-
-const countMaps = (n: number): string => `${n} ${n === 1 ? "map" : "maps"}`;
 
 // lazer takes a tab or a line break in a name, so the only name the zip refuses is one UTF-8
 // can't encode: a lone surrogate, usually half of an emoji. The field checks for that as the
@@ -94,7 +93,7 @@ export function LazerCollection({ packName, hashes, download }: LazerCollectionP
       ) : null}
       {count > 0 && nameError === null ? (
         <p className="wrap-anywhere text-c2 text-sm">
-          {`Adds ${countMaps(count)} to "${collectionLabel(name)}". Maps already in it are skipped.`}
+          {`Adds ${countOf(count, "map")} to "${collectionLabel(name)}". Maps already in it are skipped.`}
         </p>
       ) : null}
       <div className="flex flex-col gap-1 text-sm">

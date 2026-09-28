@@ -5,15 +5,15 @@
  *       in plain words (no status codes), and lookups aborted once they're no longer wanted.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { HinaiError } from "@haruhimemoe/hinai";
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { useBeatmapMeta } from "@/hooks/useBeatmapMeta";
 import type { BeatmapSource } from "@/lib/beatmaps/lookup";
-import { HinaiError } from "@/lib/mirror";
 
 const meta = (id: number): BeatmapMeta => ({
   beatmapId: id,

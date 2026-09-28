@@ -9,11 +9,12 @@
  *       our server.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { HinaiClient } from "@haruhimemoe/hinai";
-import { backoffDelayMs, HinaiError, mirror, mirrorErrorText } from "@/lib/mirror";
+import { backoffDelayMs, HinaiError } from "@haruhimemoe/hinai";
+import { mirror, mirrorErrorText } from "@/lib/mirror";
 import { type OszCache, oszCache } from "@/lib/storage/osz-cache";
 import { DEFAULT_DOWNLOAD_CHOICES, type DownloadChoices } from "@/schemas/download-choices";
 import { oneAtATime, runPool } from "@/utils/task-pool";

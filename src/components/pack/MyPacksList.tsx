@@ -3,7 +3,7 @@
  * @desc /me: one page of the signed-in user's saved packs, newest update first.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { ButtonLink } from "@haruhimemoe/ui";
@@ -11,6 +11,7 @@ import Link from "next/link";
 import { VISIBILITY_OPTIONS } from "@/constants/visibility";
 import type { SavedPackSummary } from "@/schemas/saved-pack";
 import { formatShortDate } from "@/utils/date";
+import { countOf } from "@/utils/text";
 
 /**
  * @param packs {SavedPackSummary[]} this page's packs
@@ -50,8 +51,7 @@ export function MyPacksList({ packs, total }: { packs: SavedPackSummary[]; total
             {pack.name}
           </Link>
           <span className="text-c4 text-sm">
-            {pack.slotCount} {pack.slotCount === 1 ? "map" : "maps"} ·{" "}
-            {VISIBILITY_OPTIONS[pack.visibility].label}
+            {countOf(pack.slotCount, "map")} · {VISIBILITY_OPTIONS[pack.visibility].label}
             {pack.hidden ? " · Hidden" : ""} · Updated {formatShortDate(pack.updatedAt)}
           </span>
         </li>

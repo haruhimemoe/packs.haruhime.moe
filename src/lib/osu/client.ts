@@ -1,20 +1,17 @@
 /**
- * @file src/lib/osu/index.ts
+ * @file src/lib/osu/client.ts
  * @desc The one osu! API client for the server, from @haruhimemoe/osu. Credentials come from server
  *       env on first use; every call spends packs' shared osu! budget (see attributes.ts). Every
  *       request sends SERVER_USER_AGENT.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
 import { createOsuClient, type OsuClient } from "@haruhimemoe/osu";
 import { SERVER_USER_AGENT } from "@/constants/site";
 import { getServerEnv } from "@/env";
-
-export type { OsuClient } from "@haruhimemoe/osu";
-export { OsuApiError } from "@haruhimemoe/osu";
 
 let client: OsuClient | undefined;
 

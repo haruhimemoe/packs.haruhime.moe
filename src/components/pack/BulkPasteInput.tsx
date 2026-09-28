@@ -21,6 +21,7 @@ import {
 import { Button, Textarea } from "@haruhimemoe/ui";
 import { type FormEvent, useId, useState } from "react";
 import type { BucketEntry, CustomBucket, PoolSlot } from "@/schemas/pack";
+import { countOf } from "@/utils/text";
 
 type BulkPasteInputProps = {
   onAdd: (slots: PoolSlot[], newBuckets: CustomBucket[]) => void;
@@ -31,7 +32,6 @@ type BulkPasteInputProps = {
   disabled?: boolean;
 };
 
-const plural = (n: number) => `${n} ${n === 1 ? "map" : "maps"}`;
 const asLine = (slot: PoolSlot) =>
   slot.mod === null ? String(slot.beatmapId) : `${slotLabel(slot)} ${slot.beatmapId}`;
 
@@ -40,7 +40,7 @@ const summarize = (
   created: readonly CustomBucket[],
 ): string =>
   [
-    added.length > 0 ? `Added ${plural(added.length)}.` : "",
+    added.length > 0 ? `Added ${countOf(added.length, "map")}.` : "",
     created.length > 0
       ? `Added ${created.length === 1 ? "slot" : "slots"} ${created.map((b) => b.code).join(", ")}.`
       : "",

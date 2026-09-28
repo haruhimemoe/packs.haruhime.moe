@@ -8,6 +8,7 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { HinaiError } from "@haruhimemoe/hinai";
 import {
   fakeOsz,
   HINAI_AVAILABILITY_URL,
@@ -24,7 +25,7 @@ import {
   fetchSets,
   type SetStatus,
 } from "@/lib/downloads/fetch-sets";
-import { HinaiError, mirror } from "@/lib/mirror";
+import { mirror } from "@/lib/mirror";
 import { OszRewriteError } from "@/lib/osz/zip-names";
 import { cacheFileName, createOszCache, type OszCache } from "@/lib/storage/osz-cache";
 import { setupHinaiServer } from "../../../helpers/hinai-server";
