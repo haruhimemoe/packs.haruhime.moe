@@ -9,7 +9,7 @@
  *       page data, index, the owner's packs, sitemap). The mirror and osu! are MSW.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { ObjectId } from "mongodb";
@@ -24,7 +24,7 @@ import { RATE_LIMITS_COLLECTION } from "@/constants/star-ratings";
 import { getDb } from "@/lib/db";
 import { getPackModel } from "@/models/Pack";
 import { adminDeletePack, setPackHidden } from "@/services/moderation";
-import { getPackForViewer, listSavedPacks } from "@/services/packs";
+import { getPackForViewer, listSavedPacks } from "@/services/pack-reads";
 import { buildSearchIndex } from "@/services/public-packs";
 import { flushAfter } from "../../../helpers/after";
 import { bearer, createTestApiKey } from "../../../helpers/api-key";

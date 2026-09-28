@@ -17,7 +17,8 @@ import { TRACKERS } from "@/constants/trackers";
 import { getPackModel } from "@/models/Pack";
 import type { BucketEntry } from "@/schemas/pack";
 import { addMagnet, ExportLimitError, removeMagnet, StalePackError } from "@/services/pack-exports";
-import { createPack, getPackForViewer, updatePack } from "@/services/packs";
+import { getPackForViewer } from "@/services/pack-reads";
+import { createPack, updatePack } from "@/services/packs";
 import { setupTestDb } from "../../helpers/db";
 
 setupTestDb();

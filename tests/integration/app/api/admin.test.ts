@@ -4,14 +4,15 @@
  *       delete; moderation never moves updatedAt.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { revalidatePath } from "next/cache";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DELETE, PATCH } from "@/app/api/admin/packs/[slug]/route";
 import { getPackModel } from "@/models/Pack";
-import { createPack, getPackForViewer } from "@/services/packs";
+import { getPackForViewer } from "@/services/pack-reads";
+import { createPack } from "@/services/packs";
 import { createTestUser } from "../../../helpers/auth";
 import { setupTestDb } from "../../../helpers/db";
 import { apiRequest, slugContext } from "../../../helpers/requests";

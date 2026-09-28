@@ -18,7 +18,7 @@ import { MAX_SAVED_PACKS } from "@/constants/pack";
 import { RestoreSignedIn } from "@/lib/account";
 import { requireUser } from "@/lib/auth-session";
 import { getApiKeyInfo } from "@/services/api-keys";
-import { listPacks } from "@/services/packs";
+import { listPacks } from "@/services/pack-reads";
 import { parsePageParam } from "@/utils/paging";
 
 export const metadata: Metadata = { title: "My packs", robots: { index: false } };

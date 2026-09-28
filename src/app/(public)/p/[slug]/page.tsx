@@ -11,7 +11,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { SavedPackView } from "@/components/pack/SavedPackView";
-import { getPackForViewer } from "@/services/packs";
+import { getPackForViewer } from "@/services/pack-reads";
 import { packMetadata } from "@/utils/pack-metadata";
 
 // Pages render on first request and stay cached; every pack write revalidates its slug.

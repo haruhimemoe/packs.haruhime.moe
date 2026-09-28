@@ -16,7 +16,8 @@ import { RATE_LIMITS } from "@/constants/api";
 import { BAD_PAGE, parsePackBody, SIGN_IN_REQUIRED } from "@/lib/api";
 import { getUserFromHeaders } from "@/lib/auth";
 import { limiter } from "@/lib/rate-limit";
-import { createPack, listPacks, PackLimitError } from "@/services/packs";
+import { listPacks } from "@/services/pack-reads";
+import { createPack, PackLimitError } from "@/services/packs";
 import { pageFromQuery } from "@/utils/paging";
 
 /** Session-scoped reads: never a shared cache, never a stale copy on the caller's next load. */

@@ -9,7 +9,7 @@
  *       src/services/account.ts.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
@@ -17,7 +17,7 @@ import { ObjectId } from "mongodb";
 import { connectDb, getDb } from "@/lib/db";
 import { type AccountExport, accountExportSchema } from "@/schemas/account-export";
 import { getApiKeyInfo } from "@/services/api-keys";
-import { listSavedPacks } from "@/services/packs";
+import { listSavedPacks } from "@/services/pack-reads";
 
 type UserRecord = {
   _id: ObjectId;

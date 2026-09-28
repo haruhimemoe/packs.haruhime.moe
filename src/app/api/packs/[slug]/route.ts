@@ -20,7 +20,8 @@ import { RATE_LIMITS } from "@/constants/api";
 import { PACK_NOT_FOUND, parsePackBody, refuseCrossSite, SIGN_IN_REQUIRED } from "@/lib/api";
 import { getUserFromHeaders } from "@/lib/auth";
 import { limiter } from "@/lib/rate-limit";
-import { deletePack, getPackForViewer, updatePack } from "@/services/packs";
+import { getPackForViewer } from "@/services/pack-reads";
+import { deletePack, updatePack } from "@/services/packs";
 import { isPackPinned } from "@/services/pins";
 
 type Context = { params: Promise<{ slug: string }> };

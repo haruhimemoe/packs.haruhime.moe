@@ -16,15 +16,9 @@ import { MAX_SAVED_PACKS, OWN_PAGE_SIZE } from "@/constants/pack";
 import { getDb } from "@/lib/db";
 import { getPackModel } from "@/models/Pack";
 import { deleteAccount } from "@/services/account";
+import { getPackForViewer, listPacks } from "@/services/pack-reads";
 import { duplicateKeyOn } from "@/services/pack-records";
-import {
-  createPack,
-  deletePack,
-  getPackForViewer,
-  listPacks,
-  PackLimitError,
-  updatePack,
-} from "@/services/packs";
+import { createPack, deletePack, PackLimitError, updatePack } from "@/services/packs";
 import { setupTestDb } from "../../helpers/db";
 
 setupTestDb();

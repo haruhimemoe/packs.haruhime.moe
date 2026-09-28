@@ -15,8 +15,8 @@ import { connectedDb } from "@/lib/db";
 import type { ApiPack, ApiPackPage } from "@/schemas/api";
 import type { SavedPack } from "@/schemas/saved-pack";
 import type { ApiCaller } from "@/services/api-keys";
+import { getPackWithOwner, listSavedPackPage } from "@/services/pack-reads";
 import { packKeyOf } from "@/services/pack-records";
-import { getPackWithOwner, listSavedPackPage } from "@/services/packs";
 import { listPublicPacksFull } from "@/services/public-packs";
 
 /**

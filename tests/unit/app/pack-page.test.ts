@@ -4,7 +4,7 @@
  *       service as an anonymous viewer (owners get their view in the browser).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { readFileSync } from "node:fs";
@@ -12,7 +12,7 @@ import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 const { getPackForViewer } = vi.hoisted(() => ({ getPackForViewer: vi.fn() }));
-vi.mock("@/services/packs", () => ({ getPackForViewer }));
+vi.mock("@/services/pack-reads", () => ({ getPackForViewer }));
 
 const FILE = path.join(process.cwd(), "src/app/(public)/p/[slug]/page.tsx");
 

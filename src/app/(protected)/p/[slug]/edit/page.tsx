@@ -10,7 +10,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { SavedPackEditor } from "@/components/pack/SavedPackEditor";
 import { requireUser } from "@/lib/auth-session";
-import { getPackForViewer } from "@/services/packs";
+import { getPackForViewer } from "@/services/pack-reads";
 
 export const metadata: Metadata = { title: "Edit pack", robots: { index: false } };
 
