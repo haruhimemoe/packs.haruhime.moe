@@ -116,16 +116,19 @@ const touch = (slug: string): void => {
   revalidatePublicPacks();
 };
 
+/** applyTo's answer when the pack it found is gone with no tombstone: pools deleted it. */
+const VANISHED = "vanished";
+
 /**
  * Updates the pack when the input changed; answers unchanged, with no write, otherwise. Null when
- * a moderator deleted the pack after it was found.
+ * a moderator deleted the pack after it was found; VANISHED when pools' own DELETE did.
  */
 const applyTo = async (
   doc: PackRecord,
   ownerId: string,
   input: PackInput,
   ref: string,
-): Promise<PoolsSyncAnswer | null> => {
+): Promise<PoolsSyncAnswer | typeof VANISHED | null> => {
   const current = toSavedPack(doc);
   if (sameInput(current, input)) {
     return { slug: current.slug, state: "unchanged", listed: isListed(current) };
@@ -133,6 +136,7 @@ const applyTo = async (
   const pack = await updatePack(current.slug, ownerId, input, { subject: POOLS_SYNC_SUBJECT });
   if (!pack) {
     if (await isTombstoned(ref)) return null;
+    if (!(await findByOrigin(ref))) return VANISHED;
     throw new Error(`pools pack ${current.slug} isn't the pools account's`);
   }
   touch(pack.slug);
@@ -158,7 +162,20 @@ export const syncPoolsPack = async (
   if (await isTombstoned(ref)) return null;
   const ownerId = await ensurePoolsAccount();
   const existing = await lookup(ref);
-  if (existing) return applyTo(existing, ownerId, input, ref);
+  if (existing) {
+    const applied = await applyTo(existing, ownerId, input, ref);
+    // pools deleted the pack between the lookup and the update: make it again, as a first PUT.
+    if (applied !== VANISHED) return applied;
+  }
+  return createFor(ref, ownerId, input);
+};
+
+/** The create path: a new pack for this pool, started hidden when a moderator's marker says so. */
+const createFor = async (
+  ref: string,
+  ownerId: string,
+  input: PackInput,
+): Promise<PoolsSyncAnswer | null> => {
   // Pools deleted this pool's pack while a moderator had it hidden: the new one starts hidden, in
   // the same write, and the marker stays until a moderator unhides it.
   const hiddenAt = await hiddenSince(ref);
@@ -175,7 +192,9 @@ export const syncPoolsPack = async (
     if (!duplicateKeyOn(error, "origin.id")) throw error;
     const winner = await findByOrigin(ref);
     if (!winner) throw error;
-    return applyTo(winner, ownerId, input, ref);
+    const applied = await applyTo(winner, ownerId, input, ref);
+    if (applied === VANISHED) throw error;
+    return applied;
   }
   // A moderator deleted this pool's pack after the first check: the create only got in because
   // that pack was gone, and its tombstone is written before the delete, so it's here by now.

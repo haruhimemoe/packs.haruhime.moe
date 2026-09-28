@@ -19,6 +19,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Visitors together can use at most 30 of the 50 osu! API calls a minute; the other 20 stay for the daily stats job and the pools service, so a few busy visitors can't stall pack stats. A star rating osu! won't give (a map it doesn't have, or mods it won't rate) is remembered for an hour instead of being asked for again on every page view.
 - Starting a sign-in is limited to 10 a minute per IP address, counted across all server instances. Sign-in state rows from abandoned sign-ins now expire on their own.
 
+### Fixed
+
+- Several saves sent at once can no longer take an account past 200 saved packs: the extra ones get the 409.
+- When pools.haruhime.moe publishes a pool and takes its pack down at the same moment, the publish makes the pack again instead of failing with a 500.
+
 ### Security
 
 - `/.well-known/security.txt` lists GitHub private vulnerability reporting as the first contact.

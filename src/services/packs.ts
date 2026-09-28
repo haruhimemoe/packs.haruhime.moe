@@ -210,6 +210,15 @@ export const createPack = async (
         ...(origin ? { origin } : {}),
         ...(hiddenAt ? { hiddenAt } : {}),
       });
+      // Counting first can't stop creates racing past the cap. The earliest packs (by _id) keep
+      // their place: a create with the cap's worth already ahead of it backs out.
+      if (
+        !unlimited &&
+        (await model.countDocuments({ ownerId, _id: { $lt: doc._id } })) >= MAX_SAVED_PACKS
+      ) {
+        await model.deleteOne({ _id: doc._id });
+        throw new PackLimitError();
+      }
       if (touchesPublicList(input.visibility)) revalidatePublicPacks();
       schedulePackStats(doc.slug, subject);
       return toSavedPack(doc.toObject());

@@ -120,6 +120,19 @@ describe("syncPoolsPack and a moderator's delete during the sync", () => {
     expect(await syncPoolsPack(REF, input(), { lookup: foundThenDeleted })).toBeNull();
     expect(await getPackModel().countDocuments({})).toBe(0);
   });
+
+  it("makes the pack again when pools' own DELETE lands between the lookup and the update", async () => {
+    const pack = await createdMeanwhile({ name: "Old name" });
+    const foundThenDeletedByPools = async () => {
+      const found = await getPackModel().findOne({ slug: pack.slug }).lean();
+      expect(await deletePoolsPack(REF)).toBe("deleted");
+      return found;
+    };
+    const answer = await syncPoolsPack(REF, input(), { lookup: foundThenDeletedByPools });
+    expect(answer).toMatchObject({ state: "created", listed: true });
+    expect(answer?.slug).not.toBe(pack.slug);
+    expect(await getPackModel().countDocuments({ "origin.id": REF })).toBe(1);
+  });
 });
 
 describe("tombstoneOrigin", () => {

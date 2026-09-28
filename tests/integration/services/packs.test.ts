@@ -63,6 +63,25 @@ describe("createPack", () => {
     ).rejects.toMatchObject({ code: 11000 });
   });
 
+  it("never lets racing creates take an account past the cap", async () => {
+    const owner = newId();
+    await getPackModel().insertMany(
+      Array.from({ length: MAX_SAVED_PACKS - 1 }, (_, i) => ({
+        ...input(),
+        slug: `race${String(i).padStart(6, "0")}`,
+        ownerId: owner,
+      })),
+    );
+    const results = await Promise.allSettled(
+      Array.from({ length: 5 }, () => createPack(owner, input())),
+    );
+    expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+    for (const refused of results.filter((r) => r.status === "rejected")) {
+      expect(refused.reason).toBeInstanceOf(PackLimitError);
+    }
+    expect(await getPackModel().countDocuments({ ownerId: owner })).toBe(MAX_SAVED_PACKS);
+  });
+
   it(`stops at ${MAX_SAVED_PACKS} packs per account`, async () => {
     const owner = newId();
     await getPackModel().insertMany(
