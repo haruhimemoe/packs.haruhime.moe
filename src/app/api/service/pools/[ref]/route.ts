@@ -11,7 +11,8 @@
  *       so its pack goes: same token check and ref, no body read; 204 when the pools account's
  *       pack for that pool was deleted, 404 not_found when there's none, 410 gone (nothing done)
  *       when a moderator deleted it. It writes no tombstone, so a later PUT creates the pack
- *       again. Never cached.
+ *       again; if a moderator had hidden it, that pack starts hidden (listed false) until a
+ *       moderator unhides it. Never cached.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Sun Sep 27, 2026

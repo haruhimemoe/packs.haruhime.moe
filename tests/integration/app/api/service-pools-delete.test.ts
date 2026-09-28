@@ -8,7 +8,10 @@
  *       origin kind with that origin id), 404 when there's none (never creating the pools
  *       account), 410 for a pool a moderator deleted (nothing touched, even a pack mid-delete),
  *       no tombstone written (a later PUT creates the pack again), and the stats job the save
- *       scheduled never bringing it back. The mirror and osu! are MSW.
+ *       scheduled never bringing it back. A moderator's hide survives: deleting a hidden pack
+ *       leaves a hide marker, the next PUT creates the pack hidden and keeps it, an unhide drops
+ *       it, and a visible pack's delete writes none (and drops a stale one). The mirror and osu!
+ *       are MSW.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -19,7 +22,11 @@ import { revalidatePath } from "next/cache";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DELETE, PUT } from "@/app/api/service/pools/[ref]/route";
 import { RATE_LIMITS } from "@/constants/api";
-import { DELETED_ORIGINS_COLLECTION, POOLS_ACCOUNT } from "@/constants/pools";
+import {
+  DELETED_ORIGINS_COLLECTION,
+  HIDDEN_ORIGINS_COLLECTION,
+  POOLS_ACCOUNT,
+} from "@/constants/pools";
 import { getDb } from "@/lib/db";
 import { getPackModel } from "@/models/Pack";
 import type { PackInput } from "@/schemas/saved-pack";
@@ -27,6 +34,7 @@ import { adminDeletePack, setPackHidden } from "@/services/moderation";
 import { runPoolsStatsBackfill } from "@/services/pack-stats";
 import { createPack } from "@/services/packs";
 import { tombstoneOrigin } from "@/services/pools-sync";
+import { buildSearchIndex } from "@/services/public-packs";
 import { flushAfter } from "../../../helpers/after";
 import { freezeTime } from "../../../helpers/api-key";
 import { createTestUser } from "../../../helpers/auth";
@@ -67,10 +75,12 @@ const request = (method: "PUT" | "DELETE", call: Call) => {
 };
 const context = (call: Call) => ({ params: Promise.resolve({ ref: call.ref ?? REF }) });
 
+type Answer = { slug: string; state: string; listed: boolean };
+
 /** Publishes the pool through the PUT, as pools does. */
 const publish = async (call: Call = {}) => {
   const response = await PUT(request("PUT", call), context(call));
-  return { status: response.status, ...((await response.json()) as { slug: string }) };
+  return { status: response.status, ...((await response.json()) as Answer) };
 };
 const remove = (call: Call = {}) => DELETE(request("DELETE", call), context(call));
 
@@ -78,6 +88,11 @@ const codeOf = async (response: Response): Promise<string> =>
   ((await response.json()) as { error: { code: string } }).error.code;
 const packCount = () => getPackModel().countDocuments({});
 const tombstones = () => getDb().collection<{ _id: string }>(DELETED_ORIGINS_COLLECTION);
+const markers = () =>
+  getDb().collection<{ originId: string; hiddenAt: Date }>(HIDDEN_ORIGINS_COLLECTION);
+const moderator = () => new ObjectId().toHexString();
+const hiddenAtOf = async (slug: string) =>
+  (await getPackModel().findOne({ slug }).lean())?.hiddenAt ?? null;
 const paths = () => vi.mocked(revalidatePath).mock.calls.map(([path]) => path);
 
 beforeEach(() => {
@@ -267,5 +282,66 @@ describe("DELETE /api/service/pools/{ref}: tombstones", () => {
     await flushAfter();
     expect(await packCount()).toBe(0);
     expect(await runPoolsStatsBackfill()).toEqual({ updated: 0, remaining: 0 });
+  });
+});
+
+describe("DELETE /api/service/pools/{ref}: a moderator's hide", () => {
+  it("is remembered: the PUT after a delete creates the pack hidden and keeps the marker", async () => {
+    const first = await publish();
+    await setPackHidden(first.slug, moderator(), true);
+    const hiddenAt = await hiddenAtOf(first.slug);
+    expect(hiddenAt).toBeInstanceOf(Date);
+    expect((await remove()).status).toBe(204);
+    expect(await markers().find({}).toArray()).toEqual([
+      { _id: expect.anything(), originId: REF, hiddenAt },
+    ]);
+    const again = await publish();
+    expect(again).toMatchObject({ status: 201, state: "created", listed: false });
+    expect(await hiddenAtOf(again.slug)).toEqual(hiddenAt);
+    expect((await buildSearchIndex()).packs.map((entry) => entry.s)).not.toContain(again.slug);
+    expect(await markers().countDocuments({ originId: REF })).toBe(1);
+    // Still hidden through an update, and a second delete keeps the one marker.
+    expect(await publish({ body: { ...BODY, name: "Renamed" } })).toMatchObject({
+      state: "updated",
+      listed: false,
+    });
+    expect((await remove()).status).toBe(204);
+    expect(await markers().countDocuments({})).toBe(1);
+  });
+
+  it("is forgotten on an unhide, so the pack after the next delete comes back listed", async () => {
+    const first = await publish();
+    await setPackHidden(first.slug, moderator(), true);
+    await remove();
+    const hidden = await publish();
+    expect(hidden.listed).toBe(false);
+    await setPackHidden(hidden.slug, moderator(), false);
+    expect(await markers().countDocuments({})).toBe(0);
+    expect((await remove()).status).toBe(204);
+    expect(await markers().countDocuments({})).toBe(0);
+    const listed = await publish();
+    expect(listed).toMatchObject({ status: 201, listed: true });
+    expect(await hiddenAtOf(listed.slug)).toBeNull();
+  });
+
+  it("isn't written when the pack wasn't hidden, and a stale one goes", async () => {
+    await publish();
+    expect((await remove()).status).toBe(204);
+    expect(await markers().countDocuments({})).toBe(0);
+    await publish();
+    // Left by an unhide that failed after its write: the pack is visible, so the marker is wrong.
+    await markers().insertOne({ originId: REF, hiddenAt: new Date() });
+    expect((await remove()).status).toBe(204);
+    expect(await markers().countDocuments({})).toBe(0);
+    expect((await publish()).listed).toBe(true);
+  });
+
+  it("leaves no marker behind a 404 or a 410", async () => {
+    expect((await remove()).status).toBe(404);
+    const { slug } = await publish();
+    await setPackHidden(slug, moderator(), true);
+    await adminDeletePack(slug);
+    expect((await remove()).status).toBe(410);
+    expect(await markers().countDocuments({})).toBe(0);
   });
 });

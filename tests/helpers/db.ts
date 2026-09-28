@@ -3,7 +3,7 @@
  * @desc setupTestDb(): empty every collection before each test, close the client after the file.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { afterAll, beforeEach } from "vitest";
@@ -20,6 +20,7 @@ const COLLECTIONS = [
   "rate_limits",
   "api_keys",
   "deleted_origins",
+  "hidden_origins",
   "pools_backfill",
 ];
 

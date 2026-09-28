@@ -3,22 +3,29 @@
  * @desc syncPoolsPack: a create that lost the race on the origin index is retried once as an
  *       update (or found unchanged); any other failure is rethrown; a tombstoned pool answers null
  *       and writes nothing, and so does a pool a moderator deletes while its sync runs (the pack
- *       it just created or found stays gone). tombstoneOrigin keeps the first date.
+ *       it just created or found stays gone). tombstoneOrigin keeps the first date. deletePoolsPack
+ *       remembers a hide and forgets an unhide that land between its read and its delete, and
+ *       gives up (the pack stays) when the hide changes under every try.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
+import { ObjectId } from "mongodb";
 import { revalidatePath } from "next/cache";
 import { describe, expect, it, vi } from "vitest";
-import { DELETED_ORIGINS_COLLECTION, POOLS_ACCOUNT } from "@/constants/pools";
+import {
+  DELETED_ORIGINS_COLLECTION,
+  HIDDEN_ORIGINS_COLLECTION,
+  POOLS_ACCOUNT,
+} from "@/constants/pools";
 import { getDb } from "@/lib/db";
 import { getPackModel } from "@/models/Pack";
 import type { PackInput } from "@/schemas/saved-pack";
-import { adminDeletePack } from "@/services/moderation";
+import { adminDeletePack, setPackHidden } from "@/services/moderation";
 import { createPack } from "@/services/packs";
 import { ensurePoolsAccount } from "@/services/pools-account";
-import { syncPoolsPack, tombstoneOrigin } from "@/services/pools-sync";
+import { deletePoolsPack, syncPoolsPack, tombstoneOrigin } from "@/services/pools-sync";
 import { setupTestDb } from "../../helpers/db";
 
 setupTestDb();
@@ -123,5 +130,47 @@ describe("tombstoneOrigin", () => {
     expect(await getDb().collection(DELETED_ORIGINS_COLLECTION).find({}).toArray()).toEqual([
       { _id: REF, deletedAt: first },
     ]);
+  });
+});
+
+describe("deletePoolsPack and a moderator's hide or unhide during the delete", () => {
+  const markers = () => getDb().collection(HIDDEN_ORIGINS_COLLECTION);
+  const moderator = new ObjectId().toHexString();
+  /** Runs `step` after the delete's first read only. */
+  const once = (step: () => Promise<unknown>) => {
+    let done = false;
+    return async () => {
+      if (done) return;
+      done = true;
+      await step();
+    };
+  };
+
+  it("remembers a hide that lands between its read and its delete", async () => {
+    const pack = await createdMeanwhile();
+    const hide = once(() => setPackHidden(pack.slug, moderator, true));
+    expect(await deletePoolsPack(REF, { afterRead: hide })).toBe("deleted");
+    expect(await getPackModel().countDocuments({})).toBe(0);
+    expect(await markers().countDocuments({ originId: REF })).toBe(1);
+  });
+
+  it("forgets the hide when an unhide lands between its read and its delete", async () => {
+    const pack = await createdMeanwhile();
+    await setPackHidden(pack.slug, moderator, true);
+    const unhide = once(() => setPackHidden(pack.slug, moderator, false));
+    expect(await deletePoolsPack(REF, { afterRead: unhide })).toBe("deleted");
+    expect(await getPackModel().countDocuments({})).toBe(0);
+    expect(await markers().countDocuments({})).toBe(0);
+  });
+
+  it("gives up, leaving the pack, when the hide changes under every try", async () => {
+    const pack = await createdMeanwhile();
+    let hidden = false;
+    const flip = async () => {
+      hidden = !hidden;
+      await setPackHidden(pack.slug, moderator, hidden);
+    };
+    await expect(deletePoolsPack(REF, { afterRead: flip })).rejects.toThrow("kept changing");
+    expect(await getPackModel().countDocuments({ slug: pack.slug })).toBe(1);
   });
 });

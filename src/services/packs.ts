@@ -10,7 +10,7 @@
  *       carries.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import "server-only";
@@ -161,14 +161,22 @@ export const connectedPackModel = async () => {
 /** A change that touches a public pack (before or after) makes the cached /packs stale. */
 const touchesPublicList = (...visibilities: unknown[]): boolean => visibilities.includes("public");
 
+type CreateOptions = {
+  makeSlug?: () => string;
+  unlimited?: boolean;
+  subject?: string;
+  origin?: PackOrigin;
+  hiddenAt?: Date;
+};
+
 /**
  * @function createPack
  * @param ownerId {string} signed-in user's id
  * @param input {PackInput} validated pack
- * @param options {{ makeSlug?: () => string; unlimited?: boolean; subject?: string; origin?: PackOrigin }}
- *        slug source (tests), unlimited to skip the MAX_SAVED_PACKS check (admins, the pools
- *        account), the caller's rate-limit subject (its share of the osu! budget pays for the
- *        stats lookups), and the pools pool it comes from
+ * @param options {CreateOptions} slug source (tests), unlimited to skip the MAX_SAVED_PACKS check
+ *        (admins, the pools account), the caller's rate-limit subject (its share of the osu!
+ *        budget pays for the stats lookups), the pools pool it comes from, and hiddenAt to create
+ *        it already hidden (a pools pack a moderator hid before pools deleted it)
  * @returns {Promise<SavedPack>} the stored pack, without stats: they're computed after the
  *          response
  * @throws {PackLimitError} when the owner already has MAX_SAVED_PACKS packs and isn't unlimited
@@ -182,7 +190,8 @@ export const createPack = async (
     unlimited = false,
     subject,
     origin,
-  }: { makeSlug?: () => string; unlimited?: boolean; subject?: string; origin?: PackOrigin } = {},
+    hiddenAt,
+  }: CreateOptions = {},
 ): Promise<SavedPack> => {
   const model = await connectedPackModel();
   if (!unlimited && (await model.countDocuments({ ownerId })) >= MAX_SAVED_PACKS) {
@@ -201,6 +210,7 @@ export const createPack = async (
         ...(description ? { description } : {}),
         visibility: input.visibility,
         ...(origin ? { origin } : {}),
+        ...(hiddenAt ? { hiddenAt } : {}),
       });
       if (touchesPublicList(input.visibility)) revalidatePublicPacks();
       schedulePackStats(doc.slug, subject);

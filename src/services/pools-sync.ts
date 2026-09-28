@@ -10,7 +10,10 @@
  *       just made is deleted again). Saves spend the pools-sync share of the osu! budget on their
  *       stats. A pool that went private or was deleted in pools loses its pack
  *       (DELETE /api/service/pools/{ref}): the pools account's pack with that origin is deleted,
- *       with no tombstone, so a later sync creates it again; a tombstoned pool is left alone.
+ *       with no tombstone, so a later sync creates it again; a tombstoned pool is left alone. A
+ *       pack a moderator hid leaves a hide marker in hidden_origins when pools deletes it, and the
+ *       next create for that pool comes back hidden, so pools can't clear a hide by deleting and
+ *       publishing again; a moderator's unhide drops the marker (src/services/moderation.ts).
  *       Every write marks the pack's page and every public list stale.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
@@ -18,8 +21,10 @@
  */
 
 import "server-only";
+import { ObjectId } from "mongodb";
 import {
   DELETED_ORIGINS_COLLECTION,
+  HIDDEN_ORIGINS_COLLECTION,
   POOLS_ACCOUNT,
   POOLS_ORIGIN_KIND,
   POOLS_SYNC_SUBJECT,
@@ -62,6 +67,34 @@ export const tombstoneOrigin = async (originId: string, now: Date = new Date()):
     { $setOnInsert: { deletedAt: now } },
     { upsert: true },
   );
+};
+
+/** A hide marker: a pools pack a moderator hid, then pools deleted (HIDDEN_ORIGINS_COLLECTION). */
+type HiddenOrigin = { originId: string; hiddenAt: Date };
+
+const hideMarkers = async () =>
+  (await connectedDb()).collection<HiddenOrigin>(HIDDEN_ORIGINS_COLLECTION);
+
+/** When a moderator hid the pool's last pack, if pools deleted it hidden; otherwise undefined. */
+const hiddenSince = async (ref: string): Promise<Date | undefined> =>
+  (await (await hideMarkers()).findOne({ originId: ref }))?.hiddenAt;
+
+const rememberHidden = async (ref: string, hiddenAt: Date): Promise<void> => {
+  await (await hideMarkers()).updateOne(
+    { originId: ref },
+    { $set: { hiddenAt } },
+    { upsert: true },
+  );
+};
+
+/**
+ * @function forgetHiddenOrigin
+ * @param originId {string} a pools pool id
+ * @returns {Promise<void>} drops the pool's hide marker, if it has one: a moderator unhid its pack
+ *          (src/services/moderation.ts), so the next pack pools creates for it is listed
+ */
+export const forgetHiddenOrigin = async (originId: string): Promise<void> => {
+  await (await hideMarkers()).deleteOne({ originId });
 };
 
 /** The pack a pools pool became, or null. */
@@ -126,12 +159,16 @@ export const syncPoolsPack = async (
   const ownerId = await ensurePoolsAccount();
   const existing = await lookup(ref);
   if (existing) return applyTo(existing, ownerId, input, ref);
+  // Pools deleted this pool's pack while a moderator had it hidden: the new one starts hidden, in
+  // the same write, and the marker stays until a moderator unhides it.
+  const hiddenAt = await hiddenSince(ref);
   let pack: SavedPack;
   try {
     pack = await createPack(ownerId, input, {
       unlimited: true,
       subject: POOLS_SYNC_SUBJECT,
       origin: { kind: POOLS_ORIGIN_KIND, id: ref },
+      ...(hiddenAt ? { hiddenAt } : {}),
     });
   } catch (error) {
     // Another sync of this pool created it first: update that pack instead, once.
@@ -157,26 +194,50 @@ export const syncPoolsPack = async (
 /** What a delete from pools did: removed the pool's pack, found none, or found its tombstone. */
 export type PoolsDeleteResult = "deleted" | "missing" | "gone";
 
+/** Reads before a delete gives up on a pack a moderator keeps hiding and unhiding under it. */
+const DELETE_ATTEMPTS = 3;
+
 /**
  * @function deletePoolsPack
  * @param ref {string} a validated pools pool id
+ * @param deps {{ afterRead?: () => Promise<unknown> }} runs after each read of the pack (tests
+ *        hide or unhide it there to reach the retry)
  * @returns {Promise<PoolsDeleteResult>} "deleted" when the pools account's pack for that pool is
  *          gone (its stats with it); "missing" when there's no such pack (another owner's pack
  *          with that origin id doesn't count); "gone" when a moderator deleted it, touching
- *          nothing. Writes no tombstone, so a later sync creates the pack again.
- * @throws when the database fails
+ *          nothing. Writes no tombstone, so a later sync creates the pack again. A hidden pack
+ *          leaves a hide marker first (a failed write leaves the pack in place), so that sync
+ *          creates it hidden; a visible one leaves none and drops a stale one.
+ * @throws when the database fails, or the pack's hide keeps changing under the delete
  */
-export const deletePoolsPack = async (ref: string): Promise<PoolsDeleteResult> => {
+export const deletePoolsPack = async (
+  ref: string,
+  { afterRead = async () => {} }: { afterRead?: () => Promise<unknown> } = {},
+): Promise<PoolsDeleteResult> => {
   if (await isTombstoned(ref)) return "gone";
-  const doc = await (await connectedPackModel())
-    .findOneAndDelete({
-      "origin.kind": POOLS_ORIGIN_KIND,
-      "origin.id": ref,
-      ownerId: POOLS_ACCOUNT.id,
-    })
-    .select("slug")
-    .lean();
-  if (!doc) return "missing";
-  touch(doc.slug);
-  return "deleted";
+  const packs = (await connectedPackModel()).collection;
+  const filter = {
+    "origin.kind": POOLS_ORIGIN_KIND,
+    "origin.id": ref,
+    ownerId: new ObjectId(POOLS_ACCOUNT.id),
+  };
+  for (let attempt = 1; attempt <= DELETE_ATTEMPTS; attempt++) {
+    const found = (await packs.findOne(filter, { projection: { slug: 1, hiddenAt: 1 } })) as {
+      _id: ObjectId;
+      slug: string;
+      hiddenAt?: unknown;
+    } | null;
+    if (!found) return "missing";
+    await afterRead();
+    const hiddenAt = found.hiddenAt instanceof Date ? found.hiddenAt : null;
+    if (hiddenAt) await rememberHidden(ref, hiddenAt);
+    else await forgetHiddenOrigin(ref);
+    // Only while the hide is as read: a moderator's hide or unhide in between means read again.
+    const { deletedCount } = await packs.deleteOne({ _id: found._id, hiddenAt });
+    if (deletedCount === 1) {
+      touch(found.slug);
+      return "deleted";
+    }
+  }
+  throw new Error(`the pools pack for ${ref} kept changing while it was being deleted`);
 };

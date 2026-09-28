@@ -4,16 +4,17 @@
  *       MongoDB delete a sign-in session about a minute after it expires, which the privacy policy
  *       promises. Also the 30-day TTL on cached star ratings, and the TTL on rate-limit counters (the
  *       rate_limits collection src/lib/rate-limit.ts and the osu! budget share), and the TTL on
- *       the pools backfill's record of tried pairs. createIndex is a no-op when the index already
- *       exists.
+ *       the pools backfill's record of tried pairs, and one hide marker per pools pool (a unique
+ *       originId, so two deletes at once can't leave two). createIndex is a no-op when the index
+ *       already exists.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import "server-only";
 import type { Db } from "mongodb";
-import { POOLS_BACKFILL_COLLECTION } from "@/constants/pools";
+import { HIDDEN_ORIGINS_COLLECTION, POOLS_BACKFILL_COLLECTION } from "@/constants/pools";
 import {
   RATE_LIMITS_COLLECTION,
   STAR_RATINGS_COLLECTION,
@@ -49,6 +50,8 @@ export const ensureIndexes = async (db: Db): Promise<void> => {
       db
         .collection(POOLS_BACKFILL_COLLECTION)
         .createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
+      // Hide markers for pools packs (src/services/pools-sync.ts): one per pool.
+      db.collection(HIDDEN_ORIGINS_COLLECTION).createIndex({ originId: 1 }, { unique: true }),
     ]);
   } catch (error) {
     console.error("db: couldn't create indexes", error);

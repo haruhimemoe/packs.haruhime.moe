@@ -4,12 +4,12 @@
  *       that owns them. A users record with `system: true` and no linked osu! account, so nobody
  *       can sign in as it (src/lib/auth.ts refuses its sessions too). Its id is fixed, so two
  *       first syncs at once make one record, and queries can name it without a lookup. Also a
- *       pools pool id's shape, the origin kind, where tombstones live, the rate-limit subject
- *       pools' saves and the stats backfill spend osu! calls under, and where that backfill writes
- *       down the rating pairs it tried.
+ *       pools pool id's shape, the origin kind, where tombstones and hide markers live, the
+ *       rate-limit subject pools' saves and the stats backfill spend osu! calls under, and where
+ *       that backfill writes down the rating pairs it tried.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { SITE } from "@/constants/site";
@@ -33,6 +33,13 @@ export const POOLS_ORIGIN_KIND = "pools";
 
 /** Tombstones: the pools ids of packs a moderator deleted (the id is the document's _id). */
 export const DELETED_ORIGINS_COLLECTION = "deleted_origins";
+
+/**
+ * Hide markers: `{ originId, hiddenAt }` for a pools pack a moderator hid that pools then deleted,
+ * so the pack pools creates next for that pool comes back hidden. One per pool (a unique index on
+ * originId, src/lib/db-indexes.ts); an unhide on packs drops it.
+ */
+export const HIDDEN_ORIGINS_COLLECTION = "hidden_origins";
 
 /**
  * The rate-limit subject pools' saves and the stats backfill spend osu! calls under: a share of the

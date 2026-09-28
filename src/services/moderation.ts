@@ -8,10 +8,11 @@
  *       again. Rows say when a pack was pinned. The haruhime pools account's packs (a system
  *       account with no osu! id) are moderated like any other. Deleting a pack pools.haruhime.moe
  *       published writes a tombstone of its pool first (src/services/pools-sync.ts), then deletes
- *       it, so no sync creates it again.
+ *       it, so no sync creates it again. Unhiding one drops its pool's hide marker, so a pack
+ *       pools deletes and publishes again after that is listed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import "server-only";
@@ -23,7 +24,7 @@ import { UNPIN } from "@/models/Pack";
 import { type AdminPackPage, type AdminPackRow, adminPackRowSchema } from "@/schemas/public-pack";
 import { slugSchema, type Visibility } from "@/schemas/saved-pack";
 import { connectedPackModel } from "@/services/packs";
-import { tombstoneOrigin } from "@/services/pools-sync";
+import { forgetHiddenOrigin, tombstoneOrigin } from "@/services/pools-sync";
 import { escapeRegExp } from "@/utils/text";
 
 /** What admins moderate: anything others can reach. */
@@ -135,6 +136,16 @@ export const setPackHidden = async (
   );
   if (result.matchedCount === 0 && !(await model.collection.findOne({ slug, ...MODERATED }))) {
     return null;
+  }
+  // Unhiding a pools pack drops its pool's hide marker, so the pack pools creates after its next
+  // delete is listed (src/services/pools-sync.ts).
+  if (!hidden) {
+    const found = (await model.collection.findOne(
+      { slug, ...MODERATED },
+      { projection: { origin: 1 } },
+    )) as { origin?: { id?: unknown } } | null;
+    const originId = found?.origin?.id;
+    if (typeof originId === "string") await forgetHiddenOrigin(originId);
   }
   revalidatePack(slug);
   revalidatePublicPacks();
