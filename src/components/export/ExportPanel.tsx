@@ -16,11 +16,8 @@ import { Button, Card, cx } from "@haruhimemoe/ui";
 import { type ReactNode, useId, useState } from "react";
 import { DownloadOptions } from "@/components/export/DownloadOptions";
 import { DownloadProgress } from "@/components/export/DownloadProgress";
-import {
-  type MagnetTarget,
-  TorrentExport,
-  type TorrentSeams,
-} from "@/components/export/TorrentExport";
+import { TorrentExport, type TorrentSeams } from "@/components/export/TorrentExport";
+import type { MagnetTarget } from "@/components/export/TorrentMadePanel";
 import { ZipExport, type ZipSeams } from "@/components/export/ZipExport";
 import type { MetaState } from "@/hooks/beatmapMetaState";
 import { useDownloadChoices } from "@/hooks/useDownloadChoices";

@@ -6,7 +6,7 @@
  * @modified Mon Sep 28, 2026
  */
 
-import { PageHeader, TextLink } from "@haruhimemoe/ui";
+import { Notice, PageHeader, TextLink } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { RestoreSignedIn } from "@/components/auth/RestoreSignedIn";
 import { SignInWithOsu } from "@/components/auth/SignInWithOsu";
@@ -30,9 +30,9 @@ export default async function SignInPage({ searchParams }: PageProps<"/signin">)
         className="justify-center text-center"
       />
       {params.error !== undefined ? (
-        <p role="alert" className="font-bold text-rose-300 text-sm">
+        <Notice tone="error" live className="font-bold">
           Sign-in didn't finish. Try again.
-        </p>
+        </Notice>
       ) : null}
       <SignInWithOsu next={next} />
       <p className="text-c4 text-xs">

@@ -1,7 +1,8 @@
 /**
  * @file src/components/export/TorrentExport.tsx
  * @desc The Download card's torrent section: fingerprint the downloaded files into a .torrent and a
- *       magnet link (in this browser), explain seeding, and let a saved pack's owner list the link.
+ *       magnet link (in this browser), with progress and Cancel. The made torrent's controls are
+ *       TorrentMadePanel.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Mon Sep 28, 2026
@@ -9,9 +10,9 @@
 
 "use client";
 
-import { Button, TextInput, TextLink } from "@haruhimemoe/ui";
+import { Button, Notice } from "@haruhimemoe/ui";
 import { useEffect, useId, useRef, useState } from "react";
-import { PacksApiError } from "@/lib/packs-api";
+import { type MagnetTarget, TorrentMadePanel } from "@/components/export/TorrentMadePanel";
 import {
   type BuildOptions,
   type BuiltTorrent,
@@ -22,14 +23,7 @@ import {
   type PackTorrentInput,
   saveTorrentFile,
 } from "@/lib/torrent/pack-torrent";
-import { infohashOf } from "@/utils/magnet";
 import type { ArchivePlan } from "@/utils/pack-archive";
-
-/** A saved pack's magnet links, and how its owner adds one. */
-export type MagnetTarget = {
-  added: readonly string[];
-  add: (magnet: string) => Promise<void>;
-};
 
 export type TorrentExportProps = {
   input: PackTorrentInput;
@@ -55,10 +49,14 @@ type State =
   | { phase: "made"; built: BuiltTorrent }
   | { phase: "error" };
 
-type AddState = { phase: "idle" } | { phase: "adding" } | { phase: "error"; message: string };
-
 const maps = (n: number): string => `${n} ${n === 1 ? "map" : "maps"}`;
 
+/**
+ * @function TorrentExport
+ * @param props {TorrentExportProps} the pack's files and plan, the slots left out, the heading
+ *        level, the owner's magnet links, a busy callback, and test seams
+ * @returns {JSX.Element} the Torrent file section
+ */
 export function TorrentExport({
   input,
   failedSlots,
@@ -70,12 +68,9 @@ export function TorrentExport({
   canHash = canHashInBrowser(),
 }: TorrentExportProps) {
   const [state, setState] = useState<State>({ phase: "idle" });
-  const [copied, setCopied] = useState<"copied" | "failed" | null>(null);
-  const [adding, setAdding] = useState<AddState>({ phase: "idle" });
   const controllerRef = useRef<AbortController | null>(null);
   const headingId = useId();
   const Heading = headingLevel === 4 ? "h4" : "h3";
-  const magnetId = useId();
 
   useEffect(() => () => controllerRef.current?.abort(), []);
   const making = state.phase === "making";
@@ -88,7 +83,6 @@ export function TorrentExport({
     controllerRef.current?.abort();
     const controller = new AbortController();
     controllerRef.current = controller;
-    setCopied(null);
     setState({ phase: "making", percent: 0 });
     const live = () => !controller.signal.aborted;
     make(input, {
@@ -117,34 +111,7 @@ export function TorrentExport({
     setState({ phase: "idle" });
   };
 
-  const copy = async (magnet: string) => {
-    try {
-      await navigator.clipboard.writeText(magnet);
-      setCopied("copied");
-    } catch {
-      setCopied("failed");
-    }
-  };
-
-  const add = async (target: MagnetTarget, magnet: string) => {
-    setAdding({ phase: "adding" });
-    try {
-      await target.add(magnet);
-      setAdding({ phase: "idle" });
-    } catch (cause) {
-      setAdding({
-        phase: "error",
-        message:
-          cause instanceof PacksApiError
-            ? cause.message
-            : "Couldn't add the magnet link. Try again.",
-      });
-    }
-  };
-
   const made = state.phase === "made" ? state.built : null;
-  const alreadyAdded =
-    made !== null && (magnets?.added ?? []).some((url) => infohashOf(url) === made.infoHash);
 
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-3">
@@ -159,56 +126,12 @@ export function TorrentExport({
       )}
 
       {made ? (
-        <div className="flex flex-col gap-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <Button onClick={() => saveFile(made, input.plan)}>Save .torrent</Button>
-          </div>
-          <TextInput
-            id={magnetId}
-            label="Magnet link"
-            wrapperClassName="gap-2"
-            readOnly
-            value={made.magnet}
-            onFocus={(event) => event.currentTarget.select()}
-            className="font-mono"
-          />
-          <div className="flex flex-wrap items-center gap-2">
-            <Button variant="secondary" onClick={() => copy(made.magnet)}>
-              Copy magnet link
-            </Button>
-            {magnets ? (
-              <Button
-                variant="secondary"
-                onClick={() => add(magnets, made.magnet)}
-                disabled={alreadyAdded || adding.phase === "adding"}
-              >
-                {alreadyAdded
-                  ? "Magnet link added"
-                  : adding.phase === "adding"
-                    ? "Adding…"
-                    : "Add magnet link to this pack"}
-              </Button>
-            ) : null}
-            <output className="text-c3 text-sm">
-              {copied === "copied"
-                ? "Magnet link copied."
-                : copied === "failed"
-                  ? "Couldn't copy. Select the link and copy it by hand."
-                  : ""}
-            </output>
-          </div>
-          {adding.phase === "error" ? (
-            <p role="alert" className="font-bold text-rose-300 text-sm">
-              {adding.message}
-            </p>
-          ) : null}
-          <p className="text-c3 text-sm">
-            A torrent only works while someone seeds it. Save the .zip too, unzip it, then open the
-            .torrent in qBittorrent and set its save location to the folder that holds “
-            {input.plan.folder}”. It checks the files and starts seeding.{" "}
-            <TextLink href="/guide/seed-a-torrent">Seeding guide</TextLink>
-          </p>
-        </div>
+        <TorrentMadePanel
+          built={made}
+          folder={input.plan.folder}
+          onSave={() => saveFile(made, input.plan)}
+          magnets={magnets}
+        />
       ) : (
         <div className="flex flex-wrap items-center gap-2">
           {state.phase === "making" ? (
@@ -235,9 +158,9 @@ export function TorrentExport({
         </div>
       )}
       {state.phase === "error" ? (
-        <p role="alert" className="font-bold text-rose-300 text-sm">
+        <Notice tone="error" live className="font-bold">
           Couldn't make the torrent. Try again.
-        </p>
+        </Notice>
       ) : null}
     </section>
   );

@@ -10,7 +10,7 @@
 "use client";
 
 import type { PackInputBody } from "@haruhimemoe/pool/service";
-import { Button } from "@haruhimemoe/ui";
+import { Button, Notice } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { DEFAULT_PACK_NAME } from "@/constants/pack";
@@ -99,9 +99,9 @@ export function SavePackButton({
       </div>
       {!signedIn && signInNote ? <p className="text-c4 text-xs">{signInNote}</p> : null}
       {error ? (
-        <p role="alert" className="font-bold text-rose-300 text-sm">
+        <Notice tone="error" live className="font-bold">
           {error}
-        </p>
+        </Notice>
       ) : null}
     </div>
   );

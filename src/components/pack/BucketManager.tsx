@@ -19,7 +19,7 @@ import {
   nextFreeColor,
   type SlotMods,
 } from "@haruhimemoe/pool";
-import { Button, fieldClasses, TextInput } from "@haruhimemoe/ui";
+import { Button, fieldClasses, Notice, TextInput } from "@haruhimemoe/ui";
 import { type FormEvent, useId, useState } from "react";
 import { ColorPicker } from "@/components/pack/ColorPicker";
 import { ModsField } from "@/components/pack/ModsField";
@@ -264,9 +264,9 @@ export function BucketManager({
           </Button>
         </div>
         {error ? (
-          <p role="alert" className="text-rose-300 text-sm">
+          <Notice tone="error" live>
             {error}
-          </p>
+          </Notice>
         ) : null}
       </form>
     </div>

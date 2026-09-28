@@ -19,7 +19,7 @@ import { ButtonLink, Card, PageHeader, TextLink } from "@haruhimemoe/ui";
 import { Fragment, type ReactNode, useId, useMemo, useState } from "react";
 import { CollectionPanel } from "@/components/collection/CollectionPanel";
 import { ExportPanel } from "@/components/export/ExportPanel";
-import type { MagnetTarget } from "@/components/export/TorrentExport";
+import type { MagnetTarget } from "@/components/export/TorrentMadePanel";
 import { HiddenNotice } from "@/components/pack/HiddenNotice";
 import { MagnetLinks } from "@/components/pack/MagnetLinks";
 import { PackKeyField } from "@/components/pack/PackKeyField";

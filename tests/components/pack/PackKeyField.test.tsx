@@ -3,7 +3,7 @@
  * @desc Pack key display and copy buttons (key and share link with the key in the fragment).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -18,7 +18,9 @@ describe("PackKeyField", () => {
     expect(screen.getByLabelText("Pack key")).toHaveValue("pk1.AbC");
     await user.click(screen.getByRole("button", { name: "Copy key" }));
     expect(await navigator.clipboard.readText()).toBe("pk1.AbC");
-    expect(screen.getByRole("status")).toHaveTextContent("Key copied.");
+    expect(screen.getAllByRole("status").map((status) => status.textContent)).toContain(
+      "Key copied.",
+    );
   });
 
   it("copies a share link with the key after #", async () => {
@@ -26,6 +28,8 @@ describe("PackKeyField", () => {
     render(<PackKeyField packKey="pk1.AbC" />);
     await user.click(screen.getByRole("button", { name: "Copy share link" }));
     expect(await navigator.clipboard.readText()).toBe(`${window.location.origin}/k#pk1.AbC`);
-    expect(screen.getByRole("status")).toHaveTextContent("Link copied.");
+    expect(screen.getAllByRole("status").map((status) => status.textContent)).toContain(
+      "Link copied.",
+    );
   });
 });

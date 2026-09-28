@@ -9,7 +9,7 @@
 "use client";
 
 import type { PackInputBody, PackVisibility } from "@haruhimemoe/pool/service";
-import { Button, ButtonLink, Card, PageHeader } from "@haruhimemoe/ui";
+import { Button, ButtonLink, Card, InlineConfirm, Notice, PageHeader } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
 import { useMemo, useReducer, useState } from "react";
 import { DescriptionField } from "@/components/pack/DescriptionField";
@@ -28,7 +28,7 @@ type SavedPackEditorProps = {
   remove?: (slug: string) => Promise<void>;
 };
 
-type Phase = "idle" | "saving" | "confirm-delete" | "deleting";
+type Phase = "idle" | "saving" | "deleting";
 
 export function SavedPackEditor({
   pack: saved,
@@ -79,11 +79,13 @@ export function SavedPackEditor({
     setError(null);
     try {
       await remove(saved.slug);
-      router.push("/me");
-      router.refresh();
     } catch (cause) {
       fail(cause);
+      // Keeps the confirm open, with the error above it.
+      throw cause;
     }
+    router.push("/me");
+    router.refresh();
   };
 
   return (
@@ -116,34 +118,24 @@ export function SavedPackEditor({
       ) : null}
 
       {error ? (
-        <p role="alert" className="font-bold text-rose-300 text-sm">
+        <Notice tone="error" live className="font-bold">
           {error}
-        </p>
+        </Notice>
       ) : null}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Button onClick={saveChanges} disabled={busy || pack.slots.length === 0}>
           {phase === "saving" ? "Saving…" : "Save changes"}
         </Button>
-        {phase === "confirm-delete" || phase === "deleting" ? (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-c3 text-sm">
-              Delete this pack for good? Its short link (/p/{saved.slug}) stops working for
-              everyone. Pack keys you've shared still open the pool.
-            </span>
-
-            <Button variant="ghost" onClick={() => setPhase("idle")} disabled={busy}>
-              Keep it
-            </Button>
-            <Button variant="secondary" onClick={deleteNow} disabled={busy}>
-              {phase === "deleting" ? "Deleting…" : "Yes, delete it"}
-            </Button>
-          </div>
-        ) : (
-          <Button variant="ghost" onClick={() => setPhase("confirm-delete")} disabled={busy}>
-            Delete pack
-          </Button>
-        )}
+        <InlineConfirm
+          trigger="Delete pack"
+          triggerProps={{ variant: "ghost", disabled: phase === "saving" }}
+          question={`Delete this pack for good? Its short link (/p/${saved.slug}) stops working for everyone. Pack keys you've shared still open the pool.`}
+          cancelLabel="Keep it"
+          confirmLabel="Yes, delete it"
+          pendingLabel="Deleting…"
+          onConfirm={deleteNow}
+        />
       </div>
     </div>
   );

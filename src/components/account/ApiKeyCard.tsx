@@ -1,10 +1,10 @@
 /**
  * @file src/components/account/ApiKeyCard.tsx
- * @desc /me "API key" card: create a key, show it once (Copy, "I've saved it"), then only its
- *       prefix and dates. Regenerate and revoke each ask first, inline, as magnet removal does.
- *       Every transition unmounts the clicked button, so focus is moved to a sensible target
- *       (the revealed key, the next primary button, or the confirm's first button) and the
- *       outcome is announced in the polite `status` live region.
+ * @desc /me "API key" card: create a key, show it once (ApiKeyReveal), then only its prefix and
+ *       dates. Regenerate and revoke each ask first with @haruhimemoe/ui's InlineConfirm, which
+ *       keeps focus on its own buttons. When a step swaps what the card shows, focus moves to the
+ *       revealed key or the next primary button, and the outcome is announced in the polite
+ *       `status` live region.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
  * @modified Mon Sep 28, 2026
@@ -12,8 +12,9 @@
 
 "use client";
 
-import { Button, Card, fieldClasses, TextLink } from "@haruhimemoe/ui";
+import { Button, Card, InlineConfirm, Notice, TextLink } from "@haruhimemoe/ui";
 import { useEffect, useRef, useState } from "react";
+import { ApiKeyReveal } from "@/components/account/ApiKeyReveal";
 import { API_DOCS_PATH } from "@/constants/api";
 import { PacksApiError, packsApi } from "@/lib/packs-api";
 import type { ApiKeyCreated, ApiKeyInfo } from "@/schemas/api";
@@ -25,13 +26,14 @@ type ApiKeyCardProps = {
   revokeKey?: () => Promise<void>;
 };
 
-/**
- * Where to send focus after the next render, once the DOM it targets exists. "existing" is the
- * Regenerate button: the next primary action after creating, saving, or cancelling a regenerate
- * confirm. "revokeTrigger" is the Revoke button, targeted only when cancelling its own confirm.
- */
-type FocusTarget = "reveal" | "existing" | "empty" | "confirmFirst" | "revokeTrigger" | null;
+/** Where to send focus after the next render: the revealed key, Regenerate, or Create. */
+type FocusTarget = "reveal" | "existing" | "empty" | null;
 
+/**
+ * @function ApiKeyCard
+ * @param props {ApiKeyCardProps} the account's key (or null), and test seams for create and revoke
+ * @returns {JSX.Element} the API key card
+ */
 export function ApiKeyCard({
   initial,
   createKey = packsApi.createApiKey,
@@ -39,7 +41,6 @@ export function ApiKeyCard({
 }: ApiKeyCardProps) {
   const [apiKey, setApiKey] = useState<ApiKeyInfo | null>(initial);
   const [revealed, setRevealed] = useState<string | null>(null);
-  const [confirming, setConfirming] = useState<"regenerate" | "revoke" | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState("");
@@ -47,24 +48,21 @@ export function ApiKeyCard({
 
   const revealedInputRef = useRef<HTMLInputElement>(null);
   const createButtonRef = useRef<HTMLButtonElement>(null);
-  const regenerateButtonRef = useRef<HTMLButtonElement>(null);
-  const revokeButtonRef = useRef<HTMLButtonElement>(null);
-  const confirmFirstButtonRef = useRef<HTMLButtonElement>(null);
+  const regenerateRef = useRef<HTMLDivElement>(null);
   const inFlightRef = useRef(false);
 
   useEffect(() => {
     if (pendingFocus === null) return;
-    const targets: Record<Exclude<FocusTarget, null>, HTMLElement | null> = {
+    const targets: Record<Exclude<FocusTarget, null>, HTMLElement | null | undefined> = {
       reveal: revealedInputRef.current,
-      existing: regenerateButtonRef.current,
+      existing: regenerateRef.current?.querySelector("button"),
       empty: createButtonRef.current,
-      confirmFirst: confirmFirstButtonRef.current,
-      revokeTrigger: revokeButtonRef.current,
     };
     targets[pendingFocus]?.focus();
     setPendingFocus(null);
   }, [pendingFocus]);
 
+  /** Runs one action at a time; a failure sets the error and rejects, so a confirm stays open. */
   const run = async (action: () => Promise<void>, fallback: string) => {
     // `busy` disables buttons only after a render; two clicks in one frame must not both run.
     if (inFlightRef.current) return;
@@ -73,9 +71,9 @@ export function ApiKeyCard({
     setError(null);
     try {
       await action();
-      setConfirming(null);
     } catch (cause) {
       setError(cause instanceof PacksApiError ? cause.message : fallback);
+      throw cause;
     } finally {
       inFlightRef.current = false;
       setBusy(false);
@@ -99,43 +97,11 @@ export function ApiKeyCard({
       setPendingFocus("empty");
     }, "Couldn't revoke the key. Try again.");
 
-  const copy = async () => {
-    if (revealed === null) return;
-    try {
-      await navigator.clipboard.writeText(revealed);
-      setStatus("Key copied.");
-    } catch {
-      setStatus("Couldn't copy. Select the key and copy it by hand.");
-    }
-  };
-
   const saved = () => {
     setRevealed(null);
     setStatus("Key saved.");
     setPendingFocus("existing");
   };
-
-  const openConfirm = (which: "regenerate" | "revoke") => () => {
-    setConfirming(which);
-    setPendingFocus("confirmFirst");
-  };
-
-  const cancelConfirm = () => {
-    setPendingFocus(confirming === "revoke" ? "revokeTrigger" : "existing");
-    setConfirming(null);
-  };
-
-  const confirm = (question: string, yes: string, onYes: () => Promise<void>) => (
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="text-c3 text-sm">{question}</span>
-      <Button ref={confirmFirstButtonRef} variant="ghost" onClick={cancelConfirm} disabled={busy}>
-        Keep it
-      </Button>
-      <Button variant="secondary" onClick={onYes} disabled={busy}>
-        {yes}
-      </Button>
-    </div>
-  );
 
   return (
     <Card title="API key">
@@ -146,31 +112,13 @@ export function ApiKeyCard({
       </p>
       <div className="mt-3 flex flex-col gap-3">
         {revealed !== null ? (
-          <>
-            <p className="font-bold text-c1 text-sm">Copy your key now. You won't see it again.</p>
-            <input
-              ref={revealedInputRef}
-              readOnly
-              value={revealed}
-              aria-label="Your new API key"
-              className={fieldClasses("font-mono")}
-              onFocus={(event) => event.currentTarget.select()}
-            />
-            <div className="flex flex-wrap gap-2">
-              <Button variant="secondary" onClick={copy}>
-                Copy
-              </Button>
-              <Button variant="ghost" onClick={saved}>
-                I've saved it
-              </Button>
-            </div>
-          </>
+          <ApiKeyReveal apiKey={revealed} onSaved={saved} inputRef={revealedInputRef} />
         ) : apiKey === null ? (
           <Button
             ref={createButtonRef}
             variant="secondary"
             className="self-start"
-            onClick={create}
+            onClick={() => create().catch(() => undefined)}
             disabled={busy}
           >
             Create API key
@@ -184,34 +132,24 @@ export function ApiKeyCard({
                 ? `Last used ${formatShortDate(apiKey.lastUsedAt)}.`
                 : "Not used yet."}
             </p>
-            {confirming === "regenerate" ? (
-              confirm("Your current key stops working right away.", "Yes, regenerate", create)
-            ) : confirming === "revoke" ? (
-              confirm(
-                "Revoke this key? Anything using it stops working right away.",
-                "Yes, revoke",
-                revoke,
-              )
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  ref={regenerateButtonRef}
-                  variant="secondary"
-                  onClick={openConfirm("regenerate")}
-                  disabled={busy}
-                >
-                  Regenerate
-                </Button>
-                <Button
-                  ref={revokeButtonRef}
-                  variant="ghost"
-                  onClick={openConfirm("revoke")}
-                  disabled={busy}
-                >
-                  Revoke
-                </Button>
-              </div>
-            )}
+            <div ref={regenerateRef} className="flex flex-wrap items-center gap-2">
+              <InlineConfirm
+                trigger="Regenerate"
+                triggerProps={{ disabled: busy }}
+                question="Your current key stops working right away."
+                cancelLabel="Keep it"
+                confirmLabel="Yes, regenerate"
+                onConfirm={create}
+              />
+              <InlineConfirm
+                trigger="Revoke"
+                triggerProps={{ variant: "ghost", disabled: busy }}
+                question="Revoke this key? Anything using it stops working right away."
+                cancelLabel="Keep it"
+                confirmLabel="Yes, revoke"
+                onConfirm={revoke}
+              />
+            </div>
           </>
         )}
       </div>
@@ -219,9 +157,9 @@ export function ApiKeyCard({
         {status}
       </output>
       {error ? (
-        <p role="alert" className="font-bold text-rose-300 text-sm">
+        <Notice tone="error" live className="font-bold">
           {error}
-        </p>
+        </Notice>
       ) : null}
     </Card>
   );

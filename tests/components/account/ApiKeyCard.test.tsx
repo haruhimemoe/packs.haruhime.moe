@@ -3,7 +3,7 @@
  * @desc The /me API key card: empty, one-time reveal, regenerate and revoke confirms, errors.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { act, render, screen } from "@testing-library/react";
@@ -137,7 +137,8 @@ describe("ApiKeyCard", () => {
     await user.click(screen.getByRole("button", { name: "Create API key" }));
     const field = await screen.findByRole("textbox", { name: "Your new API key" });
     expect(field).toHaveFocus();
-    expect(screen.getByRole("status")).toHaveTextContent(
+    // The card's status, not the Copy button's own.
+    expect(screen.getAllByRole("status").map((status) => status.textContent)).toContain(
       "API key created. Copy it now; it won't be shown again.",
     );
   });

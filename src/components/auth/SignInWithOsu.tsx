@@ -3,12 +3,12 @@
  * @desc "Sign in with osu!": starts the OAuth redirect, then lands on `next`.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
-import { Button } from "@haruhimemoe/ui";
+import { Button, Notice } from "@haruhimemoe/ui";
 import { useState } from "react";
 import { OSU_PROVIDER_ID } from "@/constants/auth";
 import { authClient } from "@/lib/auth-client";
@@ -46,9 +46,9 @@ export function SignInWithOsu({ next, start = startOsuSignIn }: SignInWithOsuPro
         {pending ? "Opening osu!…" : "Sign in with osu!"}
       </Button>
       {error ? (
-        <p role="alert" className="font-bold text-rose-300 text-sm">
+        <Notice tone="error" live className="font-bold">
           {error}
-        </p>
+        </Notice>
       ) : null}
     </div>
   );

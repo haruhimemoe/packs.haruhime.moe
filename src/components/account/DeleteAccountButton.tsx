@@ -1,15 +1,16 @@
 /**
  * @file src/components/account/DeleteAccountButton.tsx
- * @desc Deletes the account after a confirm, then leaves with a full reload so no page keeps
- *       showing the old session.
+ * @desc /me danger zone: deletes the account and its saved packs after an inline confirm
+ *       (@haruhimemoe/ui's InlineConfirm) that says how many packs go with it, then signs out and
+ *       goes home. A failure stays in the confirm with the server's message.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
-import { Button } from "@haruhimemoe/ui";
+import { InlineConfirm, Notice } from "@haruhimemoe/ui";
 import { useState } from "react";
 import { markSignedOut } from "@/hooks/useAccount";
 import { PacksApiError, packsApi } from "@/lib/packs-api";
@@ -22,59 +23,45 @@ type DeleteAccountButtonProps = {
 
 const goHome = () => window.location.assign("/");
 
+/**
+ * @function DeleteAccountButton
+ * @param props {DeleteAccountButtonProps} how many saved packs go with the account, and test seams
+ * @returns {JSX.Element} the Delete account confirm and any error
+ */
 export function DeleteAccountButton({
   packCount,
   deleteAccount = packsApi.deleteAccount,
   onDeleted = goHome,
 }: DeleteAccountButtonProps) {
-  const [phase, setPhase] = useState<"idle" | "confirm" | "deleting">("idle");
   const [error, setError] = useState<string | null>(null);
 
   const run = async () => {
-    setPhase("deleting");
     setError(null);
     try {
       await deleteAccount();
-      markSignedOut();
-      onDeleted();
     } catch (cause) {
       setError(
         cause instanceof PacksApiError ? cause.message : "Couldn't delete your account. Try again.",
       );
-      setPhase("confirm");
+      throw cause;
     }
+    markSignedOut();
+    onDeleted();
   };
 
   return (
     <div className="flex flex-col gap-3">
-      {phase === "idle" ? (
-        <Button variant="secondary" className="self-start" onClick={() => setPhase("confirm")}>
-          Delete account
-        </Button>
-      ) : (
-        <>
-          <p className="text-c2 text-sm">
-            This deletes your account and {packCount} saved {packCount === 1 ? "pack" : "packs"}.
-            Their short links stop working. Pack keys you've shared still open.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="ghost"
-              onClick={() => setPhase("idle")}
-              disabled={phase === "deleting"}
-            >
-              Cancel
-            </Button>
-            <Button variant="secondary" onClick={run} disabled={phase === "deleting"}>
-              {phase === "deleting" ? "Deleting…" : "Delete my account"}
-            </Button>
-          </div>
-        </>
-      )}
+      <InlineConfirm
+        trigger="Delete account"
+        question={`This deletes your account and ${packCount} saved ${packCount === 1 ? "pack" : "packs"}. Their short links stop working. Pack keys you've shared still open.`}
+        confirmLabel="Delete my account"
+        pendingLabel="Deleting…"
+        onConfirm={run}
+      />
       {error ? (
-        <p role="alert" className="font-bold text-rose-300 text-sm">
+        <Notice tone="error" live className="font-bold">
           {error}
-        </p>
+        </Notice>
       ) : null}
     </div>
   );

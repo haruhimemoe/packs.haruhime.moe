@@ -1,37 +1,29 @@
 /**
  * @file src/components/pack/PackKeyField.tsx
- * @desc Shows a pack key with copy buttons for the key and a /k#<key> share link.
+ * @desc The pack key, read-only and selected on focus, with two @haruhimemoe/ui CopyButtons: the
+ *       key, and a share link on this site's origin (known once the page runs in the browser).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
-import { Button, TextInput } from "@haruhimemoe/ui";
-import { useId, useState } from "react";
+import { CopyButton, TextInput } from "@haruhimemoe/ui";
+import { useEffect, useId, useState } from "react";
 
-type Copied = "key" | "link" | "failed" | null;
+const FAILED = "Couldn't copy. Select the key and copy it by hand.";
 
-const STATUS: Record<Exclude<Copied, null>, string> = {
-  key: "Key copied.",
-  link: "Link copied.",
-  failed: "Couldn't copy. Select the key and copy it by hand.",
-};
-
+/**
+ * @function PackKeyField
+ * @param props {{ packKey: string }} the encoded pack key
+ * @returns {JSX.Element} the key field and its Copy key and Copy share link buttons
+ */
 export function PackKeyField({ packKey }: { packKey: string }) {
-  const [copied, setCopied] = useState<Copied>(null);
+  // The origin is only known in the browser: the link button waits for it.
+  const [origin, setOrigin] = useState<string | null>(null);
+  useEffect(() => setOrigin(window.location.origin), []);
   const id = useId();
-
-  const copy = async (what: "key" | "link") => {
-    const text = what === "key" ? packKey : `${window.location.origin}/k#${packKey}`;
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(what);
-    } catch {
-      setCopied("failed");
-    }
-  };
 
   return (
     <div className="flex flex-col gap-2">
@@ -45,11 +37,20 @@ export function PackKeyField({ packKey }: { packKey: string }) {
         className="font-mono"
       />
       <div className="flex flex-wrap items-center gap-2">
-        <Button onClick={() => copy("key")}>Copy key</Button>
-        <Button variant="secondary" onClick={() => copy("link")}>
-          Copy share link
-        </Button>
-        <output className="text-c3 text-sm">{copied ? STATUS[copied] : ""}</output>
+        <CopyButton
+          text={packKey}
+          label="Copy key"
+          variant="primary"
+          copiedMessage="Key copied."
+          failedMessage={FAILED}
+        />
+        <CopyButton
+          text={origin === null ? "" : `${origin}/k#${packKey}`}
+          disabled={origin === null}
+          label="Copy share link"
+          copiedMessage="Link copied."
+          failedMessage={FAILED}
+        />
       </div>
     </div>
   );

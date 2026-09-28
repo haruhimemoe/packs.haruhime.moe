@@ -11,12 +11,12 @@
 
 "use client";
 
-import { Button, buttonClasses, TextLink } from "@haruhimemoe/ui";
+import { Notice, TextLink } from "@haruhimemoe/ui";
 import { useId, useState } from "react";
+import { MagnetLinkRow } from "@/components/pack/MagnetLinkRow";
 import { PacksApiError } from "@/lib/packs-api";
 import type { PackExport } from "@/schemas/pack-export";
-import { formatShortDate } from "@/utils/date";
-import { canonicalLinks, infohashOf } from "@/utils/magnet";
+import { canonicalLinks } from "@/utils/magnet";
 
 type MagnetLinksProps = {
   exports: readonly PackExport[];
@@ -24,39 +24,33 @@ type MagnetLinksProps = {
   onRemove?: (url: string) => Promise<void>;
 };
 
+/**
+ * @function MagnetLinks
+ * @param props {MagnetLinksProps} the pack's recorded links and, for its owner or an admin, how to
+ *        remove one
+ * @returns {JSX.Element | null} the Torrent section, or nothing when no link is valid
+ */
 export function MagnetLinks({ exports, onRemove }: MagnetLinksProps) {
-  const [status, setStatus] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [removing, setRemoving] = useState<string | null>(null);
-  const [confirming, setConfirming] = useState<string | null>(null);
   const headingId = useId();
 
   // The server already sends canonical links; this keeps anything else out of an href regardless.
   const links = canonicalLinks(exports);
   if (links.length === 0) return null;
 
-  const copy = async (url: string) => {
-    try {
-      await navigator.clipboard.writeText(url);
-      setStatus("Magnet link copied.");
-    } catch {
-      setStatus("Couldn't copy. Use Open, or copy the link by hand.");
-    }
-  };
-
-  const remove = async (url: string) => {
-    if (!onRemove) return;
-    setRemoving(url);
-    setError(null);
-    try {
-      await onRemove(url);
-      setConfirming(null);
-    } catch (cause) {
-      setError(cause instanceof PacksApiError ? cause.message : "Couldn't remove it. Try again.");
-    } finally {
-      setRemoving(null);
-    }
-  };
+  const remove = onRemove
+    ? async (url: string) => {
+        setError(null);
+        try {
+          await onRemove(url);
+        } catch (cause) {
+          setError(
+            cause instanceof PacksApiError ? cause.message : "Couldn't remove it. Try again.",
+          );
+          throw cause;
+        }
+      }
+    : undefined;
 
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-3">
@@ -71,69 +65,14 @@ export function MagnetLinks({ exports, onRemove }: MagnetLinksProps) {
         <TextLink href="/guide/download-a-torrent">How to download with a torrent</TextLink>
       </p>
       <ul className="flex flex-col gap-3">
-        {links.map((entry) => {
-          const short = (infohashOf(entry.url) ?? "").slice(0, 8);
-          return (
-            <li key={entry.url} className="flex flex-wrap items-center gap-2">
-              <span className="font-mono text-c2 text-sm">{short}</span>
-              <span className="text-c3 text-sm">Added {formatShortDate(entry.createdAt)}</span>
-              {confirming === entry.url ? (
-                <>
-                  <span className="text-c3 text-sm">
-                    Remove this link? Anyone using it can't find it here after.
-                  </span>
-                  <Button
-                    variant="ghost"
-                    onClick={() => setConfirming(null)}
-                    disabled={removing !== null}
-                  >
-                    Keep it
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={() => remove(entry.url)}
-                    disabled={removing !== null}
-                  >
-                    Yes, remove
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button
-                    variant="secondary"
-                    aria-label={`Copy magnet link ${short}`}
-                    onClick={() => copy(entry.url)}
-                  >
-                    Copy magnet link
-                  </Button>
-                  <a
-                    href={entry.url}
-                    aria-label={`Open magnet link ${short}`}
-                    className={buttonClasses({ variant: "secondary" })}
-                  >
-                    Open
-                  </a>
-                  {onRemove ? (
-                    <Button
-                      variant="ghost"
-                      aria-label={`Remove magnet link ${short}`}
-                      onClick={() => setConfirming(entry.url)}
-                      disabled={removing !== null}
-                    >
-                      Remove
-                    </Button>
-                  ) : null}
-                </>
-              )}
-            </li>
-          );
-        })}
+        {links.map((entry) => (
+          <MagnetLinkRow key={entry.url} entry={entry} onRemove={remove} />
+        ))}
       </ul>
-      <output className="block text-c3 text-sm">{status}</output>
       {error ? (
-        <p role="alert" className="font-bold text-rose-300 text-sm">
+        <Notice tone="error" live className="font-bold">
           {error}
-        </p>
+        </Notice>
       ) : null}
     </section>
   );
