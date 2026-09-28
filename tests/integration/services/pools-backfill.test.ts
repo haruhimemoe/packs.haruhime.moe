@@ -21,12 +21,9 @@ import { OSU_API_BUDGET, RATE_LIMITS_COLLECTION } from "@/constants/star-ratings
 import { getDb } from "@/lib/db";
 import { osuBudgetWindow, osuSubjectWindow } from "@/lib/osu/budget";
 import { getPackModel } from "@/models/Pack";
-import {
-  countPacksNeedingStats,
-  type PoolsBackfillResult,
-  runPoolsStatsBackfill,
-} from "@/services/pack-stats";
+import { countPacksNeedingStats } from "@/services/pack-stats";
 import { createPack, getPackForViewer } from "@/services/packs";
+import { type PoolsBackfillResult, runPoolsStatsBackfill } from "@/services/pools-stats-backfill";
 import { createTestUser } from "../../helpers/auth";
 import { setupTestDb } from "../../helpers/db";
 import { beatmapRow, onMirror, setupStatsLookups } from "../../helpers/stats-lookups";

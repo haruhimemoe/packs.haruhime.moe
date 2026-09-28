@@ -25,6 +25,8 @@ const COLLECTION_CODE = [
   ...files("src/components/collection"),
   ...files("src/lib/collections"),
   "src/utils/osu-collection.ts",
+  "src/utils/stable-collection-text.ts",
+  "src/hooks/useStableCollection.ts",
 ];
 const SENDS_OR_KEEPS =
   /\bfetch\s*\(|FormData|sendBeacon|XMLHttpRequest|WebSocket|EventSource|postMessage|\bnew\s+(?:Shared)?Worker\b|window\.open\b|\blocation\s*=(?!=)|\blocation\.(?:href|assign|replace)\b|navigator\.clipboard|localStorage|sessionStorage|indexedDB|idb-keyval|document\.cookie|\bcaches\.|navigator\.storage|@\/lib\/storage\/|console\.|"use server"|<form\b/;
@@ -66,6 +68,8 @@ const ALLOWED_IMPORTS = [
   "@/utils/pack-archive",
   // Pure string formatting ("3 maps"): nothing that can send or keep a file.
   "@/utils/text",
+  "@/utils/stable-collection-text",
+  "@/hooks/useStableCollection",
   "@/constants/pack",
 ];
 /** Allowed only through `import type`, which leaves nothing in the built code. */
@@ -94,6 +98,8 @@ describe("collection code", () => {
         "src/components/collection/StableCollection.tsx",
         "src/lib/collections/collection-files.ts",
         "src/utils/osu-collection.ts",
+        "src/utils/stable-collection-text.ts",
+        "src/hooks/useStableCollection.ts",
       ]),
     );
   });

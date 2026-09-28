@@ -5,7 +5,7 @@
  *       share one set of visibility rules.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
@@ -15,7 +15,8 @@ import { connectedDb } from "@/lib/db";
 import type { ApiPack, ApiPackPage } from "@/schemas/api";
 import type { SavedPack } from "@/schemas/saved-pack";
 import type { ApiCaller } from "@/services/api-keys";
-import { getPackWithOwner, listSavedPackPage, packKeyOf } from "@/services/packs";
+import { packKeyOf } from "@/services/pack-records";
+import { getPackWithOwner, listSavedPackPage } from "@/services/packs";
 import { listPublicPacksFull } from "@/services/public-packs";
 
 /**

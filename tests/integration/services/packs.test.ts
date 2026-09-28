@@ -16,10 +16,10 @@ import { MAX_SAVED_PACKS, OWN_PAGE_SIZE } from "@/constants/pack";
 import { getDb } from "@/lib/db";
 import { getPackModel } from "@/models/Pack";
 import { deleteAccount } from "@/services/account";
+import { duplicateKeyOn } from "@/services/pack-records";
 import {
   createPack,
   deletePack,
-  duplicateKeyOn,
   getPackForViewer,
   listPacks,
   PackLimitError,

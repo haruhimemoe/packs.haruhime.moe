@@ -7,7 +7,7 @@
  *       (services/pack-stats.ts); a slot or bucket change clears the old ones first. Saving a
  *       pack as anything but public takes away its pin (services/pins.ts). A pack
  *       pools.haruhime.moe publishes also stores its origin (the pools pool), which no DTO
- *       carries.
+ *       carries. Record mappers and pack keys live in services/pack-records.ts.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Sun Sep 27, 2026
@@ -15,25 +15,28 @@
 
 import { isDuplicateKeyError } from "@haruhimemoe/next-kit/mongo";
 import "server-only";
-import { bucketsOf, canonicalBuckets, encodePackKey } from "@haruhimemoe/pool";
+import { bucketsOf, canonicalBuckets } from "@haruhimemoe/pool";
 import type { PackInput } from "@haruhimemoe/pool/service";
 import { nanoid } from "nanoid";
 import { MAX_SAVED_PACKS, OWN_PAGE_SIZE, SLUG_LENGTH } from "@/constants/pack";
-import { connectDb } from "@/lib/db";
 import { revalidatePack, revalidatePublicPacks } from "@/lib/revalidate";
-import { getPackModel, UNPIN } from "@/models/Pack";
-import type { Pool } from "@/schemas/pack";
-import { type PackStats, packStatsSchema } from "@/schemas/pack-stats";
+import { UNPIN } from "@/models/Pack";
 import {
   type SavedPack,
   type SavedPackSummary,
-  savedPackSchema,
   savedPackSummarySchema,
   slugSchema,
 } from "@/schemas/saved-pack";
+import {
+  connectedPackModel,
+  duplicateKeyOn,
+  inputPackKey,
+  type PackOrigin,
+  packKeyOf,
+  statsKey,
+  toSavedPack,
+} from "@/services/pack-records";
 import { schedulePackStats } from "@/services/pack-stats";
-import { canonicalLinks } from "@/utils/magnet";
-import { storedBuckets } from "@/utils/stored-buckets";
 
 const SLUG_ATTEMPTS = 3;
 
@@ -46,117 +49,6 @@ export class PackLimitError extends Error {
   }
 }
 
-export type PackRecord = {
-  slug: string;
-  name: string;
-  slots: unknown;
-  buckets?: unknown;
-  description?: string | null;
-  visibility: unknown;
-  hiddenAt?: Date | null;
-  exports?: { kind: string; url: string; createdAt: Date }[] | null;
-  stats?: { computedAt?: unknown } | null;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-/**
- * @function storedStats
- * @param value {PackRecord["stats"]} a stored document's (or aggregate row's) stats
- * @returns {PackStats | undefined} the DTO form, or undefined when there are none or they don't
- *          parse (a bad stats row never breaks the pack)
- */
-export const storedStats = (value: PackRecord["stats"]): PackStats | undefined => {
-  if (!value || !(value.computedAt instanceof Date)) return undefined;
-  const parsed = packStatsSchema.safeParse({
-    ...value,
-    computedAt: value.computedAt.toISOString(),
-  });
-  return parsed.success ? parsed.data : undefined;
-};
-
-export type StoredExport = { kind: string; url: string; createdAt: Date };
-
-/**
- * @function canonicalExports
- * @param list {StoredExport[] | null | undefined} stored export links, newest first
- * @returns {StoredExport[]} the same order, each link rebuilt by canonicalMagnet (our trackers
- *          only, no web seeds, sources or peers), links that aren't v1 magnets dropped, and only
- *          the first link per infohash kept. Rows stored before links were canonical come out
- *          clean too.
- */
-export const canonicalExports = (
-  list: readonly StoredExport[] | null | undefined,
-): StoredExport[] => canonicalLinks(list ?? []);
-
-/**
- * @function toPackExports
- * @param list {StoredExport[] | null | undefined} stored export links
- * @returns {{ kind; url; createdAt: string }[]} DTO entries (ISO dates), same order, canonical
- *          magnet links only (see canonicalExports)
- */
-export const toPackExports = (list: readonly StoredExport[] | null | undefined) =>
-  // A bad row never reaches an href, and an old row never carries someone else's tracker.
-  canonicalExports(list).map((entry) => ({
-    kind: entry.kind,
-    url: entry.url,
-    createdAt: entry.createdAt.toISOString(),
-  }));
-
-/**
- * @function toSavedPack
- * @param doc {PackRecord} a stored pack document (lean, or an aggregate row)
- * @returns {SavedPack} the DTO
- * @throws {ZodError} when the stored document is corrupt
- */
-export const toSavedPack = (doc: PackRecord): SavedPack => {
-  const buckets = storedBuckets(doc.buckets);
-  const stats = storedStats(doc.stats);
-  return savedPackSchema.parse({
-    slug: doc.slug,
-    name: doc.name,
-    slots: doc.slots,
-    ...(buckets ? { buckets } : {}),
-    ...(doc.description ? { description: doc.description } : {}),
-    visibility: doc.visibility,
-    exports: toPackExports(doc.exports),
-    ...(doc.hiddenAt ? { hiddenAt: doc.hiddenAt.toISOString() } : {}),
-    ...(stats ? { stats } : {}),
-    createdAt: doc.createdAt.toISOString(),
-    updatedAt: doc.updatedAt.toISOString(),
-  });
-};
-
-/** The pools pool a pack pools.haruhime.moe publishes comes from (never sent anywhere). */
-export type PackOrigin = { kind: string; id: string };
-
-/**
- * @function duplicateKeyOn
- * @param error {unknown} what a write threw
- * @param path {string} a unique index's field ("slug", "origin.id")
- * @returns {boolean} true for a duplicate-key error on that index
- */
-export const duplicateKeyOn = (error: unknown, path: string): boolean =>
-  isDuplicateKeyError(error) &&
-  typeof error === "object" &&
-  error !== null &&
-  "keyPattern" in error &&
-  typeof error.keyPattern === "object" &&
-  error.keyPattern !== null &&
-  path in error.keyPattern;
-
-/**
- * @function connectedPackModel
- * @returns {Promise<ReturnType<typeof getPackModel>>} the Pack model, connected, indexes built
- */
-export const connectedPackModel = async () => {
-  await connectDb();
-  const model = getPackModel();
-  await model.init();
-  return model;
-};
-
-/** A change that touches a public pack (before or after) makes the cached /packs stale. */
 const touchesPublicList = (...visibilities: unknown[]): boolean => visibilities.includes("public");
 
 type CreateOptions = {
@@ -367,39 +259,6 @@ export const getPackWithOwner = async (
     : null;
 };
 
-/** The canonical pack key: the same pool (in any slot order) gives the same key. */
-const poolKey = (pack: { name: string; slots: Pool["slots"]; buckets?: Pool["buckets"] }) =>
-  encodePackKey(
-    pack.buckets
-      ? { name: pack.name, slots: pack.slots, buckets: pack.buckets }
-      : { name: pack.name, slots: pack.slots },
-  );
-
-/** Stats depend on slots and buckets only: the pool key under a fixed name. */
-const statsKey = (pack: { slots: Pool["slots"]; buckets?: Pool["buckets"] }) =>
-  poolKey({ ...pack, name: "stats" });
-
-/**
- * @function storedPackKey
- * @param doc {PackRecord} a stored pack document
- * @returns {string} its canonical pack key
- */
-export const storedPackKey = (doc: PackRecord): string => poolKey(toSavedPack(doc));
-
-/**
- * @function packKeyOf
- * @param pack {SavedPack} a saved pack
- * @returns {string} its canonical pack key (the same key the site shows)
- */
-export const packKeyOf = (pack: SavedPack): string => poolKey(pack);
-
-/**
- * @function inputPackKey
- * @param input {PackInput} a validated pack input
- * @returns {string} the canonical pack key it saves as (compare with packKeyOf)
- */
-export const inputPackKey = (input: PackInput): string => poolKey(input);
-
 /**
  * @function updatePack
  * @param slug {string} untrusted route segment
@@ -425,7 +284,7 @@ export const updatePack = async (
   const description = input.description ?? "";
   const previous = toSavedPack(before);
   // A different pack key means different files, folder, or pack.txt: its torrents no longer match.
-  const poolChanged = poolKey(previous) !== poolKey(input);
+  const poolChanged = packKeyOf(previous) !== inputPackKey(input);
   // Old stats describe other maps: clear them rather than serve them until the new ones land.
   const statsChanged = statsKey(previous) !== statsKey(input);
   const set = {

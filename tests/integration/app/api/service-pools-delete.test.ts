@@ -31,8 +31,8 @@ import {
 import { getDb } from "@/lib/db";
 import { getPackModel } from "@/models/Pack";
 import { adminDeletePack, setPackHidden } from "@/services/moderation";
-import { runPoolsStatsBackfill } from "@/services/pack-stats";
 import { createPack } from "@/services/packs";
+import { runPoolsStatsBackfill } from "@/services/pools-stats-backfill";
 import { tombstoneOrigin } from "@/services/pools-sync";
 import { buildSearchIndex } from "@/services/public-packs";
 import { flushAfter } from "../../../helpers/after";

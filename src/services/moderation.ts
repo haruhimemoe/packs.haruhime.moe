@@ -24,7 +24,7 @@ import { revalidatePack, revalidatePublicPacks } from "@/lib/revalidate";
 import { UNPIN } from "@/models/Pack";
 import { type AdminPackPage, type AdminPackRow, adminPackRowSchema } from "@/schemas/public-pack";
 import { slugSchema } from "@/schemas/saved-pack";
-import { connectedPackModel } from "@/services/packs";
+import { connectedPackModel } from "@/services/pack-records";
 import { forgetHiddenOrigin, tombstoneOrigin } from "@/services/pools-sync";
 import { escapeRegExp } from "@/utils/text";
 

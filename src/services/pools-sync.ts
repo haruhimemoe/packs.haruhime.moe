@@ -35,14 +35,13 @@ import { revalidatePack, revalidatePublicPacks } from "@/lib/revalidate";
 import type { SavedPack } from "@/schemas/saved-pack";
 import {
   connectedPackModel,
-  createPack,
   duplicateKeyOn,
   inputPackKey,
   type PackRecord,
   packKeyOf,
   toSavedPack,
-  updatePack,
-} from "@/services/packs";
+} from "@/services/pack-records";
+import { createPack, updatePack } from "@/services/packs";
 import { ensurePoolsAccount } from "@/services/pools-account";
 
 /** A tombstone: the pools id (as _id) of a pack a moderator deleted. */

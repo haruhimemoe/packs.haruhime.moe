@@ -26,7 +26,7 @@ import {
   type StoredExport,
   storedPackKey,
   toPackExports,
-} from "@/services/packs";
+} from "@/services/pack-records";
 import { canonicalMagnet, infohashOf } from "@/utils/magnet";
 
 const WRITE_ATTEMPTS = 3;

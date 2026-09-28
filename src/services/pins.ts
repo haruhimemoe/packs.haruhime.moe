@@ -20,7 +20,7 @@ import { UNPIN } from "@/models/Pack";
 import { type PinnedPack, pinnedPackSchema } from "@/schemas/public-pack";
 import { slugSchema } from "@/schemas/saved-pack";
 import { MODERATED } from "@/services/moderation";
-import { connectedPackModel } from "@/services/packs";
+import { connectedPackModel } from "@/services/pack-records";
 import {
   isOverPinLimit,
   isSamePinSet,

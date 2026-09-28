@@ -8,7 +8,7 @@
  *       filter components.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -35,14 +35,8 @@ import {
   STAR_RANGE,
 } from "@/constants/pack-filters";
 import { STAT_MOD_CODES, type StatModCode } from "@/constants/pack-stats";
-import {
-  clearFilters,
-  formatLengthText,
-  hasFilters,
-  normalizeRange,
-  type PackFilters,
-  parseLengthText,
-} from "@/utils/pack-filters";
+import { formatLengthText, parseLengthText } from "@/utils/pack-filter-query";
+import { clearFilters, hasFilters, normalizeRange, type PackFilters } from "@/utils/pack-filters";
 
 const MOD_OPTIONS: readonly ChipOption[] = STAT_MOD_CODES.map((code) => ({
   value: code,

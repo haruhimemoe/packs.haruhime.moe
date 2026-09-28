@@ -30,7 +30,12 @@ import {
   searchIndexSchema,
 } from "@/schemas/public-pack";
 import type { SavedPack } from "@/schemas/saved-pack";
-import { connectedPackModel, type PackRecord, storedStats, toSavedPack } from "@/services/packs";
+import {
+  connectedPackModel,
+  type PackRecord,
+  storedStats,
+  toSavedPack,
+} from "@/services/pack-records";
 import { PIN_SORT, PINNED } from "@/services/pins";
 import { toIndexStats } from "@/utils/saved-pack-stats";
 import { excerpt } from "@/utils/text";

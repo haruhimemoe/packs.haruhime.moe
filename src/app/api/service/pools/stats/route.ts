@@ -7,11 +7,11 @@
  *       never creates the pools account. Never cached.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { refuseWithoutPoolsToken } from "@/lib/machine-auth";
-import { runPoolsStatsBackfill } from "@/services/pack-stats";
+import { runPoolsStatsBackfill } from "@/services/pools-stats-backfill";
 
 /** Hobby's limit without fluid compute; one batch takes a few seconds. */
 export const maxDuration = 60;

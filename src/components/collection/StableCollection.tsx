@@ -20,28 +20,13 @@
  */
 
 "use client";
-
-import {
-  addToCollection,
-  COLLECTION_DB_FILENAME,
-  type CollectionDb,
-  CollectionDbError,
-  type CollectionDbRead,
-  MAX_COLLECTION_DB_BYTES,
-} from "@haruhimemoe/osu/collections";
+import type { CollectionDbRead } from "@haruhimemoe/osu/collections";
 import { Button, Notice, Select, TextInput } from "@haruhimemoe/ui";
-import { type ChangeEvent, useEffect, useId, useMemo, useRef, useState } from "react";
-import { readCollectionFile, stableCollectionFile } from "@/lib/collections/collection-files";
-import {
-  collectionErrorText,
-  collectionLabel,
-  collectionOptions,
-  defaultCollectionName,
-} from "@/utils/osu-collection";
-import { countOf } from "@/utils/text";
+import { NEW, useStableCollection } from "@/hooks/useStableCollection";
+import { readCollectionFile } from "@/lib/collections/collection-files";
+import { collectionLabel } from "@/utils/osu-collection";
+import { previewText, unlistedHint, unusualText } from "@/utils/stable-collection-text";
 
-/** The Select's value for "New collection". Existing collections use their index. */
-const NEW = "new";
 const FILE_HINT =
   "Close osu! first, so the file has your latest changes. It's in your osu! folder, next to osu!.db. On Windows that's usually %LOCALAPPDATA%\\osu!, in the hidden AppData folder: paste %LOCALAPPDATA%\\osu! into the file picker's address bar to get there. packs reads it in this tab. It isn't uploaded or saved. No collection.db yet? Make any collection in osu!, close osu!, then load the file it writes.";
 
@@ -59,70 +44,11 @@ export type StableCollectionProps = {
 };
 
 /**
- * What the reader found odd: entries it kept, empty map entries (0x00 hashes) it dropped, and
- * whether it stopped listing. Warnings past its first 1,000 come without a code, so they count
- * as kept and the text allows for empty map entries among them.
+ * @function StableCollection
+ * @param props {StableCollectionProps} the pack's name and hashes, whether map info failed, how
+ *        to save, and a read seam
+ * @returns {JSX.Element} the osu!stable side of the collection card
  */
-type Unusual = { kept: number; dropped: number; unlisted: boolean };
-type Loaded = { db: CollectionDb; unusual: Unusual };
-type Added = ReturnType<typeof addToCollection>;
-type Preview = { kind: "error"; message: string } | ({ kind: "ok" } & Added);
-
-const previewText = (added: Added, name: string): string => {
-  const quoted = `"${collectionLabel(name)}"`;
-  if (added.created) return `Makes a new collection ${quoted} with ${countOf(added.added, "map")}.`;
-  if (added.added === 0) return `All of these maps are already in ${quoted}.`;
-  const already =
-    added.alreadyPresent === 0
-      ? ""
-      : ` ${countOf(added.alreadyPresent, "is", "are")} already in it.`;
-  return `Adds ${countOf(added.added, "map")} to ${quoted}.${already}`;
-};
-
-const unusualOf = (read: CollectionDbRead): Unusual => {
-  const dropped = read.warnings.filter((warning) => warning.code === "null_hash").length;
-  return {
-    kept: read.warnings.length - dropped + read.omittedWarnings,
-    dropped,
-    unlisted: read.omittedWarnings > 0,
-  };
-};
-
-const unusualText = ({ kept, dropped, unlisted }: Unusual): string => {
-  const sentences: string[] = [];
-  if (kept > 0) {
-    const one = kept === 1;
-    const fate = unlisted
-      ? "packs keeps them, apart from any empty map entries."
-      : `packs keeps ${one ? "it" : "them"}.`;
-    sentences.push(
-      `${kept} ${one ? "entry in this file looks" : "entries in this file look"} unusual, like a map listed twice. ${fate}`,
-    );
-  }
-  if (dropped > 0) {
-    sentences.push(
-      dropped === 1
-        ? "1 map entry in this file is empty. packs leaves it out of the new file."
-        : `${dropped} map entries in this file are empty. packs leaves them out of the new file.`,
-    );
-  }
-  return sentences.join(" ");
-};
-
-const MAX_MIB = MAX_COLLECTION_DB_BYTES / (1024 * 1024);
-
-const saveErrorText = (error: unknown): string => {
-  if (!(error instanceof CollectionDbError)) return "Couldn't save collection.db. Try again.";
-  // Writing, too_large means the edited file, not the one picked: the read would have refused it.
-  if (error.code === "too_large") {
-    return `With these maps, collection.db would be over ${MAX_MIB} MiB, more than packs writes (${error.code}).`;
-  }
-  return collectionErrorText(error);
-};
-
-const unlistedHint = (unlisted: number): string =>
-  `Your file has ${countOf(unlisted, "more collection")} than this list shows. To add to one of them, pick New collection and type its exact name.`;
-
 export function StableCollection({
   packName,
   hashes,
@@ -130,131 +56,33 @@ export function StableCollection({
   download,
   readFile = readCollectionFile,
 }: StableCollectionProps) {
-  const id = useId();
-  const [loaded, setLoaded] = useState<Loaded | null>(null);
-  const [reading, setReading] = useState(false);
-  const [readError, setReadError] = useState<string | null>(null);
-  const [picked, setPicked] = useState(NEW);
-  const [typedName, setTypedName] = useState<string | null>(null);
-  const [status, setStatus] = useState("");
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
-  const collectionRef = useRef<HTMLSelectElement>(null);
-  const refocusFile = useRef(false);
-
-  // Locking the file input while it has focus sends focus to <body> in browsers that apply the
-  // focus fix-up rule. Once a read ends and it's unlocked, put focus back there, unless focus has
-  // moved on to something else.
-  useEffect(() => {
-    if (reading || !refocusFile.current) return;
-    refocusFile.current = false;
-    const active = document.activeElement;
-    if (active === null || active === document.body) fileRef.current?.focus();
-  }, [reading]);
-
-  const onFile = async (event: ChangeEvent<HTMLInputElement>) => {
-    const input = event.currentTarget;
-    const file = input.files?.[0];
-    if (!file) return;
-    // Clear the pick, so picking the same file again (say, after a read error) still fires change.
-    input.value = "";
-    setReading(true);
-    setReadError(null);
-    setStatus("");
-    setSaveError(null);
-    try {
-      const read = await readFile(file);
-      setLoaded({
-        db: { version: read.version, collections: read.collections },
-        unusual: unusualOf(read),
-      });
-      setPicked(NEW);
-      setStatus(`Read collection.db: ${countOf(read.collections.length, "collection")}.`);
-    } catch (error) {
-      setLoaded(null);
-      setReadError(collectionErrorText(error));
-    } finally {
-      refocusFile.current = true;
-      setReading(false);
-    }
-  };
-
-  // A name that repeats in the file is listed once: adding goes to its first collection.
-  const { options, unlisted } = useMemo(
-    () => collectionOptions(loaded?.db.collections ?? []),
-    [loaded],
-  );
-  const listed = useMemo(() => new Set(options.map((option) => option.value)), [options]);
-
-  const existingName =
-    loaded && picked !== NEW ? (loaded.db.collections[Number(picked)]?.name ?? null) : null;
-  const names = useMemo(
-    () => new Set(loaded?.db.collections.map((collection) => collection.name)),
-    [loaded],
-  );
-  const typedOrDefault = typedName ?? defaultCollectionName(packName);
-  // A typed name that is exactly one in the file, outer spaces and all, adds to that collection:
-  // that's how an unlisted one with outer spaces is reached. Otherwise outer spaces are dropped,
-  // since a new name can't have them.
-  const name = existingName ?? (names.has(typedOrDefault) ? typedOrDefault : typedOrDefault.trim());
-
-  const preview = useMemo((): Preview | null => {
-    if (!loaded || !hashes || hashes.length === 0) return null;
-    if (existingName === null && name === "") {
-      return { kind: "error", message: "Type a name for the new collection." };
-    }
-    try {
-      return { kind: "ok", ...addToCollection(loaded.db, name, hashes) };
-    } catch (error) {
-      return { kind: "error", message: collectionErrorText(error) };
-    }
-  }, [loaded, hashes, existingName, name]);
-
-  const similarIndex =
-    preview?.kind === "ok" && preview.similarName !== null && loaded
-      ? loaded.db.collections.findIndex((collection) => collection.name === preview.similarName)
-      : -1;
-  // Only a listed collection can be picked; an unlisted one is reached by typing its name.
-  const similarListed = listed.has(String(similarIndex));
-
-  const previewId = `${id}-preview`;
-  const similarId = `${id}-similar`;
-  const showSimilar = preview?.kind === "ok" && preview.similarName !== null;
-  // The Download button reads out what it does and any similar-name warning.
-  const downloadDescribedBy =
-    [preview?.kind === "ok" ? previewId : null, showSimilar ? similarId : null]
-      .filter(Boolean)
-      .join(" ") || undefined;
-  // Nothing to add: the button stays focusable (aria-disabled, not disabled), so keyboard and
-  // screen reader users still reach it and hear why.
-  const nothingToAdd = preview?.kind === "ok" && preview.added === 0;
-
-  const pick = (value: string) => {
-    setPicked(value);
-    setStatus("");
-  };
-
-  const onDownload = () => {
-    if (preview?.kind !== "ok" || preview.added === 0 || !loaded) return;
-    try {
-      download(stableCollectionFile(preview.db), COLLECTION_DB_FILENAME);
-    } catch (error) {
-      setSaveError(saveErrorText(error));
-      return;
-    }
-    setSaveError(null);
-    // Keep the edited file: a second add builds on this one. Pick the collection when the list
-    // shows it (a new one lands at the end, past a full list); otherwise the typed name stays,
-    // and it now names that collection.
-    const next = collectionOptions(preview.db.collections).options;
-    const index = String(preview.index);
-    setLoaded({ db: preview.db, unusual: loaded.unusual });
-    setPicked(next.some((option) => option.value === index) ? index : NEW);
-    setStatus(
-      `Downloaded collection.db with ${countOf(preview.added, "map")} added to "${collectionLabel(name)}". Now swap it in: the steps are above.`,
-    );
-    // Everything is in that collection now, so the button goes aria-disabled and keeps focus.
-  };
+  const {
+    id,
+    loaded,
+    reading,
+    readError,
+    picked,
+    setTypedName,
+    status,
+    setStatus,
+    saveError,
+    fileRef,
+    collectionRef,
+    onFile,
+    options,
+    unlisted,
+    typedOrDefault,
+    name,
+    preview,
+    similarIndex,
+    similarListed,
+    previewId,
+    similarId,
+    downloadDescribedBy,
+    nothingToAdd,
+    pick,
+    onDownload,
+  } = useStableCollection({ packName, hashes, download, readFile });
 
   return (
     <div className="flex flex-col gap-4">

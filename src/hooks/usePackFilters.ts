@@ -17,13 +17,8 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { URL_WRITE_INTERVAL_MS } from "@/constants/pack-filters";
-import {
-  EMPTY_FILTERS,
-  filtersHref,
-  type PackFilters,
-  parseFilters,
-  serializeFilters,
-} from "@/utils/pack-filters";
+import { filtersHref, parseFilters, serializeFilters } from "@/utils/pack-filter-query";
+import { EMPTY_FILTERS, type PackFilters } from "@/utils/pack-filters";
 
 export type PackFiltersHandle = {
   filters: PackFilters;
