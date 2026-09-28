@@ -13,11 +13,24 @@ import { Button, Notice } from "@haruhimemoe/ui";
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 
+const SIGN_IN_FAILED = "Couldn't start osu! sign-in. Try again.";
+
+/**
+ * better-auth's own errors carry `message`; packs' JSON errors, like the sign-in limit's 429
+ * ("Too many requests. Try again in 39 seconds."), carry it under `error`.
+ */
+const messageOf = (error: object): string => {
+  const { message, error: nested } = error as { message?: unknown; error?: { message?: unknown } };
+  if (typeof message === "string" && message) return message;
+  if (typeof nested?.message === "string" && nested.message) return nested.message;
+  return SIGN_IN_FAILED;
+};
+
 const startOsuSignIn = async (next: string): Promise<void> => {
   // genericOAuth providers register as social providers in better-auth 1.7.
   // An error comes back to /signin with `next` kept, so trying again still lands there.
   const { error } = await authClient.signIn.social(osuSignIn(next));
-  if (error) throw new Error(error.message ?? "Couldn't start osu! sign-in. Try again.");
+  if (error) throw new Error(messageOf(error));
 };
 
 type SignInWithOsuProps = { next: string; start?: (next: string) => Promise<void> };
@@ -37,7 +50,7 @@ export function SignInWithOsu({ next, start = startOsuSignIn }: SignInWithOsuPro
     try {
       await start(next);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Couldn't start osu! sign-in. Try again.");
+      setError(cause instanceof Error ? cause.message : SIGN_IN_FAILED);
       setPending(false);
     }
   };

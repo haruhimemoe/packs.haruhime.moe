@@ -36,6 +36,25 @@ describe("SignInWithOsu", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Provider not found");
   });
 
+  it("shows the wait from packs' own sign-in limit, whose message sits under error", async () => {
+    const user = userEvent.setup();
+    // What better-auth's client hands back for the 429 from src/app/api/auth/[...all]/route.ts.
+    social.mockResolvedValue({
+      data: null,
+      error: {
+        error: { code: "rate_limited", message: "Too many requests. Try again in 39 seconds." },
+        status: 429,
+        statusText: "Too Many Requests",
+      },
+    });
+    render(<SignInWithOsu next="/new" />);
+    await user.click(screen.getByRole("button", { name: "Sign in with osu!" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Too many requests. Try again in 39 seconds.",
+    );
+    expect(screen.getByRole("button", { name: "Sign in with osu!" })).toBeEnabled();
+  });
+
   it("starts sign-in toward next and waits for the redirect", async () => {
     const user = userEvent.setup();
     const start = vi.fn(() => new Promise<void>(() => undefined));
