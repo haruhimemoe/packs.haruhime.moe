@@ -54,6 +54,10 @@ const readHash = (): ViewState => {
   }
 };
 
+/**
+ * @function PackKeyView
+ * @returns {JSX.Element} the /k page for a pack key
+ */
 export function PackKeyView() {
   const router = useRouter();
   const [state, setState] = useState<ViewState>({ status: "reading" });

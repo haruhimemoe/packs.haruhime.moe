@@ -22,6 +22,11 @@ const startOsuSignIn = async (next: string): Promise<void> => {
 
 type SignInWithOsuProps = { next: string; start?: (next: string) => Promise<void> };
 
+/**
+ * @function SignInWithOsu
+ * @param props {SignInWithOsuProps} next, start
+ * @returns {JSX.Element} "Sign in with osu!"
+ */
 export function SignInWithOsu({ next, start = startOsuSignIn }: SignInWithOsuProps) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);

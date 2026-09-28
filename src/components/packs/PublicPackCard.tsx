@@ -26,6 +26,11 @@ type PublicPackCardProps = {
   date?: PackCardDate;
 };
 
+/**
+ * @function PublicPackCard
+ * @param props {PublicPackCardProps} pack, date
+ * @returns {JSX.Element} one public pack in the /packs grid
+ */
 export function PublicPackCard({ pack, date = "added" }: PublicPackCardProps) {
   const stars = pack.stats?.r;
   const length = pack.stats?.l;

@@ -50,6 +50,12 @@ const REASONS: Record<SkippedMap["reason"], string> = {
   "no-checksum": "no checksum in its map info",
 };
 
+/**
+ * @function CollectionPanel
+ * @param props {CollectionPanelProps} pack, getMeta, download
+ * @returns {JSX.Element} the "Add to osu! collection" card on /new, /k and /p/[slug], with a link
+ *          to the guide
+ */
 export function CollectionPanel({ pack, getMeta, download = downloadBlob }: CollectionPanelProps) {
   const maps = useMemo(() => collectionMaps(pack, getMeta), [pack, getMeta]);
   const hashes = maps.status === "ready" ? maps.hashes : null;

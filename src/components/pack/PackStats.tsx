@@ -27,6 +27,11 @@ type PackStatsProps<S extends { beatmapId: number }> = {
 
 const range = (low: string, high: string): string => (low === high ? low : `${low}–${high}`);
 
+/**
+ * @function PackStats
+ * @param props {PackStatsProps<S>} slots, getState, starsOf, speedOf
+ * @returns {JSX.Element | null} stats tiles above a pool
+ */
 export function PackStats<S extends { beatmapId: number }>({
   slots,
   getState,

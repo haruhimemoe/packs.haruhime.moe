@@ -50,6 +50,11 @@ type LastCopy = { slot: string | null; key: number; fresh: number };
 const copyKeyOf = (last: LastCopy, slot: string): number =>
   last.slot === slot ? last.key : last.fresh;
 
+/**
+ * @function PoolTable
+ * @param props {PoolTableProps} slots, buckets, getState, onRemove, onMove, modsBySlot, ratings
+ * @returns {JSX.Element | null} pool grouped by bucket
+ */
 export function PoolTable({
   slots,
   buckets = DEFAULT_BUCKETS,

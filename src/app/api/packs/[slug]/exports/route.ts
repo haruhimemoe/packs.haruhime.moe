@@ -25,6 +25,12 @@ import {
 
 type Context = { params: Promise<{ slug: string }> };
 
+/**
+ * @function POST
+ * @param request {Request} the incoming request
+ * @param context {{ params }} the route segment
+ * @returns {Promise<Response>} 200, 400, 401, 404, 409, 413, 415, 429
+ */
 export async function POST(request: Request, { params }: Context) {
   const { slug } = await params;
   const user = await getUserFromHeaders(request.headers);
@@ -54,6 +60,12 @@ export async function POST(request: Request, { params }: Context) {
   }
 }
 
+/**
+ * @function DELETE
+ * @param request {Request} the incoming request
+ * @param context {{ params }} the route segment
+ * @returns {Promise<Response>} 200, 400, 401, 403, 404, 409, 429
+ */
 export async function DELETE(request: Request, { params }: Context) {
   const crossSite = refuseCrossSite(request);
   if (crossSite) return crossSite;

@@ -75,6 +75,11 @@ const noMatchHint = (hidden: number, q: string, filtered: boolean): string | nul
   return q === "" ? null : "Try other words.";
 };
 
+/**
+ * @function PublicPackBrowser
+ * @param props {PublicPackBrowserProps} children, loadIndex
+ * @returns {JSX.Element} /packs in the browser
+ */
 export function PublicPackBrowser({ children, loadIndex }: PublicPackBrowserProps) {
   const { filters, setFilters, followUrl, urlReads } = usePackFilters();
   const { state, failures, load, retry } = useSearchIndex(loadIndex);

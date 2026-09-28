@@ -3,7 +3,7 @@
  * @desc Edit a saved pack. Anyone but the owner gets a 404.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { Metadata } from "next";
@@ -14,6 +14,11 @@ import { getPackForViewer } from "@/services/packs";
 
 export const metadata: Metadata = { title: "Edit pack", robots: { index: false } };
 
+/**
+ * @function EditPackPage
+ * @param props {PageProps<"/p/[slug]/edit">} params
+ * @returns {Promise<JSX.Element>} the page
+ */
 export default async function EditPackPage({ params }: PageProps<"/p/[slug]/edit">) {
   const { slug } = await params;
   const user = await requireUser(`/p/${slug}/edit`);

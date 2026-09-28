@@ -5,7 +5,7 @@
  *       here in the browser instead.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -25,6 +25,11 @@ type PackNotFoundFallbackProps = {
   readCookie?: () => string;
 };
 
+/**
+ * @function PackNotFoundFallback
+ * @param props {PackNotFoundFallbackProps} slug, api, readCookie
+ * @returns {JSX.Element} /p/[slug] not-found page
+ */
 export function PackNotFoundFallback({
   slug,
   api = packsApi,

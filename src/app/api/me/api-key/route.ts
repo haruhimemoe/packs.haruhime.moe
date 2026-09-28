@@ -25,12 +25,22 @@ const SIGN_IN = "Sign in with osu! to manage your API key.";
 const NO_KEY = "You don't have an API key.";
 const NO_STORE = { "Cache-Control": "no-store" };
 
+/**
+ * @function GET
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} 200, 401
+ */
 export async function GET(request: Request) {
   const user = await getUserFromHeaders(request.headers);
   if (!user) return jsonError(401, SIGN_IN);
   return Response.json({ apiKey: await getApiKeyInfo(user.id) }, { headers: NO_STORE });
 }
 
+/**
+ * @function POST
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} 201, 401, 403
+ */
 export async function POST(request: Request) {
   const crossSite = refuseCrossSite(request);
   if (crossSite) return crossSite;
@@ -44,6 +54,11 @@ export async function POST(request: Request) {
   });
 }
 
+/**
+ * @function DELETE
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} 204, 401, 403, 404
+ */
 export async function DELETE(request: Request) {
   const crossSite = refuseCrossSite(request);
   if (crossSite) return crossSite;

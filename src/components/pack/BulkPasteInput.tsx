@@ -53,6 +53,11 @@ const summarize = (
 const PLACEHOLDER =
   "NM1 129891\nEZ1 https://osu.ppy.sh/beatmapsets/39804#osu/129891\n1872396, 2000001";
 
+/**
+ * @function BulkPasteInput
+ * @param props {BulkPasteInputProps} onAdd, existing, buckets, disabled
+ * @returns {JSX.Element} the form that pastes a whole mappool
+ */
 export function BulkPasteInput({
   onAdd,
   existing = [],

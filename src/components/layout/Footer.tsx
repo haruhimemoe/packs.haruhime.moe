@@ -6,7 +6,7 @@
  *       parent brand (haruhime.moe wordmark), our Discord server and the haruhimemoe GitHub org.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { SiteFooter, type SiteFooterColumn } from "@haruhimemoe/ui";
@@ -40,6 +40,10 @@ export const FOOTER_COLUMNS: readonly SiteFooterColumn[] = [
   },
 ];
 
+/**
+ * @function Footer
+ * @returns {JSX.Element} site footer
+ */
 export function Footer() {
   return (
     <SiteFooter

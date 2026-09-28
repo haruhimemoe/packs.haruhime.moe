@@ -5,7 +5,7 @@
  *       collection.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -23,6 +23,10 @@ import { useBeatmapMeta } from "@/hooks/useBeatmapMeta";
 import { usePackDraft } from "@/hooks/usePackDraft";
 import { saveDraft } from "@/lib/storage/drafts";
 
+/**
+ * @function PackBuilder
+ * @returns {JSX.Element} the /new experience
+ */
 export function PackBuilder() {
   const { pack, hydrated, dispatch } = usePackDraft();
   const ids = useMemo(() => pack.slots.map((s) => s.beatmapId), [pack.slots]);

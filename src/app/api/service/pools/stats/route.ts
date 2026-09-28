@@ -16,6 +16,11 @@ import { runPoolsStatsBackfill } from "@/services/pools-stats-backfill";
 /** Hobby's limit without fluid compute; one batch takes a few seconds. */
 export const maxDuration = 60;
 
+/**
+ * @function POST
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} 200, 401, 429, 503
+ */
 export async function POST(request: Request) {
   const refused = await refuseWithoutPoolsToken(request);
   if (refused) return refused;

@@ -17,6 +17,12 @@ import { deletePack, updatePack } from "@/services/packs";
 
 type Context = { params: Promise<{ slug: string }> };
 
+/**
+ * @function GET
+ * @param request {Request} the incoming request
+ * @param context {{ params }} the route segment
+ * @returns {Promise<Response>} 200, 404
+ */
 export const GET = withApiKey<Context>(async (_request, caller, { params }) => {
   const { slug } = await params;
   const pack = await getApiPack(slug, caller);
@@ -24,6 +30,12 @@ export const GET = withApiKey<Context>(async (_request, caller, { params }) => {
   return Response.json({ pack });
 });
 
+/**
+ * @function PUT
+ * @param request {Request} the incoming request
+ * @param context {{ params }} the route segment
+ * @returns {Promise<Response>} 200, 400, 404, 413, 415
+ */
 export const PUT = withApiKey<Context>(async (request, caller, { params }) => {
   const { slug } = await params;
   const body = await parsePackBody(request, packInputSchema);
@@ -35,6 +47,12 @@ export const PUT = withApiKey<Context>(async (request, caller, { params }) => {
   return Response.json({ pack: toApiPack(pack, caller.username) });
 });
 
+/**
+ * @function DELETE
+ * @param request {Request} the incoming request
+ * @param context {{ params }} the route segment
+ * @returns {Promise<Response>} 204, 404
+ */
 export const DELETE = withApiKey<Context>(async (_request, caller, { params }) => {
   const { slug } = await params;
   if (!(await deletePack(slug, caller.id))) return jsonError(404, PACK_NOT_FOUND);

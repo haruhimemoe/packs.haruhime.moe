@@ -5,7 +5,7 @@
  *       slugs 404.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { DOC_SLUGS, isDocSlug } from "@/constants/docs";
@@ -14,10 +14,20 @@ import { readDocMarkdown } from "@/lib/docs";
 export const dynamic = "force-static";
 export const dynamicParams = false;
 
+/**
+ * @function generateStaticParams
+ * @returns {Promise<object[]>} every path to prerender at build time
+ */
 export function generateStaticParams() {
   return DOC_SLUGS.map((slug) => ({ slug }));
 }
 
+/**
+ * @function GET
+ * @param request {Request} the incoming request
+ * @param context {{ params }} the route segment
+ * @returns {Promise<Response>} 200 text/markdown, or 404 for an unknown doc
+ */
 export async function GET(_request: Request, { params }: RouteContext<"/docs/[slug]/md">) {
   const { slug } = await params;
   if (!isDocSlug(slug)) return new Response("Not found.\n", { status: 404 });

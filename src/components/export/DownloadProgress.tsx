@@ -41,6 +41,12 @@ type DownloadProgressProps = {
   statuses: ReadonlyMap<number, SetStatus>;
 };
 
+/**
+ * @function DownloadProgress
+ * @param props {DownloadProgressProps} rows, statuses
+ * @returns {JSX.Element} overall and per-slot download state while a pack's sets come down from the
+ *          mirror
+ */
 export function DownloadProgress({ rows, statuses }: DownloadProgressProps) {
   const setIds = [...new Set(rows.map((row) => row.setId))];
   const ready = setIds.filter((id) => statuses.get(id)?.status === "ready").length;

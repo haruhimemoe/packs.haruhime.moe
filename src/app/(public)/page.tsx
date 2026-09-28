@@ -5,7 +5,7 @@
  *       renders without it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { Metadata } from "next";
@@ -38,6 +38,10 @@ export const loadRecentPacks = async (
   }
 };
 
+/**
+ * @function HomePage
+ * @returns {Promise<JSX.Element>} the page
+ */
 export default async function HomePage() {
   return <HomeScreen recent={await loadRecentPacks()} />;
 }

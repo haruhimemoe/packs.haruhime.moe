@@ -3,7 +3,7 @@
  * @desc Add one map: pick a bucket (or no slot), paste an ID or osu! difficulty link.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -27,6 +27,11 @@ type AddBeatmapFormProps = {
   disabled?: boolean;
 };
 
+/**
+ * @function AddBeatmapForm
+ * @param props {AddBeatmapFormProps} onAdd, buckets, disabled
+ * @returns {JSX.Element} the form that adds one map
+ */
 export function AddBeatmapForm({
   onAdd,
   buckets = DEFAULT_BUCKETS,

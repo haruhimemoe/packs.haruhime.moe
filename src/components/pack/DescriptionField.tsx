@@ -18,6 +18,11 @@ type DescriptionFieldProps = {
   disabled?: boolean;
 };
 
+/**
+ * @function DescriptionField
+ * @param props {DescriptionFieldProps} value, onChange, disabled
+ * @returns {JSX.Element} saved pack description textarea with a live character count
+ */
 export function DescriptionField({ value, onChange, disabled }: DescriptionFieldProps) {
   const inputId = useId();
   const countId = useId();

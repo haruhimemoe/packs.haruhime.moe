@@ -7,7 +7,7 @@
  *       confirmation after an unpin, so it isn't lost with the row.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -31,6 +31,11 @@ type Direction = "up" | "down";
 /** The button to focus after a move: the same one, or the other when the pack reached an end. */
 type FocusTarget = { slug: string; direction: Direction };
 
+/**
+ * @function PinnedPacks
+ * @param props {PinnedPacksProps} pins, api
+ * @returns {JSX.Element} /admin "Pinned packs" panel
+ */
 export function PinnedPacks({ pins: initial, api = packsApi }: PinnedPacksProps) {
   const router = useRouter();
   const [pins, setPins] = useState(initial);

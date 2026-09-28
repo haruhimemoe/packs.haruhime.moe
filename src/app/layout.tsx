@@ -4,7 +4,7 @@
  *       PageShell frame around the packs header and footer.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { PageShell } from "@haruhimemoe/ui";
@@ -32,6 +32,11 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image" },
 };
 
+/**
+ * @function RootLayout
+ * @param props {{ children: ReactNode }} the page inside the site frame
+ * @returns {JSX.Element} root layout
+ */
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={nunito.variable}>

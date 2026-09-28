@@ -4,7 +4,7 @@
  *       so an unzipped pack seeds it as-is. Browser-only.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { SITE } from "@/constants/site";
@@ -62,6 +62,7 @@ export const makePackTorrent = (
  * @param built {BuiltTorrent} a made torrent
  * @param plan {ArchivePlan} its plan (names the file)
  * @param download {(blob: Blob, filename: string) => void} download trigger (tests)
+ * @returns {void} nothing; the browser saves the .torrent
  */
 export const saveTorrentFile = (
   built: BuiltTorrent,

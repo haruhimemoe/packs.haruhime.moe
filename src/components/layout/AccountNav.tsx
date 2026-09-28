@@ -13,6 +13,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAccount } from "@/lib/account";
 
+/**
+ * @function AccountNav
+ * @returns {JSX.Element} header account area
+ */
 export function AccountNav() {
   const account = useAccount();
 

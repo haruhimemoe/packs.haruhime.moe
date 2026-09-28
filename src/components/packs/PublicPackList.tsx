@@ -4,7 +4,7 @@
  *       by: when each pack was added (default), or when it was last updated.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { type PackCardDate, PublicPackCard } from "@/components/packs/PublicPackCard";
@@ -15,6 +15,11 @@ type PublicPackListProps = {
   date?: PackCardDate;
 };
 
+/**
+ * @function PublicPackList
+ * @param props {PublicPackListProps} packs, date
+ * @returns {JSX.Element} grid of public pack cards, or the empty state
+ */
 export function PublicPackList({ packs, date }: PublicPackListProps) {
   if (packs.length === 0) {
     return (

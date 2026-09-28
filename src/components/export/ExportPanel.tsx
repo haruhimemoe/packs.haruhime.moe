@@ -46,6 +46,12 @@ export type ExportPanelProps = {
   torrent?: TorrentSeams;
 };
 
+/**
+ * @function ExportPanel
+ * @param props {ExportPanelProps} pack, packKey, getMeta, magnets, torrentLinks, onRetryMeta, deps,
+ *        zip, torrent
+ * @returns {JSX.Element} the "Download" card on /new, /k and /p/[slug] (at the top of /k and /p)
+ */
 export function ExportPanel({
   pack,
   packKey,

@@ -4,7 +4,7 @@
  *       one after mount, so previews and localhost show links that work there.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -13,6 +13,11 @@ import { CopyButton, TextInput } from "@haruhimemoe/ui";
 import { useEffect, useId, useState } from "react";
 import { SITE } from "@/constants/site";
 
+/**
+ * @function ShortLinkField
+ * @param props {{ slug: string }} the saved pack's slug
+ * @returns {JSX.Element} copyable /p/{slug} link
+ */
 export function ShortLinkField({ slug }: { slug: string }) {
   const id = useId();
   const [origin, setOrigin] = useState<string>(SITE.url);

@@ -3,7 +3,7 @@
  * @desc Legal document route. Static params come from the registry; unknown slugs 404.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { PageHeader, Prose } from "@haruhimemoe/ui";
@@ -23,10 +23,19 @@ const LOADERS: Record<LegalSlug, () => Promise<{ default: MDXContent }>> = {
 
 export const dynamicParams = false;
 
+/**
+ * @function generateStaticParams
+ * @returns {Promise<object[]>} every path to prerender at build time
+ */
 export function generateStaticParams() {
   return LEGAL_SLUGS.map((doc) => ({ doc }));
 }
 
+/**
+ * @function generateMetadata
+ * @param props {object} the route params
+ * @returns {Promise<Metadata>} the page's title, description and links
+ */
 export async function generateMetadata({ params }: PageProps<"/legal/[doc]">): Promise<Metadata> {
   const { doc } = await params;
   if (!isLegalSlug(doc)) return {};
@@ -34,6 +43,11 @@ export async function generateMetadata({ params }: PageProps<"/legal/[doc]">): P
   return { title, description, alternates: { canonical: `/legal/${doc}` } };
 }
 
+/**
+ * @function LegalPage
+ * @param props {PageProps<"/legal/[doc]">} params
+ * @returns {Promise<JSX.Element>} the page
+ */
 export default async function LegalPage({ params }: PageProps<"/legal/[doc]">) {
   const { doc } = await params;
   if (!isLegalSlug(doc)) notFound();

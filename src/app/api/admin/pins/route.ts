@@ -16,6 +16,11 @@ import { getUserFromHeaders } from "@/lib/auth";
 import { pinOrderBodySchema } from "@/schemas/public-pack";
 import { PinRefusedError, reorderPins } from "@/services/pins";
 
+/**
+ * @function PUT
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} 200, 400, 403, 404, 409, 413, 415
+ */
 export async function PUT(request: Request) {
   const user = await getUserFromHeaders(request.headers);
   if (!user?.isAdmin) return jsonError(404, "Not found.");

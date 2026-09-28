@@ -16,6 +16,11 @@ import { getCurrentUser } from "@/lib/auth-session";
 
 export const metadata: Metadata = { title: "Sign in", robots: { index: false } };
 
+/**
+ * @function SignInPage
+ * @param props {PageProps<"/signin">} searchParams
+ * @returns {Promise<JSX.Element>} the page
+ */
 export default async function SignInPage({ searchParams }: PageProps<"/signin">) {
   const params = await searchParams;
   const next = safeNextPath(typeof params.next === "string" ? params.next : null, {

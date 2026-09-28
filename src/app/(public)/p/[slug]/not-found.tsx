@@ -4,11 +4,15 @@
  *       in the browser.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { PackNotFoundFallback } from "@/components/pack/PackNotFoundFallback";
 
+/**
+ * @function NotFound
+ * @returns {JSX.Element} the not-found page
+ */
 export default function NotFound() {
   return <PackNotFoundFallback />;
 }

@@ -6,7 +6,7 @@
  *       focusable while it works, so focus isn't lost.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -30,6 +30,11 @@ type PinButtonProps = {
 
 const PINNED = "Pinned to the top of /packs.";
 
+/**
+ * @function PinButton
+ * @param props {PinButtonProps} slug, pinned, api
+ * @returns {JSX.Element} the Pin or Unpin button admins see on a public pack's page
+ */
 export function PinButton({ slug, pinned: initial, api }: PinButtonProps) {
   const [pinned, setPinned] = useState(initial);
   const [status, setStatus] = useState(initial ? PINNED : "");

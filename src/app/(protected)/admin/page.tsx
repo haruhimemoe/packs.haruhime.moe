@@ -22,6 +22,11 @@ export const metadata: Metadata = { title: "Admin", robots: { index: false } };
 const first = (value: string | string[] | undefined): string =>
   (Array.isArray(value) ? value[0] : value) ?? "";
 
+/**
+ * @function AdminPage
+ * @param props {PageProps<"/admin">} searchParams
+ * @returns {Promise<JSX.Element>} the page
+ */
 export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
   const user = await requireUser("/admin");
   if (!user.isAdmin) notFound();

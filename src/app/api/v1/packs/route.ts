@@ -16,12 +16,22 @@ import { listPublicApiPacks, toApiPack } from "@/services/api-packs";
 import { createPack, PackLimitError } from "@/services/packs";
 import { pageFromQuery } from "@/utils/paging";
 
+/**
+ * @function GET
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} 200, 400, 401, 429
+ */
 export const GET = withApiKey(async (request) => {
   const page = pageFromQuery(request.url);
   if (page === null) return jsonError(400, BAD_PAGE);
   return Response.json(await listPublicApiPacks(page));
 });
 
+/**
+ * @function POST
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} 201, 400, 401, 409, 413, 415, 429
+ */
 export const POST = withApiKey(async (request, caller) => {
   const body = await parsePackBody(request, packInputSchema);
   if (!body.ok) return body.response;

@@ -4,7 +4,7 @@
  *       server or its logs; all decoding happens in the browser.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { Metadata } from "next";
@@ -17,6 +17,10 @@ export const metadata: Metadata = {
   robots: { index: false, follow: true },
 };
 
+/**
+ * @function OpenPackPage
+ * @returns {JSX.Element} the page
+ */
 export default function OpenPackPage() {
   return <PackKeyView />;
 }

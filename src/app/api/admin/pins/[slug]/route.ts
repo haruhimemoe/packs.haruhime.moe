@@ -43,10 +43,20 @@ const change = async (
   }
 };
 
+/**
+ * @function PUT
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} 200
+ */
 export async function PUT(request: Request, context: Context) {
   return change(request, context, pinPack);
 }
 
+/**
+ * @function DELETE
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} 200
+ */
 export async function DELETE(request: Request, context: Context) {
   return change(request, context, unpinPack);
 }

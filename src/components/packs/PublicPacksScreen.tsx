@@ -21,6 +21,11 @@ type PublicPacksScreenProps = PublicPackPage & {
   pinned?: readonly PublicPackCard[];
 };
 
+/**
+ * @function PublicPacksScreen
+ * @param props {PublicPacksScreenProps} packs, pinned, page, pageCount, total
+ * @returns {JSX.Element} /packs body (server-rendered)
+ */
 export function PublicPacksScreen({
   packs,
   pinned = [],

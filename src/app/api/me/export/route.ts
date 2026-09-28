@@ -12,6 +12,11 @@ import { getUserFromHeaders } from "@/lib/auth";
 import { exportAccountData } from "@/services/account-export";
 import { accountExportFileName } from "@/utils/account-export";
 
+/**
+ * @function GET
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} 200 the account export as a JSON download, or 401 signed out
+ */
 export async function GET(request: Request) {
   const user = await getUserFromHeaders(request.headers);
   if (!user) {

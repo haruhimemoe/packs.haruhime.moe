@@ -18,6 +18,10 @@ export const metadata: Metadata = {
   alternates: { canonical: "/brand" },
 };
 
+/**
+ * @function BrandPage
+ * @returns {JSX.Element} the page
+ */
 export default function BrandPage() {
   return (
     <div className="flex flex-col gap-8">

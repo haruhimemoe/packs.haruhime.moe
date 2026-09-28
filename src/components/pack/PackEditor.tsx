@@ -32,6 +32,11 @@ type PackEditorProps = {
   meta: BeatmapMetaApi;
 };
 
+/**
+ * @function PackEditor
+ * @param props {PackEditorProps} pack, dispatch, ready, meta
+ * @returns {JSX.Element} editing surface shared by /new and /p/[slug]/edit
+ */
 export function PackEditor({ pack, dispatch, ready, meta }: PackEditorProps) {
   // Armed for one pack value: any edit makes a new pack object and disarms it.
   const [armedFor, setArmedFor] = useState<Pool | null>(null);

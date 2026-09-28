@@ -30,6 +30,11 @@ type SavedPackEditorProps = {
 
 type Phase = "idle" | "saving" | "deleting";
 
+/**
+ * @function SavedPackEditor
+ * @param props {SavedPackEditorProps} pack, update, remove
+ * @returns {JSX.Element} the /p/[slug]/edit editor
+ */
 export function SavedPackEditor({
   pack: saved,
   update = packsApi.update,

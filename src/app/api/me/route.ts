@@ -12,6 +12,11 @@ import { refuseCrossSite } from "@/lib/api";
 import { getUserFromHeaders } from "@/lib/auth";
 import { deleteAccount } from "@/services/account";
 
+/**
+ * @function DELETE
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} 204, 401, 403
+ */
 export async function DELETE(request: Request) {
   const crossSite = refuseCrossSite(request);
   if (crossSite) return crossSite;

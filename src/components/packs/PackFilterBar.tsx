@@ -103,6 +103,11 @@ type PackFilterBarProps = {
   urlReads?: number;
 };
 
+/**
+ * @function PackFilterBar
+ * @param props {PackFilterBarProps} filters, onChange, resultCount, onSearchFocus, urlReads
+ * @returns {JSX.Element} the /packs filter bar, laid out like the osu! beatmap listing
+ */
 export function PackFilterBar({
   filters,
   onChange,

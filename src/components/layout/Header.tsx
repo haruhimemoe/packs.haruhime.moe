@@ -4,7 +4,7 @@
  *       account area.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { SiteHeader } from "@haruhimemoe/ui";
@@ -12,6 +12,10 @@ import Link from "next/link";
 import { AccountNav } from "@/components/layout/AccountNav";
 import { NAV_LINKS, SITE } from "@/constants/site";
 
+/**
+ * @function Header
+ * @returns {JSX.Element} site header
+ */
 export function Header() {
   return (
     <SiteHeader

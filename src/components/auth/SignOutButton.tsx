@@ -18,6 +18,11 @@ const defaultSignOut = async (): Promise<void> => {
   await authClient.signOut();
 };
 
+/**
+ * @function SignOutButton
+ * @param props {{ signOut? }} how to sign out (a test seam)
+ * @returns {JSX.Element} the Sign out button
+ */
 export function SignOutButton({ signOut = defaultSignOut }: { signOut?: () => Promise<void> }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);

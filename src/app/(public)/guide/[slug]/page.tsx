@@ -3,7 +3,7 @@
  * @desc Guide document route. Static params from the registry; unknown slugs 404.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { JsonLd, PageHeader, Prose } from "@haruhimemoe/ui";
@@ -23,10 +23,19 @@ const LOADERS: Record<GuideSlug, () => Promise<{ default: MDXContent }>> = {
 
 export const dynamicParams = false;
 
+/**
+ * @function generateStaticParams
+ * @returns {Promise<object[]>} every path to prerender at build time
+ */
 export function generateStaticParams() {
   return GUIDE_SLUGS.map((slug) => ({ slug }));
 }
 
+/**
+ * @function generateMetadata
+ * @param props {object} the route params
+ * @returns {Promise<Metadata>} the page's title, description and links
+ */
 export async function generateMetadata({ params }: PageProps<"/guide/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   if (!isGuideSlug(slug)) return {};
@@ -34,6 +43,11 @@ export async function generateMetadata({ params }: PageProps<"/guide/[slug]">): 
   return { title, description, alternates: { canonical: `/guide/${slug}` } };
 }
 
+/**
+ * @function GuidePage
+ * @param props {PageProps<"/guide/[slug]">} params
+ * @returns {Promise<JSX.Element>} the page
+ */
 export default async function GuidePage({ params }: PageProps<"/guide/[slug]">) {
   const { slug } = await params;
   if (!isGuideSlug(slug)) notFound();

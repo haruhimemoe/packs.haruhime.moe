@@ -18,6 +18,11 @@ export const maxDuration = 60;
 
 const NO_STORE = { "Cache-Control": "no-store" };
 
+/**
+ * @function GET
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} 200, 401, 503
+ */
 export async function GET(request: Request) {
   const refused = await refuseWithoutCronSecret(
     request,

@@ -17,6 +17,11 @@ import { countOf } from "@/utils/text";
  * @param packs {SavedPackSummary[]} this page's packs
  * @param total {number} every pack the user saved (an empty page past the end links back)
  */
+/**
+ * @function MyPacksList
+ * @param props {{ packs; total }} this page of saved packs and how many there are
+ * @returns {JSX.Element} the /me list of saved packs
+ */
 export function MyPacksList({ packs, total }: { packs: SavedPackSummary[]; total: number }) {
   if (packs.length === 0 && total > 0) {
     return (

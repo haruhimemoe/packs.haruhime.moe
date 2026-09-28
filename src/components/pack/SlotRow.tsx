@@ -122,6 +122,12 @@ const body = (
   }
 };
 
+/**
+ * @function SlotRow
+ * @param props {SlotRowProps} slot, entry, state, onRemove, moveTargets, onMove, slotMods, ratings,
+ *        copyKey, onCopy
+ * @returns {JSX.Element} one pool slot
+ */
 export function SlotRow({
   slot,
   entry,

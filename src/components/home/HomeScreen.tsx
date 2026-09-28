@@ -94,6 +94,11 @@ const FAQ_PAGE = {
   })),
 };
 
+/**
+ * @function HomeScreen
+ * @param props {{ recent }} the newest public packs for the recent strip
+ * @returns {JSX.Element} homepage body
+ */
 export function HomeScreen({ recent }: { recent: readonly PublicPackCard[] }) {
   return (
     <div className="flex flex-col gap-10">

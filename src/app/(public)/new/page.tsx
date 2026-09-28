@@ -3,7 +3,7 @@
  * @desc /new: the anonymous pack builder.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { PageHeader } from "@haruhimemoe/ui";
@@ -16,6 +16,10 @@ export const metadata: Metadata = {
   alternates: { canonical: "/new" },
 };
 
+/**
+ * @function NewPackPage
+ * @returns {JSX.Element} the page
+ */
 export default function NewPackPage() {
   return (
     <div className="flex flex-col gap-6">

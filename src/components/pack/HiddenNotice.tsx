@@ -3,11 +3,15 @@
  * @desc Shown to a hidden pack's owner (and admins): what hiding does and who to ask.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { SITE } from "@/constants/site";
 
+/**
+ * @function HiddenNotice
+ * @returns {JSX.Element} the notice a hidden pack's owner (and admins) see
+ */
 export function HiddenNotice() {
   return (
     <p

@@ -3,7 +3,7 @@
  * @desc /guide: every guide, with its description and last update. Static.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { Card, PageHeader } from "@haruhimemoe/ui";
@@ -18,6 +18,10 @@ export const metadata: Metadata = {
   alternates: { canonical: "/guide" },
 };
 
+/**
+ * @function GuideIndexPage
+ * @returns {JSX.Element} the page
+ */
 export default function GuideIndexPage() {
   return (
     <div className="flex flex-col gap-8">

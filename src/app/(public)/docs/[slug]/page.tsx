@@ -4,7 +4,7 @@
  *       The header carries "Copy as Markdown" with the doc's Markdown, read at build time.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { PageHeader, Prose } from "@haruhimemoe/ui";
@@ -23,10 +23,19 @@ const LOADERS: Record<DocSlug, () => Promise<{ default: MDXContent }>> = {
 
 export const dynamicParams = false;
 
+/**
+ * @function generateStaticParams
+ * @returns {Promise<object[]>} every path to prerender at build time
+ */
 export function generateStaticParams() {
   return DOC_SLUGS.map((slug) => ({ slug }));
 }
 
+/**
+ * @function generateMetadata
+ * @param props {object} the route params
+ * @returns {Promise<Metadata>} the page's title, description and links
+ */
 export async function generateMetadata({ params }: PageProps<"/docs/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   if (!isDocSlug(slug)) return {};
@@ -34,6 +43,11 @@ export async function generateMetadata({ params }: PageProps<"/docs/[slug]">): P
   return { title, description, alternates: { canonical: `/docs/${slug}` } };
 }
 
+/**
+ * @function DocsPage
+ * @param props {PageProps<"/docs/[slug]">} params
+ * @returns {Promise<JSX.Element>} the page
+ */
 export default async function DocsPage({ params }: PageProps<"/docs/[slug]">) {
   const { slug } = await params;
   if (!isDocSlug(slug)) notFound();

@@ -4,7 +4,7 @@
  *       refusal (private windows, blocked site data) or junk just means the defaults.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import {
@@ -48,6 +48,7 @@ export const loadDownloadChoices = (
  * @function saveDownloadChoices
  * @param choices {DownloadChoices} the choice to keep
  * @param storage {ChoicesStorage | null} where to write (injectable for tests)
+ * @returns {void} nothing; a storage failure is ignored
  */
 export const saveDownloadChoices = (
   choices: DownloadChoices,
@@ -63,6 +64,7 @@ export const saveDownloadChoices = (
 /**
  * @function clearDownloadChoices
  * @param storage {ChoicesStorage | null} where to delete (injectable for tests)
+ * @returns {void} nothing; a storage failure is ignored
  */
 export const clearDownloadChoices = (storage: ChoicesStorage | null = browserStorage()): void => {
   try {

@@ -61,6 +61,11 @@ export type PackViewApi = PinApi & {
   adminRemoveMagnet: (slug: string, url: string) => Promise<PackExport[]>;
 };
 
+/**
+ * @function SavedPackView
+ * @param props {object} pack, isOwner, isAdmin, pinned, api, readCookie
+ * @returns {JSX.Element} the /p/[slug] page body: the Download card first, then the pool
+ */
 export function SavedPackView({
   pack,
   isOwner: isOwnerProp,

@@ -5,7 +5,7 @@
  *       server nothing.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { buildSearchIndex } from "@/services/public-packs";
@@ -13,6 +13,11 @@ import { buildSearchIndex } from "@/services/public-packs";
 export const dynamic = "force-static";
 export const revalidate = 86400;
 
+/**
+ * @function GET
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} 200
+ */
 export async function GET() {
   return Response.json(await buildSearchIndex());
 }

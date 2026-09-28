@@ -49,7 +49,7 @@ Every `.ts`, `.tsx`, `.mjs`, and `.css` source file starts with:
  */
 ```
 
-Dates match `date "+%a %b %-d, %Y"`. Update `@modified` on edits, never `@created`. Exported functions get a JSDoc block with `@function`, `@param`, `@returns` (and `@throws` when they throw).
+Dates match `date "+%a %b %-d, %Y"`. Update `@modified` on edits, never `@created`. Exported functions get a JSDoc block with `@function`, `@param`, `@returns` (and `@throws` when they throw). That includes components (`@param props {XProps}` with the props, `@returns {JSX.Element}` and what it renders), pages, `generateMetadata`, and route handlers (`@returns {Promise<Response>}` with the statuses it can answer). `tests/unit/tooling/jsdoc.test.ts` checks it.
 
 ## 5. Tests
 

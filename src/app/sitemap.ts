@@ -5,7 +5,7 @@
  *       a public pack changes.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { MetadataRoute } from "next";
@@ -23,6 +23,10 @@ const STATIC_PATHS = ["/", "/new", "/guide", "/brand"] as const;
 
 const at = (path: string): string => `${SITE.url}${path}`;
 
+/**
+ * @function sitemap
+ * @returns {Promise<MetadataRoute.Sitemap>} sitemap.xml: the static pages, the guides and the public packs
+ */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // A database outage (at build or regeneration) drops the pack links, not the whole sitemap.
   const index = await buildSearchIndex().catch((error: unknown) => {

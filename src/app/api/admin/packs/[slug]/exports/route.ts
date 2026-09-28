@@ -19,6 +19,12 @@ type Context = { params: Promise<{ slug: string }> };
 
 const NOT_FOUND = "Not found.";
 
+/**
+ * @function DELETE
+ * @param request {Request} the incoming request
+ * @param context {{ params }} the route segment
+ * @returns {Promise<Response>} 200, 400, 403, 404, 409
+ */
 export async function DELETE(request: Request, { params }: Context) {
   const { slug } = await params;
   const user = await getUserFromHeaders(request.headers);

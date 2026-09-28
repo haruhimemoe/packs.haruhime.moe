@@ -6,7 +6,7 @@
  *       page it then runs in the browser only, and the rest still prerenders.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -19,6 +19,11 @@ type SearchParamsWatcherProps = {
   onChange: (search: string) => void;
 };
 
+/**
+ * @function SearchParamsWatcher
+ * @param props {SearchParamsWatcherProps} onChange
+ * @returns {null} nothing: it only tells /packs when the router's query string changes
+ */
 export function SearchParamsWatcher({ onChange }: SearchParamsWatcherProps) {
   const search = useSearchParams()?.toString() ?? "";
   useEffect(() => {

@@ -43,6 +43,12 @@ const SAVE_MESSAGES: Record<SaveState, string> = {
   error: "Couldn't save the zip. Try again.",
 };
 
+/**
+ * @function ZipExport
+ * @param props {ZipExportProps} input, failedSlots, headingLevel, onBusyChange, save, canStream,
+ *        blobWarnBytes
+ * @returns {JSX.Element} the Download card's zip section
+ */
 export function ZipExport({
   input,
   failedSlots,

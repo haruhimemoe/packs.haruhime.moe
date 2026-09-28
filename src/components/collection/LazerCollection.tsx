@@ -43,6 +43,11 @@ const zipErrorText = (error: unknown): string => {
   return `Couldn't build the zip (${error.code}). Try again.`;
 };
 
+/**
+ * @function LazerCollection
+ * @param props {LazerCollectionProps} packName, hashes, download
+ * @returns {JSX.Element} the osu!lazer side of "Add to osu! collection"
+ */
 export function LazerCollection({ packName, hashes, download }: LazerCollectionProps) {
   const id = useId();
   const [typedName, setTypedName] = useState<string | null>(null);

@@ -24,6 +24,12 @@ const adminFrom = async (request: Request): Promise<SessionUser | null> => {
   return user?.isAdmin ? user : null;
 };
 
+/**
+ * @function PATCH
+ * @param request {Request} the incoming request
+ * @param context {{ params }} the route segment
+ * @returns {Promise<Response>} 200, 400, 404, 413, 415
+ */
 export async function PATCH(request: Request, { params }: Context) {
   const { slug } = await params;
   const admin = await adminFrom(request);
@@ -35,6 +41,12 @@ export async function PATCH(request: Request, { params }: Context) {
   return Response.json({ pack });
 }
 
+/**
+ * @function DELETE
+ * @param request {Request} the incoming request
+ * @param context {{ params }} the route segment
+ * @returns {Promise<Response>} 204, 403, 404
+ */
 export async function DELETE(request: Request, { params }: Context) {
   const { slug } = await params;
   const admin = await adminFrom(request);

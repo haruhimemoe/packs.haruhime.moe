@@ -22,6 +22,12 @@ type ColorPickerProps = {
   offsetClass?: "ring-offset-b4" | "ring-offset-b5";
 };
 
+/**
+ * @function ColorPicker
+ * @param props {ColorPickerProps} legend, value, onChange, disabled, offsetClass
+ * @returns {JSX.Element} palette swatches as a labelled radio group (each swatch named by its
+ *          color)
+ */
 export function ColorPicker({
   legend,
   value,

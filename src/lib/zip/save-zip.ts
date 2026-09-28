@@ -4,7 +4,7 @@
  *       (or a refused dialog): build a Blob and trigger a normal download. Browser-only.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { type PackZipInput, packZipStream } from "@/lib/zip/pack-zip";
@@ -35,6 +35,7 @@ export const getSaveFilePicker = (): SaveFilePicker | null => {
  * @function downloadBlob
  * @param blob {Blob} file contents
  * @param filename {string} suggested name
+ * @returns {void} nothing; the browser saves the file
  */
 export const downloadBlob = (blob: Blob, filename: string): void => {
   const url = URL.createObjectURL(blob);

@@ -4,7 +4,7 @@
  *       use next/link, external http(s) links open in a new tab without an opener.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { MDXComponents } from "mdx/types";
@@ -24,6 +24,10 @@ const components: MDXComponents = {
   },
 };
 
+/**
+ * @function useMDXComponents
+ * @returns {MDXComponents} the components MDX pages render with (Next.js asks for this file)
+ */
 export function useMDXComponents(): MDXComponents {
   return components;
 }

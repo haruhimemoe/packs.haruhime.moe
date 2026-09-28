@@ -31,6 +31,11 @@ type SavePackButtonProps = {
   save?: (input: PackInputBody) => Promise<SavedPack>;
 };
 
+/**
+ * @function SavePackButton
+ * @param props {SavePackButtonProps} pack, signInNext, beforeSignIn, signInNote, save
+ * @returns {JSX.Element} the Save button, or Sign in to save when signed out
+ */
 export function SavePackButton({
   pack,
   signInNext,

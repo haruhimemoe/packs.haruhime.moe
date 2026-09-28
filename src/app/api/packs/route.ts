@@ -22,6 +22,11 @@ import { pageFromQuery } from "@/utils/paging";
 /** Session-scoped reads: never a shared cache, never a stale copy on the caller's next load. */
 const PRIVATE_NO_STORE = { "Cache-Control": "private, no-store" };
 
+/**
+ * @function GET
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} 200, 400, 401
+ */
 export async function GET(request: Request) {
   const user = await getUserFromHeaders(request.headers);
   if (!user) return jsonError(401, SIGN_IN_REQUIRED);
@@ -30,6 +35,11 @@ export async function GET(request: Request) {
   return Response.json(await listPacks(user.id, page), { headers: PRIVATE_NO_STORE });
 }
 
+/**
+ * @function POST
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} 201, 400, 401, 409, 413, 415, 429
+ */
 export async function POST(request: Request) {
   const user = await getUserFromHeaders(request.headers);
   if (!user) return jsonError(401, SIGN_IN_REQUIRED);

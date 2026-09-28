@@ -21,6 +21,11 @@ import { starPairsQuerySchema } from "@/schemas/star-ratings";
 
 const CDN_CACHE = "public, s-maxage=86400, stale-while-revalidate=604800";
 
+/**
+ * @function GET
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} 200, 400, 429
+ */
 export async function GET(request: Request) {
   const subject = rateLimitSubject(clientIp(request.headers));
   const refused = await limiter.refuseOverLimit(RATE_LIMITS.osuStarRatings, subject);

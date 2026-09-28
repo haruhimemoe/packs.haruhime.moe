@@ -34,6 +34,12 @@ const NO_PACK = "This pool has no pack.";
 
 const noStore = (response: Response): Response => withHeaders(response, NO_STORE);
 
+/**
+ * @function PUT
+ * @param request {Request} the incoming request
+ * @param context {{ params }} the route segment
+ * @returns {Promise<Response>} 200, 400, 401, 410, 413, 415, 422, 429, 503
+ */
 export async function PUT(request: Request, { params }: Context) {
   const refused = await refuseWithoutPoolsToken(request);
   if (refused) return refused;
@@ -52,6 +58,12 @@ export async function PUT(request: Request, { params }: Context) {
   });
 }
 
+/**
+ * @function DELETE
+ * @param request {Request} the incoming request
+ * @param context {{ params }} the route segment
+ * @returns {Promise<Response>} 204, 400, 401, 404, 410, 429, 503
+ */
 export async function DELETE(request: Request, { params }: Context) {
   const refused = await refuseWithoutPoolsToken(request);
   if (refused) return refused;

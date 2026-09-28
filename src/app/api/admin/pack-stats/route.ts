@@ -18,6 +18,11 @@ import { runPackStatsJob } from "@/services/pack-stats";
 /** Hobby's limit without fluid compute; one batch takes a few seconds. */
 export const maxDuration = 60;
 
+/**
+ * @function POST
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} 200, 403, 404
+ */
 export async function POST(request: Request) {
   const user = await getUserFromHeaders(request.headers);
   if (!user?.isAdmin) return jsonError(404, "Not found.");

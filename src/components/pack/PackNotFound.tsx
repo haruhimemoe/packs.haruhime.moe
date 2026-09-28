@@ -4,11 +4,15 @@
  *       existed applies, so private slugs aren't confirmed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { ButtonLink, PageHeader } from "@haruhimemoe/ui";
 
+/**
+ * @function PackNotFound
+ * @returns {JSX.Element} 404 body for /p/[slug] and its edit page
+ */
 export function PackNotFound() {
   return (
     <PageHeader

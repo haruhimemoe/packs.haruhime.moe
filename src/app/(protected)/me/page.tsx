@@ -28,6 +28,11 @@ const first = (value: string | string[] | undefined): string =>
 
 const myPacksHref = (page: number): string => (page <= 1 ? "/me" : `/me?page=${page}`);
 
+/**
+ * @function MyPacksPage
+ * @param props {PageProps<"/me">} searchParams
+ * @returns {Promise<JSX.Element>} the page
+ */
 export default async function MyPacksPage({ searchParams }: PageProps<"/me">) {
   const user = await requireUser("/me");
   const page = parsePageParam(first((await searchParams).page)) ?? 1;

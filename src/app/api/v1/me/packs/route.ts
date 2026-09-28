@@ -13,6 +13,11 @@ import { withApiKey } from "@/lib/api-auth";
 import { listOwnApiPacks } from "@/services/api-packs";
 import { pageFromQuery } from "@/utils/paging";
 
+/**
+ * @function GET
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} 200, 400, 401, 429
+ */
 export const GET = withApiKey(async (request, caller) => {
   const page = pageFromQuery(request.url);
   if (page === null) return jsonError(400, BAD_PAGE);

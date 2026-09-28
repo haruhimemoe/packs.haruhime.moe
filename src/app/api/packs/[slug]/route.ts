@@ -28,6 +28,12 @@ type Context = { params: Promise<{ slug: string }> };
 /** Session-scoped reads: never a shared cache, never a stale copy on the caller's next load. */
 const PRIVATE_NO_STORE = { "Cache-Control": "private, no-store" };
 
+/**
+ * @function GET
+ * @param request {Request} the incoming request
+ * @param context {{ params }} the route segment
+ * @returns {Promise<Response>} 200, 404
+ */
 export async function GET(request: Request, { params }: Context) {
   const { slug } = await params;
   const user = await getUserFromHeaders(request.headers);
@@ -42,6 +48,12 @@ export async function GET(request: Request, { params }: Context) {
   );
 }
 
+/**
+ * @function PUT
+ * @param request {Request} the incoming request
+ * @param context {{ params }} the route segment
+ * @returns {Promise<Response>} 200, 400, 401, 404, 413, 415, 429
+ */
 export async function PUT(request: Request, { params }: Context) {
   const { slug } = await params;
   const user = await getUserFromHeaders(request.headers);
@@ -57,6 +69,12 @@ export async function PUT(request: Request, { params }: Context) {
   return Response.json({ pack });
 }
 
+/**
+ * @function DELETE
+ * @param request {Request} the incoming request
+ * @param context {{ params }} the route segment
+ * @returns {Promise<Response>} 204, 401, 403, 404, 429
+ */
 export async function DELETE(request: Request, { params }: Context) {
   const crossSite = refuseCrossSite(request);
   if (crossSite) return crossSite;

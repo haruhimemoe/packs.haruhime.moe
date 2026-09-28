@@ -5,7 +5,7 @@
  *       (revalidatePublicPacks).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { Metadata } from "next";
@@ -20,6 +20,10 @@ export const metadata: Metadata = {
   alternates: { canonical: "/packs" },
 };
 
+/**
+ * @function PublicPacksPage
+ * @returns {Promise<JSX.Element>} the page
+ */
 export default async function PublicPacksPage() {
   const [result, pinned] = await Promise.all([listPublicPacks(1), listPinnedPacks()]);
   return <PublicPacksScreen {...result} pinned={pinned} />;
