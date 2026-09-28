@@ -4,15 +4,15 @@
  *       globals.css sets); brand files exist.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
+import { hslToHex } from "@haruhimemoe/brand/palette";
 import { describe, expect, it } from "vitest";
 import { BRAND_ASSETS, BRAND_COLORS } from "@/constants/brand";
-import { hslToHex } from "@/utils/color";
 
 const globals = readFileSync(path.join(process.cwd(), "src/app/globals.css"), "utf8");
 const theme = readFileSync(

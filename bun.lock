@@ -29,7 +29,7 @@
       },
       "devDependencies": {
         "@biomejs/biome": "2.5.14",
-        "@haruhimemoe/brand": "0.3.0",
+        "@haruhimemoe/brand": "0.4.0",
         "@tailwindcss/postcss": "4.3.3",
         "@testing-library/dom": "10.4.2",
         "@testing-library/jest-dom": "7.0.1",
@@ -131,7 +131,7 @@
 
     "@exodus/bytes": ["@exodus/bytes@1.16.0", "", { "peerDependencies": { "@noble/hashes": "^1.8.0 || ^2.0.0" }, "optionalPeers": ["@noble/hashes"] }, "sha512-IcpW84uEn3N7ETtNZMlxKhfl6Pec8rUNGOTBtWbK1FKhJxIFAptZyVrvVRVBimAJxJCgc3PxepxkdWWG4DVzfA=="],
 
-    "@haruhimemoe/brand": ["@haruhimemoe/brand@0.3.0", "", { "dependencies": { "@resvg/resvg-js": "2.6.2", "opentype.js": "2.0.0" }, "bin": { "haruhime-brand": "dist/cli.js" } }, "sha512-zJiduBLsEnHrjx18z/+dqLZBBAqzlzQyeBC1JkNt7OzVRQX92kwws3ttu+qvFcjfJjROlVCaxUvX9iQxDMyOWg=="],
+    "@haruhimemoe/brand": ["@haruhimemoe/brand@0.4.0", "", { "dependencies": { "@resvg/resvg-js": "2.6.2", "opentype.js": "2.0.0" }, "bin": { "haruhime-brand": "dist/cli.js" } }, "sha512-bBlHF5/m2+ky+b34eWge6DiqMuJHtgyFz+z5LaVLDVc9KG5DO1e4yw9IWBR0H1i9mqHMMUpBPGu3o218ZxRWbQ=="],
 
     "@haruhimemoe/hinai": ["@haruhimemoe/hinai@0.3.0", "", { "dependencies": { "@haruhimemoe/osu": "^0.3.0" }, "peerDependencies": { "msw": "^2.0.0", "zod": "^4.0.16" }, "optionalPeers": ["msw"] }, "sha512-uKkbYECnlc92JZPeIfoQ9oldm6ShQJV8ysP9/8f1xfaLgw8nersEVbNn/R9XA4l6gLeD9JSAL4e47/Dzl0HcRw=="],
 
