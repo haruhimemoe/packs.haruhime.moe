@@ -13,17 +13,10 @@
 
 import { beatmapUrl, coverUrl } from "@haruhimemoe/osu/shapes";
 import { type SlotMods, slotTitle } from "@haruhimemoe/pool";
-import {
-  BeatmapStats,
-  Button,
-  CopyButton,
-  fieldClasses,
-  StarRating,
-  TextLink,
-} from "@haruhimemoe/ui";
+import { BeatmapStats, Button, CopyButton, Select, StarRating, TextLink } from "@haruhimemoe/ui";
 import Image from "next/image";
 import type { ReactNode } from "react";
-import { Fragment, useState } from "react";
+import { Fragment, useId, useState } from "react";
 import { SlotBadge } from "@/components/pack/SlotBadge";
 import { NO_SLOT_VALUE } from "@/constants/mods";
 import type { MetaState } from "@/hooks/beatmapMetaState";
@@ -150,6 +143,7 @@ export function SlotRow({
     (option) => !option.disabled && (option.value ?? NO_SLOT_VALUE) === picked,
   );
   const target = offered ? picked : "";
+  const moveId = useId();
   const editable = Boolean(onRemove) || Boolean(onMove && moveTargets);
   return (
     <li className="flex flex-col gap-2 rounded-[10px] bg-b4 p-3">
@@ -174,11 +168,13 @@ export function SlotRow({
           />
           {onMove && moveTargets ? (
             <div className="flex items-center gap-1">
-              <select
-                aria-label={`Move ${title} to`}
+              <Select
+                id={moveId}
+                label={<span className="sr-only">Move {title} to</span>}
+                wrapperClassName="gap-0"
                 value={target}
                 onChange={(event) => setPicked(event.target.value)}
-                className={fieldClasses("w-auto text-sm")}
+                className="w-auto text-sm"
               >
                 <option value="" disabled>
                   Move to…
@@ -192,7 +188,7 @@ export function SlotRow({
                     {option.label}
                   </option>
                 ))}
-              </select>
+              </Select>
               <Button
                 variant="secondary"
                 aria-label={`Move ${title}`}

@@ -2,7 +2,8 @@
  * @file src/components/pack/BucketManager.tsx
  * @desc The "Slots" card body: the pack's buckets in pool order. Reorder by dragging or with the
  *       arrow buttons; custom slots can be recolored, renamed, deleted (only when empty), and set
- *       their mods; a form adds new ones. No-slot maps always come first and aren't listed here.
+ *       their mods (BucketRenameForm, ModsField); BucketAddForm adds new ones. No-slot maps always
+ *       come first and aren't listed here.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Mon Sep 28, 2026
@@ -10,17 +11,11 @@
 
 "use client";
 
-import {
-  BUCKET_CODE_MESSAGES,
-  bucketName,
-  checkBucketCode,
-  isCustomBucket,
-  NO_MODS,
-  nextFreeColor,
-  type SlotMods,
-} from "@haruhimemoe/pool";
-import { Button, fieldClasses, Notice, TextInput } from "@haruhimemoe/ui";
-import { type FormEvent, useId, useState } from "react";
+import { bucketName, isCustomBucket, NO_MODS, type SlotMods } from "@haruhimemoe/pool";
+import { Button } from "@haruhimemoe/ui";
+import { useState } from "react";
+import { BucketAddForm } from "@/components/pack/BucketAddForm";
+import { BucketRenameForm } from "@/components/pack/BucketRenameForm";
 import { ColorPicker } from "@/components/pack/ColorPicker";
 import { ModsField } from "@/components/pack/ModsField";
 import { SlotBadge } from "@/components/pack/SlotBadge";
@@ -40,64 +35,12 @@ type BucketManagerProps = {
 
 const maps = (n: number) => `${n} ${n === 1 ? "map" : "maps"}`;
 
-function RenameForm({
-  code,
-  buckets,
-  onRename,
-  onDone,
-}: {
-  code: string;
-  buckets: readonly BucketEntry[];
-  onRename: (code: string, next: string) => void;
-  onDone: () => void;
-}) {
-  const [value, setValue] = useState(code);
-  const [error, setError] = useState<string | null>(null);
-  const id = useId();
-
-  const submit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const next = value.trim();
-    if (next !== code) {
-      const problem = checkBucketCode(buckets, next, { renaming: code });
-      if (problem) {
-        setError(BUCKET_CODE_MESSAGES[problem]);
-        return;
-      }
-      onRename(code, next);
-    }
-    onDone();
-  };
-
-  return (
-    <form onSubmit={submit} className="flex flex-wrap items-center gap-2">
-      <label htmlFor={id} className="sr-only">
-        New code for {code}
-      </label>
-      <input
-        id={id}
-        value={value}
-        onChange={(event) => {
-          setValue(event.target.value);
-          setError(null);
-        }}
-        className={fieldClasses("w-32")}
-      />
-      <Button type="submit" variant="secondary">
-        Save
-      </Button>
-      <Button variant="ghost" onClick={onDone}>
-        Cancel
-      </Button>
-      {error ? (
-        <p role="alert" className="w-full text-rose-300 text-sm">
-          {error}
-        </p>
-      ) : null}
-    </form>
-  );
-}
-
+/**
+ * @function BucketManager
+ * @param props {BucketManagerProps} the pack's buckets and slots, whether editing is locked, and
+ *        one handler per bucket edit
+ * @returns {JSX.Element} the bucket list and the add-slot form
+ */
 export function BucketManager({
   buckets,
   slots,
@@ -111,25 +54,6 @@ export function BucketManager({
 }: BucketManagerProps) {
   const [dragging, setDragging] = useState<string | null>(null);
   const [renaming, setRenaming] = useState<string | null>(null);
-  const [code, setCode] = useState("");
-  const [pickedColor, setPickedColor] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const codeId = useId();
-  const color = pickedColor ?? nextFreeColor(buckets);
-
-  const add = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const next = code.trim();
-    const problem = checkBucketCode(buckets, next);
-    if (problem) {
-      setError(BUCKET_CODE_MESSAGES[problem]);
-      return;
-    }
-    onAdd(next, color);
-    setCode("");
-    setPickedColor(null);
-    setError(null);
-  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -196,7 +120,7 @@ export function BucketManager({
                     onChange={(next) => onRecolor(entry.code, next)}
                   />
                   {renaming === entry.code ? (
-                    <RenameForm
+                    <BucketRenameForm
                       code={entry.code}
                       buckets={buckets}
                       onRename={onRename}
@@ -239,36 +163,7 @@ export function BucketManager({
         })}
       </ul>
 
-      <form onSubmit={add} className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-end gap-3">
-          <TextInput
-            id={codeId}
-            label="New slot code"
-            value={code}
-            disabled={disabled}
-            placeholder="EZ"
-            onChange={(event) => {
-              setCode(event.target.value);
-              setError(null);
-            }}
-            className="w-40"
-          />
-          <ColorPicker
-            legend="Color for the new slot"
-            value={color}
-            disabled={disabled}
-            onChange={setPickedColor}
-          />
-          <Button type="submit" variant="secondary" disabled={disabled}>
-            Add slot
-          </Button>
-        </div>
-        {error ? (
-          <Notice tone="error" live>
-            {error}
-          </Notice>
-        ) : null}
-      </form>
+      <BucketAddForm buckets={buckets} disabled={disabled} onAdd={onAdd} />
     </div>
   );
 }

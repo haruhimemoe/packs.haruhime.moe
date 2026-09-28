@@ -5,12 +5,12 @@
  *       maps, saving a zip, making a torrent).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
-import { Checkbox } from "@haruhimemoe/ui";
+import { Checkbox, Disclosure } from "@haruhimemoe/ui";
 import { useId, useState } from "react";
 import type { DownloadChoices } from "@/schemas/download-choices";
 
@@ -29,33 +29,32 @@ type DownloadOptionsProps = {
   disabled?: boolean;
 };
 
+/**
+ * @function DownloadOptions
+ * @param props {DownloadOptionsProps} the choices, a change handler, and whether they're locked
+ * @returns {JSX.Element} a @haruhimemoe/ui Disclosure whose button sums up the choices while closed
+ */
 export function DownloadOptions({ choices, onChange, disabled = false }: DownloadOptionsProps) {
   const [open, setOpen] = useState(false);
-  const panelId = useId();
+  const id = useId();
 
   return (
-    <div className="flex flex-col gap-2">
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls={panelId}
-        onClick={() => setOpen(!open)}
-        className="inline-flex items-center gap-1 self-start font-bold text-c2 text-sm transition-colors hover:text-c1 focus-visible:outline-2 focus-visible:outline-h1 focus-visible:outline-offset-2"
-      >
-        {open ? "Download options" : downloadOptionsSummary(choices)}
-        <span aria-hidden="true">{open ? "▴" : "▾"}</span>
-      </button>
-      <fieldset id={panelId} hidden={!open} disabled={disabled} className="flex flex-col gap-2">
+    <Disclosure
+      summary={open ? "Download options" : downloadOptionsSummary(choices)}
+      open={open}
+      onOpenChange={setOpen}
+    >
+      <fieldset disabled={disabled} className="flex flex-col gap-2">
         <legend className="sr-only">Download options</legend>
         <Checkbox
-          id={`${panelId}-videos`}
+          id={`${id}-videos`}
           label="Include videos"
           hint="Videos make packs several times larger."
           checked={choices.videos}
           onChange={(event) => onChange({ ...choices, videos: event.currentTarget.checked })}
         />
         <Checkbox
-          id={`${panelId}-backgrounds`}
+          id={`${id}-backgrounds`}
           label="Include backgrounds"
           hint="Turn this off to remove background images in your browser. osu! shows its default background instead."
           checked={choices.backgrounds}
@@ -67,6 +66,6 @@ export function DownloadOptions({ choices, onChange, disabled = false }: Downloa
           </p>
         ) : null}
       </fieldset>
-    </div>
+    </Disclosure>
   );
 }

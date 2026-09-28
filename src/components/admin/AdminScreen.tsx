@@ -7,8 +7,7 @@
  * @modified Mon Sep 28, 2026
  */
 
-import { Button, cx, PageHeader, Pagination, TextInput } from "@haruhimemoe/ui";
-import Link from "next/link";
+import { Button, LinkTabs, PageHeader, Pagination, TextInput } from "@haruhimemoe/ui";
 import { AdminPackTable } from "@/components/admin/AdminPackTable";
 import { PackStatsBackfill } from "@/components/admin/PackStatsBackfill";
 import { PinnedPacks } from "@/components/admin/PinnedPacks";
@@ -22,12 +21,12 @@ type AdminScreenProps = AdminPackPage & {
   pins: readonly PinnedPack[];
 };
 
-const tabClasses = (active: boolean): string =>
-  cx(
-    "rounded-full px-3 py-1 font-bold text-sm transition-colors",
-    active ? "bg-b3 text-c1" : "text-c3 hover:text-c1",
-  );
-
+/**
+ * @function AdminScreen
+ * @param props {AdminScreenProps} this page of packs, the filter and query, and the pinned packs
+ * @returns {JSX.Element} /admin: All/Hidden tabs, the name filter, the pack table, pagination,
+ *          the pinned packs, and the stats backfill
+ */
 export function AdminScreen({
   rows,
   page,
@@ -40,22 +39,13 @@ export function AdminScreen({
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Admin" lead="Public and unlisted packs. Private packs never show here." />
-      <nav aria-label="Filter" className="flex gap-2">
-        <Link
-          href={adminHref({ query })}
-          aria-current={hiddenOnly ? undefined : "page"}
-          className={tabClasses(!hiddenOnly)}
-        >
-          All
-        </Link>
-        <Link
-          href={adminHref({ hiddenOnly: true, query })}
-          aria-current={hiddenOnly ? "page" : undefined}
-          className={tabClasses(hiddenOnly)}
-        >
-          Hidden
-        </Link>
-      </nav>
+      <LinkTabs
+        label="Filter"
+        items={[
+          { href: adminHref({ query }), label: "All", current: !hiddenOnly },
+          { href: adminHref({ hiddenOnly: true, query }), label: "Hidden", current: hiddenOnly },
+        ]}
+      />
       <search>
         <form action="/admin" method="get" className="flex flex-wrap items-end gap-2">
           {hiddenOnly ? <input type="hidden" name="show" value="hidden" /> : null}

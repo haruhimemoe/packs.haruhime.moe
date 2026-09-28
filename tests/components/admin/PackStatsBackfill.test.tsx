@@ -5,7 +5,7 @@
  *       when it fails.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -63,9 +63,15 @@ describe("PackStatsBackfill", () => {
     );
     render(<PackStatsBackfill api={{ fillPackStats }} />);
     await userEvent.click(screen.getByRole("button", { name: "Fill in stats" }));
-    expect(screen.getByRole("button", { name: "Filling in stats…" })).toBeDisabled();
+    // Busy but still focusable: aria-disabled, so focus doesn't drop to the page.
+    expect(screen.getByRole("button", { name: "Filling in stats…" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
     finish({ updated: 0, remaining: 1, waiting: 0 });
-    expect(await screen.findByRole("button", { name: "Fill in stats" })).toBeEnabled();
+    expect(await screen.findByRole("button", { name: "Fill in stats" })).not.toHaveAttribute(
+      "aria-disabled",
+    );
     expect(screen.getByRole("status")).toHaveTextContent("Updated 0 packs. 1 still needs stats.");
   });
 
@@ -73,13 +79,14 @@ describe("PackStatsBackfill", () => {
     const fillPackStats = vi.fn().mockRejectedValue(new PacksApiError("Not found.", 404));
     render(<PackStatsBackfill api={{ fillPackStats }} />);
     await userEvent.click(screen.getByRole("button", { name: "Fill in stats" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("Not found.");
+    expect(await screen.findByText("Not found.")).toHaveClass("text-rose-300");
+    expect(screen.getByRole("status")).toHaveTextContent("Not found.");
   });
 
   it("falls back to plain words for other failures", async () => {
     const fillPackStats = vi.fn().mockRejectedValue(new Error("boom"));
     render(<PackStatsBackfill api={{ fillPackStats }} />);
     await userEvent.click(screen.getByRole("button", { name: "Fill in stats" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("Something went wrong. Try again.");
+    expect(await screen.findByRole("status")).toHaveTextContent("Something went wrong. Try again.");
   });
 });

@@ -18,7 +18,7 @@ import {
   type SlotLineError,
   slotLabel,
 } from "@haruhimemoe/pool";
-import { Button, fieldClasses } from "@haruhimemoe/ui";
+import { Button, Textarea } from "@haruhimemoe/ui";
 import { type FormEvent, useId, useState } from "react";
 import type { BucketEntry, CustomBucket, PoolSlot } from "@/schemas/pack";
 
@@ -86,17 +86,26 @@ export function BulkPasteInput({
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-2">
-      <label htmlFor={id} className="font-bold text-c3 text-sm">
-        Paste a mappool
-      </label>
-      <textarea
+      <Textarea
         id={id}
+        label="Paste a mappool"
         rows={5}
         value={text}
         disabled={disabled}
         onChange={(event) => setText(event.target.value)}
         placeholder={PLACEHOLDER}
-        className={fieldClasses("font-mono")}
+        className="font-mono"
+        error={
+          errors.length > 0 ? (
+            <ul className="flex flex-col gap-1">
+              {errors.map((error) => (
+                <li key={`${error.line}-${error.text}`}>
+                  Line {error.line}: {error.reason}
+                </li>
+              ))}
+            </ul>
+          ) : undefined
+        }
       />
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" variant="secondary" disabled={disabled || text.trim() === ""}>
@@ -104,15 +113,6 @@ export function BulkPasteInput({
         </Button>
         <output className="text-c3 text-sm">{summary}</output>
       </div>
-      {errors.length > 0 ? (
-        <ul role="alert" className="flex flex-col gap-1 text-rose-300 text-sm">
-          {errors.map((error) => (
-            <li key={`${error.line}-${error.text}`}>
-              Line {error.line}: {error.reason}
-            </li>
-          ))}
-        </ul>
-      ) : null}
     </form>
   );
 }

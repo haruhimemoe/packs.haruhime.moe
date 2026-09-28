@@ -3,7 +3,7 @@
  * @desc Paste a pack key (or a link/sentence containing one) and open it at /k#<key>.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -14,16 +14,19 @@ import {
   PACK_KEY_ERROR_MESSAGES,
   PackKeyError,
 } from "@haruhimemoe/pool";
-import { Button, fieldClasses } from "@haruhimemoe/ui";
+import { Button, TextInput } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useId, useState } from "react";
 
+/**
+ * @function KeyPasteForm
+ * @returns {JSX.Element} a field for a pack key or a link holding one, which opens it on /k
+ */
 export function KeyPasteForm() {
   const router = useRouter();
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
   const inputId = useId();
-  const errorId = useId();
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -41,27 +44,21 @@ export function KeyPasteForm() {
   };
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-2">
-      <label htmlFor={inputId} className="font-bold text-c3 text-sm">
-        Pack key or link
-      </label>
-      <div className="flex flex-wrap gap-2">
-        <input
-          id={inputId}
-          value={value}
-          onChange={(event) => setValue(event.target.value)}
-          placeholder="pk1.…"
-          aria-invalid={error ? true : undefined}
-          aria-describedby={error ? errorId : undefined}
-          className={fieldClasses("min-w-48 flex-1 font-mono")}
-        />
-        <Button type="submit">Open</Button>
-      </div>
-      {error ? (
-        <p id={errorId} role="alert" className="text-rose-300 text-sm">
-          {error}
-        </p>
-      ) : null}
+    <form onSubmit={submit} className="flex flex-wrap items-start gap-2">
+      <TextInput
+        id={inputId}
+        label="Pack key or link"
+        wrapperClassName="min-w-48 flex-1"
+        value={value}
+        onChange={(event) => setValue(event.target.value)}
+        placeholder="pk1.…"
+        error={error}
+        className="font-mono"
+      />
+      {/* mt-6 lines the button up with the field under its label. */}
+      <Button type="submit" className="mt-6">
+        Open
+      </Button>
     </form>
   );
 }

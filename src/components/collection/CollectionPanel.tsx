@@ -14,8 +14,8 @@
 
 "use client";
 
-import { Card, Notice, TextLink } from "@haruhimemoe/ui";
-import { useId, useMemo, useState } from "react";
+import { Card, Notice, RadioGroup, TextLink } from "@haruhimemoe/ui";
+import { useMemo, useState } from "react";
 import { LazerCollection } from "@/components/collection/LazerCollection";
 import { StableCollection } from "@/components/collection/StableCollection";
 import type { MetaState } from "@/hooks/beatmapMetaState";
@@ -34,12 +34,12 @@ const CLIENTS = [
   {
     value: "stable",
     label: "osu!stable",
-    description: "Load your collection.db and download it back with the maps added.",
+    hint: "Load your collection.db and download it back with the maps added.",
   },
   {
     value: "lazer",
     label: "osu!lazer",
-    description: "Download a zip that lazer's setup wizard imports.",
+    hint: "Download a zip that lazer's setup wizard imports.",
   },
 ] as const;
 type Client = (typeof CLIENTS)[number]["value"];
@@ -57,7 +57,6 @@ export function CollectionPanel({ pack, getMeta, download = downloadBlob }: Coll
   // No map can go in a collection: only the message (and why) shows, no client choice or sides.
   const nothingToAdd = maps.status === "ready" && maps.hashes.length === 0;
   const [client, setClient] = useState<Client>("stable");
-  const clientGroup = useId();
 
   return (
     <Card title="Add to osu! collection">
@@ -94,25 +93,12 @@ export function CollectionPanel({ pack, getMeta, download = downloadBlob }: Coll
         {/* Hidden, not unmounted, so a loaded file or a typed name survives a pool that empties
             and fills again. */}
         <div hidden={nothingToAdd} className="flex flex-col gap-4">
-          <fieldset className="flex flex-col gap-2">
-            <legend className="mb-1 font-bold text-c3 text-sm">Which osu! do you play?</legend>
-            {CLIENTS.map((option) => (
-              <label key={option.value} className="flex items-start gap-2 text-sm">
-                <input
-                  type="radio"
-                  name={clientGroup}
-                  value={option.value}
-                  checked={client === option.value}
-                  onChange={() => setClient(option.value)}
-                  className="mt-1 accent-h1"
-                />
-                <span>
-                  <span className="font-bold text-c1">{option.label}</span>
-                  <span className="text-c3"> · {option.description}</span>
-                </span>
-              </label>
-            ))}
-          </fieldset>
+          <RadioGroup
+            label="Which osu! do you play?"
+            options={CLIENTS}
+            value={client}
+            onChange={(next) => setClient(next as Client)}
+          />
           <div hidden={client !== "stable"}>
             <StableCollection
               packName={pack.name}

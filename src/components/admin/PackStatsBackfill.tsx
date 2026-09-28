@@ -5,13 +5,12 @@
  *       to retry lookups that failed. Packs saved before filters existed get theirs this way.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
-import { Button, Card, Notice } from "@haruhimemoe/ui";
-import { useState } from "react";
+import { AsyncButton, Card } from "@haruhimemoe/ui";
 import { PACK_STATS_JOB_LIMIT } from "@/constants/pack-stats";
 import { PacksApiError, packsApi } from "@/lib/packs-api";
 import type { PackStatsJob } from "@/schemas/pack-stats";
@@ -36,40 +35,29 @@ const summary = ({ updated, remaining, waiting }: PackStatsJob): string => {
   return parts.join(" ");
 };
 
+/**
+ * @function PackStatsBackfill
+ * @param props {PackStatsBackfillProps} the admin API (a test seam)
+ * @returns {JSX.Element} the Pack stats card: what the job does, and a @haruhimemoe/ui AsyncButton
+ *          that runs one batch and announces its counts (or the server's error)
+ */
 export function PackStatsBackfill({ api = packsApi }: PackStatsBackfillProps) {
-  const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<PackStatsJob | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const run = async () => {
-    setBusy(true);
-    setError(null);
-    try {
-      setResult(await api.fillPackStats());
-    } catch (cause) {
-      setError(cause instanceof PacksApiError ? cause.message : "Something went wrong. Try again.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
   return (
     <Card title="Pack stats" className="flex flex-col gap-3">
       <p className="text-c3 text-sm">
         Filters on /packs need each pack's star rating, length and mods. A daily job fills in
         missing ones, {PACK_STATS_JOB_LIMIT} packs at a time. Run it now to catch up faster.
       </p>
-      <div className="flex flex-wrap items-center gap-3">
-        <Button variant="secondary" onClick={run} disabled={busy}>
-          {busy ? "Filling in stats…" : "Fill in stats"}
-        </Button>
-        <Notice live>{result ? summary(result) : ""}</Notice>
-      </div>
-      {error ? (
-        <Notice live tone="error">
-          {error}
-        </Notice>
-      ) : null}
+      <AsyncButton
+        variant="secondary"
+        action={async () => summary(await api.fillPackStats())}
+        pendingLabel="Filling in stats…"
+        failedMessage={(cause) =>
+          cause instanceof PacksApiError ? cause.message : "Something went wrong. Try again."
+        }
+      >
+        Fill in stats
+      </AsyncButton>
     </Card>
   );
 }

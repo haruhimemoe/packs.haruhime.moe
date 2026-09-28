@@ -20,8 +20,8 @@ import {
   type SlotMods,
   toggleMod,
 } from "@haruhimemoe/pool";
-import { cx } from "@haruhimemoe/ui";
-import { Fragment, useId, useState } from "react";
+import { Chip, RadioGroup } from "@haruhimemoe/ui";
+import { useState } from "react";
 
 type ModsFieldProps = {
   code: string;
@@ -31,9 +31,9 @@ type ModsFieldProps = {
 };
 
 const CHOICES = [
-  { kind: "none", label: "No mods" },
-  { kind: "forced", label: "Forced" },
-  { kind: "free", label: "Freemod" },
+  { value: "none", label: "No mods" },
+  { value: "forced", label: "Forced" },
+  { value: "free", label: "Freemod" },
 ] as const;
 
 /**
@@ -45,8 +45,6 @@ const CHOICES = [
 export function ModsField({ code, value, disabled = false, onChange }: ModsFieldProps) {
   // "Forced" with nothing picked isn't a valid setting, so it lives here until a chip is pressed.
   const [pickingForced, setPickingForced] = useState(false);
-  const name = useId();
-  const descId = useId();
   const kind = value.kind === "none" && pickingForced ? "forced" : value.kind;
   const set: readonly ModAcronym[] = value.kind === "forced" ? value.set : [];
 
@@ -67,58 +65,25 @@ export function ModsField({ code, value, disabled = false, onChange }: ModsField
     // aria-label, as ColorPicker does: an sr-only " for EZ" span loses its leading space in the
     // accessible name ("Modsfor EZ").
     <fieldset disabled={disabled} aria-label={`Mods for ${code}`} className="flex flex-col gap-2">
-      <legend className="mb-1 font-bold text-c3 text-sm">Mods</legend>
-      <div className="flex flex-wrap gap-3">
-        {CHOICES.map((choice) => (
-          <label key={choice.kind} className="flex items-center gap-1.5 text-c2 text-sm">
-            <input
-              type="radio"
-              name={name}
-              checked={kind === choice.kind}
-              onChange={() => choose(choice.kind)}
-            />
-            {choice.label}
-          </label>
-        ))}
-      </div>
+      <RadioGroup
+        label="Mods"
+        options={CHOICES}
+        value={kind}
+        onChange={(next) => choose(next as SlotMods["kind"])}
+        className="flex-row flex-wrap gap-x-3"
+      />
       {kind === "forced" ? (
         <div className="flex flex-wrap items-center gap-1">
-          {MOD_ACRONYMS.map((mod) => {
-            const picked = set.includes(mod);
-            const reason = modBlockedReason(set, mod);
-            const blocked = reason !== null;
-            const chipDescId = `${descId}-${mod}`;
-            return (
-              <Fragment key={mod}>
-                <button
-                  type="button"
-                  aria-pressed={picked}
-                  aria-disabled={blocked || undefined}
-                  aria-describedby={blocked ? chipDescId : undefined}
-                  title={reason ?? undefined}
-                  onClick={() => {
-                    if (blocked) return;
-                    toggle(mod);
-                  }}
-                  className={cx(
-                    "rounded-full px-2.5 py-0.5 font-bold text-xs transition-colors",
-                    blocked ? "cursor-not-allowed opacity-40" : "",
-                    picked ? "bg-h1 text-b6" : "bg-b3 text-c2 hover:bg-b2",
-                  )}
-                >
-                  {mod}
-                </button>
-                {/* Outside the button (not inside): a nested description would leak into the
-                    button's own accessible name. Blocked chips stay focusable (aria-disabled, not
-                    disabled), so title alone isn't reliable for screen readers either. */}
-                {blocked ? (
-                  <span id={chipDescId} className="sr-only">
-                    {reason}
-                  </span>
-                ) : null}
-              </Fragment>
-            );
-          })}
+          {MOD_ACRONYMS.map((mod) => (
+            <Chip
+              key={mod}
+              pressed={set.includes(mod)}
+              onPressedChange={() => toggle(mod)}
+              unavailableReason={modBlockedReason(set, mod) ?? undefined}
+            >
+              {mod}
+            </Chip>
+          ))}
           {set.length === 0 ? (
             <span className="text-c4 text-xs">{MOD_SET_MESSAGES.empty}</span>
           ) : null}
