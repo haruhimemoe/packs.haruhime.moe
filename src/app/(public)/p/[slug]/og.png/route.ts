@@ -14,6 +14,7 @@ import { ogCard, PRODUCTS } from "@haruhimemoe/brand";
 import { getPackForViewer } from "@/services/pack-reads";
 import { isIndexed, packCard } from "@/utils/pack-metadata";
 
+/** Node.js, not edge: ogCard loads resvg's native binary. */
 export const runtime = "nodejs";
 
 /**
