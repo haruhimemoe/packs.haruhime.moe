@@ -11,7 +11,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - A public pack's link preview is its own card: the pack's name with its map count, star range and mods, drawn by `@haruhimemoe/brand` 0.6.0. Unlisted and private packs keep the site's image.
 - A long page title ends in "· packs" instead of "· packs.haruhime.moe", so search results show it whole (`@haruhimemoe/next-kit` 0.4.0).
 - The footer links haruhime's other tools, pools and bb, and all of them on haruhime.moe (`@haruhimemoe/ui` 0.6.0). The home page's "More haruhime tools" card stays, with a line on what each does.
-- The 404 page is titled "Page not found · packs.haruhime.moe".
+- A missing pack's 404 is titled "Pack not found · packs.haruhime.moe", and other 404s "Page not found".
 
 - A saved pack's page lists its maps (artist, title, difficulty, mapper, stars) in the page itself, so search engines, link previews and AI assistants see the maps instead of "Loading beatmap…". Your browser still refreshes them when the page opens.
 - Page titles, descriptions, canonical links, link previews, robots.txt, the sitemap, structured data and llms.txt now come from `@haruhimemoe/next-kit/seo` 0.3.0, shared by every haruhime.moe site. Every page has its own title and description and keeps the link preview image. A pack's page is titled "… map pack download" and its description leaves out the source link and ends with the map count, star range and mods.
