@@ -22,7 +22,7 @@ The site never hosts beatmap files. Each `.osz` goes from the beatmap mirror str
 
 - [Guides](https://packs.haruhime.moe/guide): making a pack, osu! collections, torrents and pack keys.
 - [API docs](https://packs.haruhime.moe/docs/api) and the [OpenAPI document](https://packs.haruhime.moe/api/v1/openapi.json).
-- [llms.txt](https://packs.haruhime.moe/llms.txt): a map of the site for AI assistants. This repo also has its own [llms.txt](llms.txt).
+- [llms.txt](https://packs.haruhime.moe/llms.txt): a map of the site for AI assistants, and [llms-full.txt](https://packs.haruhime.moe/llms-full.txt): every guide and the API docs in one Markdown file. This repo also has its own [llms.txt](llms.txt).
 
 ## Stack
 
@@ -36,7 +36,7 @@ packs uses these shared haruhime.moe packages:
 - [`@haruhimemoe/hinai`](https://www.npmjs.com/package/@haruhimemoe/hinai): the client for the hinai beatmap mirror (metadata and `.osz` downloads).
 - [`@haruhimemoe/osu`](https://www.npmjs.com/package/@haruhimemoe/osu): osu! API v2 shapes, the osu! sign-in settings, the server client we use for maps the mirror doesn't have, star ratings with mods and pack stats, and the collection.db reader and writer behind "Add to osu! collection".
 - [`@haruhimemoe/ui`](https://www.npmjs.com/package/@haruhimemoe/ui): the theme and colors the site uses, buttons, cards, form fields, pagination, and the site header, footer and page frame.
-- [`@haruhimemoe/next-kit`](https://www.npmjs.com/package/@haruhimemoe/next-kit): the server plumbing packs shares with pools.haruhime.moe: JSON errors and body parsing, rate limits and the osu! API budget in MongoDB, sign-in with osu!, env checks, the database client, and the test helpers.
+- [`@haruhimemoe/next-kit`](https://www.npmjs.com/package/@haruhimemoe/next-kit): the server plumbing packs shares with pools.haruhime.moe: JSON errors and body parsing, rate limits and the osu! API budget in MongoDB, sign-in with osu!, env checks, the database client, the test helpers, and the page titles, robots.txt, sitemap, structured data and llms.txt format shared by every haruhime.moe site.
 - [`@haruhimemoe/brand`](https://www.npmjs.com/package/@haruhimemoe/brand): the wordmark, icons and link preview image, and the palette file behind the colors on [/brand](https://packs.haruhime.moe/brand).
 
 ## Changes

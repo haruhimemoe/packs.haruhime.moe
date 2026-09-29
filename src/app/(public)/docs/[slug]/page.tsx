@@ -7,12 +7,14 @@
  * @modified Mon Sep 28, 2026
  */
 
-import { PageHeader, Prose } from "@haruhimemoe/ui";
+import { ld, notFoundMetadata, pageMetadata } from "@haruhimemoe/next-kit/seo";
+import { JsonLd, PageHeader, Prose } from "@haruhimemoe/ui";
 import type { MDXContent } from "mdx/types";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CopyMarkdownButton } from "@/components/docs/CopyMarkdownButton";
 import { DOC_DOCS, DOC_SLUGS, type DocSlug, isDocSlug } from "@/constants/docs";
+import { SEO_SITE } from "@/constants/seo";
 import { readDocMarkdown } from "@/lib/docs";
 import { formatIsoDate } from "@/utils/date";
 import { docMarkdownPath } from "@/utils/doc-markdown";
@@ -38,9 +40,15 @@ export function generateStaticParams() {
  */
 export async function generateMetadata({ params }: PageProps<"/docs/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  if (!isDocSlug(slug)) return {};
-  const { title, description } = DOC_DOCS[slug];
-  return { title, description, alternates: { canonical: `/docs/${slug}` } };
+  if (!isDocSlug(slug)) return notFoundMetadata(SEO_SITE, "Doc");
+  const { title, description, lastUpdated } = DOC_DOCS[slug];
+  return pageMetadata(SEO_SITE, {
+    path: `/docs/${slug}`,
+    title,
+    description,
+    ogType: "article",
+    modifiedTime: lastUpdated,
+  });
 }
 
 /**
@@ -51,7 +59,7 @@ export async function generateMetadata({ params }: PageProps<"/docs/[slug]">): P
 export default async function DocsPage({ params }: PageProps<"/docs/[slug]">) {
   const { slug } = await params;
   if (!isDocSlug(slug)) notFound();
-  const { title, lastUpdated } = DOC_DOCS[slug];
+  const { title, description, lastUpdated } = DOC_DOCS[slug];
   const [{ default: Content }, markdown] = await Promise.all([
     LOADERS[slug](),
     readDocMarkdown(slug),
@@ -67,6 +75,20 @@ export default async function DocsPage({ params }: PageProps<"/docs/[slug]">) {
       <Prose className="mt-6">
         <Content />
       </Prose>
+      <JsonLd
+        data={ld.graph(
+          ld.techArticle(SEO_SITE, {
+            path: `/docs/${slug}`,
+            headline: title,
+            description,
+            dateModified: lastUpdated,
+          }),
+          ld.breadcrumbs(SEO_SITE, [
+            { name: "packs", path: "/" },
+            { name: title, path: `/docs/${slug}` },
+          ]),
+        )}
+      />
     </article>
   );
 }

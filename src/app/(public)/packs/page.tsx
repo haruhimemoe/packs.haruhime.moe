@@ -8,17 +8,22 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { pageMetadata } from "@haruhimemoe/next-kit/seo";
+import { JsonLd } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { PublicPacksScreen } from "@/components/packs/PublicPacksScreen";
+import { SEO_SITE } from "@/constants/seo";
 import { listPinnedPacks, listPublicPacks } from "@/services/public-packs";
+import { packListLd } from "@/utils/pack-list-ld";
 
 export const revalidate = 86400;
 
-export const metadata: Metadata = {
-  title: "Public packs",
-  description: "Browse and search osu! beatmap packs that hosts have shared publicly.",
-  alternates: { canonical: "/packs" },
-};
+export const metadata: Metadata = pageMetadata(SEO_SITE, {
+  path: "/packs",
+  title: "Public osu! mappool packs",
+  description:
+    "osu! tournament mappool packs that hosts shared publicly. Filter by star rating, length, BPM and mods, and download a pool as one zip or a torrent.",
+});
 
 /**
  * @function PublicPacksPage
@@ -26,5 +31,10 @@ export const metadata: Metadata = {
  */
 export default async function PublicPacksPage() {
   const [result, pinned] = await Promise.all([listPublicPacks(1), listPinnedPacks()]);
-  return <PublicPacksScreen {...result} pinned={pinned} />;
+  return (
+    <>
+      <PublicPacksScreen {...result} pinned={pinned} />
+      <JsonLd data={packListLd(result.packs, "/packs", 1)} />
+    </>
+  );
 }

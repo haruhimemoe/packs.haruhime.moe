@@ -7,16 +7,19 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { HARUHIME_ORG, ld, pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { Card, cx, JsonLd, PageHeader, TextLink } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { BRAND_ASSETS, BRAND_COLORS } from "@/constants/brand";
+import { SEO_SITE } from "@/constants/seo";
 import { SITE } from "@/constants/site";
 
-export const metadata: Metadata = {
-  title: "Brand",
-  description: "The packs name, logos, colors, and type, for tournament staff, wikis, and press.",
-  alternates: { canonical: "/brand" },
-};
+export const metadata: Metadata = pageMetadata(SEO_SITE, {
+  path: "/brand",
+  title: "packs brand assets",
+  description:
+    "The packs name, logos, icon, colors and type, with the files to download, for tournament staff, wikis and press writing about packs.haruhime.moe.",
+});
 
 /**
  * @function BrandPage
@@ -90,13 +93,13 @@ export default function BrandPage() {
         <p className="text-sm">{SITE.trademarkNotice}</p>
       </Card>
       <JsonLd
-        data={{
-          "@type": "Organization",
-          name: SITE.name,
-          url: SITE.url,
-          logo: `${SITE.url}/brand/packs-icon.svg`,
-          email: SITE.contactEmail,
-        }}
+        data={ld.graph(
+          ld.organization(HARUHIME_ORG),
+          ld.breadcrumbs(SEO_SITE, [
+            { name: "packs", path: "/" },
+            { name: "Brand", path: "/brand" },
+          ]),
+        )}
       />
     </div>
   );

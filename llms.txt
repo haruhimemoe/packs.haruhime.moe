@@ -5,6 +5,7 @@
 ## Site
 
 - [llms.txt on the live site](https://packs.haruhime.moe/llms.txt): the canonical guide to the site's pages, guides, search index, API and legal pages, built from the same registries as the pages
+- [llms-full.txt on the live site](https://packs.haruhime.moe/llms-full.txt): every guide and the API docs as one Markdown file
 - [packs.haruhime.moe](https://packs.haruhime.moe/): the live site
 - [API docs](https://packs.haruhime.moe/docs/api.md): the packs API as plain Markdown (keys, rate limits, errors, the pack object, every endpoint)
 - [OpenAPI document](https://packs.haruhime.moe/api/v1/openapi.json): OpenAPI 3.1 for every /api/v1 endpoint, built from the route handlers' zod schemas
@@ -21,7 +22,8 @@
 - [content/](https://github.com/haruhimemoe/packs.haruhime.moe/tree/main/content): the guides, the API docs and the legal pages, as MDX
 - [src/app/api/v1/](https://github.com/haruhimemoe/packs.haruhime.moe/tree/main/src/app/api/v1): the public API's route handlers
 - [src/lib/openapi.ts](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/src/lib/openapi.ts): builds the OpenAPI document
-- [src/utils/llms-txt.ts](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/src/utils/llms-txt.ts): builds the live /llms.txt
+- [src/utils/llms-txt.ts](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/src/utils/llms-txt.ts): the notes and link sections of the live /llms.txt (rendered by @haruhimemoe/next-kit/seo)
+- [src/constants/seo.ts](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/src/constants/seo.ts): the site as the shared SEO helpers see it (titles, preview image, the haruhime.moe organization)
 - [.env.example](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/.env.example): every environment variable, with what it's for
 
 ## Elsewhere
@@ -30,8 +32,10 @@
 - [@haruhimemoe/hinai](https://github.com/haruhimemoe/hinai): the client for the hinai beatmap mirror
 - [@haruhimemoe/osu](https://github.com/haruhimemoe/osu): osu! API v2 shapes, the server client, and the collection.db reader and writer behind "Add to osu! collection"
 - [@haruhimemoe/ui](https://github.com/haruhimemoe/ui): the React components and theme the site is built from
+- [@haruhimemoe/next-kit](https://github.com/haruhimemoe/next-kit): the server plumbing and the SEO helpers (metadata, robots.txt, sitemap, JSON-LD, llms.txt) packs shares with the other haruhime.moe sites
 - [@haruhimemoe/brand](https://github.com/haruhimemoe/brand): generates the logos, icons and link preview
 - [haruhime Claude Code plugin](https://github.com/haruhimemoe/claude-plugin): skills for osu! tools, including one for packs and its API
 - [pools.haruhime.moe](https://pools.haruhime.moe): the osu! tournament mappool builder, in beta. Hosts search maps under a mod, check a pool against the content rules and build it with co-editors; past tournament pools (from hosts, community submissions and sources like otdb) are there as reference. It publishes pools to packs as packs owned by haruhime pools
+- [bb.haruhime.moe](https://bb.haruhime.moe): haruhime's osu! BBCode editor, for userpages and tournament forum posts
 - [haruhime.moe](https://github.com/haruhimemoe/haruhime.moe): the home page for haruhime's osu! tools
 - [Discord](https://discord.gg/bKy9kjMV4y): our public Discord server

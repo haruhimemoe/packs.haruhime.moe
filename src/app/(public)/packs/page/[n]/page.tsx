@@ -7,10 +7,14 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { notFoundMetadata, pageMetadata } from "@haruhimemoe/next-kit/seo";
+import { JsonLd } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { PublicPacksScreen } from "@/components/packs/PublicPacksScreen";
+import { SEO_SITE } from "@/constants/seo";
 import { listPinnedPacks, listPublicPacks } from "@/services/public-packs";
+import { packListLd } from "@/utils/pack-list-ld";
 import { parsePublicPage, publicPageHref } from "@/utils/paging";
 
 export const revalidate = 86400;
@@ -31,9 +35,12 @@ export async function generateMetadata({
   params,
 }: PageProps<"/packs/page/[n]">): Promise<Metadata> {
   const page = parsePublicPage((await params).n);
-  return page
-    ? { title: `Public packs, page ${page}`, alternates: { canonical: publicPageHref(page) } }
-    : { title: "Public packs" };
+  if (!page) return notFoundMetadata(SEO_SITE, "Page");
+  return pageMetadata(SEO_SITE, {
+    path: publicPageHref(page),
+    title: `Public osu! mappool packs, page ${page}`,
+    description: `Page ${page} of the public osu! tournament mappool packs, newest first. Filter by star rating, length, BPM and mods, and download a pool as one zip or a torrent.`,
+  });
 }
 
 /**
@@ -47,5 +54,10 @@ export default async function PublicPacksPageN({ params }: PageProps<"/packs/pag
   if (page === 1) permanentRedirect("/packs");
   const [result, pinned] = await Promise.all([listPublicPacks(page), listPinnedPacks()]);
   if (page > result.pageCount) notFound();
-  return <PublicPacksScreen {...result} pinned={pinned} />;
+  return (
+    <>
+      <PublicPacksScreen {...result} pinned={pinned} />
+      <JsonLd data={packListLd(result.packs, publicPageHref(page), page)} />
+    </>
+  );
 }

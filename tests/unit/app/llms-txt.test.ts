@@ -3,7 +3,7 @@
  * @desc GET /llms.txt: static, plain text, the builder's output.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -19,6 +19,7 @@ describe("GET /llms.txt", () => {
     const response = GET();
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toBe("text/plain; charset=utf-8");
+    expect(response.headers.get("cache-control")).toBe("public, max-age=3600, s-maxage=86400");
     expect(await response.text()).toBe(buildLlmsTxt());
   });
 });

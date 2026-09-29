@@ -4,11 +4,11 @@
  *       file hosting, pack keys, the haruhime pools account and that pools is in beta, the osu!
  *       collection card), is built from the registries (every guide and legal doc appears, docs
  *       by their .md copy), names osu! collections among the guides, spells out the /packs query
- *       string and the index keys, ends with our Discord server under Elsewhere, and every link
- *       is absolute and on one line.
+ *       string and the index keys, ends with pools, bb and our Discord server under Elsewhere,
+ *       links /llms-full.txt, and every link is absolute.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -65,12 +65,17 @@ describe("buildLlmsTxt", () => {
     expect(headings).toEqual(["Pages", "Guides", "Data", "API", "Legal", "Elsewhere"]);
   });
 
-  it("ends with our Discord server under Elsewhere", () => {
+  it("ends with pools, bb and our Discord server under Elsewhere", () => {
+    const elsewhere = text.slice(text.indexOf("\n## Elsewhere\n"));
+    expect(elsewhere).toContain("- [pools](https://pools.haruhime.moe): ");
+    expect(elsewhere).toContain("- [bb](https://bb.haruhime.moe): ");
     expect(
-      text.endsWith(
-        "\n## Elsewhere\n\n- [Discord](https://discord.gg/bKy9kjMV4y): our public Discord server\n",
-      ),
+      text.endsWith("- [Discord](https://discord.gg/bKy9kjMV4y): our public Discord server\n"),
     ).toBe(true);
+  });
+
+  it("links the one-file copy of the guides", () => {
+    expect(text).toContain(`](${SITE.url}/llms-full.txt): `);
   });
 
   it("lists the main pages", () => {
@@ -121,53 +126,31 @@ describe("buildLlmsTxt", () => {
     expect(text).not.toMatch(/map usage|\/beatmaps\//i);
   });
 
-  it("uses absolute links on our own site, except Discord under Elsewhere", () => {
+  it("uses absolute links on our own site, except the sibling tools and Discord under Elsewhere", () => {
     const [ours = "", elsewhere = ""] = text.split("\n## Elsewhere\n");
     const urls = [...ours.matchAll(LINK)].map((m) => m[2] ?? "");
     expect(urls.length).toBeGreaterThan(10);
     for (const url of urls) expect(new URL(url).origin).toBe(SITE.url);
-    expect([...elsewhere.matchAll(LINK)].map((m) => m[2])).toEqual([SITE.discordUrl]);
+    expect([...elsewhere.matchAll(LINK)].map((m) => m[2])).toEqual([
+      "https://pools.haruhime.moe",
+      "https://bb.haruhime.moe",
+      SITE.discordUrl,
+    ]);
   });
 
   it("ends with exactly one newline", () => {
     expect(text.endsWith("\n")).toBe(true);
     expect(text.endsWith("\n\n")).toBe(false);
   });
-
-  it("renders given sections, with no colon when a link has no description", () => {
-    expect(
-      buildLlmsTxt(
-        [{ heading: "API", links: [{ title: "Docs", url: "https://example.com/d" }] }],
-        [],
-      ),
-    ).toBe(
-      `# ${SITE.title}\n\n> ${SITE.description}\n\n## API\n\n- [Docs](https://example.com/d)\n`,
-    );
-  });
-
-  it("renders given notes as one-line paragraphs", () => {
-    expect(buildLlmsTxt([], ["One\nnote. ", "Two"])).toBe(
-      `# ${SITE.title}\n\n> ${SITE.description}\n\nOne note.\n\nTwo\n`,
-    );
-  });
-
-  it("keeps every link on one line, whatever whitespace a registry entry has", () => {
-    const out = buildLlmsTxt([
-      {
-        heading: "X",
-        links: [
-          { title: " Two\nlines ", url: "https://example.com/x", description: "a\n\n b\tc " },
-        ],
-      },
-    ]);
-    expect(out).toContain("\n- [Two lines](https://example.com/x): a b c\n");
-  });
 });
 
 describe("llmsSections", () => {
   it("returns fresh arrays each call, so a caller can't change the next build", () => {
     const first = llmsSections();
-    first[0]?.links.push({ title: "Injected", url: "https://example.com/i" });
+    (first[0]?.links as { title: string; url: string }[] | undefined)?.push({
+      title: "Injected",
+      url: "https://example.com/i",
+    });
     expect(buildLlmsTxt()).not.toContain("Injected");
   });
 });

@@ -4,7 +4,7 @@
  *       never rendered on demand, and the page 404s (not 500s) on a bad slug.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -38,7 +38,7 @@ describe("/legal/[doc]", () => {
   it("titles each page from the registry", async () => {
     for (const slug of LEGAL_SLUGS) {
       await expect(generateMetadata(params(slug))).resolves.toMatchObject({
-        title: LEGAL_DOCS[slug].title,
+        title: { absolute: `packs ${LEGAL_DOCS[slug].title} · packs.haruhime.moe` },
       });
     }
   });
@@ -47,7 +47,7 @@ describe("/legal/[doc]", () => {
     for (const slug of LEGAL_SLUGS) {
       await expect(generateMetadata(params(slug))).resolves.toMatchObject({
         description: LEGAL_DOCS[slug].description,
-        alternates: { canonical: `/legal/${slug}` },
+        alternates: { canonical: `https://packs.haruhime.moe/legal/${slug}` },
       });
     }
   });

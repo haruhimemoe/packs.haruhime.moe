@@ -6,15 +6,18 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { PageHeader } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { PackBuilder } from "@/components/pack/PackBuilder";
+import { SEO_SITE } from "@/constants/seo";
 
-export const metadata: Metadata = {
-  title: "New pack",
-  description: "Build an osu! beatmap pack from IDs, links, or a pasted mappool.",
-  alternates: { canonical: "/new" },
-};
+export const metadata: Metadata = pageMetadata(SEO_SITE, {
+  path: "/new",
+  title: "Make an osu! mappool pack",
+  description:
+    "Paste beatmap IDs, links or a whole mappool, sort the maps into NM, HD, HR, DT, FM and TB slots, and download the pool as one zip or a torrent. No account needed.",
+});
 
 /**
  * @function NewPackPage

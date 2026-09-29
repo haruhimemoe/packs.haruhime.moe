@@ -4,10 +4,11 @@
  *       legal, and every indexed public pack.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { describe, expect, it, vi } from "vitest";
+import { GUIDE_DOCS } from "@/constants/guide";
 
 const { buildSearchIndex } = vi.hoisted(() => ({ buildSearchIndex: vi.fn() }));
 vi.mock("@/services/public-packs", () => ({ buildSearchIndex }));
@@ -61,10 +62,24 @@ describe("sitemap", () => {
 
   it("dates each pack by its last update", async () => {
     buildSearchIndex.mockResolvedValueOnce({ v: 1, packs: [entry(1)] });
-    expect((await sitemap()).find((e) => e.url.endsWith("/p/aaaaaaaa01"))).toEqual({
+    expect((await sitemap()).find((e) => e.url.endsWith("/p/aaaaaaaa01"))).toMatchObject({
       url: "https://packs.haruhime.moe/p/aaaaaaaa01",
       lastModified: "2026-09-22T00:00:00.000Z",
     });
+  });
+
+  it("dates guides, docs and legal pages by their lastUpdated, and fakes no other date", async () => {
+    buildSearchIndex.mockResolvedValueOnce({ v: 1, packs: [] });
+    const entries = await sitemap();
+    const byPath = (path: string) =>
+      entries.find((e) => e.url === `https://packs.haruhime.moe${path}`);
+    expect(new Date(String(byPath("/guide/make-a-pack")?.lastModified)).toISOString()).toBe(
+      new Date(GUIDE_DOCS["make-a-pack"].lastUpdated).toISOString(),
+    );
+    expect(byPath("/docs/api")?.lastModified).toBeDefined();
+    expect(byPath("/legal/terms")?.lastModified).toBeDefined();
+    expect(byPath("/new")?.lastModified).toBeUndefined();
+    expect(byPath("/packs")?.lastModified).toBeUndefined();
   });
 
   it("still lists the static pages when the database can't be reached", async () => {

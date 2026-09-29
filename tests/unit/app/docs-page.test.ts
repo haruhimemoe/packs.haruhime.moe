@@ -3,7 +3,7 @@
  * @desc /docs/[slug] route guard, same contract as /guide/[slug].
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -30,9 +30,10 @@ describe("/docs/[slug]", () => {
 
   it("uses the registry title and description, with a canonical URL", async () => {
     await expect(generateMetadata(params("api"))).resolves.toMatchObject({
-      title: DOC_DOCS.api.title,
+      title: { absolute: `${DOC_DOCS.api.title} · packs.haruhime.moe` },
       description: DOC_DOCS.api.description,
-      alternates: { canonical: "/docs/api" },
+      alternates: { canonical: "https://packs.haruhime.moe/docs/api" },
+      openGraph: { url: "https://packs.haruhime.moe/docs/api", type: "article" },
     });
   });
 });

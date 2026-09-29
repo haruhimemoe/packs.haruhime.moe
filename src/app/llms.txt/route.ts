@@ -7,17 +7,15 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { textResponse } from "@haruhimemoe/next-kit/seo";
 import { buildLlmsTxt } from "@/utils/llms-txt";
 
 export const dynamic = "force-static";
 
 /**
  * @function GET
- * @param request {Request} the incoming request
- * @returns {Promise<Response>} 200
+ * @returns {Response} 200 text/plain, cached an hour in browsers and a day on the CDN
  */
 export function GET() {
-  return new Response(buildLlmsTxt(), {
-    headers: { "Content-Type": "text/plain; charset=utf-8" },
-  });
+  return textResponse(buildLlmsTxt(), { maxAge: 3600, sMaxAge: 86400 });
 }

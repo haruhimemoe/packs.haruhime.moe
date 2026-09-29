@@ -3,7 +3,7 @@
  * @desc Guide document registry (content/guide/<slug>.mdx).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 export const GUIDE_SLUGS = [
@@ -29,7 +29,7 @@ export const GUIDE_DOCS: Record<
   "make-a-pack": {
     title: "How to make an osu! mappool pack",
     description:
-      "Build a pack from beatmap IDs or links, download it as one zip, and share it with a key.",
+      "Build an osu! mappool pack from beatmap IDs, links or a pasted pool, sort the maps into slots, download it as one zip, and share it with a pack key.",
     lastUpdated: "2026-09-25",
     howTo: [
       {
@@ -58,7 +58,7 @@ export const GUIDE_DOCS: Record<
   "download-a-torrent": {
     title: "Download a pack with a torrent",
     description:
-      "Open a pack's magnet link in qBittorrent, download the maps from other players, and import them into osu!.",
+      "Open a pack's magnet link in qBittorrent, download the maps from other players instead of the mirror, and import the whole pool into osu! in one go.",
     lastUpdated: "2026-09-23",
     howTo: [
       { name: "Get a torrent app", text: "Install qBittorrent. It's free and open source." },
@@ -87,7 +87,7 @@ export const GUIDE_DOCS: Record<
   "seed-a-torrent": {
     title: "How to seed an osu! mappool torrent",
     description:
-      "Make a torrent of your pack, seed it from qBittorrent, and share the magnet link with players.",
+      "Make a torrent of your osu! mappool pack in the browser, seed it from qBittorrent, and share the magnet link so players download from each other.",
     lastUpdated: "2026-09-23",
     howTo: [
       {
@@ -118,7 +118,8 @@ export const GUIDE_DOCS: Record<
   },
   "pack-key": {
     title: "Pack keys",
-    description: "What a pack key is, how to share one, and exactly how it's encoded.",
+    description:
+      "What a pack key is, how to share one so anyone can open the pack with no account, and exactly how a key encodes the pool's name, slots and maps.",
     lastUpdated: "2026-09-23",
   },
 };

@@ -6,13 +6,27 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { pageMetadata } from "@haruhimemoe/next-kit/seo";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { SavedPackEditor } from "@/components/pack/SavedPackEditor";
+import { SEO_SITE } from "@/constants/seo";
 import { requireUser } from "@/lib/auth-session";
 import { getPackForViewer } from "@/services/pack-reads";
 
-export const metadata: Metadata = { title: "Edit pack", robots: { index: false } };
+/**
+ * @function generateMetadata
+ * @param props {object} the route params
+ * @returns {Promise<Metadata>} "Edit pack", noindex, with its own canonical URL
+ */
+export async function generateMetadata({ params }: PageProps<"/p/[slug]/edit">): Promise<Metadata> {
+  const { slug } = await params;
+  return pageMetadata(SEO_SITE, {
+    path: `/p/${encodeURIComponent(slug)}/edit`,
+    title: "Edit pack",
+    index: false,
+  });
+}
 
 /**
  * @function EditPackPage

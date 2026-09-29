@@ -6,11 +6,13 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { notFoundMetadata, pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { PageHeader, Prose } from "@haruhimemoe/ui";
 import type { MDXContent } from "mdx/types";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLegalSlug, LEGAL_DOCS, LEGAL_SLUGS, type LegalSlug } from "@/constants/legal";
+import { SEO_SITE } from "@/constants/seo";
 import { formatIsoDate } from "@/utils/date";
 
 const LOADERS: Record<LegalSlug, () => Promise<{ default: MDXContent }>> = {
@@ -38,9 +40,15 @@ export function generateStaticParams() {
  */
 export async function generateMetadata({ params }: PageProps<"/legal/[doc]">): Promise<Metadata> {
   const { doc } = await params;
-  if (!isLegalSlug(doc)) return {};
-  const { title, description } = LEGAL_DOCS[doc];
-  return { title, description, alternates: { canonical: `/legal/${doc}` } };
+  if (!isLegalSlug(doc)) return notFoundMetadata(SEO_SITE, "Page");
+  const { title, description, lastUpdated } = LEGAL_DOCS[doc];
+  return pageMetadata(SEO_SITE, {
+    path: `/legal/${doc}`,
+    title: `packs ${title}`,
+    description,
+    ogType: "article",
+    modifiedTime: lastUpdated,
+  });
 }
 
 /**

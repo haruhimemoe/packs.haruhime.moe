@@ -6,12 +6,14 @@
  *       docs, and legal registries, so new docs appear on their own. Docs link their Markdown
  *       copy (/docs/<slug>.md), as llmstxt.org suggests. The public packs link spells out its
  *       query string, and Data covers the search index's keys (the read that needs no key), from
- *       the same constants the code uses. Elsewhere, last, links our Discord server.
+ *       the same constants the code uses. Elsewhere, last, links the other haruhime tools and our
+ *       Discord server. Rendering (escaping, one line per link) is next-kit's llmsTxt.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Mon Sep 28, 2026
  */
 
+import { type LlmsSection, llmsTxt } from "@haruhimemoe/next-kit/seo";
 import { RULESETS } from "@haruhimemoe/pool";
 import { OPENAPI_PATH } from "@/constants/api";
 import { DOC_DOCS, DOC_SLUGS } from "@/constants/docs";
@@ -21,13 +23,14 @@ import { DESCRIPTION_EXCERPT_LENGTH } from "@/constants/pack";
 import { PACK_SORTS } from "@/constants/pack-filters";
 import { STAT_MOD_CODES } from "@/constants/pack-stats";
 import { SEARCH_INDEX_LIMIT } from "@/constants/public-packs";
+import { BB_URL, POOLS_URL } from "@/constants/seo";
 import { SITE } from "@/constants/site";
 import { docMarkdownPath } from "@/utils/doc-markdown";
 
-export type LlmsLink = { title: string; url: string; description?: string };
-export type LlmsSection = { heading: string; links: LlmsLink[] };
-
 const at = (path: string): string => `${SITE.url}${path}`;
+
+/** Where every guide and doc is served as one Markdown file. */
+export const LLMS_FULL_PATH = "/llms-full.txt";
 
 const list = (values: readonly string[]): string => values.join(", ");
 
@@ -47,43 +50,48 @@ export const llmsSections = (): LlmsSection[] => [
   {
     heading: "Pages",
     links: [
-      { title: "Home", url: at("/"), description: "Open a pack key, or start a new pack." },
+      { title: "Home", url: at("/"), note: "Open a pack key, or start a new pack." },
       {
         title: "New pack",
         url: at("/new"),
-        description:
-          "Build an osu! mappool pack from beatmap IDs, links, or a pasted mappool, then download it as one zip or a torrent.",
+        note: "Build an osu! mappool pack from beatmap IDs, links, or a pasted mappool, then download it as one zip or a torrent.",
       },
       {
         title: "Open a key",
         url: at("/k"),
-        description: "Open an osu! mappool pack from a pack key.",
+        note: "Open an osu! mappool pack from a pack key.",
       },
       {
         title: "Public packs",
         url: at("/packs"),
-        description: `Browse, search, filter and sort packs that hosts have shared publicly. Filters live in the query string: q (search text), sr (star rating range, like 5.5-6.5 or 6+), len (length in seconds), bpm, maps (map count), mods (comma-separated from ${STAT_MOD_CODES.join(",")}; a pack needs all of them), mode (comma-separated from ${RULESETS.join(",")}; a pack needs all of them), sort (${list(PACK_SORTS)}; new by default).`,
+        note: `Browse, search, filter and sort packs that hosts have shared publicly. Filters live in the query string: q (search text), sr (star rating range, like 5.5-6.5 or 6+), len (length in seconds), bpm, maps (map count), mods (comma-separated from ${STAT_MOD_CODES.join(",")}; a pack needs all of them), mode (comma-separated from ${RULESETS.join(",")}; a pack needs all of them), sort (${list(PACK_SORTS)}; new by default).`,
       },
       {
         title: "Guides",
         url: at("/guide"),
-        description: "Every guide: making a pack, osu! collections, torrents and pack keys.",
+        note: "Every guide: making a pack, osu! collections, torrents and pack keys.",
       },
       {
         title: "Brand",
         url: at("/brand"),
-        description:
-          "The packs name, logos, colors, and type, for tournament staff, wikis, and press.",
+        note: "The packs name, logos, colors, and type, for tournament staff, wikis, and press.",
       },
     ],
   },
   {
     heading: "Guides",
-    links: GUIDE_SLUGS.map((slug) => ({
-      title: GUIDE_DOCS[slug].title,
-      url: at(`/guide/${slug}`),
-      description: GUIDE_DOCS[slug].description,
-    })),
+    links: [
+      ...GUIDE_SLUGS.map((slug) => ({
+        title: GUIDE_DOCS[slug].title,
+        url: at(`/guide/${slug}`),
+        note: GUIDE_DOCS[slug].description,
+      })),
+      {
+        title: "Every guide in one file",
+        url: at(LLMS_FULL_PATH),
+        note: "The guides and the API doc as one Markdown file.",
+      },
+    ],
   },
   {
     heading: "Data",
@@ -91,7 +99,7 @@ export const llmsSections = (): LlmsSection[] => [
       {
         title: "Public packs index",
         url: at("/packs/index.json"),
-        description: `JSON { v: 1, packs: [{ s: slug, n: name, o: owner's osu! username, c: map count, d: description excerpt (up to ${DESCRIPTION_EXCERPT_LENGTH} characters, plus … when cut), u: last updated (ISO 8601), t: created (ISO 8601), and once computed r: [min, max] star rating, a: average stars, l: [min, max] length in seconds, b: [min, max] BPM, m: mods (comma-separated), g: rulesets (comma-separated), k: stats complete }] }. Up to ${SEARCH_INDEX_LIMIT.toLocaleString("en-US")} packs, newest created first. No key needed. A pack's page is ${at("/p/")}{s}.`,
+        note: `JSON { v: 1, packs: [{ s: slug, n: name, o: owner's osu! username, c: map count, d: description excerpt (up to ${DESCRIPTION_EXCERPT_LENGTH} characters, plus … when cut), u: last updated (ISO 8601), t: created (ISO 8601), and once computed r: [min, max] star rating, a: average stars, l: [min, max] length in seconds, b: [min, max] BPM, m: mods (comma-separated), g: rulesets (comma-separated), k: stats complete }] }. Up to ${SEARCH_INDEX_LIMIT.toLocaleString("en-US")} packs, newest created first. No key needed. A pack's page is ${at("/p/")}{s}.`,
       },
     ],
   },
@@ -101,12 +109,12 @@ export const llmsSections = (): LlmsSection[] => [
       ...DOC_SLUGS.map((slug) => ({
         title: DOC_DOCS[slug].title,
         url: at(docMarkdownPath(slug)),
-        description: DOC_DOCS[slug].description,
+        note: DOC_DOCS[slug].description,
       })),
       {
         title: "OpenAPI document",
         url: at(OPENAPI_PATH),
-        description: "OpenAPI 3.1 description of every /api/v1 endpoint.",
+        note: "OpenAPI 3.1 description of every /api/v1 endpoint.",
       },
     ],
   },
@@ -115,37 +123,36 @@ export const llmsSections = (): LlmsSection[] => [
     links: LEGAL_SLUGS.map((slug) => ({
       title: LEGAL_DOCS[slug].title,
       url: at(`/legal/${slug}`),
-      description: LEGAL_DOCS[slug].description,
+      note: LEGAL_DOCS[slug].description,
     })),
   },
   {
     heading: "Elsewhere",
-    links: [{ title: "Discord", url: SITE.discordUrl, description: "our public Discord server" }],
+    links: [
+      {
+        title: "pools",
+        url: POOLS_URL,
+        note: "haruhime's osu! tournament mappool builder, where the haruhime pools account's packs come from.",
+      },
+      {
+        title: "bb",
+        url: BB_URL,
+        note: "haruhime's osu! BBCode editor, for the forum post that goes with a tournament.",
+      },
+      { title: "Discord", url: SITE.discordUrl, note: "our public Discord server" },
+    ],
   },
 ];
 
-const oneLine = (text: string): string => text.replace(/\s+/g, " ").trim();
-
-const linkLine = ({ title, url, description }: LlmsLink): string =>
-  `- [${oneLine(title)}](${url})${description ? `: ${oneLine(description)}` : ""}`;
-
 /**
  * @function buildLlmsTxt
- * @param sections {LlmsSection[]} link sections (default: llmsSections())
- * @param notes {readonly string[]} paragraphs between the summary and the sections (default:
- *        LLMS_NOTES)
- * @returns {string} the llms.txt body, ending in one newline
+ * @returns {string} the llms.txt body: title, summary, LLMS_NOTES, then llmsSections(), ending
+ *          in one newline
  */
-export const buildLlmsTxt = (
-  sections: LlmsSection[] = llmsSections(),
-  notes: readonly string[] = LLMS_NOTES,
-): string => {
-  const lines = [
-    `# ${SITE.title}`,
-    "",
-    `> ${oneLine(SITE.description)}`,
-    ...notes.flatMap((note) => ["", oneLine(note)]),
-    ...sections.flatMap(({ heading, links }) => ["", `## ${heading}`, "", ...links.map(linkLine)]),
-  ];
-  return `${lines.join("\n")}\n`;
-};
+export const buildLlmsTxt = (): string =>
+  llmsTxt({
+    title: SITE.title,
+    summary: SITE.description,
+    notes: LLMS_NOTES,
+    sections: llmsSections(),
+  });

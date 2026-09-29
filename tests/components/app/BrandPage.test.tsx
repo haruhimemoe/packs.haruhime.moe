@@ -1,9 +1,9 @@
 /**
  * @file tests/components/app/BrandPage.test.tsx
- * @desc /brand: name rules, downloadable logos, swatches with hex, trademark notice, Organization data.
+ * @desc /brand: name rules, downloadable logos, swatches with hex, trademark notice, the haruhime.moe Organization and breadcrumbs.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -29,11 +29,13 @@ describe("/brand", () => {
     expect(screen.getByText(/Nunito/)).toBeInTheDocument();
     expect(screen.getByText(SITE.trademarkNotice)).toBeInTheDocument();
     const ld = container.querySelector('script[type="application/ld+json"]');
-    expect(JSON.parse(ld?.textContent ?? "{}")).toMatchObject({
+    const [org, crumbs] = JSON.parse(ld?.textContent ?? "{}")["@graph"];
+    expect(org).toMatchObject({
       "@type": "Organization",
-      url: SITE.url,
+      "@id": "https://www.haruhime.moe/#organization",
       email: SITE.contactEmail,
     });
+    expect(crumbs).toMatchObject({ "@type": "BreadcrumbList" });
   });
 
   it("links the contact email", () => {

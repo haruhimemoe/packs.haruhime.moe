@@ -7,6 +7,7 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { ButtonLink, Card, PageHeader, Pagination } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { ApiKeyCard } from "@/components/account/ApiKeyCard";
@@ -14,13 +15,18 @@ import { DeleteAccountButton } from "@/components/account/DeleteAccountButton";
 import { DownloadDataLink } from "@/components/account/DownloadDataLink";
 import { MyPacksList } from "@/components/pack/MyPacksList";
 import { MAX_SAVED_PACKS } from "@/constants/pack";
+import { SEO_SITE } from "@/constants/seo";
 import { RestoreSignedIn, SignOutButton } from "@/lib/account";
 import { requireUser } from "@/lib/auth-session";
 import { getApiKeyInfo } from "@/services/api-keys";
 import { listPacks } from "@/services/pack-reads";
 import { parsePageParam } from "@/utils/paging";
 
-export const metadata: Metadata = { title: "My packs", robots: { index: false } };
+export const metadata: Metadata = pageMetadata(SEO_SITE, {
+  path: "/me",
+  title: "My packs",
+  index: false,
+});
 
 const first = (value: string | string[] | undefined): string =>
   (Array.isArray(value) ? value[0] : value) ?? "";

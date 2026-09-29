@@ -7,17 +7,23 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { MAX_NAME_LENGTH } from "@haruhimemoe/pool";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AdminScreen } from "@/components/admin/AdminScreen";
+import { SEO_SITE } from "@/constants/seo";
 import { RestoreSignedIn } from "@/lib/account";
 import { requireUser } from "@/lib/auth-session";
 import { listPacksForAdmin } from "@/services/moderation";
 import { listPinnedForAdmin } from "@/services/pins";
 import { parsePageParam } from "@/utils/paging";
 
-export const metadata: Metadata = { title: "Admin", robots: { index: false } };
+export const metadata: Metadata = pageMetadata(SEO_SITE, {
+  path: "/admin",
+  title: "Admin",
+  index: false,
+});
 
 const first = (value: string | string[] | undefined): string =>
   (Array.isArray(value) ? value[0] : value) ?? "";

@@ -1,16 +1,20 @@
 /**
  * @file src/app/(public)/guide/[slug]/page.tsx
- * @desc Guide document route. Static params from the registry; unknown slugs 404.
+ * @desc Guide document route. Static params from the registry; unknown slugs 404. Each guide
+ *       carries TechArticle JSON-LD with its lastUpdated, HowTo steps when it has them, and
+ *       breadcrumbs.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Mon Sep 28, 2026
  */
 
+import { ld, notFoundMetadata, pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { JsonLd, PageHeader, Prose } from "@haruhimemoe/ui";
 import type { MDXContent } from "mdx/types";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { GUIDE_DOCS, GUIDE_SLUGS, type GuideSlug, isGuideSlug } from "@/constants/guide";
+import { SEO_SITE } from "@/constants/seo";
 import { formatIsoDate } from "@/utils/date";
 
 const LOADERS: Record<GuideSlug, () => Promise<{ default: MDXContent }>> = {
@@ -38,9 +42,15 @@ export function generateStaticParams() {
  */
 export async function generateMetadata({ params }: PageProps<"/guide/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  if (!isGuideSlug(slug)) return {};
-  const { title, description } = GUIDE_DOCS[slug];
-  return { title, description, alternates: { canonical: `/guide/${slug}` } };
+  if (!isGuideSlug(slug)) return notFoundMetadata(SEO_SITE, "Guide");
+  const { title, description, lastUpdated } = GUIDE_DOCS[slug];
+  return pageMetadata(SEO_SITE, {
+    path: `/guide/${slug}`,
+    title,
+    description,
+    ogType: "article",
+    modifiedTime: lastUpdated,
+  });
 }
 
 /**
@@ -60,21 +70,22 @@ export default async function GuidePage({ params }: PageProps<"/guide/[slug]">) 
       <Prose className="mt-6">
         <Content />
       </Prose>
-      {howTo ? (
-        <JsonLd
-          data={{
-            "@type": "HowTo",
-            name: title,
+      <JsonLd
+        data={ld.graph(
+          ld.techArticle(SEO_SITE, {
+            path: `/guide/${slug}`,
+            headline: title,
             description,
-            step: howTo.map((step, i) => ({
-              "@type": "HowToStep",
-              position: i + 1,
-              name: step.name,
-              text: step.text,
-            })),
-          }}
-        />
-      ) : null}
+            dateModified: lastUpdated,
+          }),
+          ...(howTo ? [ld.howTo({ name: title, description, steps: howTo })] : []),
+          ld.breadcrumbs(SEO_SITE, [
+            { name: "packs", path: "/" },
+            { name: "Guides", path: "/guide" },
+            { name: title, path: `/guide/${slug}` },
+          ]),
+        )}
+      />
     </article>
   );
 }

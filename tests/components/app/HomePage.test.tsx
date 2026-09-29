@@ -2,10 +2,11 @@
  * @file tests/components/app/HomePage.test.tsx
  * @desc Home page: headline, primary CTA to the builder, key paste box, the three feature cards,
  *       the FAQ (how public pack filters match and sort, where Copy ID is, and adding a pack to
- *       an osu! collection, down to swapping the file in, included).
+ *       an osu! collection, down to swapping the file in, included), one JSON-LD graph, and links
+ *       to pools and bb.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -117,9 +118,39 @@ describe("HomeScreen", () => {
     for (const { question } of HOME_FAQ) {
       expect(screen.getByRole("heading", { level: 3, name: question })).toBeInTheDocument();
     }
-    const types = [...container.querySelectorAll('script[type="application/ld+json"]')].map(
-      (el) => JSON.parse(el.textContent ?? "{}")["@type"],
+    const scripts = [...container.querySelectorAll('script[type="application/ld+json"]')];
+    expect(scripts).toHaveLength(1);
+    const graph = JSON.parse(scripts[0]?.textContent ?? "{}")["@graph"] as Record<
+      string,
+      unknown
+    >[];
+    expect(graph.map((node) => node["@type"])).toEqual([
+      "Organization",
+      "WebSite",
+      "WebApplication",
+      "FAQPage",
+    ]);
+    const faq = graph[3] as { mainEntity: { name: string }[] };
+    expect(faq.mainEntity.map((q) => q.name)).toEqual(HOME_FAQ.map((q) => q.question));
+    expect(graph[1]).toMatchObject({
+      potentialAction: {
+        target: { urlTemplate: "https://packs.haruhime.moe/packs?q={search_term_string}" },
+      },
+    });
+    expect(graph[2]).toMatchObject({
+      publisher: { "@id": "https://www.haruhime.moe/#organization" },
+    });
+  });
+
+  it("links the other haruhime tools", () => {
+    render(<HomeScreen recent={[]} />);
+    expect(screen.getByRole("link", { name: "pools" })).toHaveAttribute(
+      "href",
+      "https://pools.haruhime.moe",
     );
-    expect(types).toEqual(["WebApplication", "FAQPage"]);
+    expect(screen.getByRole("link", { name: "bb" })).toHaveAttribute(
+      "href",
+      "https://bb.haruhime.moe",
+    );
   });
 });

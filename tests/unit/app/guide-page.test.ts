@@ -3,7 +3,7 @@
  * @desc /guide/[slug] route guard, same contract as /legal/[doc].
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -30,14 +30,15 @@ describe("/guide/[slug]", () => {
 
   it("uses the registry title and description", async () => {
     await expect(generateMetadata(params("pack-key"))).resolves.toMatchObject({
-      title: GUIDE_DOCS["pack-key"].title,
+      title: { absolute: `${GUIDE_DOCS["pack-key"].title} · packs.haruhime.moe` },
       description: GUIDE_DOCS["pack-key"].description,
     });
   });
 
   it("gives each guide a canonical URL", async () => {
     await expect(generateMetadata(params("make-a-pack"))).resolves.toMatchObject({
-      alternates: { canonical: "/guide/make-a-pack" },
+      alternates: { canonical: "https://packs.haruhime.moe/guide/make-a-pack" },
+      openGraph: { type: "article", modifiedTime: expect.stringMatching(/^2026-/) },
     });
   });
 });

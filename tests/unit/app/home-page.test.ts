@@ -3,7 +3,7 @@
  * @desc The homepage's recent-packs read: at most 6, and never an error.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { describe, expect, it, vi } from "vitest";
@@ -48,8 +48,10 @@ describe("homepage", () => {
     expect(await loadRecentPacks(async () => Promise.reject(new Error("no database")))).toEqual([]);
   });
 
-  it("has a title short enough for search results (with the site suffix, under 60)", () => {
-    expect(metadata.title).toBe("osu! mappool pack builder");
-    expect(`${metadata.title} · packs.haruhime.moe`.length).toBeLessThan(60);
+  it("has a keyword title short enough for search results (under 60), and a canonical", () => {
+    expect(metadata.title).toEqual({ absolute: "osu! mappool pack builder · packs.haruhime.moe" });
+    expect("osu! mappool pack builder · packs.haruhime.moe".length).toBeLessThan(60);
+    expect(metadata.alternates).toEqual({ canonical: "https://packs.haruhime.moe/" });
+    expect(metadata.openGraph).toMatchObject({ url: "https://packs.haruhime.moe/" });
   });
 });

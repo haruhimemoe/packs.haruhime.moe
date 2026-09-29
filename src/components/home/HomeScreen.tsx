@@ -1,17 +1,19 @@
 /**
  * @file src/components/home/HomeScreen.tsx
- * @desc Homepage body: hero, pack key box, what it does, recent public packs, FAQ, and the
- *       WebApplication + FAQPage structured data.
+ * @desc Homepage body: hero, pack key box, what it does, recent public packs, FAQ, the other
+ *       haruhime tools, and the structured data (Organization, WebSite with the /packs search,
+ *       WebApplication, FAQPage) as one JSON-LD graph.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Mon Sep 28, 2026
  */
 
+import { HARUHIME_ORG, ld, SEARCH_TERM } from "@haruhimemoe/next-kit/seo";
 import { ButtonLink, Card, JsonLd, PageHeader, TextLink } from "@haruhimemoe/ui";
 import Link from "next/link";
 import { KeyPasteForm } from "@/components/pack/KeyPasteForm";
 import { PublicPackList } from "@/components/packs/PublicPackList";
-import { SITE } from "@/constants/site";
+import { BB_URL, POOLS_URL, SEO_SITE } from "@/constants/seo";
 import type { PublicPackCard } from "@/schemas/public-pack";
 
 const FEATURES = [
@@ -75,24 +77,36 @@ export const HOME_FAQ = [
   },
 ] as const;
 
-const WEB_APPLICATION = {
-  "@type": "WebApplication",
-  name: SITE.name,
-  url: SITE.url,
-  description: SITE.description,
-  applicationCategory: "UtilitiesApplication",
-  operatingSystem: "Web",
-  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-};
+/** What the WebApplication node lists as its features. */
+const APP_FEATURES = [
+  "Build a pack from beatmap IDs, links or a pasted mappool",
+  "Download a whole pool as one zip, built in the browser",
+  "Make a torrent of a pack and share its magnet link",
+  "Share a pack with a pack key or a short link",
+  "Add a pack's maps to an osu!stable or osu!lazer collection",
+  "Search and filter public packs by star rating, length, BPM and mods",
+  "Public API with personal API keys",
+] as const;
 
-const FAQ_PAGE = {
-  "@type": "FAQPage",
-  mainEntity: HOME_FAQ.map(({ question, answer }) => ({
-    "@type": "Question",
-    name: question,
-    acceptedAnswer: { "@type": "Answer", text: answer },
-  })),
-};
+export const HOME_LD = ld.graph(
+  ld.organization(HARUHIME_ORG),
+  ld.webSite(SEO_SITE, { searchUrlTemplate: `/packs?q=${SEARCH_TERM}` }),
+  ld.webApplication(SEO_SITE, { category: "UtilitiesApplication", features: APP_FEATURES }),
+  ld.faq(HOME_FAQ.map(({ question, answer }) => ({ q: question, a: answer }))),
+);
+
+const TOOLS = [
+  {
+    name: "pools",
+    href: POOLS_URL,
+    body: "Build the mappool itself: search maps with mods, check the content rules, and see where each map was played before.",
+  },
+  {
+    name: "bb",
+    href: BB_URL,
+    body: "Write the tournament's forum post or your userpage in osu! BBCode and see it as you type.",
+  },
+] as const;
 
 /**
  * @function HomeScreen
@@ -157,8 +171,16 @@ export function HomeScreen({ recent }: { recent: readonly PublicPackCard[] }) {
           ))}
         </div>
       </Card>
-      <JsonLd data={WEB_APPLICATION} />
-      <JsonLd data={FAQ_PAGE} />
+      <Card title="More haruhime tools">
+        <ul className="flex flex-col gap-2 text-sm">
+          {TOOLS.map(({ name, href, body }) => (
+            <li key={name}>
+              <TextLink href={href}>{name}</TextLink>: {body}
+            </li>
+          ))}
+        </ul>
+      </Card>
+      <JsonLd data={HOME_LD} />
     </div>
   );
 }

@@ -7,30 +7,21 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { siteMetadata } from "@haruhimemoe/next-kit/seo";
 import { PageShell } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import type { ReactNode } from "react";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
-import { SITE } from "@/constants/site";
+import { SEO_SITE } from "@/constants/seo";
 import "./globals.css";
 
 const nunito = Nunito({ subsets: ["latin"], variable: "--font-nunito", display: "swap" });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE.url),
-  title: { default: SITE.title, template: `%s · ${SITE.title}` },
-  description: SITE.description,
-  applicationName: SITE.name,
-  openGraph: {
-    type: "website",
-    siteName: SITE.name,
-    locale: "en_US",
-    // No title/description here: Next then fills og:title/description from each page's own.
-  },
-  twitter: { card: "summary_large_image" },
-};
+// No og:title/description here: Next fills them from each page's own. Pages that set their own
+// openGraph (pageMetadata) carry the preview image themselves.
+export const metadata: Metadata = siteMetadata(SEO_SITE);
 
 /**
  * @function RootLayout

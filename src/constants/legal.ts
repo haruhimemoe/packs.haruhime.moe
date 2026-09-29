@@ -23,7 +23,8 @@ export const LEGAL_DOCS: Record<
 > = {
   terms: {
     title: "Terms of Service",
-    description: "The rules for using packs.haruhime.moe.",
+    description:
+      "The rules for using packs.haruhime.moe: your account, the packs you save and share, the API, what we don't host, and what happens when something goes wrong.",
     lastUpdated: "2026-09-25",
   },
   privacy: {
@@ -47,7 +48,7 @@ export const LEGAL_DOCS: Record<
     title: "Disclaimers",
     description:
       "Who packs isn't affiliated with, how our requests identify themselves, and what our numbers mean.",
-    lastUpdated: "2026-09-24",
+    lastUpdated: "2026-09-28",
   },
 };
 

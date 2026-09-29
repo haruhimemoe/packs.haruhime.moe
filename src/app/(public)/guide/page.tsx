@@ -6,17 +6,20 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { Card, PageHeader } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { GUIDE_DOCS, GUIDE_SLUGS } from "@/constants/guide";
+import { SEO_SITE } from "@/constants/seo";
 import { formatIsoDate } from "@/utils/date";
 
-export const metadata: Metadata = {
-  title: "Guides",
-  description: "How to make an osu! mappool pack, share it, and what a pack key contains.",
-  alternates: { canonical: "/guide" },
-};
+export const metadata: Metadata = pageMetadata(SEO_SITE, {
+  path: "/guide",
+  title: "osu! mappool pack guides",
+  description:
+    "How to make an osu! mappool pack, add it to your osu! collections, download or seed it as a torrent, and what a pack key holds. Short guides, one task each.",
+});
 
 /**
  * @function GuideIndexPage

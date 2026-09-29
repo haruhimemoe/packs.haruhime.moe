@@ -8,6 +8,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- A saved pack's page lists its maps (artist, title, difficulty, mapper, stars) in the page itself, so search engines, link previews and AI assistants see the maps instead of "Loading beatmap…". Your browser still refreshes them when the page opens.
+- Page titles, descriptions, canonical links, link previews, robots.txt, the sitemap, structured data and llms.txt now come from `@haruhimemoe/next-kit/seo` 0.3.0, shared by every haruhime.moe site. Every page has its own title and description and keeps the link preview image. A pack's page is titled "… map pack download" and its description leaves out the source link and ends with the map count, star range and mods.
+- The sitemap dates guides, docs and legal pages by when they last changed. robots.txt names each AI crawler, all still allowed.
+- Structured data: the home page describes packs as part of haruhime.moe, with a search box for public packs; guides and the API docs are articles with their update date; public pack pages and the public pack list describe their packs. ui moves to 0.5.1, which escapes `>`, `&` and line separators in structured data too.
+- New: [/llms-full.txt](https://packs.haruhime.moe/llms-full.txt), every guide and the API docs in one Markdown file. llms.txt links it, pools and bb.
+- The home page links pools and bb, haruhime's other osu! tools.
 - The Sign in with osu! and Sign out buttons come from `@haruhimemoe/next-kit/auth-react` 0.2.0 (`createAuthComponents`), shared with pools, and ui moves to 0.5.0. A sign-in error now shows as a bold rose line under the button instead of a notice box.
 - The site's server plumbing now comes from [@haruhimemoe/next-kit](https://github.com/haruhimemoe/next-kit), which pools.haruhime.moe shares. Where the two copies differed, packs takes pools' behavior:
   - A 503 without a code of its own answers `unavailable`, not `internal_error`. (packs' own 503s, from the cron and the pools service routes, keep `not_configured`.)

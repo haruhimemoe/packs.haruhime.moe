@@ -3,7 +3,7 @@
  * @desc Developer docs registry (content/docs/<slug>.mdx), served at /docs/<slug>.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 export const DOC_SLUGS = ["api"] as const;
@@ -17,7 +17,7 @@ export const DOC_DOCS: Record<
   api: {
     title: "packs API",
     description:
-      "Read public packs and manage your own from scripts and bots, with a personal API key.",
+      "Read public packs and manage your own from scripts and bots with a personal API key: endpoints, limits, errors and an OpenAPI document.",
     lastUpdated: "2026-09-26",
   },
 };

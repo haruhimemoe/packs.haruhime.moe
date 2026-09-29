@@ -7,15 +7,18 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { pageMetadata } from "@haruhimemoe/next-kit/seo";
 import type { Metadata } from "next";
 import { PackKeyView } from "@/components/pack/PackKeyView";
+import { SEO_SITE } from "@/constants/seo";
 
-export const metadata: Metadata = {
-  title: "Open pack",
+// Every /k URL renders the same shell (the key lives in the #fragment): nothing to index.
+export const metadata: Metadata = pageMetadata(SEO_SITE, {
+  path: "/k",
+  title: "Open a pack key",
   description: "Open an osu! beatmap pack from a pack key.",
-  // Every /k URL renders the same shell (the key lives in the #fragment): nothing to index.
-  robots: { index: false, follow: true },
-};
+  index: false,
+});
 
 /**
  * @function OpenPackPage
