@@ -1,7 +1,7 @@
 /**
  * @file src/constants/seo.ts
  * @desc The site as @haruhimemoe/next-kit/seo sees it: name, origin, the home page's keyword
- *       title, the description, the static preview image, and haruhime.moe as the organization
+ *       title and the short suffix long titles take, the description, the static preview image, and haruhime.moe as the organization
  *       and parent site. Every metadata, robots, sitemap, JSON-LD and llms.txt helper reads it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
@@ -22,6 +22,8 @@ export const SEO_SITE: Site = {
   url: SITE.url,
   // With the " · packs.haruhime.moe" suffix: 46 characters, whole in search results.
   title: "osu! mappool pack builder",
+  // A long pack name ends " · packs" instead, so the title stays within 60 characters.
+  shortTitleSuffix: "packs",
   description: SITE.description,
   ogImages: [
     {

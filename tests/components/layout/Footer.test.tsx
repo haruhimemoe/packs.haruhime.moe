@@ -1,10 +1,10 @@
 /**
  * @file tests/components/layout/Footer.test.tsx
- * @desc Footer: legal links, source link, trademark notice, no-hosting statement, and the
- *       haruhime.moe wordmark, Discord icon and GitHub org links.
+ * @desc Footer: legal links, source link, trademark notice, no-hosting statement, the other
+ *       haruhime tools, and the haruhime.moe wordmark, Discord icon and GitHub org links.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
@@ -100,5 +100,21 @@ describe("Footer", () => {
     );
     expect(fine).toHaveTextContent(SITE.trademarkNotice);
     expect(screen.getByRole("button", { name: "Clear local data" })).toBeInTheDocument();
+  });
+
+  it("links the other haruhime tools after the Packs column, not packs itself", () => {
+    render(<Footer />);
+    const names = screen.getAllByRole("navigation").map((nav) => nav.getAttribute("aria-label"));
+    expect(names.slice(0, 2)).toEqual(["Packs", "haruhime tools"]);
+    const tools = screen.getByRole("navigation", { name: "haruhime tools" });
+    expect(within(tools).getByRole("link", { name: /^pools/ })).toHaveAttribute(
+      "href",
+      "https://pools.haruhime.moe",
+    );
+    expect(within(tools).getByRole("link", { name: /^bb/ })).toHaveAttribute(
+      "href",
+      "https://bb.haruhime.moe",
+    );
+    expect(within(tools).queryByRole("link", { name: /^packs/ })).toBeNull();
   });
 });

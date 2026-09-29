@@ -4,7 +4,9 @@
  *       external osu! CDN asset we never transform), security headers on every route (no framing,
  *       no MIME sniffing, a trimmed Referer; a full CSP needs nonces and comes later), no
  *       X-Powered-By, redirects for the retired tournament check and archived pools guide pages,
- *       and a rewrite that serves each doc's Markdown copy at /docs/<slug>.md.
+ *       and a rewrite that serves each doc's Markdown copy at /docs/<slug>.md. @haruhimemoe/brand
+ *       and resvg stay out of the server bundle (resvg is a native binary, and brand reads its
+ *       fonts by a computed path, traced for the pack card route), so ogCard runs per request.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Mon Sep 28, 2026
@@ -36,6 +38,11 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   images: { unoptimized: true },
+  serverExternalPackages: ["@haruhimemoe/brand", "@resvg/resvg-js"],
+  outputFileTracingIncludes: {
+    // A picomatch glob over the route: "[slug]" would be a character class.
+    "/p/*/og.png": ["./node_modules/@haruhimemoe/brand/fonts/*.ttf"],
+  },
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },

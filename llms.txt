@@ -23,7 +23,7 @@
 - [src/app/api/v1/](https://github.com/haruhimemoe/packs.haruhime.moe/tree/main/src/app/api/v1): the public API's route handlers
 - [src/lib/openapi.ts](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/src/lib/openapi.ts): builds the OpenAPI document
 - [src/utils/llms-txt.ts](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/src/utils/llms-txt.ts): the notes and link sections of the live /llms.txt (rendered by @haruhimemoe/next-kit/seo)
-- [src/constants/seo.ts](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/src/constants/seo.ts): the site as the shared SEO helpers see it (titles, preview image, the haruhime.moe organization)
+- [src/constants/seo.ts](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/src/constants/seo.ts): the site as the shared SEO helpers see it (titles and the short " · packs" suffix, preview image, the haruhime.moe organization)
 - [.env.example](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/.env.example): every environment variable, with what it's for
 
 ## Elsewhere
@@ -33,7 +33,7 @@
 - [@haruhimemoe/osu](https://github.com/haruhimemoe/osu): osu! API v2 shapes, the server client, and the collection.db reader and writer behind "Add to osu! collection"
 - [@haruhimemoe/ui](https://github.com/haruhimemoe/ui): the React components and theme the site is built from
 - [@haruhimemoe/next-kit](https://github.com/haruhimemoe/next-kit): the server plumbing and the SEO helpers (metadata, robots.txt, sitemap, JSON-LD, llms.txt) packs shares with the other haruhime.moe sites
-- [@haruhimemoe/brand](https://github.com/haruhimemoe/brand): generates the logos, icons and link preview
+- [@haruhimemoe/brand](https://github.com/haruhimemoe/brand): generates the logos, icons and link preview, and draws each public pack's preview card
 - [haruhime Claude Code plugin](https://github.com/haruhimemoe/claude-plugin): skills for osu! tools, including one for packs and its API
 - [pools.haruhime.moe](https://pools.haruhime.moe): the osu! tournament mappool builder, in beta. Hosts search maps under a mod, check a pool against the content rules and build it with co-editors; past tournament pools (from hosts, community submissions and sources like otdb) are there as reference. It publishes pools to packs as packs owned by haruhime pools
 - [bb.haruhime.moe](https://bb.haruhime.moe): haruhime's osu! BBCode editor, for userpages and tournament forum posts

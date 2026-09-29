@@ -4,6 +4,8 @@
  *       canonical, og:url and the preview image; others are noindex. The description drops
  *       linked sentences, ends with the saved stats, and stays within 160 characters. JSON-LD is
  *       a CreativeWork (isBasedOn the linked pools page) with breadcrumbs, for public packs only.
+ *       Public packs get their own card image (versioned by its text); a long name takes the
+ *       short " · packs" suffix.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Mon Sep 28, 2026
@@ -11,7 +13,14 @@
 
 import { describe, expect, it } from "vitest";
 import type { SavedPack } from "@/schemas/saved-pack";
-import { packDescription, packFacts, packLd, packMetadata } from "@/utils/pack-metadata";
+import {
+  packCard,
+  packCardImage,
+  packDescription,
+  packFacts,
+  packLd,
+  packMetadata,
+} from "@/utils/pack-metadata";
 
 const PACK: SavedPack = {
   name: "SPC Finals",
@@ -42,15 +51,26 @@ const STATS = {
 } as const satisfies SavedPack["stats"];
 
 describe("packMetadata", () => {
-  it("indexes a public pack with a download title, canonical, og:url and preview image", () => {
+  it("indexes a public pack with a download title, canonical, og:url and its own card", () => {
     const meta = packMetadata(PACK);
     expect(meta.title).toEqual({ absolute: "SPC Finals map pack download · packs.haruhime.moe" });
     expect(meta.alternates).toEqual({ canonical: "https://packs.haruhime.moe/p/abcdefghij" });
     expect(meta.openGraph).toMatchObject({
       url: "https://packs.haruhime.moe/p/abcdefghij",
-      images: [expect.objectContaining({ url: "/opengraph-image.png", width: 1200 })],
+      images: [
+        expect.objectContaining({
+          url: expect.stringMatching(/^\/p\/abcdefghij\/og\.png\?v=\w+$/),
+        }),
+      ],
     });
     expect(meta.robots).toBeUndefined();
+  });
+
+  it("shortens the suffix of a long title to packs", () => {
+    const meta = packMetadata({ ...PACK, name: "Enigmatic Summer Solstice Group Stage (Tier 2)" });
+    expect(meta.title).toEqual({
+      absolute: "Enigmatic Summer Solstice Group Stage (Tier 2) map pack download · packs",
+    });
   });
 
   it.each([
@@ -61,6 +81,28 @@ describe("packMetadata", () => {
     const meta = packMetadata({ ...PACK, ...change });
     expect(meta.robots).toEqual({ index: false, follow: true });
     expect(meta.title).toEqual({ absolute: "SPC Finals · packs.haruhime.moe" });
+    expect(meta.openGraph).toMatchObject({
+      images: [expect.objectContaining({ url: "/opengraph-image.png", width: 1200 })],
+    });
+  });
+});
+
+describe("packCard", () => {
+  it("says what the pack is, with the map count, star range and mods once known", () => {
+    expect(packCard(PACK)).toEqual({
+      eyebrow: "osu! mappool pack",
+      title: "SPC Finals",
+      subtitle: "2 maps",
+    });
+    expect(packCard({ ...PACK, stats: STATS }).subtitle).toBe("2 maps · 5.20–6.41★ · NM HD");
+  });
+
+  it("versions the card's URL by its text", () => {
+    const image = packCardImage(PACK);
+    expect(image).toMatchObject({ width: 1200, height: 630, type: "image/png" });
+    expect(packCardImage(PACK).url).toBe(image.url);
+    expect(packCardImage({ ...PACK, stats: STATS }).url).not.toBe(image.url);
+    expect(packCardImage({ ...PACK, name: "Other" }).url).not.toBe(image.url);
   });
 });
 

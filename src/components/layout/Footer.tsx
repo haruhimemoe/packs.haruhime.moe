@@ -1,7 +1,7 @@
 /**
  * @file src/components/layout/Footer.tsx
  * @desc Site footer: the library SiteFooter with the Packs / About / Legal link columns (About
- *       links the source on GitHub), clear local data, one line of fine print (the only place
+ *       links the source on GitHub), ui's "haruhime tools" column (pools, bb, All tools), clear local data, one line of fine print (the only place
  *       outside the legal pages that says we never store files), and the row linking the
  *       parent brand (haruhime.moe wordmark), our Discord server and the haruhimemoe GitHub org.
  * @author David @dvhsh (https://dvh.sh)
@@ -48,6 +48,7 @@ export function Footer() {
   return (
     <SiteFooter
       columns={FOOTER_COLUMNS}
+      tools={{ current: "packs" }}
       extra={<ClearLocalDataButton />}
       finePrint={
         <>
