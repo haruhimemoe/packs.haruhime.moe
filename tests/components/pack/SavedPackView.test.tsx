@@ -3,7 +3,8 @@
  * @desc /p/[slug] view: Download card first (recorded magnet links, then the mirror), pool,
  *       owner-only controls, admins removing a magnet link and pinning a public pack to the top
  *       of /packs, short link + key sharing, Copy ID per map, https links in the description
- *       (same tab), and the "Add to osu! collection" card between the maps and Share.
+ *       (same tab), the "Add to osu! collection" card between the maps and Share, and map info the
+ *       server looked up rendered into the HTML.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Mon Sep 28, 2026
@@ -14,6 +15,7 @@ import { encodePackKey } from "@haruhimemoe/pool";
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { HttpResponse, http } from "msw";
+import { renderToString } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { SavedPackView } from "@/components/pack/SavedPackView";
 import { PacksApiError } from "@/lib/packs-api";
@@ -42,7 +44,42 @@ const PACK: SavedPack = {
   updatedAt: "2026-09-22T23:30:00.000Z",
 };
 
+const serverMeta = (beatmapId: number, title: string) => ({
+  beatmapId,
+  beatmapsetId: beatmapId + 1,
+  mode: "osu" as const,
+  title,
+  artist: "xi",
+  version: "FOUR DIMENSIONS",
+  creator: "Nakagawa-Kanon",
+  creatorId: null,
+  cs: 4,
+  ar: 9,
+  od: 8,
+  hp: 6,
+  bpm: 222,
+  lengthSeconds: 263,
+  starRating: 7.1,
+  checksum: null,
+});
+
 describe("SavedPackView", () => {
+  it("renders the server's map info in the HTML, with no loading rows", () => {
+    // React marks text boundaries with <!-- -->; crawlers read the text around them.
+    const markup = renderToString(
+      <SavedPackView
+        pack={PACK}
+        isOwner={false}
+        initialMeta={[serverMeta(129891, "FREEDOM DiVE"), serverMeta(1872396, "Blue Zenith")]}
+      />,
+    );
+    const html = markup.replaceAll("<!-- -->", "");
+    expect(html).toContain("xi - FREEDOM DiVE");
+    expect(html).toContain("xi - Blue Zenith");
+    expect(html).toContain("mapped by Nakagawa-Kanon");
+    expect(html).not.toContain("Loading beatmap");
+  });
+
   it("shows the pool and both ways to share it", async () => {
     render(<SavedPackView pack={PACK} isOwner={false} />);
     expect(screen.getByRole("heading", { level: 1, name: "SPC Finals" })).toBeInTheDocument();

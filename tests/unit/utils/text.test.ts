@@ -1,13 +1,13 @@
 /**
  * @file tests/unit/utils/text.test.ts
- * @desc Excerpts, page meta descriptions, regex escaping.
+ * @desc Excerpts, regex escaping, counts.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Mon Sep 28, 2026
  */
 
 import { describe, expect, it } from "vitest";
-import { countOf, escapeRegExp, excerpt, metaDescription } from "@/utils/text";
+import { countOf, escapeRegExp, excerpt } from "@/utils/text";
 
 describe("excerpt", () => {
   it("keeps short text, collapsing whitespace", () => {
@@ -26,18 +26,6 @@ describe("excerpt", () => {
 
   it("returns an empty string for empty text", () => {
     expect(excerpt("", 140)).toBe("");
-  });
-});
-
-describe("metaDescription", () => {
-  it("uses the description, cut to 160 characters", () => {
-    expect(metaDescription("x".repeat(200), 3)).toBe(`${"x".repeat(160)}…`);
-    expect(metaDescription("Quals pool", 3)).toBe("Quals pool");
-  });
-
-  it("falls back to the map count", () => {
-    expect(metaDescription(undefined, 12)).toBe("12 maps. An osu! beatmap pack.");
-    expect(metaDescription("", 1)).toBe("1 map. An osu! beatmap pack.");
   });
 });
 

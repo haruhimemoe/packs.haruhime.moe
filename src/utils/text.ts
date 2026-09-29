@@ -1,13 +1,11 @@
 /**
  * @file src/utils/text.ts
- * @desc Plain-text helpers: counts with their noun ("1 map", "3 maps"), excerpts of pack descriptions, page meta descriptions, and regex
+ * @desc Plain-text helpers: counts with their noun ("1 map", "3 maps"), excerpts of pack descriptions, and regex
  *       escaping for admin name filters. Descriptions are normalized by @haruhimemoe/pool/service.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Mon Sep 28, 2026
  */
-
-const META_DESCRIPTION_LENGTH = 160;
 
 /**
  * @function countOf
@@ -31,17 +29,6 @@ export const excerpt = (text: string, max: number): string => {
   if (chars.length <= max) return flat;
   return `${chars.slice(0, max).join("").trimEnd()}…`;
 };
-
-/**
- * @function metaDescription
- * @param description {string | undefined} the pack's description
- * @param slotCount {number} maps in the pack
- * @returns {string} the description cut to 160 characters, or "{n} maps. An osu! beatmap pack."
- */
-export const metaDescription = (description: string | undefined, slotCount: number): string =>
-  description
-    ? excerpt(description, META_DESCRIPTION_LENGTH)
-    : `${countOf(slotCount, "map")}. An osu! beatmap pack.`;
 
 /**
  * @function escapeRegExp

@@ -89,6 +89,13 @@ describe("torrent copy", () => {
 describe("privacy", () => {
   const text = () => read("privacy");
 
+  it("says our server asks the mirror for a pack page's maps, with beatmap IDs only", () => {
+    expect(text()).toContain(
+      "our server also asks the mirror for the maps' details when it builds that page",
+    );
+    expect(text()).toContain("That request carries beatmap IDs only.");
+  });
+
   it.each(["MongoDB Atlas", "Vercel", "request logs", "assets.ppy.sh", "a.ppy.sh"])(
     "contains %j",
     (phrase) => {
@@ -385,9 +392,9 @@ describe("disclaimers", () => {
     expect(text()).toContain(phrase);
   });
 
-  it("says our server asks the mirror for map details, and never for files", () => {
+  it("says our server asks the mirror for map details (stats and pack pages), and never for files", () => {
     expect(text()).toContain(
-      "To work out a saved pack's stats, our server asks the mirror for the maps' details (never the beatmap files), with the same User-Agent.",
+      "To work out a saved pack's stats, and to list the maps on a saved pack's page, our server asks the mirror for the maps' details (never the beatmap files), with the same User-Agent.",
     );
     expect(text()).not.toContain("Our server never contacts the mirror");
   });

@@ -6,7 +6,9 @@
  *       (same tab, rel nofollow ugc noopener). The owner also sees its visibility, an Edit link,
  *       and can add or remove magnet links; an admin can remove a magnet link from a public or
  *       unlisted pack, and pin a public pack that isn't hidden to the top of /packs (or unpin it).
- *       The "Add to osu! collection" card sits between the maps and Share.
+ *       The "Add to osu! collection" card sits between the maps and Share. Map info the server
+ *       looked up (initialMeta) renders with the page, so the maps have titles before any script
+ *       runs; the browser still refreshes it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Mon Sep 28, 2026
@@ -14,6 +16,7 @@
 
 "use client";
 
+import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
 import { encodePackKey } from "@haruhimemoe/pool";
 import { ButtonLink, Card, PageHeader, TextLink } from "@haruhimemoe/ui";
 import { Fragment, type ReactNode, useId, useMemo, useState } from "react";
@@ -63,11 +66,12 @@ export type PackViewApi = PinApi & {
 
 /**
  * @function SavedPackView
- * @param props {object} pack, isOwner, isAdmin, pinned, api, readCookie
+ * @param props {object} pack, initialMeta, isOwner, isAdmin, pinned, api, readCookie
  * @returns {JSX.Element} the /p/[slug] page body: the Download card first, then the pool
  */
 export function SavedPackView({
   pack,
+  initialMeta,
   isOwner: isOwnerProp,
   isAdmin: isAdminProp,
   pinned: pinnedProp,
@@ -75,6 +79,8 @@ export function SavedPackView({
   readCookie,
 }: {
   pack: SavedPack;
+  /** Map info the server rendered with (the /p page); refreshed in the browser. */
+  initialMeta?: readonly BeatmapMeta[];
   /** Known already (not-found fallback, tests). Omitted: asked in the browser when signed in. */
   isOwner?: boolean;
   /** Known with isOwner. Omitted: asked in the browser along with ownership. */
@@ -106,7 +112,7 @@ export function SavedPackView({
   );
   const packKey = useMemo(() => encodePackKey(ref), [ref]);
   const ids = useMemo(() => ref.slots.map((s) => s.beatmapId), [ref]);
-  const meta = useBeatmapMeta(ids);
+  const meta = useBeatmapMeta(ids, undefined, initialMeta);
   const stars = usePoolStarRatings(ref, meta.get);
   const count = `${countOf(pack.slots.length, "map")}`;
   const [exports, setExports] = useState<readonly PackExport[]>(pack.exports ?? []);

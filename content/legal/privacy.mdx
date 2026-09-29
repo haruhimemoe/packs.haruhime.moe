@@ -55,6 +55,8 @@ When the mirror doesn't have a map, your browser asks our server, and our server
 
 After a pack is saved, our server works out its stats (star rating, length and BPM ranges), and a daily job fills in what it couldn't get. It asks the beatmap mirror (mirror.hinamizawa.ai) for the maps' details, and osu! for maps the mirror doesn't have and for ratings with mods. These requests carry beatmap IDs and mod names only, and our server never downloads beatmap files.
 
+So a saved pack's page can list its maps before your browser has loaded anything, our server also asks the mirror for the maps' details when it builds that page (at most about once a day per pack, not once per visitor). That request carries beatmap IDs only.
+
 ## Data on your device
 
 Pack drafts are kept in your browser's IndexedDB, and downloaded beatmap files are cached in your browser's private file storage so a second export doesn't download everything again. Your download options (videos and backgrounds) are saved in this browser's local storage, and removing backgrounds happens on your device too. When you filter public packs, this tab's session storage remembers how many results were showing and how far down you'd scrolled, so the Back button takes you there again. It's gone when you close the tab. This data stays on your device. You can delete it anytime with the "Clear local data" button at the bottom of every page, or by clearing site data in your browser.

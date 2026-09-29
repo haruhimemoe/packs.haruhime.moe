@@ -2,7 +2,8 @@
  * @file tests/components/hooks/useBeatmapMeta.test.tsx
  * @desc useBeatmapMeta against a fake client: found/missing, no refetching, error then retry, and
  *       ids osu! couldn't check yet (unchecked) retryable as errors, never missing, mirror errors
- *       in plain words (no status codes), and lookups aborted once they're no longer wanted.
+ *       in plain words (no status codes), lookups aborted once they're no longer wanted, and
+ *       server-rendered metadata shown at once and refreshed in place.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Mon Sep 28, 2026
@@ -71,6 +72,32 @@ const fakeClient = () => {
 };
 
 describe("useBeatmapMeta", () => {
+  it("shows server-rendered maps as found at once, then refreshes them without loading", async () => {
+    const { client, calls } = fakeClient();
+    const stale = { ...meta(1), title: "old" };
+    const { result } = renderHook(() => useBeatmapMeta([1, 2], client, [stale]));
+    expect(result.current.get(1)).toEqual({ status: "found", meta: stale });
+    expect(result.current.get(2)).toEqual({ status: "loading" });
+    await waitFor(() => expect(result.current.get(2).status).toBe("found"));
+    expect(result.current.get(1)).toEqual({ status: "found", meta: meta(1) });
+    expect(calls).toEqual([[1, 2]]);
+  });
+
+  it("keeps a server-rendered map when its refresh fails or comes back unchecked", async () => {
+    const failing = fakeClient();
+    failing.failNextCall();
+    const first = renderHook(() => useBeatmapMeta([1], failing.client, [meta(1)]));
+    await waitFor(() => expect(failing.calls).toHaveLength(1));
+    expect(first.result.current.get(1)).toEqual({ status: "found", meta: meta(1) });
+
+    const busy = fakeClient();
+    busy.uncheckNextCall();
+    const second = renderHook(() => useBeatmapMeta([1], busy.client, [meta(1)]));
+    await waitFor(() => expect(busy.calls).toHaveLength(1));
+    expect(second.result.current.get(1)).toEqual({ status: "found", meta: meta(1) });
+    expect(second.result.current.hasErrors).toBe(false);
+  });
+
   it("resolves found and missing ids", async () => {
     const { client } = fakeClient();
     const { result } = renderHook(() => useBeatmapMeta([1, 3], client));

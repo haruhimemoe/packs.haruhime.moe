@@ -130,6 +130,40 @@ export const lookupStatsMeta = async (
   return found;
 };
 
+/** How long a pack page's render waits for the mirror before it renders without map info. */
+export const PAGE_META_TIMEOUT_MS = 5000;
+
+/**
+ * @function lookupPageMeta
+ * @param ids {readonly number[]} the pack's beatmap ids (duplicates fine)
+ * @param deps {{ mirror?, timeoutMs? }} mirror client and time limit (tests)
+ * @returns {Promise<BeatmapMeta[]>} what the mirror knew, for the server-rendered pack page. The
+ *          mirror only: no osu! call, so no budget is spent; the browser looks up the rest as
+ *          before. Never rejects: a failed or slow batch leaves its maps out (logged).
+ */
+export const lookupPageMeta = async (
+  ids: readonly number[],
+  {
+    mirror = getServerMirror(),
+    timeoutMs = PAGE_META_TIMEOUT_MS,
+  }: { mirror?: Pick<HinaiClient, "getBeatmaps">; timeoutMs?: number } = {},
+): Promise<BeatmapMeta[]> => {
+  const found: BeatmapMeta[] = [];
+  const signal = AbortSignal.timeout(timeoutMs);
+  await runPool(
+    chunks([...new Set(ids)], HINAI_BATCH_LIMIT),
+    MIRROR_LOOKUP_CONCURRENCY,
+    async (batch) => {
+      try {
+        found.push(...(await mirror.getBeatmaps(batch, { signal })).found.values());
+      } catch (error) {
+        console.warn("[pack page] mirror lookup failed:", error);
+      }
+    },
+  );
+  return found;
+};
+
 type RatingDeps = Parameters<typeof getStarRatings>[1];
 
 /**
