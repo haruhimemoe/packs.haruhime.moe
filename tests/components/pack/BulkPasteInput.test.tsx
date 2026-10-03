@@ -3,7 +3,7 @@
  * @desc Bulk paste: adds good lines, keeps and explains bad ones.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import { MAX_SLOTS } from "@haruhimemoe/pool";
@@ -11,6 +11,9 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { BulkPasteInput } from "@/components/pack/BulkPasteInput";
+
+/** The box's own summary line: its output, which ui's status field errors sit beside. */
+const summary = () => document.querySelector("output") as HTMLElement;
 
 describe("BulkPasteInput", () => {
   it("adds valid lines, reports and keeps invalid ones", async () => {
@@ -28,8 +31,9 @@ describe("BulkPasteInput", () => {
       ],
       [],
     );
-    expect(screen.getByRole("status")).toHaveTextContent("Added 2 maps.");
-    expect(screen.getByRole("alert")).toHaveTextContent(/Line 2/);
+    expect(summary()).toHaveTextContent("Added 2 maps.");
+    // The line error is a polite status message (ui 0.7.0), beside the box's own summary output.
+    expect(screen.getByText(/Line 2/).closest("[role]")).toHaveAttribute("role", "status");
     expect(box).toHaveValue("nonsense");
   });
 
@@ -63,7 +67,7 @@ describe("BulkPasteInput", () => {
       ],
       [],
     );
-    expect(screen.getByRole("status")).toHaveTextContent(
+    expect(summary()).toHaveTextContent(
       `Added 1 map. Replaced NM1. 1 didn't fit: the pack is full (${MAX_SLOTS} maps).`,
     );
     expect(box).toHaveValue("HD2 6");
@@ -88,7 +92,7 @@ describe("BulkPasteInput", () => {
         { code: "HT", color: 1 },
       ],
     );
-    expect(screen.getByRole("status")).toHaveTextContent("Added 4 maps. Added slots EZ, HT.");
+    expect(summary()).toHaveTextContent("Added 4 maps. Added slots EZ, HT.");
   });
 
   it("only creates buckets whose maps made it in, and puts unfitting no-slot IDs back", async () => {

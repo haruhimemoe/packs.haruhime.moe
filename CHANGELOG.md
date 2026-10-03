@@ -8,6 +8,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Depends on `@haruhimemoe/ui` 0.7.0, its accessibility release: one footer nav with headed columns, field errors read as polite status messages instead of alerts, a visible focus ring on fields, 24px slider thumbs and chips, and lighter accent links.
+
 - A public pack's link preview is its own card: the pack's name with its map count, star range and mods, drawn by `@haruhimemoe/brand` 0.6.0. Unlisted and private packs keep the site's image.
 - A long page title ends in "· packs" instead of "· packs.haruhime.moe", so search results show it whole (`@haruhimemoe/next-kit` 0.4.0).
 - The footer links haruhime's other tools, pools and bb, and all of them on haruhime.moe (`@haruhimemoe/ui` 0.6.0). The home page's "More haruhime tools" card stays, with a line on what each does.

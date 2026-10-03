@@ -3,7 +3,7 @@
  * @desc Paste-a-key: validates before navigating, accepts keys inside links and sentences.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import { encodePackKey } from "@haruhimemoe/pool";
@@ -37,7 +37,10 @@ describe("KeyPasteForm", () => {
     render(<KeyPasteForm />);
     await user.type(screen.getByLabelText("Pack key or link"), "hello{Enter}");
     expect(push).not.toHaveBeenCalled();
-    expect(screen.getByRole("alert")).toHaveTextContent(/doesn't look like a pack key/);
+    expect(screen.getByText(/doesn't look like a pack/)).toHaveAttribute("role", "status");
+    expect(screen.getByText(/doesn't look like a pack/)).toHaveTextContent(
+      /doesn't look like a pack key/,
+    );
   });
 
   it("on /k, swaps the hash instead of pushing (Next doesn't fire hashchange)", async () => {

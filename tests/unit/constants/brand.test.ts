@@ -4,7 +4,7 @@
  *       globals.css sets); brand files exist.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import { existsSync, readFileSync } from "node:fs";
@@ -42,8 +42,14 @@ describe("BRAND_COLORS", () => {
       expect(match).not.toBeNull();
       const s = Number(match?.[1]);
       const l = lightness(match?.[2], match?.[3], match?.[4] ?? "");
-      expect(color.hsl).toEqual([hue, s, l]);
-      expect(color.hex).toBe(hslToHex(hue, s, l));
+      const [brandHue, brandS, brandL] = color.hsl;
+      expect([brandHue, brandS]).toEqual([hue, s]);
+      // The brand pink is the logo color, baked into the icon, wordmark and banners. ui lightens
+      // its text accent (h1) past it so links clear 4.5:1 on the surfaces: the theme may only be
+      // lighter than the swatch, never darker. Fixed tokens match exactly.
+      if (match?.[3]) expect(l).toBeGreaterThanOrEqual(brandL);
+      else expect(l).toBe(brandL);
+      expect(color.hex).toBe(hslToHex(hue, s, brandL));
     },
   );
 });

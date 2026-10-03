@@ -10,7 +10,7 @@
         "@haruhimemoe/next-kit": "0.4.0",
         "@haruhimemoe/osu": "0.3.0",
         "@haruhimemoe/pool": "0.2.0",
-        "@haruhimemoe/ui": "0.6.0",
+        "@haruhimemoe/ui": "0.7.0",
         "@mdx-js/loader": "3.1.1",
         "@mdx-js/react": "3.1.1",
         "@next/mdx": "16.3.6",
@@ -140,7 +140,7 @@
 
     "@haruhimemoe/pool": ["@haruhimemoe/pool@0.2.0", "", { "peerDependencies": { "zod": "^4.0.16" } }, "sha512-08MqwWGnHduAw5M1Bxo22A43PsFHmuBDToksOy9Jk8V9JZW/EGg4QVX9a7UqZNx1xdc+OOPczFcUONGvS6jgpg=="],
 
-    "@haruhimemoe/ui": ["@haruhimemoe/ui@0.6.0", "", { "dependencies": { "tailwind-merge": "3.7.0" }, "peerDependencies": { "next": ">=16.0.0 <17", "react": ">=19.0.0", "react-dom": ">=19.0.0", "tailwindcss": ">=4.1.0 <5" } }, "sha512-CzG34YiIGxaWpelvTeKfH9pJP+fLjPrmxPGfLmrWW5rQjcPI+0lJasvoZGqDcA6gzSCh5iQClDRCZJW9+ExuVA=="],
+    "@haruhimemoe/ui": ["@haruhimemoe/ui@0.7.0", "", { "dependencies": { "tailwind-merge": "3.7.0" }, "peerDependencies": { "next": ">=16.0.0 <17", "react": ">=19.0.0", "react-dom": ">=19.0.0", "tailwindcss": ">=4.1.0 <5" } }, "sha512-myM/JfymVUJlMIuI56TS+ICv34FeiRV4SD7LMOym4As90FgKwFEg9dSRETkBh8leOxW0j7GuCp2gfcIGaMJ+7g=="],
 
     "@img/colour": ["@img/colour@1.1.0", "", {}, "sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ=="],
 

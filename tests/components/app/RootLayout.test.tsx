@@ -4,7 +4,7 @@
  *       header, the page inside the #main landmark, and the packs footer, in that order.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import { within } from "@testing-library/react";
@@ -55,7 +55,7 @@ describe("RootLayout", () => {
       "href",
       "/signin",
     );
-    expect(within(footer).getByRole("navigation", { name: "Legal" })).toBeInTheDocument();
+    expect(within(footer).getByRole("region", { name: "Legal" })).toBeInTheDocument();
     expect(header.compareDocumentPosition(main) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(main.compareDocumentPosition(footer) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });

@@ -4,7 +4,7 @@
  *       haruhime tools, and the haruhime.moe wordmark, Discord icon and GitHub org links.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
@@ -16,7 +16,7 @@ import { SITE } from "@/constants/site";
 describe("Footer", () => {
   it("has three labelled link columns", () => {
     render(<Footer />);
-    const packs = screen.getByRole("navigation", { name: "Packs" });
+    const packs = screen.getByRole("region", { name: "Packs" });
     expect(within(packs).getByRole("link", { name: "New pack" })).toHaveAttribute("href", "/new");
     expect(within(packs).getByRole("link", { name: "Public packs" })).toHaveAttribute(
       "href",
@@ -24,14 +24,14 @@ describe("Footer", () => {
     );
     expect(within(packs).getByRole("link", { name: "Open a key" })).toHaveAttribute("href", "/k");
     expect(within(packs).getByRole("link", { name: "Guides" })).toHaveAttribute("href", "/guide");
-    const about = screen.getByRole("navigation", { name: "About" });
+    const about = screen.getByRole("region", { name: "About" });
     expect(within(about).getByRole("link", { name: "Brand" })).toHaveAttribute("href", "/brand");
     expect(within(about).getByRole("link", { name: "API" })).toHaveAttribute("href", "/docs/api");
     expect(within(about).getByRole("link", { name: SITE.contactEmail })).toHaveAttribute(
       "href",
       `mailto:${SITE.contactEmail}`,
     );
-    const legal = screen.getByRole("navigation", { name: "Legal" });
+    const legal = screen.getByRole("region", { name: "Legal" });
     for (const slug of LEGAL_SLUGS) {
       expect(within(legal).getByRole("link", { name: LEGAL_DOCS[slug].title })).toHaveAttribute(
         "href",
@@ -85,7 +85,7 @@ describe("Footer", () => {
   it("keeps Discord out of the link columns", () => {
     render(<Footer />);
     expect(screen.getAllByRole("link", { name: "Discord" })).toHaveLength(1);
-    const about = screen.getByRole("navigation", { name: "About" });
+    const about = screen.getByRole("region", { name: "About" });
     const labels = within(about)
       .getAllByRole("link")
       .map((l) => l.textContent);
@@ -104,9 +104,15 @@ describe("Footer", () => {
 
   it("links the other haruhime tools after the Packs column, not packs itself", () => {
     render(<Footer />);
-    const names = screen.getAllByRole("navigation").map((nav) => nav.getAttribute("aria-label"));
+    // One Footer nav (ui 0.7.0); each column is a region named by its heading.
+    expect(screen.getAllByRole("navigation")).toHaveLength(1);
+    const nav = screen.getByRole("navigation", { name: "Footer" });
+    const names = within(nav)
+      .getAllByRole("region")
+      .map((column) => document.getElementById(column.getAttribute("aria-labelledby") ?? ""))
+      .map((heading) => heading?.textContent);
     expect(names.slice(0, 2)).toEqual(["Packs", "haruhime tools"]);
-    const tools = screen.getByRole("navigation", { name: "haruhime tools" });
+    const tools = screen.getByRole("region", { name: "haruhime tools" });
     expect(within(tools).getByRole("link", { name: /^pools/ })).toHaveAttribute(
       "href",
       "https://pools.haruhime.moe",

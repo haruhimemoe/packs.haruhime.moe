@@ -4,7 +4,7 @@
  *       delete only when empty.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import { fireEvent, render, screen, within } from "@testing-library/react";
@@ -76,6 +76,8 @@ describe("BucketManager", () => {
     const input = screen.getByLabelText("New slot code");
     await user.type(input, "hd");
     await user.click(screen.getByRole("button", { name: "Add slot" }));
+    // The add form's notice is live (ui's Notice, an alert); the rename form's field error is
+    // a polite status message (ui 0.7.0).
     expect(screen.getByRole("alert")).toHaveTextContent("That's a built-in slot.");
     expect(onAdd).not.toHaveBeenCalled();
     await user.clear(input);
@@ -113,7 +115,8 @@ describe("BucketManager", () => {
     await user.clear(input);
     await user.type(input, "nm");
     await user.click(screen.getByRole("button", { name: "Save" }));
-    expect(screen.getByRole("alert")).toHaveTextContent("That's a built-in slot.");
+    // Field errors are polite status messages (ui 0.7.0), not alerts.
+    expect(screen.getByText("That's a built-in slot.")).toHaveAttribute("role", "status");
     await user.clear(input);
     await user.type(input, "Easy{Enter}");
     expect(onRename).toHaveBeenCalledWith("EZ", "Easy");
