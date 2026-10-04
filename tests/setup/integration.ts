@@ -5,12 +5,24 @@
  *       flushes it (tests/helpers/after.ts).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import { stubOsuAppEnv } from "@haruhimemoe/next-kit/testing";
 import { beforeEach, inject, vi } from "vitest";
 import { clearAfter } from "../helpers/after";
+
+// next-kit is linked via file:../next-kit for this branch, which carries its own node_modules
+// (and its own vitest). TS then resolves "vitest" from next-kit's mongo.d.ts to that copy, so its
+// `declare module "vitest" { interface ProvidedContext }` augments a different module instance
+// than the one this file sees. Repeating the augmentation here keeps inject("mongoUri") typed
+// against the vitest this project actually resolves. Safe to drop once next-kit is a registry
+// dependency again.
+declare module "vitest" {
+  interface ProvidedContext {
+    mongoUri: string;
+  }
+}
 
 stubOsuAppEnv({ MONGODB_URI: inject("mongoUri") });
 // CI sets SKIP_ENV_VALIDATION for the whole job (for `next build`); integration tests use a real

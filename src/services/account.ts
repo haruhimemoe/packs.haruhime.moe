@@ -8,15 +8,15 @@
  *       pins them against real better-auth rows.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import "server-only";
 import { ObjectId } from "mongodb";
+import { apiKeys } from "@/lib/api-keys";
 import { connectDb, getDb } from "@/lib/db";
 import { deleteRateLimitsFor } from "@/lib/rate-limit";
 import { revalidatePack, revalidatePublicPacks } from "@/lib/revalidate";
-import { getApiKeyModel } from "@/models/ApiKey";
 import { getPackModel } from "@/models/Pack";
 
 /**
@@ -30,7 +30,7 @@ export const deleteAccount = async (userId: string): Promise<void> => {
   const id = new ObjectId(userId);
   const db = getDb();
   // Cut off every way to write first, so no pack can be created after the packs go.
-  await getApiKeyModel().deleteMany({ userId: id });
+  await apiKeys.deleteFor(id.toString());
   await deleteRateLimitsFor(userId);
   await db.collection("session").deleteMany({ userId: id });
   const packs = getPackModel();

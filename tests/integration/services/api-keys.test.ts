@@ -5,14 +5,13 @@
  *       would act as a system account (haruhime pools).
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sat Oct 3, 2026
  */
 
+import { apiKeyDisplay, hashApiKey } from "@haruhimemoe/next-kit/api-keys";
 import { ObjectId } from "mongodb";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { apiKeyPrefix, hashApiKey } from "@/lib/api-key";
 import { getDb } from "@/lib/db";
-import { getApiKeyModel } from "@/models/ApiKey";
 import { authenticateApiKey, createApiKey, getApiKeyInfo, revokeApiKey } from "@/services/api-keys";
 import { ensurePoolsAccount } from "@/services/pools-account";
 import { freezeTime } from "../../helpers/api-key";
@@ -23,7 +22,9 @@ setupTestDb();
 afterEach(() => vi.useRealTimers());
 
 const keysOf = (userId: string) =>
-  getApiKeyModel().countDocuments({ userId: new ObjectId(userId) });
+  getDb()
+    .collection("api_keys")
+    .countDocuments({ userId: new ObjectId(userId) });
 
 describe("createApiKey", () => {
   it("returns the key once and stores only its hash, prefix, and dates", async () => {
@@ -33,14 +34,14 @@ describe("createApiKey", () => {
     const { key, apiKey } = await createApiKey(user.id);
     expect(key).toMatch(/^hpk_[A-Za-z0-9_-]{43}$/);
     expect(apiKey).toEqual({
-      prefix: apiKeyPrefix(key),
+      prefix: apiKeyDisplay(key),
       createdAt: "2026-09-22T12:00:10.000Z",
       lastUsedAt: null,
     });
     const stored = await getDb()
       .collection("api_keys")
       .findOne({ userId: new ObjectId(user.id) });
-    expect(stored).toMatchObject({ prefix: apiKeyPrefix(key), hash: hashApiKey(key) });
+    expect(stored).toMatchObject({ prefix: apiKeyDisplay(key), hash: hashApiKey(key) });
     expect(JSON.stringify(stored)).not.toContain(key);
     expect(await getApiKeyInfo(user.id)).toEqual(apiKey);
   });

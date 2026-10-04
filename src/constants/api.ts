@@ -2,26 +2,23 @@
  * @file src/constants/api.ts
  * @desc Public API (/api/v1) settings: key format, page size, rate limits (the API's, the per-IP
  *       and per-user limits on the app's own routes, and the failed-token limit on the pools service
- *       routes), and where the docs live.
+ *       routes), and where the docs live. The api/apiWrite/authFail/keyCreate limits come from
+ *       @haruhimemoe/next-kit's API_LIMITS, shared across every haruhime app.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
+
+import { API_LIMITS } from "@haruhimemoe/next-kit/api-keys";
 
 /** Can't be mistaken for a pack key (pk1.). */
 export const API_KEY_PREFIX = "hpk_";
-/** Random bytes in a key: 43 base64url characters. */
-export const API_KEY_BYTES = 32;
-/** Characters of a key shown on /me and in data exports ("hpk_" + 8). */
-export const API_KEY_DISPLAY_LENGTH = 12;
 
 /** ownerName when the owner's record has no osu! username (or is gone). */
 export const UNKNOWN_OWNER_NAME = "Unknown player";
 
 /** GET /api/v1/packs page size. */
 export const API_PAGE_SIZE = 50;
-/** lastUsedAt is written at most this often, to save writes. */
-export const LAST_USED_INTERVAL_MS = 60 * 60 * 1000;
 
 export const API_DOCS_PATH = "/docs/api";
 export const OPENAPI_PATH = "/api/v1/openapi.json";
@@ -31,22 +28,22 @@ export type RateLimitRule = { scope: string; limit: number; windowSeconds: numbe
 /** Fixed windows; counters live in the rate_limits collection (src/lib/rate-limit.ts). */
 export const RATE_LIMITS = {
   /** Every /api/v1 request, per user. */
-  api: { scope: "api", limit: 60, windowSeconds: 60 },
+  api: API_LIMITS.api,
   /**
    * POST/PUT/PATCH/DELETE on /api/v1, per user (also counted by `api`). The session pack routes
    * (/api/packs, /api/packs/{slug}, /api/packs/{slug}/exports) count against the same counter,
    * so the web and the API share one allowance.
    */
-  apiWrite: { scope: "api-write", limit: 10, windowSeconds: 60 },
+  apiWrite: API_LIMITS.apiWrite,
   /** Missing, bad, or revoked keys, per IP. */
-  authFail: { scope: "auth-fail", limit: 20, windowSeconds: 60 },
+  authFail: API_LIMITS.authFail,
   /**
    * Missing or wrong POOLS_SERVICE_TOKEN on /api/service/pools/*, per IP. Only pools has the
    * token; anyone else gets 10 tries a minute.
    */
   serviceAuthFail: { scope: "service-auth-fail", limit: 10, windowSeconds: 60 },
   /** Create or regenerate on /me, per user. */
-  keyCreate: { scope: "key-create", limit: 10, windowSeconds: 3600 },
+  keyCreate: API_LIMITS.keyCreate,
   /**
    * Starting an osu! sign-in (POST /api/auth/sign-in/*), per IP. Each start writes an OAuth
    * state row; better-auth's own limiter counts per server instance, this one across them.

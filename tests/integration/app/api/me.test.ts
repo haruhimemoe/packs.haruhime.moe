@@ -4,7 +4,7 @@
  *       and nothing that belongs to anyone else. The key goes before the packs.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import { ObjectId } from "mongodb";
@@ -16,7 +16,6 @@ import { RATE_LIMITS_COLLECTION } from "@/constants/star-ratings";
 import { getUserFromHeaders } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { limiter } from "@/lib/rate-limit";
-import { getApiKeyModel } from "@/models/ApiKey";
 import { getPackModel } from "@/models/Pack";
 import { authenticateApiKey, createApiKey } from "@/services/api-keys";
 import { createTestUser } from "../../../helpers/auth";
@@ -118,7 +117,11 @@ describe("DELETE /api/me", () => {
     );
     expect(response.status).toBe(204);
 
-    expect(await getApiKeyModel().countDocuments({ userId: new ObjectId(leaving.id) })).toBe(0);
+    expect(
+      await getDb()
+        .collection("api_keys")
+        .countDocuments({ userId: new ObjectId(leaving.id) }),
+    ).toBe(0);
     expect(await authenticateApiKey(gone.key)).toBeNull();
     const counters = await getDb().collection(RATE_LIMITS_COLLECTION).find().toArray();
     expect(counters.map((doc) => String(doc._id).split(":")[1])).toEqual([staying.id]);

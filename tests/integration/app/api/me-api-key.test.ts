@@ -4,12 +4,12 @@
  *       10-per-hour create limit.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Sat Oct 3, 2026
  */
 
+import { hashApiKey } from "@haruhimemoe/next-kit/api-keys";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DELETE, GET, POST } from "@/app/api/me/api-key/route";
-import { hashApiKey } from "@/lib/api-key";
 import { apiKeyCreatedSchema } from "@/schemas/api";
 import { authenticateApiKey } from "@/services/api-keys";
 import { freezeTime } from "../../../helpers/api-key";

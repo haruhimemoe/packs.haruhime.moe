@@ -1,11 +1,11 @@
 /**
  * @file src/app/.well-known/security.txt/route.ts
- * @desc /.well-known/security.txt (RFC 9116), static: GitHub private vulnerability reporting as
- *       the first Contact, then @haruhimemoe/next-kit's body (the email Contact, a year's Expires,
- *       Canonical, and SECURITY.md as the Policy).
+ * @desc /.well-known/security.txt (RFC 9116), static: @haruhimemoe/next-kit's body, GitHub private
+ *       vulnerability reporting as the preferred Contact, then the email Contact, a year's
+ *       Expires, Canonical, and SECURITY.md as the Policy.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import { buildSecurityTxt } from "@haruhimemoe/next-kit/server";
@@ -23,8 +23,9 @@ export function GET(): Response {
     siteUrl: SITE.url,
     policyUrl: `${SITE.repoUrl}/blob/main/SECURITY.md`,
     now: new Date(),
+    contactUrl: SECURITY_REPORT_URL,
   });
-  return new Response(`Contact: ${SECURITY_REPORT_URL}\n${body}`, {
+  return new Response(body, {
     headers: { "Content-Type": "text/plain; charset=utf-8" },
   });
 }

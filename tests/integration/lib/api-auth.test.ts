@@ -4,20 +4,23 @@
  *       JSON 500 that still carries RateLimit headers and Cache-Control: no-store.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SERVER_ERROR, withApiKey } from "@/lib/api-auth";
-import { authenticateApiKey } from "@/services/api-keys";
+import { apiKeys } from "@/lib/api-keys";
 import { bearer, createTestApiKey, freezeTime } from "../../helpers/api-key";
 import { createTestUser } from "../../helpers/auth";
 import { setupTestDb } from "../../helpers/db";
 import { apiRequest, noContext } from "../../helpers/requests";
 
-vi.mock("@/services/api-keys", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/services/api-keys")>();
-  return { ...actual, authenticateApiKey: vi.fn(actual.authenticateApiKey) };
+vi.mock("@/lib/api-keys", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/api-keys")>();
+  return {
+    ...actual,
+    apiKeys: { ...actual.apiKeys, authenticate: vi.fn(actual.apiKeys.authenticate) },
+  };
 });
 
 setupTestDb();
@@ -52,7 +55,7 @@ describe("withApiKey errors", () => {
   });
 
   it("answers a JSON 500 when the key lookup throws", async () => {
-    vi.mocked(authenticateApiKey).mockRejectedValueOnce(new Error("database down"));
+    vi.mocked(apiKeys.authenticate).mockRejectedValueOnce(new Error("database down"));
     const handler = withApiKey(async () => Response.json({}));
     await expectServerError(
       await handler(

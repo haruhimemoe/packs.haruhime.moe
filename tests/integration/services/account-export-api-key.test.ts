@@ -3,11 +3,11 @@
  * @desc "Download my data" includes the API key's prefix and dates, never the key or its hash.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Sat Oct 3, 2026
  */
 
+import { hashApiKey } from "@haruhimemoe/next-kit/api-keys";
 import { describe, expect, it } from "vitest";
-import { hashApiKey } from "@/lib/api-key";
 import { exportAccountData } from "@/services/account-export";
 import { createApiKey } from "@/services/api-keys";
 import { createTestUser } from "../../helpers/auth";

@@ -3,14 +3,18 @@
  * @desc Every index packs builds on connect (connectDb runs @haruhimemoe/next-kit's
  *       ensureIndexes over this list, one index at a time, never failing the connect): better-auth's
  *       (one user per osu! id, one link per account, sessions by token and user, the session TTL),
- *       the rate_limits TTL, the star-rating cache's TTL, the pools backfill ledger's TTL, the TTL
- *       on better-auth's OAuth state rows (verification), and one hide marker per pool. Pack indexes come from the mongoose model.
+ *       the API keys store's (unique userId and hash), the rate_limits TTL, the star-rating
+ *       cache's TTL, the pools backfill ledger's TTL, the TTL on better-auth's OAuth state rows
+ *       (verification), and one hide marker per pool. Pack indexes come from the mongoose model.
+ *       Never call apiKeyIndexSpecs' store's own ensureIndexes() from onConnect: connectedDb
+ *       waits on this same connect, so it would deadlock.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import "server-only";
+import { apiKeyIndexSpecs } from "@haruhimemoe/next-kit/api-keys";
 import { AUTH_INDEX_SPECS } from "@haruhimemoe/next-kit/auth";
 import { type IndexSpec, ttlIndex } from "@haruhimemoe/next-kit/mongo";
 import { counterTtlIndex } from "@haruhimemoe/next-kit/server";
@@ -24,6 +28,7 @@ import {
 /** The indexes connectDb builds, in no particular order (each is built on its own). */
 export const PACKS_INDEX_SPECS: readonly IndexSpec[] = Object.freeze([
   ...AUTH_INDEX_SPECS,
+  ...apiKeyIndexSpecs(),
   // Spent rate-limit and osu! budget counters (src/lib/rate-limit.ts, src/lib/osu/budget.ts).
   counterTtlIndex(),
   ttlIndex(STAR_RATINGS_COLLECTION, "fetchedAt", STAR_RATINGS_TTL_SECONDS, STAR_RATINGS_TTL_INDEX),
