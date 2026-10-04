@@ -8,6 +8,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Guides, docs and legal pages render through `@haruhimemoe/ui` 0.9.0's shared MDX components: headings get a visible `#` anchor link, `> [!NOTE]`/`[!TIP]`/`[!WARNING]` blockquotes render as labelled callouts, and the API docs' code blocks are syntax-highlighted.
+
 - Depends on `@haruhimemoe/ui` 0.7.0, its accessibility release: one footer nav with headed columns, field errors read as polite status messages instead of alerts, a visible focus ring on fields, 24px slider thumbs and chips, and lighter accent links.
 
 - A public pack's link preview is its own card: the pack's name with its map count, star range and mods, drawn by `@haruhimemoe/brand` 0.6.0. Unlisted and private packs keep the site's image.

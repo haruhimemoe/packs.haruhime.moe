@@ -7,15 +7,20 @@
  *       and a rewrite that serves each doc's Markdown copy at /docs/<slug>.md. @haruhimemoe/brand
  *       and resvg stay out of the server bundle (resvg is a native binary, and brand reads its
  *       fonts by a computed path, traced for the pack card route), so ogCard runs per request.
+ *       MDX content runs through @haruhimemoe/ui/remark (code fence meta, callouts, heading ids);
+ *       passed by module name since Turbopack only takes MDX plugins that way.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Fri Oct 3, 2026
  */
 
 import createMDX from "@next/mdx";
 import type { NextConfig } from "next";
 
-const withMDX = createMDX({ extension: /\.mdx?$/ });
+const withMDX = createMDX({
+  extension: /\.mdx?$/,
+  options: { remarkPlugins: ["@haruhimemoe/ui/remark"] },
+});
 
 /**
  * Sent on every route. frame-ancestors (and X-Frame-Options for older browsers) stop clickjacking.
