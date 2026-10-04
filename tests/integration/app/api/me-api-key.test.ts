@@ -10,12 +10,22 @@
 import { hashApiKey } from "@haruhimemoe/next-kit/api-keys";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DELETE, GET, POST } from "@/app/api/me/api-key/route";
+import { SERVER_ERROR } from "@/lib/api-auth";
+import { apiKeys } from "@/lib/api-keys";
 import { apiKeyCreatedSchema } from "@/schemas/api";
 import { authenticateApiKey } from "@/services/api-keys";
 import { freezeTime } from "../../../helpers/api-key";
 import { createTestUser } from "../../../helpers/auth";
 import { setupTestDb } from "../../../helpers/db";
 import { apiRequest } from "../../../helpers/requests";
+
+vi.mock("@/lib/api-keys", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/api-keys")>();
+  return {
+    ...actual,
+    apiKeys: { ...actual.apiKeys, info: vi.fn(actual.apiKeys.info) },
+  };
+});
 
 setupTestDb();
 afterEach(() => vi.useRealTimers());
@@ -130,5 +140,40 @@ describe("/api/me/api-key", () => {
       }),
     );
     expect(response.status).toBe(201);
+  });
+
+  it("carries no-store on the 401, 403, and 404 answers", async () => {
+    const signedOut = await read();
+    expect(signedOut.status).toBe(401);
+    expect(signedOut.headers.get("Cache-Control")).toBe("no-store");
+
+    const user = await createTestUser();
+    const crossSite = await POST(
+      apiRequest(PATH, {
+        method: "POST",
+        cookie: user.cookie,
+        headers: { origin: "https://pools.haruhime.moe" },
+      }),
+    );
+    expect(crossSite.status).toBe(403);
+    expect(crossSite.headers.get("Cache-Control")).toBe("no-store");
+
+    const notFound = await revoke(user.cookie);
+    expect(notFound.status).toBe(404);
+    expect(notFound.headers.get("Cache-Control")).toBe("no-store");
+  });
+
+  it("answers a JSON 500 with no-store when the store throws", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const user = await createTestUser();
+    vi.mocked(apiKeys.info).mockRejectedValueOnce(new Error("mongo down"));
+    const response = await read(user.cookie);
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      error: { code: "internal_error", message: SERVER_ERROR },
+    });
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+    expect(consoleError).toHaveBeenCalledWith("api-key: request failed", expect.any(Error));
+    consoleError.mockRestore();
   });
 });
