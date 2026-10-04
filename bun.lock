@@ -5,9 +5,9 @@
     "": {
       "name": "packs.haruhime.moe",
       "dependencies": {
-        "@haruhimemoe/brand": "0.6.0",
+        "@haruhimemoe/brand": "0.7.0",
         "@haruhimemoe/hinai": "0.3.0",
-        "@haruhimemoe/next-kit": "0.5.0",
+        "@haruhimemoe/next-kit": "0.6.1",
         "@haruhimemoe/osu": "0.3.0",
         "@haruhimemoe/pool": "0.2.0",
         "@haruhimemoe/ui": "0.9.0",
@@ -131,11 +131,11 @@
 
     "@exodus/bytes": ["@exodus/bytes@1.16.0", "", { "peerDependencies": { "@noble/hashes": "^1.8.0 || ^2.0.0" }, "optionalPeers": ["@noble/hashes"] }, "sha512-IcpW84uEn3N7ETtNZMlxKhfl6Pec8rUNGOTBtWbK1FKhJxIFAptZyVrvVRVBimAJxJCgc3PxepxkdWWG4DVzfA=="],
 
-    "@haruhimemoe/brand": ["@haruhimemoe/brand@0.6.0", "", { "dependencies": { "@resvg/resvg-js": "2.6.2", "opentype.js": "2.0.0" }, "bin": { "haruhime-brand": "dist/cli.js" } }, "sha512-5bkmtbYu9indhDQaoJ201aoHm8JqS60V/hKgtQ7CsUAPk9tvgnZpYxSZQvqdEcSqfF38jpnHeVABUeZQqMJt8g=="],
+    "@haruhimemoe/brand": ["@haruhimemoe/brand@0.7.0", "", { "dependencies": { "@resvg/resvg-js": "2.6.2", "opentype.js": "2.0.0" }, "bin": { "haruhime-brand": "dist/cli.js" } }, "sha512-LXCDMzGBVFjVF1ne7S1aLidcL/Lk0BNHfFx7GXU7J0FeBBOlAZH1OR1DA5BOZz0bC5R+yaJ3xWYee88Qb6cwYg=="],
 
     "@haruhimemoe/hinai": ["@haruhimemoe/hinai@0.3.0", "", { "dependencies": { "@haruhimemoe/osu": "^0.3.0" }, "peerDependencies": { "msw": "^2.0.0", "zod": "^4.0.16" }, "optionalPeers": ["msw"] }, "sha512-uKkbYECnlc92JZPeIfoQ9oldm6ShQJV8ysP9/8f1xfaLgw8nersEVbNn/R9XA4l6gLeD9JSAL4e47/Dzl0HcRw=="],
 
-    "@haruhimemoe/next-kit": ["@haruhimemoe/next-kit@0.5.0", "", { "peerDependencies": { "@haruhimemoe/osu": "^0.2.0 || ^0.3.0 || ^0.4.0", "@haruhimemoe/ui": "^0.5.0 || ^0.6.0 || ^0.7.0 || ^0.8.0 || ^0.9.0", "better-auth": "^1.7.5", "mongodb": "^7.6.0", "mongodb-memory-server": "^11.3.0", "mongoose": "^9.10.2", "msw": "^2.15.0", "next": "^16.3.6", "react": "^19.3.0", "vitest": "^5.0.1", "zod": "^4.6.5" }, "optionalPeers": ["@haruhimemoe/osu", "@haruhimemoe/ui", "better-auth", "mongodb", "mongodb-memory-server", "mongoose", "msw", "next", "react", "vitest"], "bin": { "next-kit": "dist/check/cli.js" } }, "sha512-ixx3NYLZoF8ga3ITIPi19DnIBny6U21xWUsfiSLSvQ3lmIttTvyMx1lFfRB69XuhF0SyqrsOqkp47iff2ZEYbA=="],
+    "@haruhimemoe/next-kit": ["@haruhimemoe/next-kit@0.6.1", "", { "peerDependencies": { "@haruhimemoe/osu": "^0.2.0 || ^0.3.0 || ^0.4.0", "@haruhimemoe/ui": "^0.5.0 || ^0.6.0 || ^0.7.0 || ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0", "better-auth": "^1.7.5", "mongodb": "^7.6.0", "mongodb-memory-server": "^11.3.0", "mongoose": "^9.10.2", "msw": "^2.15.0", "next": "^16.3.6", "react": "^19.3.0", "vitest": "^5.0.1", "zod": "^4.6.5" }, "optionalPeers": ["@haruhimemoe/osu", "@haruhimemoe/ui", "better-auth", "mongodb", "mongodb-memory-server", "mongoose", "msw", "next", "react", "vitest"], "bin": { "next-kit": "dist/check/cli.js" } }, "sha512-kylvHyFVcY2B5LnS+u940W/1QJ22ijcQhk05cdeLud/fsddKKqlCDwOF3wFChaMhxz2zIapTeGl8xw0GXrOr5w=="],
 
     "@haruhimemoe/osu": ["@haruhimemoe/osu@0.3.0", "", { "peerDependencies": { "zod": "^4.0.16" } }, "sha512-crTv5aR/tAhu8XUckhr18+msQOOWzrP3fGRDpQjs2ebUt8YI4j8o5FyOKKcYXfhy1HO7dV6/EeNQUAn7uOmiZg=="],
 
