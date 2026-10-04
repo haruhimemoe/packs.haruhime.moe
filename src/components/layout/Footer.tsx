@@ -6,13 +6,13 @@
  *       parent brand (haruhime.moe wordmark), our Discord server and the haruhimemoe GitHub org.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { SiteFooter, type SiteFooterColumn } from "@haruhimemoe/ui";
 import { ClearLocalDataButton } from "@/components/layout/ClearLocalDataButton";
 import { API_DOCS_PATH } from "@/constants/api";
-import { LEGAL_DOCS, LEGAL_SLUGS } from "@/constants/legal";
+import { CONTENT } from "@/constants/content";
 import { SITE } from "@/constants/site";
 
 export const FOOTER_COLUMNS: readonly SiteFooterColumn[] = [
@@ -22,7 +22,7 @@ export const FOOTER_COLUMNS: readonly SiteFooterColumn[] = [
       { href: "/new", label: "New pack" },
       { href: "/packs", label: "Public packs" },
       { href: "/k", label: "Open a key" },
-      { href: "/guide", label: "Guides" },
+      { href: "/guides", label: "Guides" },
     ],
   },
   {
@@ -36,7 +36,10 @@ export const FOOTER_COLUMNS: readonly SiteFooterColumn[] = [
   },
   {
     title: "Legal",
-    items: LEGAL_SLUGS.map((slug) => ({ href: `/legal/${slug}`, label: LEGAL_DOCS[slug].title })),
+    items: CONTENT.entries.legal.map(({ slug, title }) => ({
+      href: `/legal/${slug}`,
+      label: title,
+    })),
   },
 ];
 

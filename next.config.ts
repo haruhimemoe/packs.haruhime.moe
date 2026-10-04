@@ -4,16 +4,18 @@
  *       external osu! CDN asset we never transform), security headers on every route (no framing,
  *       no MIME sniffing, a trimmed Referer; a full CSP needs nonces and comes later), no
  *       X-Powered-By, redirects for the retired tournament check and archived pools guide pages,
- *       and a rewrite that serves each doc's Markdown copy at /docs/<slug>.md. @haruhimemoe/brand
+ *       and the rewrite that serves each docs, guides and legal page's Markdown mirror at
+ *       <path>.md. @haruhimemoe/brand
  *       and resvg stay out of the server bundle (resvg is a native binary, and brand reads its
  *       fonts by a computed path, traced for the pack card route), so ogCard runs per request.
  *       MDX content runs through @haruhimemoe/ui/remark (code fence meta, callouts, heading ids);
  *       passed by module name since Turbopack only takes MDX plugins that way.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Fri Oct 3, 2026
+ * @modified Sun Oct 4, 2026
  */
 
+import { contentRewrites } from "@haruhimemoe/next-kit/docs";
 import createMDX from "@next/mdx";
 import type { NextConfig } from "next";
 
@@ -52,15 +54,16 @@ const nextConfig: NextConfig = {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },
   async rewrites() {
-    // A dynamic segment can't end in ".md", so the Markdown route lives one level down.
-    return [{ source: "/docs/:slug([a-z0-9-]+).md", destination: "/docs/:slug/md" }];
+    // A dynamic segment can't end in ".md", so each content page's Markdown route lives one
+    // level down (/docs/x.md, /guides/x.md and /legal/x.md to .../x/md).
+    return [...contentRewrites()];
   },
   async redirects() {
     return [
       // The tournament check moved out of packs (2026-09-23); old guide links land on the index.
-      { source: "/guide/official-tournament-pools", destination: "/guide", permanent: true },
+      { source: "/guide/official-tournament-pools", destination: "/guides", permanent: true },
       // Tournament pools moved to pools.haruhime.moe (2026-09-24); same for their guide.
-      { source: "/guide/archived-pools", destination: "/guide", permanent: true },
+      { source: "/guide/archived-pools", destination: "/guides", permanent: true },
     ];
   },
 };

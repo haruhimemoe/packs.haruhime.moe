@@ -5,16 +5,14 @@
  *       (160 characters) whole, and the home title fits under 60 with the host.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { DESCRIPTION_MAX, HARUHIME_ORG, pageTitle } from "@haruhimemoe/next-kit/seo";
 import { describe, expect, it } from "vitest";
-import { DOC_DOCS } from "@/constants/docs";
-import { GUIDE_DOCS } from "@/constants/guide";
-import { LEGAL_DOCS } from "@/constants/legal";
+import { CONTENT } from "@/constants/content";
 import { SEO_SITE } from "@/constants/seo";
 
 describe("SEO_SITE", () => {
@@ -36,11 +34,10 @@ describe("SEO_SITE", () => {
     expect(SEO_SITE.description.length).toBeLessThanOrEqual(DESCRIPTION_MAX);
   });
 
-  it.each([
-    ...Object.entries(GUIDE_DOCS),
-    ...Object.entries(DOC_DOCS),
-    ...Object.entries(LEGAL_DOCS),
-  ])("%s has a description that fits whole", (_slug, { description }) => {
-    expect(description.length).toBeLessThanOrEqual(DESCRIPTION_MAX);
-  });
+  it.each(CONTENT.sections.flatMap((s) => CONTENT.entries[s].map((e) => [e.slug, e] as const)))(
+    "%s has a description that fits whole",
+    (_slug, { description }) => {
+      expect(description.length).toBeLessThanOrEqual(DESCRIPTION_MAX);
+    },
+  );
 });

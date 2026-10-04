@@ -103,7 +103,7 @@ Every error has the same shape:
 - `buckets` shows up when a pack has its own slots or slot order. Custom slots carry their color and mods.
 - `description` is left out when the pack has none.
 - `ownerName` is the owner's osu! username, `haruhime pools` on the tournament pools pools.haruhime.moe publishes, or `Unknown player` when we don't have one.
-- `packKey` is the pack's [pack key](/guide/pack-key). Anyone can open it at `https://packs.haruhime.moe/k#` followed by the key.
+- `packKey` is the pack's [pack key](/guides/pack-key). Anyone can open it at `https://packs.haruhime.moe/k#` followed by the key.
 - `exports` lists the magnet links the owner recorded, newest first.
 - `hiddenAt` shows up only on your own packs, when a moderator has hidden one.
 - `stats` sums up the pack's maps. We work it out a few seconds after each save, so it's missing from the answer to `POST` and to a `PUT` that changes the maps or slots; read the pack again a little later. It's also missing for a pack whose stats we haven't worked out yet.
@@ -181,7 +181,7 @@ To list public packs without a key, use the static search index at [/packs/index
 
 ## Pack keys
 
-A pack key holds a whole pool in one line of text. The [pack key guide](/guide/pack-key) documents every key version, byte by byte.
+A pack key holds a whole pool in one line of text. The [pack key guide](/guides/pack-key) documents every key version, byte by byte.
 
 ## Use it with Claude Code
 

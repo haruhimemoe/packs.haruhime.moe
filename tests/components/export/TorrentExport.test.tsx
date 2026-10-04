@@ -4,7 +4,7 @@
  *       crypto.subtle, unmount, and the owner's "add to this pack".
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -106,7 +106,7 @@ describe("TorrentExport", () => {
     );
     expect(screen.getByRole("link", { name: "Seeding guide" })).toHaveAttribute(
       "href",
-      "/guide/seed-a-torrent",
+      "/guides/seed-a-torrent",
     );
   });
 

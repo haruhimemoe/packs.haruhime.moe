@@ -6,7 +6,7 @@
  *       retrying map info from the card.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { HinaiError } from "@haruhimemoe/hinai";
@@ -481,7 +481,7 @@ describe("ExportPanel with a saved pack's magnet links", () => {
     ).toBeInTheDocument();
     expect(
       within(torrent).getByRole("link", { name: "How to download with a torrent" }),
-    ).toHaveAttribute("href", "/guide/download-a-torrent");
+    ).toHaveAttribute("href", "/guides/download-a-torrent");
     const mirror = within(card).getByRole("region", { name: "From the mirror" });
     expect(within(mirror).getByRole("heading", { level: 3 })).toHaveTextContent("From the mirror");
     // Torrent section, then the mirror heading, then the mirror flow.

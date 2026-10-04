@@ -8,7 +8,7 @@
  *       every doc stays plain Markdown so /docs/<slug>.md can serve it as is.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { readFileSync } from "node:fs";
@@ -18,7 +18,7 @@ import { MAX_NAME_LENGTH, MAX_SLOTS } from "@haruhimemoe/pool";
 import { MAX_DESCRIPTION_LENGTH } from "@haruhimemoe/pool/service";
 import { describe, expect, it } from "vitest";
 import { API_PAGE_SIZE, OPENAPI_PATH, RATE_LIMITS, UNKNOWN_OWNER_NAME } from "@/constants/api";
-import { DOC_DOCS, DOC_SLUGS } from "@/constants/docs";
+import { CONTENT } from "@/constants/content";
 import { DESCRIPTION_EXCERPT_LENGTH } from "@/constants/pack";
 import { POOLS_ACCOUNT } from "@/constants/pools";
 import { SEARCH_INDEX_LIMIT } from "@/constants/public-packs";
@@ -58,7 +58,7 @@ describe("content/docs/api.mdx", () => {
     "Retry-After",
     "CORS",
     OPENAPI_PATH,
-    "/guide/pack-key",
+    "/guides/pack-key",
     "/packs/index.json",
     "invalid_api_key",
     "WWW-Authenticate: Bearer",
@@ -210,24 +210,27 @@ describe("help", () => {
   });
 
   it("dates the doc to the change", () => {
-    expect(DOC_DOCS.api.lastUpdated).toBe("2026-09-26");
+    expect(CONTENT.entries.docs.find((e) => e.slug === "api")?.lastUpdated).toBe("2026-09-26");
   });
 });
 
-describe.each(DOC_SLUGS)("content/docs/%s.mdx stays plain Markdown", (slug) => {
-  const source = () =>
-    readFileSync(path.join(process.cwd(), "content", "docs", `${slug}.mdx`), "utf8");
-  const outsideCode = () =>
-    source()
-      .replace(/^```[\s\S]*?^```/gm, "")
-      .replace(/`[^`\n]*`/g, "");
+describe.each(CONTENT.entries.docs.map((e) => e.slug))(
+  "content/docs/%s.mdx stays plain Markdown",
+  (slug) => {
+    const source = () =>
+      readFileSync(path.join(process.cwd(), "content", "docs", `${slug}.mdx`), "utf8");
+    const outsideCode = () =>
+      source()
+        .replace(/^```[\s\S]*?^```/gm, "")
+        .replace(/`[^`\n]*`/g, "");
 
-  it("has no import or export lines", () => {
-    expect(outsideCode()).not.toMatch(/^(import|export)\s/m);
-  });
+    it("has no import or export lines", () => {
+      expect(outsideCode()).not.toMatch(/^(import|export)\s/m);
+    });
 
-  it("has no JSX components or expressions", () => {
-    expect(outsideCode()).not.toMatch(/<[A-Za-z]/);
-    expect(outsideCode()).not.toMatch(/\{[^}]*\}/);
-  });
-});
+    it("has no JSX components or expressions", () => {
+      expect(outsideCode()).not.toMatch(/<[A-Za-z]/);
+      expect(outsideCode()).not.toMatch(/\{[^}]*\}/);
+    });
+  },
+);

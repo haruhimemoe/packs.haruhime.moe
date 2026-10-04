@@ -6,7 +6,7 @@
  *       Open; the owner (and admins) can also remove them.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
@@ -62,7 +62,7 @@ export function MagnetLinks({ exports, onRemove }: MagnetLinksProps) {
       </p>
       <p className="text-c3 text-sm">
         Download with a torrent app. It only works while someone seeds it.{" "}
-        <TextLink href="/guide/download-a-torrent">How to download with a torrent</TextLink>
+        <TextLink href="/guides/download-a-torrent">How to download with a torrent</TextLink>
       </p>
       <ul className="flex flex-col gap-3">
         {links.map((entry) => (

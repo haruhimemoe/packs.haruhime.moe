@@ -4,13 +4,13 @@
  *       haruhime tools, and the haruhime.moe wordmark, Discord icon and GitHub org links.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sat Oct 3, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { Footer } from "@/components/layout/Footer";
-import { LEGAL_DOCS, LEGAL_SLUGS } from "@/constants/legal";
+import { CONTENT } from "@/constants/content";
 import { SITE } from "@/constants/site";
 
 describe("Footer", () => {
@@ -23,7 +23,7 @@ describe("Footer", () => {
       "/packs",
     );
     expect(within(packs).getByRole("link", { name: "Open a key" })).toHaveAttribute("href", "/k");
-    expect(within(packs).getByRole("link", { name: "Guides" })).toHaveAttribute("href", "/guide");
+    expect(within(packs).getByRole("link", { name: "Guides" })).toHaveAttribute("href", "/guides");
     const about = screen.getByRole("region", { name: "About" });
     expect(within(about).getByRole("link", { name: "Brand" })).toHaveAttribute("href", "/brand");
     expect(within(about).getByRole("link", { name: "API" })).toHaveAttribute("href", "/docs/api");
@@ -32,8 +32,8 @@ describe("Footer", () => {
       `mailto:${SITE.contactEmail}`,
     );
     const legal = screen.getByRole("region", { name: "Legal" });
-    for (const slug of LEGAL_SLUGS) {
-      expect(within(legal).getByRole("link", { name: LEGAL_DOCS[slug].title })).toHaveAttribute(
+    for (const { slug, title } of CONTENT.entries.legal) {
+      expect(within(legal).getByRole("link", { name: title })).toHaveAttribute(
         "href",
         `/legal/${slug}`,
       );

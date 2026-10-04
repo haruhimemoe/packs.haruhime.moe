@@ -1,7 +1,7 @@
 /**
- * @file src/app/(public)/docs/[slug]/page.tsx
- * @desc One docs page: the registry entry's title, description and last update, the MDX
- *       body, a "Copy as Markdown" button for its .md mirror, JSON-LD (TechArticle, HowTo when it has steps, breadcrumbs). Static params from the
+ * @file src/app/(public)/legal/[slug]/page.tsx
+ * @desc One legal page: the registry entry's title, description and last update, the MDX
+ *       body, a "Copy as Markdown" button for its .md mirror. Static params from the
  *       registry; anything else 404s.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Oct 4, 2026
@@ -16,7 +16,6 @@ import { notFound } from "next/navigation";
 import { CONTENT } from "@/constants/content";
 import { SEO_SITE } from "@/constants/seo";
 import { LOADERS } from "@/content/load";
-import { docJsonLd } from "@/utils/content-ld";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -24,9 +23,9 @@ export const dynamicParams = false;
 
 /**
  * @function generateStaticParams
- * @returns {{ slug: string }[]} one param per registered docs page
+ * @returns {{ slug: string }[]} one param per registered legal page
  */
-export const generateStaticParams = () => contentParams(CONTENT, "docs");
+export const generateStaticParams = () => contentParams(CONTENT, "legal");
 
 /**
  * @function generateMetadata
@@ -35,10 +34,10 @@ export const generateStaticParams = () => contentParams(CONTENT, "docs");
  */
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const entry = findEntry(CONTENT, "docs", slug);
+  const entry = findEntry(CONTENT, "legal", slug);
   if (!entry) return notFoundMetadata(SEO_SITE, "Page");
   return pageMetadata(SEO_SITE, {
-    path: contentPath("docs", slug),
+    path: contentPath("legal", slug),
     title: `packs ${entry.title}`,
     description: entry.description,
     ogType: "article",
@@ -47,15 +46,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 /**
- * @function DocPage
+ * @function LegalPage
  * @param props {Props} the route params
  * @returns {Promise<JSX.Element>} the page in ContentPage
  * @throws {Error} Next's 404 for a slug that isn't registered
  */
-export default async function DocPage({ params }: Props) {
+export default async function LegalPage({ params }: Props) {
   const { slug } = await params;
-  const entry = findEntry(CONTENT, "docs", slug);
-  const load = LOADERS.docs?.[slug];
+  const entry = findEntry(CONTENT, "legal", slug);
+  const load = LOADERS.legal?.[slug];
   if (!entry || !load) notFound();
   const { default: Body } = await load();
   return (
@@ -63,8 +62,7 @@ export default async function DocPage({ params }: Props) {
       title={entry.title}
       description={entry.description}
       lastUpdated={entry.lastUpdated}
-      markdownHref={markdownPath("docs", slug)}
-      jsonLd={docJsonLd("docs", entry)}
+      markdownHref={markdownPath("legal", slug)}
     >
       <Body />
     </ContentPage>

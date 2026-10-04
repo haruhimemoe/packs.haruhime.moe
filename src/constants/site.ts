@@ -3,7 +3,7 @@
  * @desc Site identity, the source repo, our Discord server, the parent brand and GitHub org, navigation, the ppy trademark notice, and the User-Agent our server sends.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 export const SITE = {
@@ -41,5 +41,5 @@ export const NAV_LINKS: readonly { href: string; label: string }[] = [
   { href: "/", label: "Home" },
   { href: "/new", label: "New pack" },
   { href: "/packs", label: "Packs" },
-  { href: "/guide", label: "Guides" },
+  { href: "/guides", label: "Guides" },
 ];

@@ -4,8 +4,8 @@
 
 ## Site
 
-- [llms.txt on the live site](https://packs.haruhime.moe/llms.txt): the canonical guide to the site's pages, guides, search index, API and legal pages, built from the same registries as the pages
-- [llms-full.txt on the live site](https://packs.haruhime.moe/llms-full.txt): every guide and the API docs as one Markdown file
+- [llms.txt on the live site](https://packs.haruhime.moe/llms.txt): the canonical guide to the site's pages, guides, search index, API and legal pages, built from the same content registry as the pages
+- [llms-full.txt on the live site](https://packs.haruhime.moe/llms-full.txt): every doc, guide and legal page as one Markdown file
 - [packs.haruhime.moe](https://packs.haruhime.moe/): the live site
 - [API docs](https://packs.haruhime.moe/docs/api.md): the packs API as plain Markdown (keys, rate limits, errors, the pack object, every endpoint)
 - [OpenAPI document](https://packs.haruhime.moe/api/v1/openapi.json): OpenAPI 3.1 for every /api/v1 endpoint, built from the route handlers' zod schemas
@@ -22,7 +22,7 @@
 - [content/](https://github.com/haruhimemoe/packs.haruhime.moe/tree/main/content): the guides, the API docs and the legal pages, as MDX
 - [src/app/api/v1/](https://github.com/haruhimemoe/packs.haruhime.moe/tree/main/src/app/api/v1): the public API's route handlers
 - [src/lib/openapi.ts](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/src/lib/openapi.ts): builds the OpenAPI document
-- [src/utils/llms-txt.ts](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/src/utils/llms-txt.ts): the notes and link sections of the live /llms.txt (rendered by @haruhimemoe/next-kit/seo)
+- [src/utils/llms-txt.ts](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/src/utils/llms-txt.ts): the notes and API links of the live /llms.txt (rendered by @haruhimemoe/next-kit/docs contentLlmsTxt from the content registry, src/constants/content.ts)
 - [src/constants/seo.ts](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/src/constants/seo.ts): the site as the shared SEO helpers see it (titles and the short " · packs" suffix, preview image, the haruhime.moe organization)
 - [.env.example](https://github.com/haruhimemoe/packs.haruhime.moe/blob/main/.env.example): every environment variable, with what it's for
 

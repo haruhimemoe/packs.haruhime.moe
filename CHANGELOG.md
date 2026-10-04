@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Guides moved from `/guide` to `/guides`. The old `/guide` pages are gone (404); the two retired guides that redirected to the guide index now redirect to `/guides`.
+- Docs, guides and legal pages share one layout from `@haruhimemoe/ui` 0.11.0: a side nav for the section, the last-updated date and a "Copy as Markdown" button on every page. `/docs`, `/guides` and `/legal` each have an index page (the docs one is searchable).
+- Every docs, guides and legal page has a plain Markdown copy at its address plus `.md` (like `/guides/make-a-pack.md` or `/legal/terms.md`), not only the API docs.
+- llms.txt now has Docs, Guides, API and Legal sections, each page linked by its Markdown copy; the pages, pools, bb and our Discord server are in its opening notes. llms-full.txt adds the legal pages. The sitemap lists `/docs` and `/legal`.
+- `/brand` is the shared haruhime brand page (`@haruhimemoe/brand` 0.7.0): logo, wordmark and banner files, the full palette, do's and don'ts and the contact address.
+
 ## [0.1.0] - 2026-10-04
 
 ### Changed

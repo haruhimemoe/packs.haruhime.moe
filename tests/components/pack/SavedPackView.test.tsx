@@ -7,7 +7,7 @@
  *       server looked up rendered into the HTML.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { HINAI_BATCH_URL, hinaiBatchHandler } from "@haruhimemoe/hinai/testing";
@@ -137,7 +137,7 @@ describe("SavedPackView", () => {
     ).toBeInTheDocument();
     expect(
       within(torrent).getByRole("link", { name: "How to download with a torrent" }),
-    ).toHaveAttribute("href", "/guide/download-a-torrent");
+    ).toHaveAttribute("href", "/guides/download-a-torrent");
     expect(
       within(mirror).getByRole("button", { name: /Download maps|Loading map info/ }),
     ).toBeInTheDocument();

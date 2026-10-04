@@ -5,7 +5,7 @@
  *       the pack, and how to seed it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
@@ -101,7 +101,7 @@ export function TorrentMadePanel({ built, folder, onSave, magnets }: TorrentMade
         A torrent only works while someone seeds it. Save the .zip too, unzip it, then open the
         .torrent in qBittorrent and set its save location to the folder that holds “{folder}”. It
         checks the files and starts seeding.{" "}
-        <TextLink href="/guide/seed-a-torrent">Seeding guide</TextLink>
+        <TextLink href="/guides/seed-a-torrent">Seeding guide</TextLink>
       </p>
     </div>
   );

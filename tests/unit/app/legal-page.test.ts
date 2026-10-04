@@ -1,10 +1,10 @@
 /**
  * @file tests/unit/app/legal-page.test.ts
- * @desc Route-level guard for /legal/[doc]: static params match the registry, unknown slugs are
+ * @desc Route-level guard for /legal/[slug]: static params match the registry, unknown slugs are
  *       never rendered on demand, and the page 404s (not 500s) on a bad slug.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -12,41 +12,47 @@ import LegalPage, {
   dynamicParams,
   generateMetadata,
   generateStaticParams,
-} from "@/app/(public)/legal/[doc]/page";
-import { LEGAL_DOCS, LEGAL_SLUGS } from "@/constants/legal";
+} from "@/app/(public)/legal/[slug]/page";
+import { CONTENT } from "@/constants/content";
 
-const params = (doc: string) => ({ params: Promise.resolve({ doc }) }) as never;
+const LEGAL = CONTENT.entries.legal;
 
-describe("/legal/[doc]", () => {
+const params = (slug: string) => ({ params: Promise.resolve({ slug }) }) as never;
+
+describe("/legal/[slug]", () => {
   it("never renders slugs outside the static params", () => {
     expect(dynamicParams).toBe(false);
   });
 
   it("statically generates exactly the registered slugs", () => {
-    expect(generateStaticParams()).toEqual(LEGAL_SLUGS.map((doc) => ({ doc })));
+    expect(generateStaticParams()).toEqual(LEGAL.map(({ slug }) => ({ slug })));
   });
 
   it.each(["__proto__", "constructor", "Terms", "nope"])(
     "throws Next's 404 for %j instead of crashing",
-    async (doc) => {
-      await expect(LegalPage(params(doc))).rejects.toMatchObject({
+    async (slug) => {
+      await expect(LegalPage(params(slug))).rejects.toMatchObject({
         digest: expect.stringMatching(/^NEXT_HTTP_ERROR_FALLBACK;404/),
       });
     },
   );
 
   it("titles each page from the registry", async () => {
-    for (const slug of LEGAL_SLUGS) {
+    for (const { slug, title } of LEGAL) {
       await expect(generateMetadata(params(slug))).resolves.toMatchObject({
-        title: { absolute: `packs ${LEGAL_DOCS[slug].title} · packs.haruhime.moe` },
+        title: { absolute: `packs ${title} · packs.haruhime.moe` },
       });
     }
   });
 
+  it("titles the rights page for the laws it covers", () => {
+    expect(LEGAL.find((e) => e.slug === "your-privacy-rights")?.title).toBe("GDPR & CCPA");
+  });
+
   it("gives each page a description and a canonical URL", async () => {
-    for (const slug of LEGAL_SLUGS) {
+    for (const { slug, description } of LEGAL) {
       await expect(generateMetadata(params(slug))).resolves.toMatchObject({
-        description: LEGAL_DOCS[slug].description,
+        description,
         alternates: { canonical: `https://packs.haruhime.moe/legal/${slug}` },
       });
     }

@@ -2,21 +2,20 @@
  * @file tests/unit/utils/llms-txt.test.ts
  * @desc llms.txt follows the llmstxt.org shape, opens with the notes a reader needs first (no
  *       file hosting, pack keys, the haruhime pools account and that pools is in beta, the osu!
- *       collection card), is built from the registries (every guide and legal doc appears, docs
- *       by their .md copy), names osu! collections among the guides, spells out the /packs query
- *       string and the index keys, ends with pools, bb and our Discord server under Elsewhere,
- *       links /llms-full.txt, and every link is absolute.
+ *       collection card, the pages with the /packs query string, pools, bb and our Discord
+ *       server), then Docs, Guides, API and Legal from the content registry (every page by its
+ *       .md mirror), the API section with the OpenAPI document, the index keys and
+ *       /llms-full.txt, and every link is absolute.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { describe, expect, it } from "vitest";
-import { DOC_DOCS, DOC_SLUGS } from "@/constants/docs";
-import { GUIDE_DOCS, GUIDE_SLUGS } from "@/constants/guide";
-import { LEGAL_DOCS, LEGAL_SLUGS } from "@/constants/legal";
+import { OPENAPI_PATH } from "@/constants/api";
+import { CONTENT } from "@/constants/content";
 import { SITE } from "@/constants/site";
-import { buildLlmsTxt, LLMS_NOTES, llmsSections } from "@/utils/llms-txt";
+import { buildLlmsTxt, LLMS_NOTES, llmsApiLinks } from "@/utils/llms-txt";
 
 const LINK = /\[([^\]]+)\]\(([^)]+)\)/g;
 
@@ -43,13 +42,12 @@ describe("buildLlmsTxt", () => {
     expect(text).toContain(phrase);
   });
 
-  it("notes the osu! collection card and names it among the guides", () => {
+  it("notes the osu! collection card and lists its guide", () => {
     expect(text).toContain(
       "\"Add to osu! collection\" puts the pack's maps in one of the player's osu! collections.",
     );
     expect(text).toContain("The browser reads the file; it never reaches the server.");
-    const guides = text.split("\n").find((line) => line.startsWith("- [Guides]")) ?? "";
-    expect(guides).toContain("osu! collections");
+    expect(text).toContain(`](${SITE.url}/guides/osu-collections.md): `);
   });
 
   it("doesn't call every pools pack a past pool", () => {
@@ -60,46 +58,34 @@ describe("buildLlmsTxt", () => {
     expect(LLMS_NOTES.join(" ")).not.toMatch(/archive/i);
   });
 
-  it("has the Pages, Guides, Data, API, Legal, and Elsewhere sections in that order", () => {
+  it("has the Docs, Guides, API and Legal sections in that order", () => {
     const headings = [...text.matchAll(/^## (.+)$/gm)].map((m) => m[1]);
-    expect(headings).toEqual(["Pages", "Guides", "Data", "API", "Legal", "Elsewhere"]);
+    expect(headings).toEqual(["Docs", "Guides", "API", "Legal"]);
   });
 
-  it("ends with pools, bb and our Discord server under Elsewhere", () => {
-    const elsewhere = text.slice(text.indexOf("\n## Elsewhere\n"));
-    expect(elsewhere).toContain("- [pools](https://pools.haruhime.moe): ");
-    expect(elsewhere).toContain("- [bb](https://bb.haruhime.moe): ");
-    expect(
-      text.endsWith("- [Discord](https://discord.gg/bKy9kjMV4y): our public Discord server\n"),
-    ).toBe(true);
+  it("names pools, bb and our Discord server, and the main pages", () => {
+    for (const url of ["https://pools.haruhime.moe", "https://bb.haruhime.moe", SITE.discordUrl])
+      expect(text).toContain(url);
+    for (const path of ["/new", "/k", "/packs", "/brand"])
+      expect(text).toContain(`${SITE.url}${path}`);
   });
 
-  it("links the one-file copy of the guides", () => {
-    expect(text).toContain(`](${SITE.url}/llms-full.txt): `);
+  it.each(
+    CONTENT.sections.flatMap((section) =>
+      CONTENT.entries[section].map((e) => [section, e.slug, e] as const),
+    ),
+  )("lists %s/%s by its Markdown mirror", (section, slug, { title, description }) => {
+    expect(text).toContain(`- [${title}](${SITE.url}/${section}/${slug}.md): ${description}`);
   });
 
-  it("lists the main pages", () => {
-    for (const path of ["/", "/new", "/k", "/packs", "/guide", "/brand"]) {
-      expect(text).toContain(`](${SITE.url}${path})`);
-    }
-  });
-
-  it.each(GUIDE_SLUGS)("lists the %s guide with its title and description", (slug) => {
-    const { title, description } = GUIDE_DOCS[slug];
-    expect(text).toContain(`- [${title}](${SITE.url}/guide/${slug}): ${description}`);
+  it("links the OpenAPI document and the one-file copy under API, before Legal", () => {
+    const api = text.slice(text.indexOf("\n## API\n"), text.indexOf("\n## Legal\n"));
+    expect(api).toContain(`- [OpenAPI](${SITE.url}${OPENAPI_PATH}): `);
+    expect(api).toContain(`](${SITE.url}/llms-full.txt): `);
   });
 
   it("mentions no archived pools or otdb anywhere", () => {
     expect(text).not.toMatch(/archived|otdb/i);
-  });
-
-  it.each(DOC_SLUGS)("lists the %s doc by its Markdown copy", (slug) => {
-    const { title, description } = DOC_DOCS[slug];
-    expect(text).toContain(`- [${title}](${SITE.url}/docs/${slug}.md): ${description}`);
-  });
-
-  it.each(LEGAL_SLUGS)("lists the %s legal doc", (slug) => {
-    expect(text).toContain(`- [${LEGAL_DOCS[slug].title}](${SITE.url}/legal/${slug})`);
   });
 
   it("describes the public packs index, stats included", () => {
@@ -114,7 +100,7 @@ describe("buildLlmsTxt", () => {
   });
 
   it("spells out the /packs query string", () => {
-    const line = text.split("\n").find((l) => l.startsWith("- [Public packs]")) ?? "";
+    const line = LLMS_NOTES.find((l) => l.startsWith("Pages: ")) ?? "";
     for (const param of ["q (", "sr (", "len (", "bpm", "maps (", "mods (", "mode (", "sort ("]) {
       expect(line).toContain(param);
     }
@@ -126,16 +112,10 @@ describe("buildLlmsTxt", () => {
     expect(text).not.toMatch(/map usage|\/beatmaps\//i);
   });
 
-  it("uses absolute links on our own site, except the sibling tools and Discord under Elsewhere", () => {
-    const [ours = "", elsewhere = ""] = text.split("\n## Elsewhere\n");
-    const urls = [...ours.matchAll(LINK)].map((m) => m[2] ?? "");
+  it("links only absolute URLs on our own site", () => {
+    const urls = [...text.matchAll(LINK)].map((m) => m[2] ?? "");
     expect(urls.length).toBeGreaterThan(10);
     for (const url of urls) expect(new URL(url).origin).toBe(SITE.url);
-    expect([...elsewhere.matchAll(LINK)].map((m) => m[2])).toEqual([
-      "https://pools.haruhime.moe",
-      "https://bb.haruhime.moe",
-      SITE.discordUrl,
-    ]);
   });
 
   it("ends with exactly one newline", () => {
@@ -144,13 +124,9 @@ describe("buildLlmsTxt", () => {
   });
 });
 
-describe("llmsSections", () => {
-  it("returns fresh arrays each call, so a caller can't change the next build", () => {
-    const first = llmsSections();
-    (first[0]?.links as { title: string; url: string }[] | undefined)?.push({
-      title: "Injected",
-      url: "https://example.com/i",
-    });
+describe("llmsApiLinks", () => {
+  it("returns a fresh array each call, so a caller can't change the next build", () => {
+    llmsApiLinks().push({ title: "Injected", url: "https://example.com/i" });
     expect(buildLlmsTxt()).not.toContain("Injected");
   });
 });

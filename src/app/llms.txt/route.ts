@@ -4,7 +4,7 @@
  *       deploy, which is when the registries it reads can change. robots.txt allows it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { textResponse } from "@haruhimemoe/next-kit/seo";

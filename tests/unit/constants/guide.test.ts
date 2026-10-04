@@ -1,36 +1,33 @@
 /**
  * @file tests/unit/constants/guide.test.ts
- * @desc Guide registry, slug guard, the pack key doc staying in sync with the codec, the
+ * @desc Guides in the content registry, the nav link, the pack key doc staying in sync with the codec, the
  *       make-a-pack tips (Copy ID, the osu! collections link), and the osu! collections guide
  *       covering both flows (osu! closed before the file is picked), why a map may not show, and
  *       what happens to the file.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Sun Oct 4, 2026
  */
 
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import path from "node:path";
+import { findEntry } from "@haruhimemoe/next-kit/docs";
 import { decodePackKey, PackKeyError } from "@haruhimemoe/pool";
 import { describe, expect, it } from "vitest";
-import { GUIDE_DOCS, GUIDE_SLUGS, isGuideSlug } from "@/constants/guide";
+import { CONTENT } from "@/constants/content";
 import { NAV_LINKS } from "@/constants/site";
 
-const file = (slug: string) => path.join(process.cwd(), "content", "guide", `${slug}.mdx`);
+const file = (slug: string) => path.join(process.cwd(), "content", "guides", `${slug}.mdx`);
 
-describe("guide registry", () => {
-  it.each(GUIDE_SLUGS)("%s has an MDX file, a title, and a description", (slug) => {
-    expect(existsSync(file(slug))).toBe(true);
-    expect(GUIDE_DOCS[slug].title.length).toBeGreaterThan(0);
-    expect(GUIDE_DOCS[slug].description.length).toBeGreaterThan(0);
-  });
+const guide = (slug: string) => {
+  const entry = findEntry(CONTENT, "guides", slug);
+  if (!entry) throw new Error(`no guide ${slug}`);
+  return entry;
+};
 
-  it.each(["", "Pack-Key", "__proto__", "../legal/terms"])("rejects %j", (value) => {
-    expect(isGuideSlug(value)).toBe(false);
-  });
-
+describe("guides registry", () => {
   it("is linked from the main nav through the guides index", () => {
-    expect(NAV_LINKS.some((l) => l.href === "/guide")).toBe(true);
+    expect(NAV_LINKS.some((l) => l.href === "/guides")).toBe(true);
   });
 });
 
@@ -119,7 +116,7 @@ describe("make-a-pack guide", () => {
   const text = () => readFileSync(file("make-a-pack"), "utf8");
 
   it("names every HowTo step in its numbered list, in order", () => {
-    const steps = GUIDE_DOCS["make-a-pack"].howTo ?? [];
+    const steps = guide("make-a-pack").howTo ?? [];
     expect(steps).toHaveLength(6);
     let from = 0;
     for (const { name } of steps) {
@@ -132,7 +129,7 @@ describe("make-a-pack guide", () => {
   it("points to Copy ID", () => {
     expect(text()).toContain('Every map row has a "Copy ID" button that copies its beatmap ID');
     expect(text()).not.toContain("Used in N pools");
-    expect(GUIDE_DOCS["make-a-pack"].lastUpdated).toBe("2026-09-25");
+    expect(guide("make-a-pack").lastUpdated).toBe("2026-09-25");
   });
 
   it("answers the question in its first paragraph and links the builder", () => {
@@ -151,7 +148,7 @@ describe("seed-a-torrent guide", () => {
   const text = () => readFileSync(file("seed-a-torrent"), "utf8");
 
   it("names every HowTo step in its numbered list, in order", () => {
-    const steps = GUIDE_DOCS["seed-a-torrent"].howTo ?? [];
+    const steps = guide("seed-a-torrent").howTo ?? [];
     expect(steps).toHaveLength(6);
     let from = 0;
     for (const { name } of steps) {
@@ -174,11 +171,11 @@ describe("seed-a-torrent guide", () => {
 
   it("says the download options make a different torrent", () => {
     expect(text()).toMatch(/download options.*different torrent/i);
-    expect(GUIDE_DOCS["seed-a-torrent"].lastUpdated).toBe("2026-09-23");
+    expect(guide("seed-a-torrent").lastUpdated).toBe("2026-09-23");
   });
 
   it("is linked from the make-a-pack guide", () => {
-    expect(readFileSync(file("make-a-pack"), "utf8")).toContain("(/guide/seed-a-torrent)");
+    expect(readFileSync(file("make-a-pack"), "utf8")).toContain("(/guides/seed-a-torrent)");
   });
 });
 
@@ -186,7 +183,7 @@ describe("download-a-torrent guide", () => {
   const text = () => readFileSync(file("download-a-torrent"), "utf8");
 
   it("names every HowTo step in its numbered list, in order", () => {
-    const steps = GUIDE_DOCS["download-a-torrent"].howTo ?? [];
+    const steps = guide("download-a-torrent").howTo ?? [];
     expect(steps).toHaveLength(6);
     let from = 0;
     for (const { name } of steps) {
@@ -209,7 +206,7 @@ describe("download-a-torrent guide", () => {
     "from the mirror",
     "`.osz`",
     "drag them onto osu!",
-    "(/guide/seed-a-torrent)",
+    "(/guides/seed-a-torrent)",
     "Only download and share what you're allowed to where you live.",
     "your torrent app contacts the trackers in the link and other peers, and they see your IP address",
     "packs only lists its own set of trackers in magnet links",
@@ -225,11 +222,11 @@ describe("download-a-torrent guide", () => {
   });
 
   it("is linked back from the seed-a-torrent guide", () => {
-    expect(readFileSync(file("seed-a-torrent"), "utf8")).toContain("(/guide/download-a-torrent)");
+    expect(readFileSync(file("seed-a-torrent"), "utf8")).toContain("(/guides/download-a-torrent)");
   });
 
   it("the HowTo step matches the guide: softened claim, same warning", () => {
-    const step = GUIDE_DOCS["download-a-torrent"].howTo?.find((s) => s.name === "Import the maps");
+    const step = guide("download-a-torrent").howTo?.find((s) => s.name === "Import the maps");
     expect(step?.text).toContain("A pack made on packs is a folder of .osz files");
     expect(step?.text).toContain("don't open it");
   });
@@ -239,8 +236,8 @@ describe("osu-collections guide", () => {
   const text = () => readFileSync(file("osu-collections"), "utf8");
 
   it("is registered and dated", () => {
-    expect(GUIDE_SLUGS).toContain("osu-collections");
-    expect(GUIDE_DOCS["osu-collections"]).toMatchObject({
+    expect(guide("osu-collections").title).toBeTruthy();
+    expect(guide("osu-collections")).toMatchObject({
       title: "Add a pack to your osu! collections",
       lastUpdated: "2026-09-26",
     });
@@ -293,6 +290,6 @@ describe("osu-collections guide", () => {
   });
 
   it("is linked from the make-a-pack guide", () => {
-    expect(readFileSync(file("make-a-pack"), "utf8")).toContain("(/guide/osu-collections)");
+    expect(readFileSync(file("make-a-pack"), "utf8")).toContain("(/guides/osu-collections)");
   });
 });

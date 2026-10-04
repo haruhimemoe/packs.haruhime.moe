@@ -8,17 +8,21 @@
  *       hosts, community submissions and sources like otdb, not from otdb alone.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { RATE_LIMITS } from "@/constants/api";
-import { LEGAL_DOCS, LEGAL_SLUGS, type LegalSlug } from "@/constants/legal";
+import { CONTENT } from "@/constants/content";
 import { SERVER_USER_AGENT, SITE } from "@/constants/site";
 import { OSU_API_BUDGET_PER_IP } from "@/constants/star-ratings";
 
+type LegalSlug = string;
+const LEGAL_SLUGS = CONTENT.entries.legal.map((e) => e.slug);
+const lastUpdated = (slug: LegalSlug) =>
+  CONTENT.entries.legal.find((e) => e.slug === slug)?.lastUpdated;
 const file = (slug: LegalSlug) => path.join(process.cwd(), "content", "legal", `${slug}.mdx`);
 const read = (slug: LegalSlug) => readFileSync(file(slug), "utf8");
 
@@ -254,12 +258,12 @@ describe("copyright", () => {
   });
 
   it("no longer describes archive packs or links the retired guide", () => {
-    expect(read("copyright")).not.toMatch(/archive pack|archived pool|\/guide\/archived-pools/i);
+    expect(read("copyright")).not.toMatch(/archive pack|archived pool|\/guides?\/archived-pools/i);
   });
 
   it("dates the Sources section", () => {
-    expect(LEGAL_DOCS.copyright.lastUpdated).toBe("2026-09-25");
-    expect(LEGAL_DOCS["your-privacy-rights"].lastUpdated).toBe("2026-09-28");
+    expect(lastUpdated("copyright")).toBe("2026-09-25");
+    expect(lastUpdated("your-privacy-rights")).toBe("2026-09-28");
   });
 });
 

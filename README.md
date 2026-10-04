@@ -20,9 +20,9 @@ The site never hosts beatmap files. Each `.osz` goes from the beatmap mirror str
 
 ## Docs
 
-- [Guides](https://packs.haruhime.moe/guide): making a pack, osu! collections, torrents and pack keys.
+- [Guides](https://packs.haruhime.moe/guides): making a pack, osu! collections, torrents and pack keys.
 - [API docs](https://packs.haruhime.moe/docs/api) and the [OpenAPI document](https://packs.haruhime.moe/api/v1/openapi.json).
-- [llms.txt](https://packs.haruhime.moe/llms.txt): a map of the site for AI assistants, and [llms-full.txt](https://packs.haruhime.moe/llms-full.txt): every guide and the API docs in one Markdown file. This repo also has its own [llms.txt](llms.txt).
+- [llms.txt](https://packs.haruhime.moe/llms.txt): a map of the site for AI assistants, and [llms-full.txt](https://packs.haruhime.moe/llms-full.txt): every doc, guide and legal page in one Markdown file. Every docs, guides and legal page also has a Markdown copy at its address plus `.md`. This repo also has its own [llms.txt](llms.txt).
 
 ## Stack
 

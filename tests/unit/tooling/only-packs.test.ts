@@ -5,7 +5,7 @@
  *       per-IP limit are gone for good, and the repo's own docs no longer describe them.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { existsSync, readFileSync } from "node:fs";
@@ -36,6 +36,7 @@ describe("removed for good", () => {
     "src/schemas/archive.ts",
     "src/components/pack/ArchiveBadge.tsx",
     "content/guide/archived-pools.mdx",
+    "content/guides/archived-pools.mdx",
   ])("%s is gone", (file) => {
     expect(existsSync(at(file))).toBe(false);
   });

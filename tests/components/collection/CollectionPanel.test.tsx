@@ -88,7 +88,7 @@ describe("CollectionPanel", () => {
     render(<CollectionPanel pack={PACK} getMeta={metaFrom(READY)} download={vi.fn()} />);
     expect(within(card()).getByRole("link", { name: "How it works" })).toHaveAttribute(
       "href",
-      "/guide/osu-collections",
+      "/guides/osu-collections",
     );
   });
 

@@ -5,7 +5,7 @@
  *       WebApplication, FAQPage) as one JSON-LD graph.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { HARUHIME_ORG, ld, SEARCH_TERM } from "@haruhimemoe/next-kit/seo";
@@ -163,7 +163,7 @@ export function HomeScreen({ recent }: { recent: readonly PublicPackCard[] }) {
                 {question === "What's a pack key?" ? (
                   <>
                     {" "}
-                    <TextLink href="/guide/pack-key">How pack keys work</TextLink>
+                    <TextLink href="/guides/pack-key">How pack keys work</TextLink>
                   </>
                 ) : null}
               </p>

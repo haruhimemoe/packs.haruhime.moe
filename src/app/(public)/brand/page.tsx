@@ -1,18 +1,19 @@
 /**
  * @file src/app/(public)/brand/page.tsx
- * @desc /brand: what packs is, how to write the name, logos to download, colors, type, usage.
- *       Static. Also the site's Organization structured data.
+ * @desc /brand: the packs name, how to write it, logo files, colors, type, do's and don'ts and
+ *       the contact, from @haruhimemoe/brand's brandPageData rendered by @haruhimemoe/ui's
+ *       BrandPage (files in public/brand come from `haruhime-brand packs`). Static. Also the
+ *       site's Organization structured data.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
+import { brandPageData } from "@haruhimemoe/brand/products";
 import { HARUHIME_ORG, ld, pageMetadata } from "@haruhimemoe/next-kit/seo";
-import { Card, cx, JsonLd, PageHeader, TextLink } from "@haruhimemoe/ui";
+import { BrandPage, JsonLd, PageHeader } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
-import { BRAND_ASSETS, BRAND_COLORS } from "@/constants/brand";
 import { SEO_SITE } from "@/constants/seo";
-import { SITE } from "@/constants/site";
 
 export const metadata: Metadata = pageMetadata(SEO_SITE, {
   path: "/brand",
@@ -22,76 +23,14 @@ export const metadata: Metadata = pageMetadata(SEO_SITE, {
 });
 
 /**
- * @function BrandPage
- * @returns {JSX.Element} the page
+ * @function BrandRoute
+ * @returns {JSX.Element} the page header, the brand sections and the Organization JSON-LD
  */
-export default function BrandPage() {
+export default function BrandRoute() {
   return (
-    <div className="flex flex-col gap-8">
-      <PageHeader
-        title="Brand"
-        lead="packs builds one download from an osu! tournament mappool. It's run by haruhime.moe. For anything not covered here, write to us."
-        meta={<TextLink href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</TextLink>}
-      />
-      <Card title="Name">
-        <p className="text-sm">
-          The name is written “packs” in lower case. Use “packs.haruhime.moe” when the address
-          matters. Please don't write “Packs” or “osu! packs” as the name.
-        </p>
-      </Card>
-      <Card title="Logo">
-        <ul className="grid gap-4 sm:grid-cols-3">
-          {BRAND_ASSETS.map((asset) => (
-            <li key={asset.href} className="flex flex-col gap-2">
-              <div
-                className={cx(
-                  "flex h-28 items-center justify-center rounded-[10px] p-4",
-                  asset.background === "dark" ? "bg-b6" : "bg-white",
-                )}
-              >
-                {/* biome-ignore lint/performance/noImgElement: static SVG preview, no optimization needed */}
-                <img src={`/${asset.href}`} alt="" className="max-h-16 w-auto" />
-              </div>
-              <a
-                href={`/${asset.href}`}
-                download
-                className="font-bold text-h1 text-sm hover:text-c1"
-              >
-                Download {asset.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-        <p className="mt-4 text-c3 text-sm">
-          Use the logos as they are: don't recolor or stretch them, and don't pair them with the
-          osu! logo in a way that suggests ppy is involved.
-        </p>
-      </Card>
-      <Card title="Colors">
-        <ul className="grid gap-3 sm:grid-cols-3">
-          {BRAND_COLORS.map((color) => (
-            <li key={color.token} className="flex items-center gap-3">
-              <span
-                aria-hidden="true"
-                className="size-10 shrink-0 rounded-md border border-b3"
-                style={{ backgroundColor: color.hex }}
-              />
-              <span className="text-sm">
-                <span className="block font-bold text-c1">{color.name}</span>
-                <span className="text-c4">{color.hex}</span>
-              </span>
-            </li>
-          ))}
-        </ul>
-      </Card>
-      <Card title="Type">
-        <p className="text-sm">
-          Nunito (Google Fonts, SIL Open Font License) in regular, bold, and extra bold.
-        </p>
-      </Card>
-      <Card title="osu!">
-        <p className="text-sm">{SITE.trademarkNotice}</p>
-      </Card>
+    <div className="flex flex-col gap-6">
+      <PageHeader title="Brand" lead="The packs name, logos, colors and type." />
+      <BrandPage {...brandPageData("packs")} />
       <JsonLd
         data={ld.graph(
           ld.organization(HARUHIME_ORG),

@@ -9,7 +9,7 @@
  *       and the maps left out show. Downloads are plain browser downloads started by the click.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
@@ -68,7 +68,7 @@ export function CollectionPanel({ pack, getMeta, download = downloadBlob }: Coll
       <div className="flex flex-col gap-4">
         <p className="text-c3 text-sm">
           Put this pack's maps in one of your osu! collections.{" "}
-          <TextLink href="/guide/osu-collections">How it works</TextLink>
+          <TextLink href="/guides/osu-collections">How it works</TextLink>
         </p>
         {maps.status === "loading" ? <p className="text-c3 text-sm">Loading map info…</p> : null}
         {maps.status === "error" ? (

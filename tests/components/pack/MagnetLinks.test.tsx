@@ -5,7 +5,7 @@
  *       whoever may.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -40,7 +40,7 @@ describe("MagnetLinks", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "How to download with a torrent" })).toHaveAttribute(
       "href",
-      "/guide/download-a-torrent",
+      "/guides/download-a-torrent",
     );
     expect(screen.getByText("Added Sep 22, 2026")).toBeInTheDocument();
     expect(screen.getByText("Added Sep 20, 2026")).toBeInTheDocument();

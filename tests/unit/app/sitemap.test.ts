@@ -1,14 +1,15 @@
 /**
  * @file tests/unit/app/sitemap.test.ts
- * @desc sitemap.xml: static pages, /packs pages, guides (osu! collections included), docs,
- *       legal, and every indexed public pack.
+ * @desc sitemap.xml: static pages, /packs pages, the docs, guides (osu! collections included)
+ *       and legal sections with their index pages, and every indexed public pack.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
+import { findEntry } from "@haruhimemoe/next-kit/docs";
 import { describe, expect, it, vi } from "vitest";
-import { GUIDE_DOCS } from "@/constants/guide";
+import { CONTENT } from "@/constants/content";
 
 const { buildSearchIndex } = vi.hoisted(() => ({ buildSearchIndex: vi.fn() }));
 vi.mock("@/services/public-packs", () => ({ buildSearchIndex }));
@@ -38,15 +39,17 @@ describe("sitemap", () => {
     for (const path of [
       "/",
       "/new",
-      "/guide",
+      "/guides",
+      "/docs",
+      "/legal",
       "/brand",
       "/packs",
       "/packs/page/2",
-      "/guide/download-a-torrent",
-      "/guide/make-a-pack",
-      "/guide/pack-key",
-      "/guide/seed-a-torrent",
-      "/guide/osu-collections",
+      "/guides/download-a-torrent",
+      "/guides/make-a-pack",
+      "/guides/pack-key",
+      "/guides/seed-a-torrent",
+      "/guides/osu-collections",
       "/docs/api",
       "/legal/terms",
       "/legal/privacy",
@@ -73,8 +76,8 @@ describe("sitemap", () => {
     const entries = await sitemap();
     const byPath = (path: string) =>
       entries.find((e) => e.url === `https://packs.haruhime.moe${path}`);
-    expect(new Date(String(byPath("/guide/make-a-pack")?.lastModified)).toISOString()).toBe(
-      new Date(GUIDE_DOCS["make-a-pack"].lastUpdated).toISOString(),
+    expect(new Date(String(byPath("/guides/make-a-pack")?.lastModified)).toISOString()).toBe(
+      new Date(String(findEntry(CONTENT, "guides", "make-a-pack")?.lastUpdated)).toISOString(),
     );
     expect(byPath("/docs/api")?.lastModified).toBeDefined();
     expect(byPath("/legal/terms")?.lastModified).toBeDefined();
