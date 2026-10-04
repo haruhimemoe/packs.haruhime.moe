@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - llms.txt now has Docs, Guides, API and Legal sections, each page linked by its Markdown copy; the pages, pools, bb and our Discord server are in its opening notes. llms-full.txt adds the legal pages. The sitemap lists `/docs` and `/legal`.
 - `/brand` is the shared haruhime brand page (`@haruhimemoe/brand` 0.7.0): logo, wordmark and banner files, the full palette, do's and don'ts and the contact address.
 - `@haruhimemoe/ui` 0.11.1: decorative alt on brand page previews.
+- `@haruhimemoe/ui` 0.11.2: Copy as Markdown works on Safari and iOS.
 
 ## [0.1.0] - 2026-10-04
 
