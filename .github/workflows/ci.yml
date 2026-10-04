@@ -44,6 +44,9 @@ jobs:
       - name: Biome
         run: bun run check
 
+      - name: Standards
+        run: bun run standards
+
       - name: Typecheck
         run: bun run typecheck
 
