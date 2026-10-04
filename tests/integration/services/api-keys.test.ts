@@ -5,16 +5,16 @@
  *       would act as a system account (haruhime pools).
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Sat Oct 3, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { apiKeyDisplay, hashApiKey } from "@haruhimemoe/next-kit/api-keys";
 import { ObjectId } from "mongodb";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { getDb } from "@/lib/db";
-import { authenticateApiKey, createApiKey, getApiKeyInfo, revokeApiKey } from "@/services/api-keys";
+import { createApiKey, getApiKeyInfo, revokeApiKey } from "@/services/api-keys";
 import { ensurePoolsAccount } from "@/services/pools-account";
-import { freezeTime } from "../../helpers/api-key";
+import { apiCaller, freezeTime } from "../../helpers/api-key";
 import { createTestUser } from "../../helpers/auth";
 import { setupTestDb } from "../../helpers/db";
 
@@ -49,11 +49,11 @@ describe("createApiKey", () => {
   it("regenerating replaces the key, and the old one stops working at once", async () => {
     const user = await createTestUser();
     const first = await createApiKey(user.id);
-    await authenticateApiKey(first.key);
+    await apiCaller(first.key);
     const second = await createApiKey(user.id);
     expect(await keysOf(user.id)).toBe(1);
-    expect(await authenticateApiKey(first.key)).toBeNull();
-    expect(await authenticateApiKey(second.key)).not.toBeNull();
+    expect(await apiCaller(first.key)).toBeNull();
+    expect(await apiCaller(second.key)).not.toBeNull();
     expect(second.apiKey.lastUsedAt).toBeNull();
   });
 
@@ -61,7 +61,7 @@ describe("createApiKey", () => {
     const user = await createTestUser();
     const [a, b] = await Promise.all([createApiKey(user.id), createApiKey(user.id)]);
     expect(await keysOf(user.id)).toBe(1);
-    const working = await Promise.all([a, b].map((created) => authenticateApiKey(created.key)));
+    const working = await Promise.all([a, b].map((created) => apiCaller(created.key)));
     expect(working.filter(Boolean)).toHaveLength(1);
   });
 
@@ -80,17 +80,17 @@ describe("revokeApiKey", () => {
     const user = await createTestUser();
     const { key } = await createApiKey(user.id);
     expect(await revokeApiKey(user.id)).toBe(true);
-    expect(await authenticateApiKey(key)).toBeNull();
+    expect(await apiCaller(key)).toBeNull();
     expect(await getApiKeyInfo(user.id)).toBeNull();
     expect(await revokeApiKey(user.id)).toBe(false);
   });
 });
 
-describe("authenticateApiKey", () => {
+describe("a key through the /api/v1 guard", () => {
   it("returns the owner", async () => {
     const user = await createTestUser({ username: "player1" });
     const { key } = await createApiKey(user.id);
-    expect(await authenticateApiKey(key)).toEqual({
+    expect(await apiCaller(key)).toEqual({
       id: user.id,
       osuId: user.osuId,
       username: "player1",
@@ -101,7 +101,7 @@ describe("authenticateApiKey", () => {
   it.each(["", "hpk_short", "pk1.AQRFR0MgAQABAg", `hpk_${"A".repeat(43)}`])(
     "refuses %j",
     async (token) => {
-      expect(await authenticateApiKey(token)).toBeNull();
+      expect(await apiCaller(token)).toBeNull();
     },
   );
 
@@ -111,30 +111,30 @@ describe("authenticateApiKey", () => {
     await getDb()
       .collection("user")
       .deleteOne({ _id: new ObjectId(user.id) });
-    expect(await authenticateApiKey(key)).toBeNull();
+    expect(await apiCaller(key)).toBeNull();
   });
 
   it("refuses a key stored for a system account, even one with an osu! id", async () => {
     const poolsId = await ensurePoolsAccount();
     const { key } = await createApiKey(poolsId);
-    expect(await authenticateApiKey(key)).toBeNull();
+    expect(await apiCaller(key)).toBeNull();
     await getDb()
       .collection("user")
       .updateOne({ _id: new ObjectId(poolsId) }, { $set: { osuId: 1 } });
-    expect(await authenticateApiKey(key)).toBeNull();
+    expect(await apiCaller(key)).toBeNull();
   });
 
   it("writes lastUsedAt at most once an hour", async () => {
     freezeTime("2026-09-22T12:00:00.000Z");
     const user = await createTestUser();
     const { key } = await createApiKey(user.id);
-    await authenticateApiKey(key);
+    await apiCaller(key);
     expect((await getApiKeyInfo(user.id))?.lastUsedAt).toBe("2026-09-22T12:00:00.000Z");
     vi.setSystemTime(new Date("2026-09-22T12:59:59.999Z"));
-    await authenticateApiKey(key);
+    await apiCaller(key);
     expect((await getApiKeyInfo(user.id))?.lastUsedAt).toBe("2026-09-22T12:00:00.000Z");
     vi.setSystemTime(new Date("2026-09-22T13:00:00.000Z"));
-    await authenticateApiKey(key);
+    await apiCaller(key);
     expect((await getApiKeyInfo(user.id))?.lastUsedAt).toBe("2026-09-22T13:00:00.000Z");
   });
 });

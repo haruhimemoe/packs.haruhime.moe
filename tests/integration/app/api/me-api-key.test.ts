@@ -4,7 +4,7 @@
  *       10-per-hour create limit.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Sat Oct 3, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { hashApiKey } from "@haruhimemoe/next-kit/api-keys";
@@ -13,8 +13,7 @@ import { DELETE, GET, POST } from "@/app/api/me/api-key/route";
 import { SERVER_ERROR } from "@/lib/api-auth";
 import { apiKeys } from "@/lib/api-keys";
 import { apiKeyCreatedSchema } from "@/schemas/api";
-import { authenticateApiKey } from "@/services/api-keys";
-import { freezeTime } from "../../../helpers/api-key";
+import { apiCaller, freezeTime } from "../../../helpers/api-key";
 import { createTestUser } from "../../../helpers/auth";
 import { setupTestDb } from "../../../helpers/db";
 import { apiRequest } from "../../../helpers/requests";
@@ -72,15 +71,15 @@ describe("/api/me/api-key", () => {
     const user = await createTestUser();
     const first = apiKeyCreatedSchema.parse(await (await create(user.cookie)).json());
     const second = apiKeyCreatedSchema.parse(await (await create(user.cookie)).json());
-    expect(await authenticateApiKey(first.key)).toBeNull();
-    expect(await authenticateApiKey(second.key)).toMatchObject({ id: user.id });
+    expect(await apiCaller(first.key)).toBeNull();
+    expect(await apiCaller(second.key)).toMatchObject({ id: user.id });
   });
 
   it("revokes, then says there is nothing to revoke", async () => {
     const user = await createTestUser();
     const { key } = apiKeyCreatedSchema.parse(await (await create(user.cookie)).json());
     expect((await revoke(user.cookie)).status).toBe(204);
-    expect(await authenticateApiKey(key)).toBeNull();
+    expect(await apiCaller(key)).toBeNull();
     const again = await revoke(user.cookie);
     expect(again.status).toBe(404);
     expect(await again.json()).toEqual({
@@ -101,7 +100,7 @@ describe("/api/me/api-key", () => {
     expect(refused.status).toBe(429);
     expect(refused.headers.get("Retry-After")).toBe("3590");
     expect(await refused.json()).toMatchObject({ error: { code: "rate_limited" } });
-    expect(await authenticateApiKey(last)).toMatchObject({ id: user.id });
+    expect(await apiCaller(last)).toMatchObject({ id: user.id });
   });
 
   it("never touches another user's key", async () => {
@@ -110,7 +109,7 @@ describe("/api/me/api-key", () => {
     const { key } = apiKeyCreatedSchema.parse(await (await create(one.cookie)).json());
     await create(two.cookie);
     await revoke(two.cookie);
-    expect(await authenticateApiKey(key)).toMatchObject({ id: one.id });
+    expect(await apiCaller(key)).toMatchObject({ id: one.id });
   });
 
   it("refuses a create or revoke from another origin or a cross-site request, key untouched", async () => {
@@ -127,7 +126,7 @@ describe("/api/me/api-key", () => {
         expect(response.status).toBe(403);
       }
     }
-    expect(await authenticateApiKey(key)).toMatchObject({ id: user.id });
+    expect(await apiCaller(key)).toMatchObject({ id: user.id });
   });
 
   it("creates a key for a same-origin request", async () => {

@@ -1,11 +1,13 @@
 /**
  * @file src/services/api-keys.ts
  * @desc API keys: one per user, via @haruhimemoe/next-kit's store (src/lib/api-keys.ts).
- *       Authentication adds the user lookup: an admin's key skips the saved-pack cap but gets no
- *       moderation rights. A key never acts as a system account (haruhime pools).
+ *       resolveApiCaller is the user lookup the /api/v1 guard (src/lib/api-auth.ts) runs after the
+ *       store matches a key; the guard is the only place a key is looked up. An admin's key skips
+ *       the saved-pack cap but gets no moderation rights. A key never acts as a system account
+ *       (haruhime pools).
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Sat Oct 3, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import "server-only";
@@ -60,19 +62,4 @@ export const resolveApiCaller = async (userId: string): Promise<ApiCaller | null
     username: user.username,
     isAdmin: isAdminOsuId(user.osuId),
   };
-};
-
-/**
- * @function authenticateApiKey
- * @param key {string} untrusted bearer token
- * @returns {Promise<ApiCaller | null>} the key's owner, or null for a malformed, unknown, revoked,
- *          or replaced key, or one whose user record is gone or is a system account
- */
-export const authenticateApiKey = async (key: string): Promise<ApiCaller | null> => {
-  const match = await apiKeys.authenticate(key);
-  if (!match) return null;
-  const caller = await resolveApiCaller(match.userId);
-  // Stamp only a key whose owner checks out (packs' order).
-  if (caller) await match.stamp();
-  return caller;
 };

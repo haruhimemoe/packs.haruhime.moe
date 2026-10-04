@@ -4,7 +4,7 @@
  *       and nothing that belongs to anyone else. The key goes before the packs.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sat Oct 3, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { ObjectId } from "mongodb";
@@ -17,7 +17,8 @@ import { getUserFromHeaders } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { limiter } from "@/lib/rate-limit";
 import { getPackModel } from "@/models/Pack";
-import { authenticateApiKey, createApiKey } from "@/services/api-keys";
+import { createApiKey } from "@/services/api-keys";
+import { apiCaller } from "../../../helpers/api-key";
 import { createTestUser } from "../../../helpers/auth";
 import { setupTestDb } from "../../../helpers/db";
 import { apiRequest } from "../../../helpers/requests";
@@ -93,7 +94,7 @@ describe("DELETE /api/me", () => {
     const original = packs.deleteMany.bind(packs);
     let keyWorkedDuringPackDeletion: boolean | undefined;
     vi.spyOn(packs, "deleteMany").mockImplementation(((...args: Parameters<typeof original>) => {
-      return authenticateApiKey(key).then((caller) => {
+      return apiCaller(key).then((caller) => {
         keyWorkedDuringPackDeletion = caller !== null;
         return original(...args);
       });
@@ -122,9 +123,10 @@ describe("DELETE /api/me", () => {
         .collection("api_keys")
         .countDocuments({ userId: new ObjectId(leaving.id) }),
     ).toBe(0);
-    expect(await authenticateApiKey(gone.key)).toBeNull();
+    // Before any key goes through the guard, which counts its own (per IP) hits.
     const counters = await getDb().collection(RATE_LIMITS_COLLECTION).find().toArray();
     expect(counters.map((doc) => String(doc._id).split(":")[1])).toEqual([staying.id]);
-    expect(await authenticateApiKey(kept.key)).toMatchObject({ id: staying.id });
+    expect(await apiCaller(gone.key)).toBeNull();
+    expect(await apiCaller(kept.key)).toMatchObject({ id: staying.id });
   });
 });
