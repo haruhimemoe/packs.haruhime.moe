@@ -88,7 +88,7 @@ Other user copy moves with the code in the same PR: an API change updates `conte
 - Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`).
 - The maintainer, or their agent, pushes straight to `main`. `main` has no branch protection or ruleset, and Vercel deploys every push to production, so the full check must pass locally before each push (and before each commit that will be pushed): `bun run check && bun run typecheck && bun run test:coverage && SKIP_ENV_VALIDATION=true bun run build`. CI runs the same checks after the push.
 - Outside contributors open a PR into `main`; a maintainer merges it once CI is green.
-- A change people can notice gets a line in `CHANGELOG.md` (under Unreleased) in the same commit.
+- Keep a Changelog 1.1.0 + semver, `## [Unreleased]` on top. A change people can notice gets a line there in the same commit. A release is cut by moving Unreleased into `## [x.y.z] - YYYY-MM-DD`, bumping `package.json` and tagging `vx.y.z` with a GitHub release whose notes are that section (the owner tags).
 - When a change affects conventions, update this file in the same change.
 
 ## 9. Pack data

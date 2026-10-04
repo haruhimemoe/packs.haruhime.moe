@@ -1,10 +1,12 @@
 # Changelog
 
-Changes people using packs.haruhime.moe or its API can notice. packs deploys every change on `main`, so there are no version numbers: entries are grouped by the date they went live. API changes are also listed under "Changes" in the [API docs](https://packs.haruhime.moe/docs/api).
+All notable changes to packs.haruhime.moe are documented in this file.
 
-The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). API changes are also listed under "Changes" in the [API docs](https://packs.haruhime.moe/docs/api).
 
-## Unreleased
+## [Unreleased]
+
+## [0.1.0] - 2026-10-04
 
 ### Changed
 
@@ -49,3 +51,6 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `/.well-known/security.txt` lists GitHub private vulnerability reporting as the first contact.
 - The Content-Security-Policy also blocks plugins (`object-src 'none'`), a `<base>` pointing elsewhere (`base-uri 'self'`) and forms posting off-site (`form-action 'self'`).
 - CI runs every GitHub Action from a pinned commit SHA.
+
+[unreleased]: https://github.com/haruhimemoe/packs.haruhime.moe/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/haruhimemoe/packs.haruhime.moe/releases/tag/v0.1.0
