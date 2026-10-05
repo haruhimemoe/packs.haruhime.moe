@@ -111,6 +111,9 @@ const packSchema = new Schema(
     stats: { type: statsSchema, default: undefined },
     // Packs pools publishes only. Absent on every other pack.
     origin: { type: originSchema, default: undefined },
+    // Owner-only toggle (src/services/pack-history-read.ts): absent or false means only the
+    // owner reads the pack's history (pack_revisions).
+    historyPublic: { type: Boolean },
   },
   { timestamps: true, collection: "packs" },
 );

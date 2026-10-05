@@ -109,6 +109,14 @@ export const createPacksApi = ({
     remove: async (slug: string): Promise<void> => {
       await request(`/api/packs/${encodeURIComponent(slug)}`, { method: "DELETE" });
     },
+    /** @function setHistoryPublic @param slug {string} @param historyPublic {boolean} @returns {Promise<void>} */
+    setHistoryPublic: async (slug: string, historyPublic: boolean): Promise<void> => {
+      await request(`/api/packs/${encodeURIComponent(slug)}/history`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ historyPublic }),
+      });
+    },
     /** @function deleteAccount @returns {Promise<void>} */
     deleteAccount: async (): Promise<void> => {
       await request("/api/me", { method: "DELETE" });

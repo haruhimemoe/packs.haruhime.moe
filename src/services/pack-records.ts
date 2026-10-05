@@ -30,6 +30,7 @@ export type PackRecord = {
   hiddenAt?: Date | null;
   exports?: { kind: string; url: string; createdAt: Date }[] | null;
   stats?: { computedAt?: unknown } | null;
+  historyPublic?: boolean | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -95,6 +96,7 @@ export const toSavedPack = (doc: PackRecord): SavedPack => {
     visibility: doc.visibility,
     exports: toPackExports(doc.exports),
     ...(doc.hiddenAt ? { hiddenAt: doc.hiddenAt.toISOString() } : {}),
+    ...(doc.historyPublic ? { historyPublic: true } : {}),
     ...(stats ? { stats } : {}),
     createdAt: doc.createdAt.toISOString(),
     updatedAt: doc.updatedAt.toISOString(),

@@ -29,6 +29,8 @@ export const savedPackSchema = poolFields
     exports: packExportsSchema.optional(),
     /** Set when a moderator hid the pack; only its owner and admins ever receive it. */
     hiddenAt: z.string().optional(),
+    /** Off (absent) means only the owner reads the pack's history. */
+    historyPublic: z.boolean().optional(),
     /** Filter stats, once the server has computed them (a few seconds after a save). */
     stats: packStatsSchema.optional(),
     createdAt: z.string(),

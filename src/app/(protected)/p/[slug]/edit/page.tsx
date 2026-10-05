@@ -1,14 +1,17 @@
 /**
  * @file src/app/(protected)/p/[slug]/edit/page.tsx
- * @desc Edit a saved pack. Anyone but the owner gets a 404.
+ * @desc Edit a saved pack. Anyone but the owner gets a 404. Below the editor: a link to the
+ *       pack's history and the owner's toggle for who else can see it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { pageMetadata } from "@haruhimemoe/next-kit/seo";
+import { LinkRow } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { HistoryVisibilityForm } from "@/components/history/HistoryVisibilityForm";
 import { SavedPackEditor } from "@/components/pack/SavedPackEditor";
 import { SEO_SITE } from "@/constants/seo";
 import { requireUser } from "@/lib/auth-session";
@@ -38,5 +41,11 @@ export default async function EditPackPage({ params }: PageProps<"/p/[slug]/edit
   const user = await requireUser(`/p/${slug}/edit`);
   const found = await getPackForViewer(slug, user.id);
   if (!found?.isOwner) notFound();
-  return <SavedPackEditor pack={found.pack} />;
+  return (
+    <div className="flex flex-col gap-6">
+      <SavedPackEditor pack={found.pack} />
+      <LinkRow items={[{ href: `/p/${slug}/history`, label: "History" }]} />
+      <HistoryVisibilityForm slug={slug} historyPublic={found.pack.historyPublic === true} />
+    </div>
+  );
 }

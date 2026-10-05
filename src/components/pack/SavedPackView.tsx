@@ -18,7 +18,7 @@
 
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
 import { encodePackKey } from "@haruhimemoe/pool";
-import { ButtonLink, Card, PageHeader, Text, TextLink } from "@haruhimemoe/ui";
+import { ButtonLink, Card, LinkRow, PageHeader, Text, TextLink } from "@haruhimemoe/ui";
 import { Fragment, type ReactNode, useId, useMemo, useState } from "react";
 import { CollectionPanel } from "@/components/collection/CollectionPanel";
 import { ExportPanel } from "@/components/export/ExportPanel";
@@ -143,6 +143,16 @@ export function SavedPackView({
         meta={isOwner ? `${count} · ${VISIBILITY_OPTIONS[pack.visibility].label}` : count}
         actions={isOwner ? <ButtonLink href={`/p/${pack.slug}/edit`}>Edit</ButtonLink> : undefined}
       />
+      {pack.historyPublic || isOwner ? (
+        <LinkRow
+          items={[
+            {
+              href: `/p/${pack.slug}/history`,
+              label: isOwner ? "History" : "Version history",
+            },
+          ]}
+        />
+      ) : null}
       {canPin ? <PinButton slug={pack.slug} pinned={pinned} api={api} /> : null}
       {pack.description ? (
         <p className="wrap-anywhere max-w-3xl whitespace-pre-line text-c2">
