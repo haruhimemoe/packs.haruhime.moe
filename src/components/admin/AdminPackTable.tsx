@@ -5,7 +5,7 @@
  *       status so it isn't lost with the row.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 "use client";
@@ -85,7 +85,14 @@ export function AdminPackTable({ rows, api = packsApi }: AdminPackTableProps) {
         </Notice>
       ) : null}
       {deleted !== null ? (
-        <Text ref={deletedRef} tabIndex={-1} role="status" tone="muted" className="outline-none">
+        <Text
+          ref={deletedRef}
+          tabIndex={-1}
+          role="status"
+          tone="muted"
+          className="outline-none"
+          data-admin-deleted=""
+        >
           Deleted {deleted.name}.
         </Text>
       ) : null}

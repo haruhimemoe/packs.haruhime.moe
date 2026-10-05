@@ -4,7 +4,7 @@
  *       have no saved-pack cap, so their count shows no limit.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { pageMetadata } from "@haruhimemoe/next-kit/seo";
@@ -94,7 +94,7 @@ export default async function MyPacksPage({ searchParams }: PageProps<"/me">) {
             Files you downloaded and torrents you seed stay on your devices, so they aren't ours to
             delete.
           </Text>
-          <DeleteAccountButton packCount={total} />
+          <DeleteAccountButton username={user.username} packCount={total} />
         </div>
       </Card>
     </div>

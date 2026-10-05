@@ -4,7 +4,7 @@
  *       confirm (@haruhimemoe/ui's InlineConfirm), then says whether it worked.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 "use client";
@@ -41,6 +41,7 @@ export function ClearLocalDataButton({ clear = clearLocalData }: { clear?: () =>
         question="Delete your saved draft and downloaded maps from this browser?"
         confirmLabel="Delete"
         pendingLabel="Deleting…"
+        confirmVariant="danger"
         onConfirm={run}
       />
       <output>

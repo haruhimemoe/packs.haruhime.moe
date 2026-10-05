@@ -7,7 +7,7 @@
  *       `status` live region.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 "use client";
@@ -138,6 +138,7 @@ export function ApiKeyCard({
                 question="Your current key stops working right away."
                 cancelLabel="Keep it"
                 confirmLabel="Yes, regenerate"
+                confirmVariant="danger"
                 onConfirm={create}
               />
               <InlineConfirm
@@ -146,6 +147,7 @@ export function ApiKeyCard({
                 question="Revoke this key? Anything using it stops working right away."
                 cancelLabel="Keep it"
                 confirmLabel="Yes, revoke"
+                confirmVariant="danger"
                 onConfirm={revoke}
               />
             </div>

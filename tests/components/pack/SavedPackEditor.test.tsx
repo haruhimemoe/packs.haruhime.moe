@@ -3,10 +3,10 @@
  * @desc /p/[slug]/edit: save name/slots/visibility, show server errors, delete after confirming.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Oct 5, 2026
  */
 
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SavedPackEditor } from "@/components/pack/SavedPackEditor";
@@ -67,19 +67,17 @@ describe("SavedPackEditor", () => {
     expect(push).not.toHaveBeenCalled();
   });
 
-  it("deletes only after confirming", async () => {
+  it("deletes only after confirming in a dialog", async () => {
     const user = userEvent.setup();
     const remove = vi.fn(async () => undefined);
     render(<SavedPackEditor pack={PACK} update={vi.fn()} remove={remove} />);
     await user.click(screen.getByRole("button", { name: "Delete pack" }));
-    expect(
-      screen.getByText(
-        "Delete this pack for good? Its short link (/p/abcdefghij) stops working for everyone. Pack keys you've shared still open the pool.",
-      ),
-    ).toBeInTheDocument();
+    const box = screen.getByRole("alertdialog", { name: "Delete this pack for good?" });
+    expect(box).toHaveAccessibleDescription(
+      "Its short link (/p/abcdefghij) stops working for everyone. Pack keys you've shared still open the pool.",
+    );
     expect(remove).not.toHaveBeenCalled();
-
-    await user.click(screen.getByRole("button", { name: "Yes, delete it" }));
+    await user.click(within(box).getByRole("button", { name: "Yes, delete it" }));
     expect(remove).toHaveBeenCalledWith("abcdefghij");
     await waitFor(() => expect(push).toHaveBeenCalledWith("/me"));
   });
@@ -87,9 +85,24 @@ describe("SavedPackEditor", () => {
   it("can back out of deleting", async () => {
     const user = userEvent.setup();
     render(<SavedPackEditor pack={PACK} update={vi.fn()} remove={vi.fn()} />);
-    await user.click(screen.getByRole("button", { name: "Delete pack" }));
+    const trigger = screen.getByRole("button", { name: "Delete pack" });
+    await user.click(trigger);
     await user.click(screen.getByRole("button", { name: "Keep it" }));
-    expect(screen.getByRole("button", { name: "Delete pack" })).toBeInTheDocument();
+    expect(document.querySelector("dialog")).not.toHaveAttribute("open");
+    expect(trigger).toHaveFocus();
+  });
+
+  it("says a failed delete in the dialog, which stays open", async () => {
+    const user = userEvent.setup();
+    const remove = vi.fn(async () => {
+      throw new PacksApiError("Not found.", 404);
+    });
+    render(<SavedPackEditor pack={PACK} update={vi.fn()} remove={remove} />);
+    await user.click(screen.getByRole("button", { name: "Delete pack" }));
+    await user.click(screen.getByRole("button", { name: "Yes, delete it" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Not found.");
+    expect(screen.getByRole("alertdialog")).toBeInTheDocument();
+    expect(push).not.toHaveBeenCalled();
   });
 
   it("keeps the pack's custom slots and order when saving", async () => {

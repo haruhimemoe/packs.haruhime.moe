@@ -4,10 +4,10 @@
  *       hide/unhide, pin/unpin (public packs that aren't hidden), delete with confirm, errors.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Oct 5, 2026
  */
 
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AdminPackTable } from "@/components/admin/AdminPackTable";
@@ -131,7 +131,9 @@ describe("AdminPackTable", () => {
     const api = fakeApi();
     render(<AdminPackTable rows={[ROW]} api={api} />);
     await user.click(screen.getByRole("button", { name: "Delete SPC Finals" }));
-    expect(screen.getByText("Delete SPC Finals for good?")).toBeInTheDocument();
+    expect(
+      screen.getByRole("alertdialog", { name: "Delete SPC Finals for good?" }),
+    ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Keep it" }));
     expect(api.adminRemove).not.toHaveBeenCalled();
     await user.click(screen.getByRole("button", { name: "Delete SPC Finals" }));
@@ -197,11 +199,23 @@ describe("AdminPackTable", () => {
     );
     await user.click(screen.getByRole("button", { name: "Yes, delete it" }));
     expect(await screen.findByText("Deleted SPC Finals.")).toHaveFocus();
-    await user.click(
-      screen.getAllByRole("button", { name: "Delete SPC Finals" })[1] as HTMLElement,
-    );
+    await user.click(screen.getByRole("button", { name: "Delete SPC Finals" }));
     await user.click(screen.getByRole("button", { name: "Yes, delete it" }));
     await waitFor(() => expect(screen.getByText("Deleted SPC Finals.")).toHaveFocus());
+  });
+
+  it("keeps the dialog open when a delete fails, pointing at the reason above the table", async () => {
+    const user = userEvent.setup();
+    const api = fakeApi();
+    api.adminRemove.mockRejectedValueOnce(new PacksApiError("Not found.", 404));
+    render(<AdminPackTable rows={[ROW]} api={api} />);
+    await user.click(screen.getByRole("button", { name: "Delete SPC Finals" }));
+    await user.click(screen.getByRole("button", { name: "Yes, delete it" }));
+    expect(await within(screen.getByRole("alertdialog")).findByRole("alert")).toHaveTextContent(
+      "Couldn't delete it. The reason is above the table.",
+    );
+    expect(screen.getAllByRole("alert").map((node) => node.textContent)).toContain("Not found.");
+    expect(screen.getByRole("button", { name: "Delete SPC Finals" })).toBeInTheDocument();
   });
 
   it("clears the delete confirmation on the next action", async () => {

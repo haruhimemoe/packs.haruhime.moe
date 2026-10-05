@@ -3,13 +3,13 @@
  * @desc /p/[slug]/edit: edit a saved pack in memory (no IndexedDB draft), then save or delete.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 "use client";
 
 import type { PackInputBody, PackVisibility } from "@haruhimemoe/pool/service";
-import { Button, ButtonLink, Card, InlineConfirm, Notice, PageHeader, Text } from "@haruhimemoe/ui";
+import { Button, ButtonLink, Card, ConfirmDialog, Notice, PageHeader, Text } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
 import { useMemo, useReducer, useState } from "react";
 import { DescriptionField } from "@/components/pack/DescriptionField";
@@ -85,8 +85,8 @@ export function SavedPackEditor({
     try {
       await remove(saved.slug);
     } catch (cause) {
-      fail(cause);
-      // Keeps the confirm open, with the error above it.
+      setPhase("idle");
+      // Keeps the dialog open; it says what went wrong.
       throw cause;
     }
     router.push("/me");
@@ -132,13 +132,18 @@ export function SavedPackEditor({
         <Button onClick={saveChanges} disabled={busy || pack.slots.length === 0}>
           {phase === "saving" ? "Saving…" : "Save changes"}
         </Button>
-        <InlineConfirm
+        <ConfirmDialog
           trigger="Delete pack"
           triggerProps={{ variant: "ghost", disabled: phase === "saving" }}
-          question={`Delete this pack for good? Its short link (/p/${saved.slug}) stops working for everyone. Pack keys you've shared still open the pool.`}
+          title="Delete this pack for good?"
+          description={`Its short link (/p/${saved.slug}) stops working for everyone. Pack keys you've shared still open the pool.`}
+          tone="destructive"
           cancelLabel="Keep it"
           confirmLabel="Yes, delete it"
           pendingLabel="Deleting…"
+          failedMessage={(cause) =>
+            cause instanceof PacksApiError ? cause.message : "Something went wrong. Try again."
+          }
           onConfirm={deleteNow}
         />
       </div>

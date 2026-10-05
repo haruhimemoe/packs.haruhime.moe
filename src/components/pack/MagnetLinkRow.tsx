@@ -4,7 +4,7 @@
  *       Open, and for the owner or an admin a Remove that asks first (InlineConfirm).
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 "use client";
@@ -53,6 +53,7 @@ export function MagnetLinkRow({ entry, onRemove }: MagnetLinkRowProps) {
           cancelLabel="Keep it"
           confirmLabel="Yes, remove"
           pendingLabel="Removing…"
+          confirmVariant="danger"
           onConfirm={() => onRemove(entry.url)}
         />
       ) : null}

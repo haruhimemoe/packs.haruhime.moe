@@ -2,16 +2,18 @@
  * @file src/components/admin/AdminPackTableRow.tsx
  * @desc One /admin pack row: name, host (an osu! profile link unless it's a system account),
  *       visibility, maps, updated, a Hidden or Pinned badge, and Hide/Unhide, Pin/Unpin and a
- *       Delete that asks first (@haruhimemoe/ui's InlineConfirm).
+ *       Delete that asks in a dialog (@haruhimemoe/ui's ConfirmDialog); a deleted row leaves at
+ *       once, focus going to the table's "Deleted" line.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 "use client";
 
 import { userUrl } from "@haruhimemoe/osu/shapes";
-import { Badge, Button, InlineConfirm, Td, TextLink } from "@haruhimemoe/ui";
+import { Badge, Button, ConfirmDialog, Td, TextLink } from "@haruhimemoe/ui";
+import { useState } from "react";
 import { VISIBILITY_OPTIONS } from "@/constants/visibility";
 import type { packsApi } from "@/lib/packs-api";
 import type { AdminPackRow } from "@/schemas/public-pack";
@@ -41,10 +43,17 @@ type AdminPackTableRowProps = {
 export function AdminPackTableRow({ row, api, busy, run, onDeleted }: AdminPackTableRowProps) {
   const hidden = row.hiddenAt !== null;
   const pinnable = isPinnable({ visibility: row.visibility, hidden });
+  // Leaves at once on a delete, so the dialog hands focus to the table's "Deleted" line.
+  const [gone, setGone] = useState(false);
   const remove = async () => {
-    // Throwing keeps the confirm open; the table shows the error.
-    if (!(await run(() => api.adminRemove(row.slug), onDeleted))) throw new Error("not deleted");
+    const done = () => {
+      setGone(true);
+      onDeleted();
+    };
+    // Throwing keeps the dialog open; the table shows the error.
+    if (!(await run(() => api.adminRemove(row.slug), done))) throw new Error("not deleted");
   };
+  if (gone) return null;
   return (
     <tr className="align-top">
       <Td>
@@ -94,12 +103,16 @@ export function AdminPackTableRow({ row, api, busy, run, onDeleted }: AdminPackT
               {row.pinnedAt ? "Unpin" : "Pin"}
             </Button>
           ) : null}
-          <InlineConfirm
+          <ConfirmDialog
             trigger="Delete"
             triggerProps={{ variant: "ghost", "aria-label": `Delete ${row.name}`, disabled: busy }}
-            question={`Delete ${row.name} for good?`}
+            title={`Delete ${row.name} for good?`}
+            description="It goes for its host too, and its short link stops working for everyone."
+            tone="destructive"
             cancelLabel="Keep it"
             confirmLabel="Yes, delete it"
+            failedMessage="Couldn't delete it. The reason is above the table."
+            returnFocus={() => document.querySelector<HTMLElement>("[data-admin-deleted]")}
             onConfirm={remove}
           />
         </div>
