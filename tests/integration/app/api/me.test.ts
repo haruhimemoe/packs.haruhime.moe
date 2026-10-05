@@ -15,6 +15,7 @@ import { RATE_LIMITS } from "@/constants/api";
 import { RATE_LIMITS_COLLECTION } from "@/constants/star-ratings";
 import { getUserFromHeaders } from "@/lib/auth";
 import { getDb } from "@/lib/db";
+import { packRevisions } from "@/lib/pack-revisions";
 import { limiter } from "@/lib/rate-limit";
 import { getPackModel } from "@/models/Pack";
 import { createApiKey } from "@/services/api-keys";
@@ -62,12 +63,17 @@ describe("DELETE /api/me", () => {
     expect(await getDb().collection("session").countDocuments({ userId: id })).toBe(1);
     expect(await getDb().collection("account").countDocuments({ userId: id })).toBe(1);
     expect(await getPackModel().countDocuments({ ownerId: id })).toBe(2);
+    const slugs = (await getPackModel().find({ ownerId: id }, { slug: 1 }).lean()).map(
+      (doc) => doc.slug,
+    );
+    for (const slug of slugs) expect(await packRevisions.head(slug)).not.toBeNull();
 
     const response = await DELETE(
       apiRequest("/api/me", { method: "DELETE", cookie: leaving.cookie }),
     );
     expect(response.status).toBe(204);
 
+    for (const slug of slugs) expect(await packRevisions.head(slug)).toBeNull();
     expect(await getPackModel().countDocuments({ ownerId: id })).toBe(0);
     expect(await getDb().collection("user").countDocuments({ _id: id })).toBe(0);
     expect(await getDb().collection("session").countDocuments({ userId: id })).toBe(0);

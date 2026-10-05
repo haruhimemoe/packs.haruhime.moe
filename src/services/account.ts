@@ -1,20 +1,21 @@
 /**
  * @file src/services/account.ts
  * @desc Account deletion: the user's API key and its rate-limit counters and their sessions
- *       first (so an API write can't add a pack mid-deletion), then packs, the osu!
- *       account link, and last the user record. Mirrors content/legal/privacy.mdx ("Getting
- *       or deleting your data"). Any new collection holding user data must be deleted here too.
- *       Collection names are better-auth's mongodb-adapter defaults; tests/integration/app/api/me.test.ts
+ *       first (so an API write can't add a pack mid-deletion), then packs (and their history),
+ *       the osu! account link, and last the user record. Mirrors content/legal/privacy.mdx
+ *       ("Getting or deleting your data"). Any new collection holding user data must be deleted
+ *       here too. Collection names are better-auth's mongodb-adapter defaults; tests/integration/app/api/me.test.ts
  *       pins them against real better-auth rows.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sat Oct 3, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import "server-only";
 import { ObjectId } from "mongodb";
 import { apiKeys } from "@/lib/api-keys";
 import { connectDb, getDb } from "@/lib/db";
+import { packRevisions } from "@/lib/pack-revisions";
 import { deleteRateLimitsFor } from "@/lib/rate-limit";
 import { revalidatePack, revalidatePublicPacks } from "@/lib/revalidate";
 import { getPackModel } from "@/models/Pack";
@@ -37,7 +38,10 @@ export const deleteAccount = async (userId: string): Promise<void> => {
   const listed = await packs.exists({ ownerId: id, visibility: "public" });
   const slugs = (await packs.find({ ownerId: id }, { slug: 1 }).lean()).map((doc) => doc.slug);
   await packs.deleteMany({ ownerId: id });
-  for (const slug of slugs) revalidatePack(slug);
+  for (const slug of slugs) {
+    await packRevisions.removeDoc(slug);
+    revalidatePack(slug);
+  }
   if (listed) revalidatePublicPacks();
   await db.collection("account").deleteMany({ userId: id });
   await db.collection("user").deleteOne({ _id: id });

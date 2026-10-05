@@ -263,7 +263,7 @@ describe("copyright", () => {
 
   it("dates the Sources section", () => {
     expect(lastUpdated("copyright")).toBe("2026-09-25");
-    expect(lastUpdated("your-privacy-rights")).toBe("2026-09-28");
+    expect(lastUpdated("your-privacy-rights")).toBe("2026-10-05");
   });
 });
 

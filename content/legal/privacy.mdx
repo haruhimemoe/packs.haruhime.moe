@@ -9,6 +9,7 @@ Only if you sign in with osu!:
 - your osu! user ID, username, avatar URL, and country, which osu! sends us when you sign in, and a record linking your account to osu! (never your osu! tokens);
 - session records that keep you signed in. Our sign-in library stores the IP address and browser User-Agent you signed in from with each one;
 - packs you choose to save: the pack name, description, beatmap IDs, slot layout, visibility, and any magnet links you choose to record on a pack (we keep only the torrent's fingerprint, name, size, and our own tracker list).
+- every saved version of a pack (its name, description, beatmap IDs and slot layout, with who saved it and when), kept until the pack is deleted. Only you see it unless you turn on "Anyone who can see the pack" for that pack's history.
 - If you create an API key: a SHA-256 hash of it (never the key itself), its first 12 characters so you can recognize it, when you created it, and when it was last used (updated at most once an hour).
 - If you save or change packs (magnet links included), use the API, or create a key: short-lived request counters, by account, to enforce rate limits. They're deleted automatically within about two minutes, or about an hour for key creation.
 - If you set a pack to Public, it's listed on the public packs page with your osu! username and avatar.
@@ -75,7 +76,7 @@ The [GDPR & CCPA page](/legal/your-privacy-rights) has a table of each kind of d
 
 ## Getting or deleting your data
 
-**Download my data** on your account page gives you a copy of everything we hold about your account, as a JSON file. **Delete account** on the same page deletes your user record, sessions, linked osu! account record, API key, and every pack you saved. You can also email us to ask for a copy or for deletion.
+**Download my data** on your account page gives you a copy of everything we hold about your account, as a JSON file. **Delete account** on the same page deletes your user record, sessions, linked osu! account record, API key, and every pack you saved, along with its saved history. You can also email us to ask for a copy or for deletion.
 
 ## Changes
 

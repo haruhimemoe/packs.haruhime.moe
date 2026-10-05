@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Pack history: every save of a saved pack is kept, with a page listing each version and what changed, map links included. Off by default; a pack's owner can make its history visible to anyone who can see the pack. Deleting a pack or your account deletes its history too.
+
 ### Changed
 
 - Guides moved from `/guide` to `/guides`. The old `/guide` pages are gone (404); the two retired guides that redirected to the guide index now redirect to `/guides`.

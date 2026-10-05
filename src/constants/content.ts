@@ -137,14 +137,14 @@ export const CONTENT = defineContent({
       slug: "privacy",
       title: "Privacy Policy",
       description: "What packs.haruhime.moe stores, why, and what stays in your browser.",
-      lastUpdated: "2026-09-28",
+      lastUpdated: "2026-10-05",
     },
     {
       slug: "your-privacy-rights",
       title: "GDPR & CCPA",
       description:
         "Your rights over your data under the GDPR and the CCPA, what we hold and why, and how to use them.",
-      lastUpdated: "2026-09-28",
+      lastUpdated: "2026-10-05",
     },
     {
       slug: "copyright",
