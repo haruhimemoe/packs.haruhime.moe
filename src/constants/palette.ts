@@ -6,10 +6,10 @@
  *       out in full so Tailwind finds them.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
-import type { PALETTE_SIZE } from "@haruhimemoe/pool";
+import { PALETTE, type PALETTE_SIZE } from "@haruhimemoe/pool";
 
 /** Background class per palette color id: PALETTE_STYLES[id] styles PALETTE[id]. Append only. */
 export const PALETTE_STYLES = [
@@ -24,3 +24,12 @@ export const PALETTE_STYLES = [
   "bg-indigo-300",
   "bg-stone-300",
 ] as const satisfies readonly string[] & { length: typeof PALETTE_SIZE };
+
+/**
+ * @function paletteColor
+ * @param id {number} a stored custom bucket color id (an index into PALETTE)
+ * @returns {Lowercase<(typeof PALETTE)[number]>} its ModBadge color name; green (id 0) when the
+ *          id is outside the palette, as PALETTE_STYLES falls back today
+ */
+export const paletteColor = (id: number): Lowercase<(typeof PALETTE)[number]> =>
+  (PALETTE[id] ?? PALETTE[0]).toLowerCase() as Lowercase<(typeof PALETTE)[number]>;

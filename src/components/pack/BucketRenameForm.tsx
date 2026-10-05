@@ -4,7 +4,7 @@
  *       Cancel. A code @haruhimemoe/pool's checkBucketCode refuses shows why and stays open.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
@@ -52,8 +52,8 @@ export function BucketRenameForm({ code, buckets, onRename, onDone }: BucketRena
     <form onSubmit={submit} className="flex flex-wrap items-start gap-2">
       <TextInput
         id={id}
-        label={<span className="sr-only">New code for {code}</span>}
-        wrapperClassName="gap-0"
+        label={`New code for ${code}`}
+        hideLabel
         value={value}
         onChange={(event) => {
           setValue(event.target.value);

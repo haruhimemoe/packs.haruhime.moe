@@ -4,13 +4,14 @@
  *       every palette color from @haruhimemoe/pool has a static badge class.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { BUCKET_CODE_PATTERN, isModBucket, PALETTE } from "@haruhimemoe/pool";
+import type { ModBadgeColor } from "@haruhimemoe/ui";
 import { describe, expect, it } from "vitest";
 import { NO_SLOT_VALUE } from "@/constants/mods";
-import { PALETTE_STYLES } from "@/constants/palette";
+import { PALETTE_STYLES, paletteColor } from "@/constants/palette";
 
 describe("NO_SLOT_VALUE", () => {
   it("can never be a bucket code", () => {
@@ -35,5 +36,27 @@ describe("PALETTE_STYLES", () => {
       ["Indigo", "bg-indigo-300"],
       ["Stone", "bg-stone-300"],
     ]);
+  });
+});
+
+describe("paletteColor", () => {
+  it("names each stored color id as a ModBadge color", () => {
+    const names: ModBadgeColor[] = PALETTE.map((_, id) => paletteColor(id));
+    expect(names).toEqual([
+      "green",
+      "teal",
+      "pink",
+      "lime",
+      "cyan",
+      "fuchsia",
+      "yellow",
+      "red",
+      "indigo",
+      "stone",
+    ]);
+  });
+  it("falls back to green for an id outside the palette", () => {
+    expect(paletteColor(99)).toBe("green");
+    expect(paletteColor(-1)).toBe("green");
   });
 });

@@ -3,7 +3,7 @@
  * @desc SlotBadge label, title and colors.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -31,5 +31,15 @@ describe("SlotBadge", () => {
     render(<SlotBadge entry={null} index={3} />);
     expect(screen.getByText("3")).toHaveClass("bg-b3");
     expect(screen.getByText("3")).toHaveAttribute("title", "No slot");
+  });
+
+  it("paints a custom bucket in its palette color through ModBadge color", () => {
+    render(<SlotBadge entry={{ code: "EZ", color: 5 }} index={1} />);
+    expect(screen.getByText("EZ1")).toHaveClass("bg-fuchsia-400", "text-b6");
+  });
+
+  it("shows green for a stored color id outside the palette", () => {
+    render(<SlotBadge entry={{ code: "EZ", color: 42 }} index={1} />);
+    expect(screen.getByText("EZ1")).toHaveClass("bg-green-400", "text-b6");
   });
 });
