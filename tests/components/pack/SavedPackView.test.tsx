@@ -7,7 +7,7 @@
  *       server looked up rendered into the HTML.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { HINAI_BATCH_URL, hinaiBatchHandler } from "@haruhimemoe/hinai/testing";
@@ -84,7 +84,7 @@ describe("SavedPackView", () => {
     render(<SavedPackView pack={PACK} isOwner={false} />);
     expect(screen.getByRole("heading", { level: 1, name: "SPC Finals" })).toBeInTheDocument();
     expect(screen.getByText("2 maps")).toBeInTheDocument();
-    expect(await screen.findByRole("link", { name: "xi - FREEDOM DiVE" })).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: /^xi - FREEDOM DiVE/ })).toBeInTheDocument();
     expect(screen.getByLabelText("Short link")).toHaveValue("http://localhost:3000/p/abcdefghij");
     expect(screen.getByLabelText("Pack key")).toHaveValue(
       encodePackKey({ name: PACK.name, slots: PACK.slots }),
@@ -99,14 +99,14 @@ describe("SavedPackView", () => {
     const description = screen.getByText("Quals pool");
     const download = screen.getByRole("region", { name: "Download" });
     const stats = screen.getByRole("region", { name: "Pack stats" });
-    const map = await screen.findByRole("link", { name: "xi - FREEDOM DiVE" });
+    const map = await screen.findByRole("link", { name: /^xi - FREEDOM DiVE/ });
     const share = screen.getByRole("region", { name: "Share" });
     expect(precedes(heading, description)).toBe(true);
     expect(precedes(description, download)).toBe(true);
     expect(precedes(download, stats)).toBe(true);
     expect(precedes(download, map)).toBe(true);
     expect(precedes(map, share)).toBe(true);
-    expect(within(download).queryByRole("link", { name: "xi - FREEDOM DiVE" })).toBeNull();
+    expect(within(download).queryByRole("link", { name: /^xi - FREEDOM DiVE/ })).toBeNull();
   });
 
   it("keeps one h1 and puts the pool under its own h2", () => {
@@ -190,7 +190,7 @@ describe("SavedPackView", () => {
     expect(screen.getAllByRole("button", { name: "Retry loading maps" })).toHaveLength(1);
     server.use(hinaiBatchHandler);
     await user.click(retry);
-    expect(await screen.findByRole("link", { name: "xi - FREEDOM DiVE" })).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: /^xi - FREEDOM DiVE/ })).toBeInTheDocument();
   });
 
   it("shows the description with its line breaks", () => {
@@ -474,7 +474,7 @@ describe("SavedPackView", () => {
 
   it("offers the pack to an osu! collection, under the maps and before Share", async () => {
     render(<SavedPackView pack={PACK} isOwner={false} />);
-    const map = await screen.findByRole("link", { name: "xi - FREEDOM DiVE" });
+    const map = await screen.findByRole("link", { name: /^xi - FREEDOM DiVE/ });
     const card = screen.getByRole("region", { name: "Add to osu! collection" });
     expect(precedes(map, card)).toBe(true);
     expect(precedes(card, screen.getByRole("region", { name: "Share" }))).toBe(true);

@@ -1,17 +1,16 @@
 /**
  * @file src/components/pack/SlotBadge.tsx
- * @desc A slot's or bucket's pill (NM1, EZ2, TB): @haruhimemoe/ui's ModBadge with the slot label,
- *       the bucket's full name as its title, and a custom bucket's palette color through
- *       ModBadge's color prop. No-slot maps get ModBadge's grey pill with just their number.
+ * @desc A bucket's pill for BucketManager (NM, EZ, TB), rendering no map: @haruhimemoe/ui's
+ *       ModBadge with the bucket's code, its full name as its title, and a custom bucket's
+ *       palette color through ModBadge's color prop, all built by slotBadgeValue.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
-import { bucketName, isCustomBucket, slotLabel } from "@haruhimemoe/pool";
 import { ModBadge } from "@haruhimemoe/ui";
-import { paletteColor } from "@/constants/palette";
 import type { BucketEntry } from "@/schemas/pack";
+import { slotBadgeValue } from "@/utils/slot-badge";
 
 type SlotBadgeProps = {
   /** The slot's bucket, or null for a map in no slot. */
@@ -27,12 +26,10 @@ type SlotBadgeProps = {
  *          palette color, no slot in grey
  */
 export function SlotBadge({ entry, index }: SlotBadgeProps) {
-  const text =
-    index === undefined ? (entry?.code ?? "–") : slotLabel({ mod: entry?.code ?? null, index });
-  const color = entry !== null && isCustomBucket(entry) ? paletteColor(entry.color) : undefined;
+  const slot = slotBadgeValue(entry, index);
   return (
-    <ModBadge mod={entry?.code ?? ""} title={bucketName(entry)} color={color}>
-      {text}
+    <ModBadge mod={slot.mod ?? ""} color={slot.color} title={slot.title}>
+      {slot.label}
     </ModBadge>
   );
 }

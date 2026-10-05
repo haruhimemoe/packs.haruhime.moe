@@ -4,7 +4,7 @@
  *       beatmap ID for "!mp map").
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
@@ -35,11 +35,15 @@ const META: BeatmapMeta = {
 };
 const SLOT = { mod: "NM" as const, index: 1, beatmapId: 129891 };
 const inList = (ui: ReactNode) => render(<ul>{ui}</ul>);
+const found = (meta: Partial<BeatmapMeta> = {}) => ({
+  status: "found" as const,
+  meta: { ...META, ...meta },
+});
 
 describe("SlotRow", () => {
   it("shows title, difficulty, mapper, stats, and links to osu!", () => {
-    inList(<SlotRow slot={SLOT} entry={{ code: "NM" }} state={{ status: "found", meta: META }} />);
-    const link = screen.getByRole("link", { name: "xi - FREEDOM DiVE" });
+    inList(<SlotRow slot={SLOT} entry={{ code: "NM" }} state={found()} />);
+    const link = screen.getByRole("link", { name: /^xi - FREEDOM DiVE/ });
     expect(link).toHaveAttribute("href", "https://osu.ppy.sh/beatmaps/129891");
     expect(link).toHaveAttribute("rel", "noopener noreferrer");
     expect(screen.getByText(/\[FOUR DIMENSIONS\] mapped by Nakagawa-Kanon/)).toBeInTheDocument();
@@ -47,25 +51,42 @@ describe("SlotRow", () => {
     expect(screen.getByText("NM1")).toBeInTheDocument();
   });
 
-  it("truncates long titles instead of overflowing", () => {
+  it("truncates long titles and keeps the full text in the title attribute", () => {
+    const long = "y".repeat(300);
+    inList(<SlotRow slot={SLOT} entry={null} state={found({ artist: long, title: long })} />);
+    const title = screen.getByRole("link", { name: new RegExp(`^${long} - ${long}`) }).closest("p");
+    expect(title?.className).toContain("truncate");
+    expect(title).toHaveAttribute("title", `${long} - ${long}`);
+  });
+
+  it("opens the map on osu! in a new tab", () => {
+    inList(<SlotRow slot={SLOT} entry={{ code: "NM" }} state={found()} />);
+    const link = screen.getByRole("link", { name: /\(opens in a new tab\)$/ });
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
+  it("shows a busy placeholder card with the ID while loading", () => {
+    inList(<SlotRow slot={SLOT} entry={null} state={{ status: "loading" }} />);
+    expect(screen.getByRole("listitem")).toHaveAttribute("aria-busy", "true");
+    expect(screen.getByRole("link", { name: /^Beatmap \d+/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Copy ID \d+$/ })).toBeInTheDocument();
+  });
+
+  it("says a missing map wasn't found on the mirror", () => {
+    inList(<SlotRow slot={SLOT} entry={null} state={{ status: "missing" }} />);
+    expect(screen.getByText(/wasn't found on the mirror\. Check the ID\./)).toBeInTheDocument();
+  });
+
+  it("shows the error message when the mirror failed", () => {
     inList(
       <SlotRow
         slot={SLOT}
         entry={{ code: "NM" }}
-        state={{ status: "found", meta: { ...META, title: "x".repeat(300) } }}
+        state={{ status: "error", message: "Mirror is down." }}
       />,
     );
-    expect(screen.getByRole("link")).toHaveClass("truncate");
-    expect(screen.getByRole("link").parentElement).toHaveClass("min-w-0");
-  });
-
-  it.each([
-    [{ status: "loading" } as const, /Loading beatmap 129891/],
-    [{ status: "missing" } as const, /129891 wasn't found/],
-    [{ status: "error", message: "Mirror is down." } as const, /Mirror is down\./],
-  ])("renders the %o state", (state, text) => {
-    inList(<SlotRow slot={SLOT} entry={{ code: "NM" }} state={state} />);
-    expect(screen.getByText(text)).toBeInTheDocument();
+    expect(screen.getByText("Mirror is down.")).toBeInTheDocument();
   });
 
   it("offers remove only when a handler is given", async () => {
@@ -89,10 +110,9 @@ describe("SlotRow", () => {
   });
 
   it("makes only the title text clickable, not the whole row", () => {
-    inList(<SlotRow slot={SLOT} entry={{ code: "NM" }} state={{ status: "found", meta: META }} />);
-    const link = screen.getByRole("link", { name: "xi - FREEDOM DiVE" });
-    expect(link).toHaveClass("inline-block", "max-w-full", "truncate");
-    expect(link).not.toHaveClass("block");
+    inList(<SlotRow slot={SLOT} entry={{ code: "NM" }} state={found()} />);
+    const link = screen.getByRole("link", { name: /^xi - FREEDOM DiVE/ });
+    expect(link).not.toHaveAttribute("data-card-link");
   });
 
   it("offers a Move to select when a handler is given", async () => {
@@ -259,7 +279,7 @@ describe("SlotRow Copy ID", () => {
 
   it("copies the map's beatmap ID, not its set ID, and says so", async () => {
     const user = userEvent.setup();
-    inList(<SlotRow slot={SLOT} entry={{ code: "NM" }} state={{ status: "found", meta: META }} />);
+    inList(<SlotRow slot={SLOT} entry={{ code: "NM" }} state={found()} />);
     const button = screen.getByRole("button", { name: "Copy ID 129891" });
     expect(button).toHaveTextContent("Copy ID");
     // The name starts with the visible label, so "click Copy ID" works for speech input.
@@ -283,7 +303,7 @@ describe("SlotRow Copy ID", () => {
   it("shows the ID when the clipboard refuses", async () => {
     const user = userEvent.setup();
     vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue(new Error("denied"));
-    inList(<SlotRow slot={SLOT} entry={{ code: "NM" }} state={{ status: "found", meta: META }} />);
+    inList(<SlotRow slot={SLOT} entry={{ code: "NM" }} state={found()} />);
     await user.click(screen.getByRole("button", { name: "Copy ID 129891" }));
     expect(screen.getByRole("status")).toHaveTextContent(
       "Couldn't copy. The beatmap ID is 129891.",
@@ -291,54 +311,19 @@ describe("SlotRow Copy ID", () => {
     expect(screen.getByRole("status")).not.toHaveTextContent("Copied.");
   });
 
-  it("sits before the editing controls, and a view row stays on one line from sm up", () => {
-    inList(<SlotRow slot={SLOT} entry={{ code: "NM" }} state={{ status: "found", meta: META }} />);
-    const wrapper = screen.getByRole("button", { name: "Copy ID 129891" }).parentElement;
-    const actions = wrapper?.parentElement;
-    const row = actions?.parentElement;
-    // The row inside the list item holds the map and the actions.
-    expect(row?.parentElement).toBe(screen.getByRole("listitem"));
-    expect(row).toHaveClass("flex-wrap", "sm:flex-nowrap");
-    // Phones: a full-width line under the map, so the title keeps its room.
-    expect(actions).toHaveClass("w-full", "sm:w-auto", "sm:shrink-0");
-    expect(wrapper).toHaveClass("w-full", "sm:w-auto");
+  it("keeps room for the status before Copy ID, so a press never moves the row", () => {
+    inList(<SlotRow slot={SLOT} entry={null} state={found()} />);
+    const button = screen.getByRole("button", { name: /^Copy ID / });
+    const output = button.parentElement?.querySelector("output");
+    expect(output?.className).toContain("min-w-[4.5rem]");
+    expect(
+      button.compareDocumentPosition(output as Node) & Node.DOCUMENT_POSITION_PRECEDING,
+    ).toBeTruthy();
   });
 
-  it("keeps room for the status beside the button, so a press never moves the row", () => {
-    inList(<SlotRow slot={SLOT} entry={{ code: "NM" }} state={{ status: "found", meta: META }} />);
-    const wrapper = screen.getByRole("button", { name: "Copy ID 129891" }).parentElement;
-    // Wider screens: the status sits left of the button in a box as wide as "Copied.".
-    expect(wrapper).toHaveClass(
-      "sm:flex-row-reverse",
-      "sm:[&>output]:min-w-[4.5rem]",
-      "sm:[&>output]:text-right",
-    );
-    expect(wrapper?.querySelector("output")).not.toBeNull();
-  });
-
-  it("puts an editable row's controls on a line of their own below lg", () => {
-    inList(
-      <SlotRow
-        slot={SLOT}
-        entry={{ code: "NM" }}
-        state={{ status: "found", meta: META }}
-        moveTargets={[{ value: "EZ", label: "EZ", disabled: false }]}
-        onMove={vi.fn()}
-        onRemove={vi.fn()}
-      />,
-    );
-    expect(screen.getAllByRole("button").map((b) => b.textContent)).toEqual([
-      "Copy ID",
-      "Move",
-      "Remove",
-    ]);
-    const actions = screen.getByRole("button", { name: "Copy ID 129891" }).parentElement
-      ?.parentElement as HTMLElement;
-    expect(actions).toContainElement(screen.getByRole("button", { name: "Move NM1" }));
-    expect(actions).toContainElement(screen.getByRole("button", { name: "Remove NM1" }));
-    expect(actions).toHaveClass("w-full", "flex-wrap", "lg:w-auto", "lg:flex-nowrap");
-    const row = actions.parentElement;
-    expect(row).toHaveClass("flex-wrap", "lg:flex-nowrap");
-    expect(row).not.toHaveClass("sm:flex-nowrap");
+  it("puts the controls under the map below the 2xl container width", () => {
+    inList(<SlotRow slot={SLOT} entry={null} state={found()} onRemove={() => {}} />);
+    const group = screen.getByRole("button", { name: /^Remove / }).parentElement as HTMLElement;
+    expect(group.className).toContain("@2xl:w-auto");
   });
 });

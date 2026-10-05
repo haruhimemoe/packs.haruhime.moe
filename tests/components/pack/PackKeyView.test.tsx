@@ -5,7 +5,7 @@
  *       the "Add to osu! collection" card between the maps and Save.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import "fake-indexeddb/auto";
@@ -52,7 +52,7 @@ describe("PackKeyView", () => {
     expect(screen.getAllByRole("button", { name: "Retry loading maps" })).toHaveLength(1);
     server.use(hinaiBatchHandler);
     await user.click(retry);
-    expect(await screen.findByRole("link", { name: "xi - FREEDOM DiVE" })).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: /^xi - FREEDOM DiVE/ })).toBeInTheDocument();
   });
 
   it("renders the pack from the fragment with live metadata", async () => {
@@ -61,7 +61,7 @@ describe("PackKeyView", () => {
     expect(
       await screen.findByRole("heading", { level: 1, name: "SPC Finals" }),
     ).toBeInTheDocument();
-    expect(await screen.findByRole("link", { name: "xi - FREEDOM DiVE" })).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: /^xi - FREEDOM DiVE/ })).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Download" })).toBeInTheDocument();
     expect(screen.getByLabelText("Pack key")).toHaveValue(KEY);
     expect(screen.getByRole("region", { name: "Save" })).toBeInTheDocument();
@@ -71,7 +71,7 @@ describe("PackKeyView", () => {
     openHash(`#${KEY}`);
     render(<PackKeyView />);
     const heading = await screen.findByRole("heading", { level: 1, name: "SPC Finals" });
-    const map = await screen.findByRole("link", { name: "xi - FREEDOM DiVE" });
+    const map = await screen.findByRole("link", { name: /^xi - FREEDOM DiVE/ });
     const download = screen.getByRole("region", { name: "Download" });
     const stats = screen.getByRole("region", { name: "Pack stats" });
     const save = screen.getByRole("region", { name: "Save" });
@@ -151,7 +151,7 @@ describe("PackKeyView", () => {
     const user = userEvent.setup();
     openHash(`#${KEY}`);
     render(<PackKeyView />);
-    const map = await screen.findByRole("link", { name: "xi - FREEDOM DiVE" });
+    const map = await screen.findByRole("link", { name: /^xi - FREEDOM DiVE/ });
     const card = screen.getByRole("region", { name: "Add to osu! collection" });
     const save = screen.getByRole("region", { name: "Save" });
     expect(map.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0);

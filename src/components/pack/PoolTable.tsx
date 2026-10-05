@@ -2,10 +2,10 @@
  * @file src/components/pack/PoolTable.tsx
  * @desc Pool grouped by bucket: no-slot maps first, then the pack's buckets in order, one labelled
  *       section per non-empty group. Editable pools add Remove and "Move to" per row. Only the row
- *       whose ID was copied last says "Copied.": a press starts every other row's Copy ID over.
+ *       whose ID was copied last says Copied.: one MapCopyScope around the groups.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 "use client";
@@ -22,7 +22,7 @@ import {
   slotModsSummary,
   sortSlots,
 } from "@haruhimemoe/pool";
-import { useState } from "react";
+import { EmptyState, MapCopyScope, MapGroup } from "@haruhimemoe/ui";
 import { type MoveTarget, SlotRow } from "@/components/pack/SlotRow";
 import { NO_SLOT_VALUE } from "@/constants/mods";
 import type { ModdedStarRatings } from "@/hooks/useModdedStarRatings";
@@ -42,15 +42,6 @@ type PoolTableProps = {
 };
 
 /**
- * Which row copied last. Each Copy ID is keyed: the row copied last keeps the key it had when
- * pressed (so its "Copied." stays), every other row gets `fresh` (so a new key clears theirs).
- */
-type LastCopy = { slot: string | null; key: number; fresh: number };
-
-const copyKeyOf = (last: LastCopy, slot: string): number =>
-  last.slot === slot ? last.key : last.fresh;
-
-/**
  * @function PoolTable
  * @param props {PoolTableProps} slots, buckets, getState, onRemove, onMove, modsBySlot, ratings
  * @returns {JSX.Element | null} pool grouped by bucket
@@ -64,16 +55,11 @@ export function PoolTable({
   modsBySlot,
   ratings,
 }: PoolTableProps) {
-  const [lastCopy, setLastCopy] = useState<LastCopy>({ slot: null, key: 0, fresh: 0 });
-  const copied = (slot: string) =>
-    setLastCopy((last) =>
-      last.slot === slot ? last : { slot, key: copyKeyOf(last, slot), fresh: last.fresh + 1 },
-    );
   if (slots.length === 0) {
     return (
-      <p className="rounded-[10px] bg-b4 p-6 text-center text-c3">
+      <EmptyState variant="filled">
         No maps yet. Add a beatmap ID or paste a mappool above.
-      </p>
+      </EmptyState>
     );
   }
   const ordered = sortSlots(slots, buckets);
@@ -94,24 +80,25 @@ export function PoolTable({
   }));
 
   return (
-    <div className="flex flex-col gap-6">
-      {groups.map(({ key, entry }) => {
-        const code = entry?.code ?? null;
-        const inGroup = ordered.filter((s) => s.mod === code);
-        if (inGroup.length === 0) return null;
-        const name = bucketName(entry);
-        return (
-          <section key={key} aria-label={name}>
-            <h3 className="mb-2 font-bold text-c1">
-              {name} <span className="font-normal text-c4 text-sm">({inGroup.length})</span>
-              {entry && isCustomBucket(entry) && entry.mods ? (
-                <span className="font-normal text-c4 text-sm">
-                  {" "}
-                  · {slotModsSummary(entry.mods)}
-                </span>
-              ) : null}
-            </h3>
-            <ul className="flex flex-col gap-2">
+    <MapCopyScope>
+      <div className="flex flex-col gap-6">
+        {groups.map(({ key, entry }) => {
+          const code = entry?.code ?? null;
+          const inGroup = ordered.filter((s) => s.mod === code);
+          if (inGroup.length === 0) return null;
+          return (
+            <MapGroup
+              key={key}
+              title={bucketName(entry)}
+              count={inGroup.length}
+              detail={
+                entry && isCustomBucket(entry) && entry.mods
+                  ? slotModsSummary(entry.mods)
+                  : undefined
+              }
+              list="ul"
+              copyScope={false}
+            >
               {inGroup.map((slot) => (
                 <SlotRow
                   key={slotKey(slot)}
@@ -119,20 +106,16 @@ export function PoolTable({
                   entry={entry}
                   state={getState(slot.beatmapId)}
                   onRemove={onRemove ? () => onRemove(slot) : undefined}
-                  moveTargets={
-                    onMove ? allTargets.filter((target) => target.value !== slot.mod) : undefined
-                  }
+                  moveTargets={onMove ? allTargets.filter((t) => t.value !== slot.mod) : undefined}
                   onMove={onMove ? (to) => onMove(slot, to) : undefined}
                   slotMods={modsBySlot?.get(slotKey(slot))}
                   ratings={ratings?.get(slotKey(slot))}
-                  copyKey={copyKeyOf(lastCopy, slotKey(slot))}
-                  onCopy={() => copied(slotKey(slot))}
                 />
               ))}
-            </ul>
-          </section>
-        );
-      })}
-    </div>
+            </MapGroup>
+          );
+        })}
+      </div>
+    </MapCopyScope>
   );
 }

@@ -44,12 +44,12 @@ describe("PackBuilder", () => {
     await user.paste("HD1 2116202\nTB 1872396");
     await user.click(screen.getByRole("button", { name: "Add to pool" }));
 
-    expect(await screen.findByRole("link", { name: "xi - FREEDOM DiVE" })).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: /^xi - FREEDOM DiVE/ })).toBeInTheDocument();
     expect(
-      await screen.findByRole("link", { name: "nekodex - new beginnings" }),
+      await screen.findByRole("link", { name: /^nekodex - new beginnings/ }),
     ).toBeInTheDocument();
     expect(
-      await screen.findByRole("link", { name: "Wakeshima Kanon - Tsukinami" }),
+      await screen.findByRole("link", { name: /^Wakeshima Kanon - Tsukinami/ }),
     ).toBeInTheDocument();
 
     const key = (screen.getByLabelText("Pack key") as HTMLInputElement).value;
@@ -72,7 +72,7 @@ describe("PackBuilder", () => {
     await waitFor(async () => expect((await loadDraft())?.slots).toHaveLength(1));
     unmount();
     render(<PackBuilder />);
-    expect(await screen.findByRole("link", { name: "xi - FREEDOM DiVE" })).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: /^xi - FREEDOM DiVE/ })).toBeInTheDocument();
   });
 
   it("gives each map in the pool a Copy ID button", async () => {
@@ -106,7 +106,7 @@ describe("PackBuilder", () => {
     render(<PackBuilder />);
     await ready();
     await user.click(await screen.findByRole("button", { name: "Remove NM1" }));
-    const nm = screen.getByRole("region", { name: "No Mod" });
+    const nm = screen.getByRole("region", { name: /^No Mod/ });
     expect(within(nm).getAllByRole("listitem")).toHaveLength(1);
     await user.click(screen.getByRole("button", { name: "Clear pack" }));
     await user.click(screen.getByRole("button", { name: "Confirm clear" }));
@@ -124,7 +124,7 @@ describe("PackBuilder", () => {
     await user.click(
       screen.getAllByRole("button", { name: "Retry loading maps" })[0] as HTMLElement,
     );
-    expect(await screen.findByRole("link", { name: "xi - FREEDOM DiVE" })).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: /^xi - FREEDOM DiVE/ })).toBeInTheDocument();
   });
 
   it("offers Retry loading maps in the Download card too", async () => {
@@ -136,7 +136,7 @@ describe("PackBuilder", () => {
     const retry = await within(card).findByRole("button", { name: "Retry loading maps" });
     server.use(hinaiBatchHandler);
     await user.click(retry);
-    expect(await screen.findByRole("link", { name: "xi - FREEDOM DiVE" })).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: /^xi - FREEDOM DiVE/ })).toBeInTheDocument();
   });
 
   it("says when the pack is full and disables adding", async () => {
@@ -179,8 +179,8 @@ describe("PackBuilder", () => {
     await user.click(box);
     await user.paste("129891\nEZ1 1872396");
     await user.click(screen.getByRole("button", { name: "Add to pool" }));
-    expect(await screen.findByRole("region", { name: "No slot" })).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "EZ" })).toBeInTheDocument();
+    expect(await screen.findByRole("region", { name: /^No slot/ })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: /^EZ/ })).toBeInTheDocument();
     expect(screen.getByRole("listitem", { name: /^EZ slot, 1 map/ })).toBeInTheDocument();
   });
 
@@ -227,7 +227,7 @@ describe("PackBuilder", () => {
     const user = userEvent.setup();
     await saveDraft({ name: "SPC Quals", slots: [{ mod: "NM", index: 1, beatmapId: 129891 }] });
     render(<PackBuilder />);
-    await screen.findByRole("link", { name: "xi - FREEDOM DiVE" });
+    await screen.findByRole("link", { name: /^xi - FREEDOM DiVE/ });
     const card = screen.getByRole("region", { name: "Add to osu! collection" });
     const download = screen.getByRole("region", { name: "Download" });
     const share = screen.getByRole("region", { name: "Share" });

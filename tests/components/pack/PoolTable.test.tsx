@@ -4,7 +4,7 @@
  *       gives every map its own Copy ID button; only the row copied last says "Copied.".
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
@@ -23,10 +23,14 @@ describe("PoolTable", () => {
   it("renders one labelled section per non-empty bucket, in bucket order", () => {
     render(<PoolTable slots={slots} getState={loading} />);
     const regions = screen.getAllByRole("region");
-    expect(regions.map((r) => r.getAttribute("aria-label"))).toEqual(["No Mod", "Tiebreaker"]);
-    expect(within(regions[0] as HTMLElement).getAllByRole("listitem")).toHaveLength(2);
+    expect(regions).toHaveLength(2);
+    const nmRegion = screen.getByRole("region", { name: /^No Mod/ });
+    const tbRegion = screen.getByRole("region", { name: /^Tiebreaker/ });
+    expect(regions[0]).toBe(nmRegion);
+    expect(regions[1]).toBe(tbRegion);
+    expect(within(nmRegion).getAllByRole("listitem")).toHaveLength(2);
     expect(
-      within(regions[0] as HTMLElement)
+      within(nmRegion)
         .getAllByText(/^NM\d$/)
         .map((e) => e.textContent),
     ).toEqual(["NM1", "NM2"]);
@@ -100,11 +104,11 @@ describe("PoolTable", () => {
         getState={loading}
       />,
     );
-    expect(screen.getAllByRole("region").map((r) => r.getAttribute("aria-label"))).toEqual([
-      "No slot",
-      "EZ",
-      "No Mod",
-    ]);
+    const regions = screen.getAllByRole("region");
+    expect(regions).toHaveLength(3);
+    expect(regions[0]).toBe(screen.getByRole("region", { name: /^No slot/ }));
+    expect(regions[1]).toBe(screen.getByRole("region", { name: /^EZ/ }));
+    expect(regions[2]).toBe(screen.getByRole("region", { name: /^No Mod/ }));
   });
 
   it("lists every other group as a move target and passes the pick up", async () => {
@@ -148,8 +152,8 @@ describe("PoolTable", () => {
       />,
     );
     expect(
-      screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent?.replace(/\s+/g, " ")),
-    ).toEqual(["No slot (1)", "No Mod (2)", "EZ (1)", "Tiebreaker (1)"]);
+      screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent?.replace(/\s+/g, "")),
+    ).toEqual(["Noslot(1)", "NoMod(2)", "EZ(1)", "Tiebreaker(1)"]);
   });
   it("passes each slot its mods and ratings, and names a custom slot's mods", () => {
     const meta = {
@@ -188,7 +192,7 @@ describe("PoolTable", () => {
         ratings={new Map([["b:EZ#1", [{ mods: "EZ", stars: 4.5 }]]])}
       />,
     );
-    const region = screen.getByRole("region", { name: "EZ" });
+    const region = screen.getByRole("region", { name: /^EZ/ });
     expect(within(region).getByText(/Forced EZ/)).toBeInTheDocument();
     expect(within(region).getByTitle("5.00★ without mods")).toHaveTextContent("4.50");
   });
