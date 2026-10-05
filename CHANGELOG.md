@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `/brand` is the shared haruhime brand page (`@haruhimemoe/brand` 0.7.0): logo, wordmark and banner files, the full palette, do's and don'ts and the contact address.
 - `@haruhimemoe/ui` 0.11.1: decorative alt on brand page previews.
 - `@haruhimemoe/ui` 0.11.2: Copy as Markdown works on Safari and iOS.
+- Depends on `@haruhimemoe/ui` 0.12.0: buttons and form fields are 44px tall on touch screens, motion stops when your system asks for reduced motion, colors get stronger when it asks for more contrast, "See all public packs" is underlined, and pack names in lists underline on hover instead of turning pink.
 
 ## [0.1.0] - 2026-10-04
 
