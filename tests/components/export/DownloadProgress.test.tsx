@@ -3,7 +3,7 @@
  * @desc DownloadProgress: overall count and a readable line for every status.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -64,5 +64,21 @@ describe("DownloadProgress", () => {
     expect(screen.getByText("Removing backgrounds…")).toBeInTheDocument();
     expect(screen.getByText("Ready, backgrounds kept")).toBeInTheDocument();
     expect(screen.getByText("Ready (saved in this browser), backgrounds kept")).toBeInTheDocument();
+  });
+
+  it("the bar is described by its status", () => {
+    render(
+      <DownloadProgress
+        rows={rows.slice(0, 2)}
+        statuses={
+          new Map<number, SetStatus>([
+            [1, { status: "ready", blob: new Blob(["x"]), fromCache: true }],
+          ])
+        }
+      />,
+    );
+    expect(
+      screen.getByRole("progressbar", { name: "Download progress" }),
+    ).toHaveAccessibleDescription("1 of 2 sets ready");
   });
 });

@@ -3,7 +3,7 @@
  * @desc Stats tiles: loading dots, values, equal ranges, skipped-map note, empty pool.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
@@ -112,5 +112,10 @@ describe("PackStats", () => {
     );
     expect(value("Avg ★")).toBe("5.00");
     expect(value("★ range")).toBe("3.00–7.00");
+  });
+
+  it("values use tabular numbers", () => {
+    render(<PackStats slots={[{ beatmapId: 1 }, { beatmapId: 2 }]} getState={getter({})} />);
+    expect(screen.getAllByRole("definition")[0]).toHaveClass("tabular-nums");
   });
 });

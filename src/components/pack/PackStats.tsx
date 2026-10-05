@@ -3,7 +3,7 @@
  * @desc Stats tiles above a pool: maps, length, averages, ranges. Computed from loaded metadata.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import {
@@ -13,6 +13,7 @@ import {
   formatStars,
 } from "@haruhimemoe/osu/format";
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
+import { StatList } from "@haruhimemoe/ui";
 import type { MetaState } from "@/schemas/beatmap-meta";
 import { packStats } from "@/utils/pack-stats";
 
@@ -59,14 +60,7 @@ export function PackStats<S extends { beatmapId: number }>({
 
   return (
     <section aria-label="Pack stats" className="flex flex-col gap-2">
-      <dl className="flex flex-wrap gap-2">
-        {tiles.map(([label, value]) => (
-          <div key={label} className="min-w-24 rounded-[10px] bg-b4 px-3 py-2">
-            <dt className="text-c4 text-xs">{label}</dt>
-            <dd className="font-bold text-c1">{value}</dd>
-          </div>
-        ))}
-      </dl>
+      <StatList variant="tiles" items={tiles.map(([label, value]) => ({ label, value }))} />
       {skipped > 0 ? (
         <p className="text-c4 text-sm">
           Stats leave out {skipped} {skipped === 1 ? "map that" : "maps that"} didn't load.

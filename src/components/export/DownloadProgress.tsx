@@ -3,11 +3,11 @@
  * @desc Overall and per-slot download state while a pack's sets come down from the mirror.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { formatBytes } from "@haruhimemoe/osu/format";
-import { textClasses } from "@haruhimemoe/ui";
+import { Progress, textClasses } from "@haruhimemoe/ui";
 import type { ProgressRow } from "@/hooks/usePackDownloads";
 import type { SetStatus } from "@/lib/downloads/fetch-sets";
 import { countOf } from "@/utils/text";
@@ -52,17 +52,13 @@ export function DownloadProgress({ rows, statuses }: DownloadProgressProps) {
   const ready = setIds.filter((id) => statuses.get(id)?.status === "ready").length;
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-col gap-1">
-        <progress
-          value={ready}
-          max={setIds.length}
-          aria-label="Download progress"
-          className="h-2 w-full accent-h1"
-        />
-        <output className={textClasses({ tone: "muted" })}>
-          {ready} of {countOf(setIds.length, "set")} ready
-        </output>
-      </div>
+      <Progress
+        label="Download progress"
+        hideLabel
+        value={ready}
+        max={setIds.length}
+        status={`${ready} of ${countOf(setIds.length, "set")} ready`}
+      />
       <ul className="flex flex-col gap-1 text-sm">
         {rows.map((row) => {
           const status = statuses.get(row.setId);
