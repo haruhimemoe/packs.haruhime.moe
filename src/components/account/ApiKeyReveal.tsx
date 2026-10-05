@@ -4,7 +4,7 @@
  *       and "I've saved it", which hides it for good.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
@@ -46,7 +46,7 @@ export function ApiKeyReveal({ apiKey, onSaved, inputRef }: ApiKeyRevealProps) {
         copiedMessage="Key copied."
         failedMessage="Couldn't copy. Select the key and copy it by hand."
       />
-      <Button variant="ghost" className="self-start" onClick={onSaved}>
+      <Button variant="ghost" onClick={onSaved}>
         I've saved it
       </Button>
     </>

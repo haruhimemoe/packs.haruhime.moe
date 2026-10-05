@@ -7,12 +7,12 @@
  *       `status` live region.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 
-import { Button, Card, InlineConfirm, Notice, TextLink } from "@haruhimemoe/ui";
+import { Button, Card, InlineConfirm, Notice, Text, TextLink, textClasses } from "@haruhimemoe/ui";
 import { useEffect, useRef, useState } from "react";
 import { ApiKeyReveal } from "@/components/account/ApiKeyReveal";
 import { API_DOCS_PATH } from "@/constants/api";
@@ -105,11 +105,11 @@ export function ApiKeyCard({
 
   return (
     <Card title="API key">
-      <p className="text-c3 text-sm">
+      <Text tone="muted">
         Scripts and bots can use a key to read public packs and manage yours. Anyone with the key
         can change your packs, so keep it secret.{" "}
         <TextLink href={API_DOCS_PATH}>Read the API docs</TextLink>
-      </p>
+      </Text>
       <div className="mt-3 flex flex-col gap-3">
         {revealed !== null ? (
           <ApiKeyReveal apiKey={revealed} onSaved={saved} inputRef={revealedInputRef} />
@@ -117,7 +117,6 @@ export function ApiKeyCard({
           <Button
             ref={createButtonRef}
             variant="secondary"
-            className="self-start"
             onClick={() => create().catch(() => undefined)}
             disabled={busy}
           >
@@ -153,7 +152,10 @@ export function ApiKeyCard({
           </>
         )}
       </div>
-      <output aria-live="polite" className="mt-2 block text-c3 text-sm">
+      <output
+        aria-live="polite"
+        className={textClasses({ tone: "muted", className: "mt-2 block" })}
+      >
         {status}
       </output>
       {error ? (
