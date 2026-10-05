@@ -7,12 +7,12 @@
  *       the card offers the retry itself (onRetryMeta).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 
-import { Button, Card, cx } from "@haruhimemoe/ui";
+import { Button, Card, cx, Text } from "@haruhimemoe/ui";
 import { type ReactNode, useId, useState } from "react";
 import { DownloadOptions } from "@/components/export/DownloadOptions";
 import { DownloadProgress } from "@/components/export/DownloadProgress";
@@ -85,23 +85,21 @@ export function ExportPanel({
     actions = (
       <>
         <Button onClick={onRetryMeta}>Retry loading maps</Button>
-        <p className="text-rose-300 text-sm">Some map info didn't load.</p>
+        <Text tone="error">Some map info didn't load.</Text>
       </>
     );
   } else if (metaError) {
     actions = (
       <>
         <Button disabled>Download maps</Button>
-        <p className="text-rose-300 text-sm">
-          Some map info didn't load. Retry loading maps first.
-        </p>
+        <Text tone="error">Some map info didn't load. Retry loading maps first.</Text>
       </>
     );
   } else if (setIds.length === 0) {
     actions = (
-      <p className="text-c3 text-sm">
+      <Text tone="muted">
         None of these maps are on the mirror, so there's nothing to download.
-      </p>
+      </Text>
     );
   } else if (running) {
     actions = (
@@ -131,15 +129,15 @@ export function ExportPanel({
               From the mirror
             </h3>
           ) : null}
-          <p className="text-c3 text-sm">
+          <Text tone="muted">
             Maps download 4 at a time and stay cached in this browser, so the next download is
             quick.
-          </p>
+          </Text>
           {missing > 0 ? (
-            <p className="text-amber-300 text-sm">
+            <Text tone="warning">
               {missing === 1 ? "1 map wasn't" : `${missing} maps weren't`} found on the mirror and
               will be left out.
-            </p>
+            </Text>
           ) : null}
           {started ? (
             <DownloadProgress rows={downloads.rows} statuses={downloads.statuses} />
@@ -153,9 +151,9 @@ export function ExportPanel({
           ) : null}
           {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
           {plan && downloads.backgroundsKeptSlots > 0 ? (
-            <p className="text-amber-300 text-sm">
+            <Text tone="warning">
               {`Couldn't remove backgrounds from ${countOf(downloads.backgroundsKeptSlots, "map")}. They're included as downloaded.`}
-            </p>
+            </Text>
           ) : null}
           {plan ? (
             <div className="grid gap-6 border-b3 border-t pt-4 sm:grid-cols-2">

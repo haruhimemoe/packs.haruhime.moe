@@ -4,7 +4,7 @@
  *       are added (new codes become custom slots); bad lines stay in the box with a reason.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
@@ -18,7 +18,7 @@ import {
   type SlotLineError,
   slotLabel,
 } from "@haruhimemoe/pool";
-import { Button, Textarea } from "@haruhimemoe/ui";
+import { Button, Textarea, textClasses } from "@haruhimemoe/ui";
 import { type FormEvent, useId, useState } from "react";
 import type { BucketEntry, CustomBucket, PoolSlot } from "@/schemas/pack";
 import { countOf } from "@/utils/text";
@@ -116,7 +116,7 @@ export function BulkPasteInput({
         <Button type="submit" variant="secondary" disabled={disabled || text.trim() === ""}>
           Add to pool
         </Button>
-        <output className="text-c3 text-sm">{summary}</output>
+        <output className={textClasses({ tone: "muted" })}>{summary}</output>
       </div>
     </form>
   );

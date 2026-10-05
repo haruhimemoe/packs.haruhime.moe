@@ -6,13 +6,13 @@
  *       come first and aren't listed here.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 
 import { bucketName, isCustomBucket, NO_MODS, type SlotMods } from "@haruhimemoe/pool";
-import { Button } from "@haruhimemoe/ui";
+import { Button, Text } from "@haruhimemoe/ui";
 import { useState } from "react";
 import { BucketAddForm } from "@/components/pack/BucketAddForm";
 import { BucketRenameForm } from "@/components/pack/BucketRenameForm";
@@ -56,9 +56,9 @@ export function BucketManager({
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-c3 text-sm">
+      <Text tone="muted">
         Maps without a slot always come first. Drag slots or use the arrows to change the order.
-      </p>
+      </Text>
       <ul className="flex flex-col gap-2">
         {buckets.map((entry, i) => {
           const count = slots.filter((s) => s.mod === entry.code).length;

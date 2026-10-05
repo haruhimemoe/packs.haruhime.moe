@@ -13,12 +13,12 @@
  *       stays: an alert says so once, and only its "Try again" button fetches the index again.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 
-import { Button } from "@haruhimemoe/ui";
+import { Button, Text } from "@haruhimemoe/ui";
 import { type ReactNode, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { PackFilterBar } from "@/components/packs/PackFilterBar";
 import { PublicPackList } from "@/components/packs/PublicPackList";
@@ -192,13 +192,13 @@ export function PublicPackBrowser({ children, loadIndex }: PublicPackBrowserProp
         }
       />
       {/* Always mounted, so only a change of text is announced; empty, it takes no space. */}
-      <p role="alert" className="text-rose-300 text-sm empty:sr-only">
+      <Text role="alert" tone="error" className="empty:sr-only">
         {browsing && failed
           ? failures === 1
             ? "Search and filters aren't available right now."
             : "Search and filters still aren't available. Try again in a minute."
           : ""}
-      </p>
+      </Text>
       {browsing && failed ? (
         <div>
           <Button variant="secondary" onClick={retry} disabled={retrying}>

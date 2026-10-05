@@ -16,12 +16,12 @@
  *       "instead" button passes it to the Collection select. Names wrap anywhere on a phone.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 import type { CollectionDbRead } from "@haruhimemoe/osu/collections";
-import { Button, Notice, Select, TextInput } from "@haruhimemoe/ui";
+import { Button, Notice, Select, Text, TextInput } from "@haruhimemoe/ui";
 import { NEW, useStableCollection } from "@/hooks/useStableCollection";
 import { readCollectionFile } from "@/lib/collections/collection-files";
 import { collectionLabel } from "@/utils/osu-collection";
@@ -97,7 +97,7 @@ export function StableCollection({
         disabled={reading}
         onChange={onFile}
       />
-      {reading ? <p className="text-c3 text-sm">Reading collection.db…</p> : null}
+      {reading ? <Text tone="muted">Reading collection.db…</Text> : null}
       {loaded && (loaded.unusual.kept > 0 || loaded.unusual.dropped > 0) ? (
         <Notice>{unusualText(loaded.unusual)}</Notice>
       ) : null}
@@ -135,11 +135,11 @@ export function StableCollection({
             <Notice tone="error">{preview.message}</Notice>
           ) : null}
           {hashes === null ? (
-            <p className="text-c3 text-sm">
+            <Text tone="muted">
               {mapInfoFailed
                 ? `Some map info didn't load. Press "Retry loading maps" in the Download card, and the preview shows once it has.`
                 : "The preview shows once every map's info has loaded."}
-            </p>
+            </Text>
           ) : null}
           {preview?.kind === "ok" ? (
             <p id={previewId} className="wrap-anywhere text-c2 text-sm">

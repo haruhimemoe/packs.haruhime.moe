@@ -4,11 +4,12 @@
  *       after load.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 
+import { textClasses } from "@haruhimemoe/ui";
 import Image from "next/image";
 import Link from "next/link";
 import { useAccount } from "@/lib/account";
@@ -24,7 +25,14 @@ export function AccountNav() {
 
   if (account.status === "signed-out") {
     return (
-      <Link href="/signin" className="font-bold text-c3 text-sm transition-colors hover:text-c1">
+      <Link
+        href="/signin"
+        className={textClasses({
+          tone: "muted",
+          bold: true,
+          className: "transition-colors hover:text-c1",
+        })}
+      >
         Sign in
       </Link>
     );

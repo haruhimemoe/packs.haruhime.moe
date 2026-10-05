@@ -3,7 +3,7 @@
  * @desc Add one map: pick a bucket (or no slot), paste an ID or osu! difficulty link.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
@@ -15,7 +15,7 @@ import {
   NO_SLOT_NAME,
   parseBeatmapRef,
 } from "@haruhimemoe/pool";
-import { Button, Select, TextInput } from "@haruhimemoe/ui";
+import { Button, Select, Text, TextInput } from "@haruhimemoe/ui";
 import { type FormEvent, useId, useState } from "react";
 import { NO_SLOT_VALUE } from "@/constants/mods";
 import type { BucketEntry, SlotBucket } from "@/schemas/pack";
@@ -94,9 +94,9 @@ export function AddBeatmapForm({
         </Button>
       </div>
       {error ? (
-        <p id={errorId} role="alert" className="text-rose-300 text-sm">
+        <Text id={errorId} role="alert" tone="error">
           {error}
-        </p>
+        </Text>
       ) : null}
     </form>
   );

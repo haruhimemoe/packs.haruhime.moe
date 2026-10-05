@@ -5,12 +5,12 @@
  *       TorrentMadePanel.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 
-import { Button, Notice } from "@haruhimemoe/ui";
+import { Button, Notice, Text } from "@haruhimemoe/ui";
 import { useEffect, useId, useRef, useState } from "react";
 import { type MagnetTarget, TorrentMadePanel } from "@/components/export/TorrentMadePanel";
 import {
@@ -117,12 +117,10 @@ export function TorrentExport({
       <Heading id={headingId} className="font-bold text-c1">
         Torrent file
       </Heading>
-      <p className="text-c3 text-sm">
+      <Text tone="muted">
         The same files as a .torrent and a magnet link, for torrent apps like qBittorrent.
-      </p>
-      {canHash ? null : (
-        <p className="text-amber-300 text-sm">Your browser can't make torrents on this page.</p>
-      )}
+      </Text>
+      {canHash ? null : <Text tone="warning">Your browser can't make torrents on this page.</Text>}
 
       {made ? (
         <TorrentMadePanel
@@ -135,16 +133,17 @@ export function TorrentExport({
         <div className="flex flex-wrap items-center gap-2">
           {state.phase === "making" ? (
             <>
-              <div
+              <Text
+                as="div"
                 role="progressbar"
                 aria-label="Making torrent"
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={state.percent}
-                className="text-c3 text-sm"
+                tone="muted"
               >
                 {`Making torrent… ${state.percent}%`}
-              </div>
+              </Text>
               <Button variant="secondary" onClick={cancel}>
                 Cancel
               </Button>

@@ -4,13 +4,13 @@
  *       the browser allows, else built in memory with a warning for huge packs).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 
 import { formatBytes } from "@haruhimemoe/osu/format";
-import { Button } from "@haruhimemoe/ui";
+import { Button, Text, textClasses } from "@haruhimemoe/ui";
 import { useEffect, useId, useState } from "react";
 import { BLOB_FALLBACK_WARN_BYTES, type PackZipInput, packZipSize } from "@/lib/zip/pack-zip";
 import { getSaveFilePicker, type SaveOutcome, saveZip } from "@/lib/zip/save-zip";
@@ -81,12 +81,12 @@ export function ZipExport({
       <Heading id={headingId} className="font-bold text-c1">
         Zip
       </Heading>
-      <p className="text-c3 text-sm">One folder, numbered in pool order, with a pack.txt.</p>
+      <Text tone="muted">One folder, numbered in pool order, with a pack.txt.</Text>
       {inMemorySize > blobWarnBytes ? (
-        <p className="text-amber-300 text-sm">
+        <Text tone="warning">
           This zip is about {formatBytes(inMemorySize)}. This browser has to build it in memory,
           which can fail for packs this big. Chrome and Edge save straight to disk instead.
-        </p>
+        </Text>
       ) : null}
       <div className="flex flex-wrap items-center gap-2">
         <Button
@@ -97,7 +97,7 @@ export function ZipExport({
           {failedSlots > 0 ? `Save .zip without ${countOf(failedSlots, "map")}` : "Save .zip"}
         </Button>
       </div>
-      <output className="text-c3 text-sm">{SAVE_MESSAGES[saveState]}</output>
+      <output className={textClasses({ tone: "muted" })}>{SAVE_MESSAGES[saveState]}</output>
     </section>
   );
 }

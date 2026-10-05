@@ -4,11 +4,11 @@
  *       have no saved-pack cap, so their count shows no limit.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { pageMetadata } from "@haruhimemoe/next-kit/seo";
-import { ButtonLink, Card, PageHeader, Pagination } from "@haruhimemoe/ui";
+import { ButtonLink, Card, PageHeader, Pagination, Text } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { ApiKeyCard } from "@/components/account/ApiKeyCard";
 import { DeleteAccountButton } from "@/components/account/DeleteAccountButton";
@@ -82,18 +82,18 @@ export default async function MyPacksPage({ searchParams }: PageProps<"/me">) {
       <ApiKeyCard initial={apiKey} />
       <Card title="Your data">
         <div className="flex flex-col gap-3">
-          <p className="text-c3 text-sm">
+          <Text tone="muted">
             Download a copy of everything we store about your account: your osu! profile details,
             your sign-in sessions, your API key's prefix and dates, and every pack you saved.
-          </p>
+          </Text>
           <DownloadDataLink />
         </div>
         <div className="mt-6 flex flex-col gap-3 border-b3 border-t pt-6">
-          <p className="text-c3 text-sm">
+          <Text tone="muted">
             Deleting your account removes it, your sessions, your API key, and every pack you saved.
             Files you downloaded and torrents you seed stay on your devices, so they aren't ours to
             delete.
-          </p>
+          </Text>
           <DeleteAccountButton packCount={total} />
         </div>
       </Card>

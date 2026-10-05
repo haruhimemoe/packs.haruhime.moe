@@ -5,11 +5,12 @@
  *       here in the browser instead.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 
+import { Text } from "@haruhimemoe/ui";
 import { useParams } from "next/navigation";
 import { useEffect } from "react";
 import { PackNotFound } from "@/components/pack/PackNotFound";
@@ -46,7 +47,7 @@ export function PackNotFoundFallback({
   }, [foundName]);
 
   if (access.status === "checking") {
-    return <p className="text-c3 text-sm">Loading pack…</p>;
+    return <Text tone="muted">Loading pack…</Text>;
   }
   if (access.status === "found") {
     return (

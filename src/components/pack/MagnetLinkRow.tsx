@@ -4,12 +4,12 @@
  *       Open, and for the owner or an admin a Remove that asks first (InlineConfirm).
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 
-import { ButtonLink, CopyButton, InlineConfirm } from "@haruhimemoe/ui";
+import { ButtonLink, CopyButton, InlineConfirm, Text } from "@haruhimemoe/ui";
 import type { PackExport } from "@/schemas/pack-export";
 import { formatShortDate } from "@/utils/date";
 import { infohashOf } from "@/utils/magnet";
@@ -31,7 +31,9 @@ export function MagnetLinkRow({ entry, onRemove }: MagnetLinkRowProps) {
   return (
     <li className="flex flex-wrap items-center gap-2">
       <span className="font-mono text-c2 text-sm">{short}</span>
-      <span className="text-c3 text-sm">Added {formatShortDate(entry.createdAt)}</span>
+      <Text as="span" tone="muted">
+        Added {formatShortDate(entry.createdAt)}
+      </Text>
       <CopyButton
         text={entry.url}
         label="Copy magnet link"

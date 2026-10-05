@@ -10,7 +10,7 @@
 
 "use client";
 
-import { Button, CopyButton, Notice, TextInput, TextLink } from "@haruhimemoe/ui";
+import { Button, CopyButton, Notice, Text, TextInput, TextLink } from "@haruhimemoe/ui";
 import { useId, useState } from "react";
 import { PacksApiError } from "@/lib/packs-api";
 import type { BuiltTorrent } from "@/lib/torrent/build-torrent";
@@ -97,12 +97,12 @@ export function TorrentMadePanel({ built, folder, onSave, magnets }: TorrentMade
           {adding.message}
         </Notice>
       ) : null}
-      <p className="text-c3 text-sm">
+      <Text tone="muted">
         A torrent only works while someone seeds it. Save the .zip too, unzip it, then open the
         .torrent in qBittorrent and set its save location to the folder that holds “{folder}”. It
         checks the files and starts seeding.{" "}
         <TextLink href="/guides/seed-a-torrent">Seeding guide</TextLink>
-      </p>
+      </Text>
     </div>
   );
 }

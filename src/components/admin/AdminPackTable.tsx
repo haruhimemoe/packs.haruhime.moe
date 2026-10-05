@@ -5,12 +5,12 @@
  *       status so it isn't lost with the row.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 
-import { Notice, Table, TBody, THead, Th } from "@haruhimemoe/ui";
+import { Notice, Table, TBody, Text, THead, Th } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -85,9 +85,9 @@ export function AdminPackTable({ rows, api = packsApi }: AdminPackTableProps) {
         </Notice>
       ) : null}
       {deleted !== null ? (
-        <p ref={deletedRef} tabIndex={-1} role="status" className="text-c3 text-sm outline-none">
+        <Text ref={deletedRef} tabIndex={-1} role="status" tone="muted" className="outline-none">
           Deleted {deleted.name}.
-        </p>
+        </Text>
       ) : null}
       {rows.length === 0 ? <p className="text-c3">No packs here.</p> : null}
       {/* relative: the header's sr-only text is absolute and would widen the page on phones. */}

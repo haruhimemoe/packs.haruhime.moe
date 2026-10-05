@@ -11,14 +11,14 @@
  *       runs; the browser still refreshes it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
 import { encodePackKey } from "@haruhimemoe/pool";
-import { ButtonLink, Card, PageHeader, TextLink } from "@haruhimemoe/ui";
+import { ButtonLink, Card, PageHeader, Text, TextLink } from "@haruhimemoe/ui";
 import { Fragment, type ReactNode, useId, useMemo, useState } from "react";
 import { CollectionPanel } from "@/components/collection/CollectionPanel";
 import { ExportPanel } from "@/components/export/ExportPanel";
@@ -181,9 +181,9 @@ export function SavedPackView({
       <Card title="Share">
         <div className="flex flex-col gap-5">
           {isOwner && pack.visibility === "private" ? (
-            <p className="text-c3 text-sm">
+            <Text tone="muted">
               This pack is private. Only you can open the short link; the pack key works for anyone.
-            </p>
+            </Text>
           ) : null}
           <ShortLinkField slug={pack.slug} />
           <PackKeyField packKey={packKey} />

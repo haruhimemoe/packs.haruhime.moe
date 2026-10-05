@@ -11,7 +11,7 @@
 
 "use client";
 
-import { Notice, TextLink } from "@haruhimemoe/ui";
+import { Notice, Text, TextLink } from "@haruhimemoe/ui";
 import { useId, useState } from "react";
 import { MagnetLinkRow } from "@/components/pack/MagnetLinkRow";
 import { PacksApiError } from "@/lib/packs-api";
@@ -57,13 +57,11 @@ export function MagnetLinks({ exports, onRemove }: MagnetLinksProps) {
       <h3 id={headingId} className="font-bold text-c1">
         Torrent
       </h3>
-      <p className="text-c3 text-sm">
-        Added by the pack owner. packs doesn't host or check these files.
-      </p>
-      <p className="text-c3 text-sm">
+      <Text tone="muted">Added by the pack owner. packs doesn't host or check these files.</Text>
+      <Text tone="muted">
         Download with a torrent app. It only works while someone seeds it.{" "}
         <TextLink href="/guides/download-a-torrent">How to download with a torrent</TextLink>
-      </p>
+      </Text>
       <ul className="flex flex-col gap-3">
         {links.map((entry) => (
           <MagnetLinkRow key={entry.url} entry={entry} onRemove={remove} />

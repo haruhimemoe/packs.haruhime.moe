@@ -5,12 +5,12 @@
  *       to retry lookups that failed. Packs saved before filters existed get theirs this way.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 
-import { AsyncButton, Card } from "@haruhimemoe/ui";
+import { AsyncButton, Card, Text } from "@haruhimemoe/ui";
 import { PACK_STATS_JOB_LIMIT } from "@/constants/pack-stats";
 import { PacksApiError, packsApi } from "@/lib/packs-api";
 import type { PackStatsJob } from "@/schemas/pack-stats";
@@ -45,10 +45,10 @@ const summary = ({ updated, remaining, waiting }: PackStatsJob): string => {
 export function PackStatsBackfill({ api = packsApi }: PackStatsBackfillProps) {
   return (
     <Card title="Pack stats" className="flex flex-col gap-3">
-      <p className="text-c3 text-sm">
+      <Text tone="muted">
         Filters on /packs need each pack's star rating, length and mods. A daily job fills in
         missing ones, {PACK_STATS_JOB_LIMIT} packs at a time. Run it now to catch up faster.
-      </p>
+      </Text>
       <AsyncButton
         variant="secondary"
         action={async () => summary(await api.fillPackStats())}

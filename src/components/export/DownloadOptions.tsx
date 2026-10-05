@@ -5,12 +5,12 @@
  *       maps, saving a zip, making a torrent).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 
-import { Checkbox, Disclosure } from "@haruhimemoe/ui";
+import { Checkbox, Disclosure, Text } from "@haruhimemoe/ui";
 import { useId, useState } from "react";
 import type { DownloadChoices } from "@/schemas/download-choices";
 
@@ -61,9 +61,7 @@ export function DownloadOptions({ choices, onChange, disabled = false }: Downloa
           onChange={(event) => onChange({ ...choices, backgrounds: event.currentTarget.checked })}
         />
         {disabled ? (
-          <p className="text-c3 text-sm">
-            You can change these once the download, zip or torrent is done.
-          </p>
+          <Text tone="muted">You can change these once the download, zip or torrent is done.</Text>
         ) : null}
       </fieldset>
     </Disclosure>

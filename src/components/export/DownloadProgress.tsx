@@ -3,11 +3,11 @@
  * @desc Overall and per-slot download state while a pack's sets come down from the mirror.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { formatBytes } from "@haruhimemoe/osu/format";
-import { cx } from "@haruhimemoe/ui";
+import { textClasses } from "@haruhimemoe/ui";
 import type { ProgressRow } from "@/hooks/usePackDownloads";
 import type { SetStatus } from "@/lib/downloads/fetch-sets";
 import { countOf } from "@/utils/text";
@@ -59,7 +59,7 @@ export function DownloadProgress({ rows, statuses }: DownloadProgressProps) {
           aria-label="Download progress"
           className="h-2 w-full accent-h1"
         />
-        <output className="text-c3 text-sm">
+        <output className={textClasses({ tone: "muted" })}>
           {ready} of {countOf(setIds.length, "set")} ready
         </output>
       </div>
@@ -71,10 +71,10 @@ export function DownloadProgress({ rows, statuses }: DownloadProgressProps) {
               <span className="w-10 shrink-0 font-bold text-c1">{row.label}</span>
               <span className="min-w-0 flex-1 truncate text-c2">{row.title}</span>
               <span
-                className={cx(
-                  "ml-auto text-right",
-                  status?.status === "failed" ? "text-rose-300" : "text-c4",
-                )}
+                className={textClasses({
+                  tone: status?.status === "failed" ? "error" : "subtle",
+                  className: "ml-auto text-right",
+                })}
               >
                 {statusText(status)}
               </span>

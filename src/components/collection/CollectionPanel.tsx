@@ -14,7 +14,7 @@
 
 "use client";
 
-import { Card, Notice, RadioGroup, TextLink } from "@haruhimemoe/ui";
+import { Card, Notice, RadioGroup, Text, TextLink } from "@haruhimemoe/ui";
 import { useMemo, useState } from "react";
 import { LazerCollection } from "@/components/collection/LazerCollection";
 import { StableCollection } from "@/components/collection/StableCollection";
@@ -66,11 +66,11 @@ export function CollectionPanel({ pack, getMeta, download = downloadBlob }: Coll
   return (
     <Card title="Add to osu! collection">
       <div className="flex flex-col gap-4">
-        <p className="text-c3 text-sm">
+        <Text tone="muted">
           Put this pack's maps in one of your osu! collections.{" "}
           <TextLink href="/guides/osu-collections">How it works</TextLink>
-        </p>
-        {maps.status === "loading" ? <p className="text-c3 text-sm">Loading map info…</p> : null}
+        </Text>
+        {maps.status === "loading" ? <Text tone="muted">Loading map info…</Text> : null}
         {maps.status === "error" ? (
           <Notice tone="error">
             {`Map info didn't load for ${countOf(maps.failed, "map")}. Retry loading maps in the Download card first.`}
@@ -91,9 +91,9 @@ export function CollectionPanel({ pack, getMeta, download = downloadBlob }: Coll
           </Notice>
         ) : null}
         {nothingToAdd ? (
-          <p className="text-c3 text-sm">
+          <Text tone="muted">
             None of these maps can go in a collection, so there's nothing to add.
-          </p>
+          </Text>
         ) : null}
         {/* Hidden, not unmounted, so a loaded file or a typed name survives a pool that empties
             and fills again. */}

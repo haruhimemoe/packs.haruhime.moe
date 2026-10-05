@@ -3,13 +3,13 @@
  * @desc /p/[slug]/edit: edit a saved pack in memory (no IndexedDB draft), then save or delete.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 
 import type { PackInputBody, PackVisibility } from "@haruhimemoe/pool/service";
-import { Button, ButtonLink, Card, InlineConfirm, Notice, PageHeader } from "@haruhimemoe/ui";
+import { Button, ButtonLink, Card, InlineConfirm, Notice, PageHeader, Text } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
 import { useMemo, useReducer, useState } from "react";
 import { DescriptionField } from "@/components/pack/DescriptionField";
@@ -117,9 +117,9 @@ export function SavedPackEditor({
       </Card>
 
       {(saved.exports?.length ?? 0) > 0 ? (
-        <p className="text-c3 text-sm">
+        <Text tone="muted">
           Changing the name, maps, or slots removes this pack's magnet links.
-        </p>
+        </Text>
       ) : null}
 
       {error ? (

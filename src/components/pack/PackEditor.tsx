@@ -4,13 +4,13 @@
  *       star ratings with mods.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 
 import { bucketsOf, MAX_NAME_LENGTH, MAX_SLOTS } from "@haruhimemoe/pool";
-import { Button, Card, TextInput } from "@haruhimemoe/ui";
+import { Button, Card, Text, TextInput } from "@haruhimemoe/ui";
 import { type Dispatch, useId, useState } from "react";
 import { AddBeatmapForm } from "@/components/pack/AddBeatmapForm";
 import { BucketManager } from "@/components/pack/BucketManager";
@@ -74,9 +74,9 @@ export function PackEditor({ pack, dispatch, ready, meta }: PackEditorProps) {
             onAdd={(slots, newBuckets) => dispatch({ type: "merge", slots, newBuckets })}
           />
           {full ? (
-            <p className="font-bold text-amber-300 text-sm">
+            <Text tone="warning" bold>
               This pack is full ({MAX_SLOTS} maps).
-            </p>
+            </Text>
           ) : null}
         </div>
       </Card>

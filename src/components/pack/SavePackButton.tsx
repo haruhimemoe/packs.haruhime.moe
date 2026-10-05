@@ -4,14 +4,14 @@
  *       beforeSignIn has put the pack somewhere it will survive the redirect).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 
 import { signInHref } from "@haruhimemoe/next-kit/auth-react";
 import type { PackInputBody } from "@haruhimemoe/pool/service";
-import { Button, Notice } from "@haruhimemoe/ui";
+import { Button, Notice, Text } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { DEFAULT_PACK_NAME } from "@/constants/pack";
@@ -86,11 +86,11 @@ export function SavePackButton({
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-c3 text-sm">
+      <Text tone="muted">
         {signedIn
           ? "Save this pack to your account for a short link you can edit later."
           : "Sign in with osu! to save this pack and get a short link you can edit later."}
-      </p>
+      </Text>
       <div>
         {signedIn ? (
           <Button onClick={saveNow} disabled={working || pack.slots.length === 0}>
