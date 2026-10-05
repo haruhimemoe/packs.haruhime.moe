@@ -10,7 +10,7 @@
         "@haruhimemoe/next-kit": "0.8.0",
         "@haruhimemoe/osu": "0.3.0",
         "@haruhimemoe/pool": "0.2.0",
-        "@haruhimemoe/ui": "0.16.0",
+        "@haruhimemoe/ui": "0.17.0",
         "@haruhimemoe/vcs": "0.1.0",
         "@mdx-js/loader": "3.1.1",
         "@mdx-js/react": "3.1.1",
@@ -142,7 +142,7 @@
 
     "@haruhimemoe/pool": ["@haruhimemoe/pool@0.2.0", "", { "peerDependencies": { "zod": "^4.0.16" } }, "sha512-08MqwWGnHduAw5M1Bxo22A43PsFHmuBDToksOy9Jk8V9JZW/EGg4QVX9a7UqZNx1xdc+OOPczFcUONGvS6jgpg=="],
 
-    "@haruhimemoe/ui": ["@haruhimemoe/ui@0.16.0", "", { "dependencies": { "tailwind-merge": "3.7.0" }, "peerDependencies": { "next": ">=16.0.0 <17", "react": ">=19.0.0", "react-dom": ">=19.0.0", "shiki": ">=4.5.0 <5", "tailwindcss": ">=4.1.0 <5" }, "optionalPeers": ["shiki"] }, "sha512-cRpB3HhCeA+iR1L5z/a3aOsHNVKmKMX4nhEqMCJkpOQO4TR1zq2+Mx3EKVYCTB2pshA+TXa4uHiW/evzay8Nkg=="],
+    "@haruhimemoe/ui": ["@haruhimemoe/ui@0.17.0", "", { "dependencies": { "tailwind-merge": "3.7.0" }, "peerDependencies": { "next": ">=16.0.0 <17", "react": ">=19.0.0", "react-dom": ">=19.0.0", "shiki": ">=4.5.0 <5", "tailwindcss": ">=4.1.0 <5" }, "optionalPeers": ["shiki"] }, "sha512-HyQ2ba08hPbmqc9Qs6t3f6AWQxjUKy3LcmVHCZ/SkuV2Ec3YraqSxulySM43GmFMm4gPeKzicIswbuNrNzPXaw=="],
 
     "@haruhimemoe/vcs": ["@haruhimemoe/vcs@0.1.0", "", {}, "sha512-Zsas46sJyFv7EoWxYg5PHgYzN5sGm/LW9YmwTs5EXt7c3rwbelZLhOPpsiXijlUHYfS6Z71L69Egs/XBZD2YKA=="],
 
