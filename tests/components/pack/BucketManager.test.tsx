@@ -1,13 +1,13 @@
 /**
  * @file tests/components/pack/BucketManager.test.tsx
- * @desc Slots card: order with move buttons and drag, add with validation, rename, recolor, and
- *       delete only when empty.
+ * @desc Slots card: order with move buttons and a keyboard drag, add with validation, rename,
+ *       recolor, and delete only when empty.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sat Oct 3, 2026
+ * @modified Sun Oct 4, 2026
  */
 
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { BucketManager } from "@/components/pack/BucketManager";
@@ -63,12 +63,24 @@ describe("BucketManager", () => {
     expect(onMove).toHaveBeenLastCalledWith("NM", 1);
   });
 
-  it("drags a bucket onto another row", () => {
-    const { onMove } = setup();
-    fireEvent.dragStart(row("EZ"));
-    fireEvent.dragOver(row("No Mod"));
-    fireEvent.drop(row("No Mod"));
+  it("drags a bucket to the top by keyboard", async () => {
+    const { onMove, user } = setup();
+    screen.getByRole("button", { name: "Reorder EZ" }).focus();
+    await user.keyboard(" ");
+    await user.keyboard("{Home}");
+    expect(document.querySelector('[aria-live="assertive"]')).toHaveTextContent(
+      "EZ: position 1 of 7.",
+    );
+    await user.keyboard("{Enter}");
     expect(onMove).toHaveBeenCalledWith("EZ", 0);
+  });
+
+  it("names the move buttons Up and Down", () => {
+    setup();
+    expect(within(row("EZ")).getByRole("button", { name: "Move EZ up" })).toHaveTextContent("Up");
+    expect(within(row("EZ")).getByRole("button", { name: "Move EZ down" })).toHaveTextContent(
+      "Down",
+    );
   });
 
   it("adds a slot with the next free color, explaining bad codes", async () => {

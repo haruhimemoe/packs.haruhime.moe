@@ -1,9 +1,10 @@
 /**
  * @file src/components/pack/BucketManager.tsx
- * @desc The "Slots" card body: the pack's buckets in pool order. Reorder by dragging or with the
- *       arrow buttons; custom slots can be recolored, renamed, deleted (only when empty), and set
- *       their mods (BucketRenameForm, ModsField); BucketAddForm adds new ones. No-slot maps always
- *       come first and aren't listed here.
+ * @desc The "Slots" card body: the pack's buckets in pool order. Reorder by dragging a slot's
+ *       handle (mouse, touch or keyboard, ui's SortableList) or with Up and Down; custom slots can
+ *       be recolored, renamed, deleted (only when empty), and set their mods (BucketRenameForm,
+ *       ModsField); BucketAddForm adds new ones. No-slot maps always come first and aren't listed
+ *       here.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Sun Oct 4, 2026
@@ -12,7 +13,7 @@
 "use client";
 
 import { bucketName, isCustomBucket, NO_MODS, type SlotMods } from "@haruhimemoe/pool";
-import { Button, Text } from "@haruhimemoe/ui";
+import { Button, SortableList, Text } from "@haruhimemoe/ui";
 import { useState } from "react";
 import { BucketAddForm } from "@/components/pack/BucketAddForm";
 import { BucketRenameForm } from "@/components/pack/BucketRenameForm";
@@ -51,64 +52,40 @@ export function BucketManager({
   onRemove,
   onSetMods,
 }: BucketManagerProps) {
-  const [dragging, setDragging] = useState<string | null>(null);
   const [renaming, setRenaming] = useState<string | null>(null);
+  const countFor = (code: string) => slots.filter((s) => s.mod === code).length;
 
   return (
     <div className="flex flex-col gap-4">
       <Text tone="muted">
-        Maps without a slot always come first. Drag slots or use the arrows to change the order.
+        Maps without a slot always come first. Drag a slot by its handle, or use Up and Down, to
+        change the order.
       </Text>
-      <ul className="flex flex-col gap-2">
-        {buckets.map((entry, i) => {
-          const count = slots.filter((s) => s.mod === entry.code).length;
+      <SortableList
+        as="ul"
+        items={buckets}
+        getId={(entry) => entry.code}
+        getLabel={(entry) => entry.code}
+        label="Slots"
+        disabled={disabled}
+        onMove={({ id, to }) => onMove(id, to.index)}
+        className="gap-2 [--sortable-gap:0.5rem]"
+        itemClassName="flex flex-wrap items-center gap-2 rounded-[10px] bg-b5 p-3 sm:gap-3"
+        itemProps={(entry) => ({
+          "aria-label": `${bucketName(entry)} slot, ${countOf(countFor(entry.code), "map")}`,
+        })}
+      >
+        {(entry, { handle, moveButtons }) => {
+          const count = countFor(entry.code);
           const name = bucketName(entry);
           return (
-            <li
-              key={entry.code}
-              aria-label={`${name} slot, ${countOf(count, "map")}`}
-              // An input inside a draggable row can't be text-selected in Firefox.
-              draggable={!disabled && renaming !== entry.code}
-              onDragStart={(event) => {
-                setDragging(entry.code);
-                event.dataTransfer?.setData("text/plain", entry.code);
-              }}
-              onDragOver={(event) => {
-                if (dragging !== null) event.preventDefault();
-              }}
-              onDrop={(event) => {
-                event.preventDefault();
-                if (dragging !== null && dragging !== entry.code) onMove(dragging, i);
-                setDragging(null);
-              }}
-              onDragEnd={() => setDragging(null)}
-              className="flex flex-wrap items-center gap-2 rounded-[10px] bg-b5 p-3 sm:gap-3"
-            >
-              <span aria-hidden="true" className="cursor-grab select-none text-c4">
-                ⋮⋮
-              </span>
+            <>
+              {handle}
               <SlotBadge entry={entry} />
               {/* A custom slot's badge already shows its code. */}
               {isCustomBucket(entry) ? null : <span className="font-bold text-c1">{name}</span>}
               <span className="text-c4 text-sm">({count})</span>
-              <div className="ml-auto flex items-center gap-1">
-                <Button
-                  variant="ghost"
-                  aria-label={`Move ${entry.code} up`}
-                  disabled={disabled || i === 0}
-                  onClick={() => onMove(entry.code, i - 1)}
-                >
-                  ↑
-                </Button>
-                <Button
-                  variant="ghost"
-                  aria-label={`Move ${entry.code} down`}
-                  disabled={disabled || i === buckets.length - 1}
-                  onClick={() => onMove(entry.code, i + 1)}
-                >
-                  ↓
-                </Button>
-              </div>
+              <div className="ml-auto">{moveButtons}</div>
               {isCustomBucket(entry) ? (
                 <div className="flex w-full flex-wrap items-center gap-3">
                   <ColorPicker
@@ -157,10 +134,10 @@ export function BucketManager({
                   </div>
                 </div>
               ) : null}
-            </li>
+            </>
           );
-        })}
-      </ul>
+        }}
+      </SortableList>
 
       <BucketAddForm buckets={buckets} disabled={disabled} onAdd={onAdd} />
     </div>

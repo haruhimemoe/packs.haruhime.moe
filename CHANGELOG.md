@@ -23,6 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Depends on `@haruhimemoe/ui` 0.13.0: guide and legal index cards have rounder corners, the public packs grid is a little tighter, and on the torrent panel the Copy magnet link button now comes before Add magnet link to this pack.
 - `@haruhimemoe/next-kit` 0.7.0 and `@haruhimemoe/vcs` 0.1.0 for pack history.
 - Depends on `@haruhimemoe/ui` 0.14.0 and `@haruhimemoe/next-kit` 0.8.0: deleting your account opens a dialog that asks you to type your osu! username, deleting a saved pack (and, for admins, any pack) asks in a dialog, and the confirm buttons for clearing local data, removing a magnet link and regenerating or revoking an API key are red.
+- Depends on `@haruhimemoe/ui` 0.15.0: slots in the pack editor move by dragging their handle with a mouse, a finger or the keyboard, each step read out, and their arrow buttons now say Up and Down; pinned packs on /admin drag the same way, with Up and Down turned off at the ends instead of hidden.
 
 ## [0.1.0] - 2026-10-04
 

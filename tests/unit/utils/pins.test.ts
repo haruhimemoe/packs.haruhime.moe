@@ -1,11 +1,11 @@
 /**
  * @file tests/unit/utils/pins.test.ts
  * @desc Pin rules: only public packs that aren't hidden, at most MAX_PINNED_PACKS, new pins go
- *       last, a reorder names exactly the pinned packs, moving one up or down, and when a pin
- *       that raced past the limit backs out.
+ *       last, a reorder names exactly the pinned packs, and when a pin that raced past the limit
+ *       backs out.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -14,7 +14,6 @@ import {
   isOverPinLimit,
   isPinnable,
   isSamePinSet,
-  movePin,
   nextPinOrder,
   PIN_HIDDEN,
   PIN_LIMIT,
@@ -100,25 +99,6 @@ describe("isSamePinSet", () => {
     ],
   ])("refuses %j reordered as %j", (current, requested) => {
     expect(isSamePinSet(current, requested)).toBe(false);
-  });
-});
-
-describe("movePin", () => {
-  it("moves a pack up or down one place", () => {
-    expect(movePin(["a", "b", "c"], "b", -1)).toEqual(["b", "a", "c"]);
-    expect(movePin(["a", "b", "c"], "b", 1)).toEqual(["a", "c", "b"]);
-  });
-
-  it("leaves the order alone at either end, or for a pack that isn't pinned", () => {
-    expect(movePin(["a", "b"], "a", -1)).toEqual(["a", "b"]);
-    expect(movePin(["a", "b"], "b", 1)).toEqual(["a", "b"]);
-    expect(movePin(["a", "b"], "z", 1)).toEqual(["a", "b"]);
-  });
-
-  it("never changes the list it was given", () => {
-    const slugs = ["a", "b"] as const;
-    movePin(slugs, "b", -1);
-    expect(slugs).toEqual(["a", "b"]);
   });
 });
 

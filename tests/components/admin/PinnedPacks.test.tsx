@@ -1,14 +1,14 @@
 /**
  * @file tests/components/admin/PinnedPacks.test.tsx
- * @desc /admin "Pinned packs" panel: the pins in order, moving one up or down (the whole new order
- *       goes to the server, focus stays with the pack), unpinning, the server's message when a
- *       change is refused, and the empty state.
+ * @desc /admin "Pinned packs" panel: the pins in order, reordering by a drag or with Up and Down
+ *       (the whole new order goes to the server, focus stays with the pack), unpinning, the
+ *       server's message when a change is refused, and the empty state.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Oct 4, 2026
  */
 
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PinnedPacks } from "@/components/admin/PinnedPacks";
@@ -61,12 +61,12 @@ describe("PinnedPacks", () => {
     expect(screen.getByText(/in this order/)).toHaveTextContent("Up to 6");
   });
 
-  it("offers no Move up on the first pin and no Move down on the last", () => {
+  it("turns off Move up on the first pin and Move down on the last", () => {
     render(<PinnedPacks pins={[A, B, C]} api={fakeApi()} />);
-    expect(screen.queryByRole("button", { name: "Move Spring Cup up" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Move Spring Cup down" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Move Summer Cup up" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Move Autumn Cup down" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Move Spring Cup up" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Move Spring Cup down" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Move Summer Cup up" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Move Autumn Cup down" })).toBeDisabled();
   });
 
   it("sends the whole new order when a pin moves, then refreshes the page", async () => {
@@ -77,6 +77,9 @@ describe("PinnedPacks", () => {
     expect(api.reorderPins).toHaveBeenCalledWith([B.slug, A.slug, C.slug]);
     expect(names()).toEqual(["Summer Cup", "Spring Cup", "Autumn Cup"]);
     expect(refresh).toHaveBeenCalledOnce();
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Move Autumn Cup up" })).toBeEnabled(),
+    );
     await user.click(screen.getByRole("button", { name: "Move Autumn Cup up" }));
     expect(api.reorderPins).toHaveBeenLastCalledWith([B.slug, C.slug, A.slug]);
   });
@@ -85,9 +88,31 @@ describe("PinnedPacks", () => {
     const user = userEvent.setup();
     render(<PinnedPacks pins={[A, B, C]} api={fakeApi()} />);
     await user.click(screen.getByRole("button", { name: "Move Summer Cup down" }));
-    expect(screen.getByRole("button", { name: "Move Summer Cup up" })).toHaveFocus();
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Move Summer Cup up" })).toHaveFocus(),
+    );
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Move Autumn Cup up" })).toBeEnabled(),
+    );
     await user.click(screen.getByRole("button", { name: "Move Autumn Cup up" }));
-    expect(screen.getByRole("button", { name: "Move Autumn Cup down" })).toHaveFocus();
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Move Autumn Cup down" })).toHaveFocus(),
+    );
+  });
+
+  it("reorders by a keyboard drag on the handle", async () => {
+    const user = userEvent.setup();
+    const api = fakeApi();
+    render(<PinnedPacks pins={[A, B, C]} api={api} />);
+    screen.getByRole("button", { name: "Reorder Autumn Cup" }).focus();
+    await user.keyboard(" ");
+    await user.keyboard("{Home}");
+    await user.keyboard("{Enter}");
+    expect(api.reorderPins).toHaveBeenCalledWith([C.slug, A.slug, B.slug]);
+    await waitFor(() => expect(names()).toEqual(["Autumn Cup", "Spring Cup", "Summer Cup"]));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Reorder Autumn Cup" })).toHaveFocus(),
+    );
   });
 
   it("unpins a pack and says so", async () => {

@@ -6,7 +6,7 @@
  *       applies them.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { MAX_PINNED_PACKS } from "@/constants/public-packs";
@@ -61,23 +61,6 @@ export const isSamePinSet = (current: readonly string[], requested: readonly str
   requested.length === current.length &&
   new Set(requested).size === requested.length &&
   requested.every((slug) => current.includes(slug));
-
-/**
- * @function movePin
- * @param slugs {readonly string[]} pinned slugs in order
- * @param slug {string} the one to move
- * @param by {-1 | 1} up (earlier) or down (later) one place
- * @returns {string[]} a new list; the same order when it's already at that end or isn't listed
- */
-export const movePin = (slugs: readonly string[], slug: string, by: -1 | 1): string[] => {
-  const from = slugs.indexOf(slug);
-  const to = from + by;
-  const next = [...slugs];
-  if (from === -1 || to < 0 || to >= slugs.length) return next;
-  next[from] = next[to] as string;
-  next[to] = slug;
-  return next;
-};
 
 /**
  * @function isOverPinLimit
