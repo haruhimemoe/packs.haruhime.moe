@@ -5,7 +5,7 @@
  *       above the list.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
@@ -99,6 +99,14 @@ describe("PublicPacksScreen", () => {
     );
     expect(within(pages).getByRole("link", { name: "Older" })).toHaveAttribute("rel", "next");
     expect(within(pages).getByText("Page 2 of 3")).toBeInTheDocument();
+  });
+
+  it("each pack is one list item holding one 10px card", () => {
+    render(<PublicPacksScreen packs={[CARD]} page={1} pageCount={1} total={1} />);
+    const item = screen.getByRole("listitem");
+    expect(item).toHaveClass("flex");
+    const card = item.firstElementChild as HTMLElement;
+    expect(card).toHaveClass("rounded-[10px]", "bg-b4", "p-4");
   });
 
   it("explains an empty list", () => {

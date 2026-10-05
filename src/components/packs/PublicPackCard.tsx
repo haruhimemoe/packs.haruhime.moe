@@ -5,11 +5,11 @@
  *       default order), or when it was last updated for lists sorted that way.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { formatDuration, formatRange, formatStars } from "@haruhimemoe/osu/format";
-import { Text, TextLink } from "@haruhimemoe/ui";
+import { Surface, Text, TextLink } from "@haruhimemoe/ui";
 import Image from "next/image";
 import type { PublicPackCard as PublicPack } from "@/schemas/public-pack";
 import { formatShortDate } from "@/utils/date";
@@ -35,7 +35,7 @@ export function PublicPackCard({ pack, date = "added" }: PublicPackCardProps) {
   const stars = pack.stats?.r;
   const length = pack.stats?.l;
   return (
-    <li className="flex min-w-0 flex-col gap-2 rounded-[10px] bg-b4 p-4">
+    <Surface padding="md" className="flex min-w-0 flex-col gap-2">
       <TextLink href={`/p/${pack.slug}`} variant="plain" className="wrap-anywhere text-lg">
         {pack.name}
       </TextLink>
@@ -73,6 +73,6 @@ export function PublicPackCard({ pack, date = "added" }: PublicPackCardProps) {
           ? `Added ${formatShortDate(pack.createdAt)}`
           : `Updated ${formatShortDate(pack.updatedAt)}`}
       </p>
-    </li>
+    </Surface>
   );
 }

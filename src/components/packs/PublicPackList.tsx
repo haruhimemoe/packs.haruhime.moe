@@ -4,9 +4,10 @@
  *       by: when each pack was added (default), or when it was last updated.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
+import { CardGrid } from "@haruhimemoe/ui";
 import { type PackCardDate, PublicPackCard } from "@/components/packs/PublicPackCard";
 import type { PublicPackCard as PublicPack } from "@/schemas/public-pack";
 
@@ -29,10 +30,10 @@ export function PublicPackList({ packs, date }: PublicPackListProps) {
     );
   }
   return (
-    <ul className="grid gap-3 sm:grid-cols-2">
+    <CardGrid gap="sm">
       {packs.map((pack) => (
         <PublicPackCard key={pack.slug} pack={pack} date={date} />
       ))}
-    </ul>
+    </CardGrid>
   );
 }
