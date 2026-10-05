@@ -123,6 +123,12 @@ describe("PublicPacksScreen", () => {
     ];
     render(<PublicPacksScreen packs={[CARD]} pinned={pinned} page={1} pageCount={1} total={3} />);
     const row = screen.getByRole("region", { name: "Pinned" });
+    const pinnedHeading = screen.getByRole("heading", { level: 2, name: "Pinned" });
+    expect(pinnedHeading).toHaveAttribute("id", "pinned-packs");
+    expect(pinnedHeading).toHaveClass("scroll-mt-20");
+    const allHeading = screen.getByRole("heading", { level: 2, name: "All packs" });
+    expect(allHeading).toHaveAttribute("id", "all-packs");
+    expect(allHeading).toHaveClass("scroll-mt-20");
     expect(
       within(row)
         .getAllByRole("link")

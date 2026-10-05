@@ -6,10 +6,10 @@
  *       page of the plain list; any search, filter or sort replaces both.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
-import { PageHeader, Pagination } from "@haruhimemoe/ui";
+import { PageHeader, Pagination, SectionHeading } from "@haruhimemoe/ui";
 import { PublicPackBrowser } from "@/components/packs/PublicPackBrowser";
 import { PublicPackList } from "@/components/packs/PublicPackList";
 import type { PublicPackCard, PublicPackPage } from "@/schemas/public-pack";
@@ -61,15 +61,11 @@ export function PublicPacksScreen({
         ) : (
           <div className="flex flex-col gap-8">
             <section aria-labelledby="pinned-packs" className="flex flex-col gap-4">
-              <h2 id="pinned-packs" className="font-bold text-c1 text-xl">
-                Pinned
-              </h2>
+              <SectionHeading id="pinned-packs">Pinned</SectionHeading>
               <PublicPackList packs={pinned} />
             </section>
             <section aria-labelledby="all-packs" className="flex flex-col gap-4">
-              <h2 id="all-packs" className="font-bold text-c1 text-xl">
-                All packs
-              </h2>
+              <SectionHeading id="all-packs">All packs</SectionHeading>
               {list}
             </section>
           </div>

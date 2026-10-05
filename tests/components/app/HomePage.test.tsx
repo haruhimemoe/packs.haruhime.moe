@@ -6,7 +6,7 @@
  *       to pools and bb.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -68,6 +68,9 @@ describe("HomeScreen", () => {
     expect(screen.getByRole("link", { name: "See all public packs" })).toHaveAttribute(
       "href",
       "/packs",
+    );
+    expect(screen.getByRole("heading", { name: "Recent public packs" })).toHaveClass(
+      "scroll-mt-20",
     );
   });
 

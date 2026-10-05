@@ -5,11 +5,19 @@
  *       WebApplication, FAQPage) as one JSON-LD graph.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { HARUHIME_ORG, ld, SEARCH_TERM } from "@haruhimemoe/next-kit/seo";
-import { ButtonLink, Card, JsonLd, PageHeader, Text, TextLink } from "@haruhimemoe/ui";
+import {
+  ButtonLink,
+  Card,
+  JsonLd,
+  PageHeader,
+  SectionHeading,
+  Text,
+  TextLink,
+} from "@haruhimemoe/ui";
 import { KeyPasteForm } from "@/components/pack/KeyPasteForm";
 import { PublicPackList } from "@/components/packs/PublicPackList";
 import { BB_URL, POOLS_URL, SEO_SITE } from "@/constants/seo";
@@ -141,14 +149,16 @@ export function HomeScreen({ recent }: { recent: readonly PublicPackCard[] }) {
       </div>
       {recent.length > 0 ? (
         <section aria-labelledby="recent-packs" className="flex flex-col gap-4">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 id="recent-packs" className="font-bold text-c1 text-xl">
-              Recent public packs
-            </h2>
-            <TextLink href="/packs" className="font-bold text-sm">
-              See all public packs
-            </TextLink>
-          </div>
+          <SectionHeading
+            id="recent-packs"
+            actions={
+              <TextLink href="/packs" className="font-bold text-sm">
+                See all public packs
+              </TextLink>
+            }
+          >
+            Recent public packs
+          </SectionHeading>
           <PublicPackList packs={recent} />
         </section>
       ) : null}

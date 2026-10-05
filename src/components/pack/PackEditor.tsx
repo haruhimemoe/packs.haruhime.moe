@@ -4,13 +4,13 @@
  *       star ratings with mods.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 "use client";
 
 import { bucketsOf, MAX_NAME_LENGTH, MAX_SLOTS } from "@haruhimemoe/pool";
-import { Button, Card, Text, TextInput } from "@haruhimemoe/ui";
+import { Button, Card, SectionHeading, Text, TextInput } from "@haruhimemoe/ui";
 import { type Dispatch, useId, useState } from "react";
 import { AddBeatmapForm } from "@/components/pack/AddBeatmapForm";
 import { BucketManager } from "@/components/pack/BucketManager";
@@ -96,40 +96,43 @@ export function PackEditor({ pack, dispatch, ready, meta }: PackEditorProps) {
       </Card>
 
       <section aria-label="Pool" className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-bold text-c1 text-xl">
-            Pool <span className="font-normal text-base text-c4">({pack.slots.length})</span>
-          </h2>
-          <div className="flex gap-2">
-            {meta.hasErrors ? (
-              <Button variant="secondary" onClick={meta.retry}>
-                Retry loading maps
-              </Button>
-            ) : null}
-            {pack.slots.length > 0 ? (
-              confirmClear ? (
-                <>
-                  <Button variant="ghost" onClick={() => setArmedFor(null)}>
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() => {
-                      dispatch({ type: "reset" });
-                      setArmedFor(null);
-                    }}
-                  >
-                    Confirm clear
-                  </Button>
-                </>
-              ) : (
-                <Button variant="ghost" onClick={() => setArmedFor(pack)}>
-                  Clear pack
+        <SectionHeading
+          detail={`(${pack.slots.length})`}
+          wrapperClassName="items-center"
+          actions={
+            <div className="flex gap-2">
+              {meta.hasErrors ? (
+                <Button variant="secondary" onClick={meta.retry}>
+                  Retry loading maps
                 </Button>
-              )
-            ) : null}
-          </div>
-        </div>
+              ) : null}
+              {pack.slots.length > 0 ? (
+                confirmClear ? (
+                  <>
+                    <Button variant="ghost" onClick={() => setArmedFor(null)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        dispatch({ type: "reset" });
+                        setArmedFor(null);
+                      }}
+                    >
+                      Confirm clear
+                    </Button>
+                  </>
+                ) : (
+                  <Button variant="ghost" onClick={() => setArmedFor(pack)}>
+                    Clear pack
+                  </Button>
+                )
+              ) : null}
+            </div>
+          }
+        >
+          Pool
+        </SectionHeading>
         <PackStats
           slots={pack.slots}
           getState={meta.get}

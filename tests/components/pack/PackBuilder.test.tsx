@@ -5,7 +5,7 @@
  *       "Add to osu! collection" card between Download and Share.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import "fake-indexeddb/auto";
@@ -91,6 +91,7 @@ describe("PackBuilder", () => {
         .getAllByRole("button", { name: /^Copy ID/ })
         .map((b) => b.getAttribute("aria-label")),
     ).toEqual(["Copy ID 129891", "Copy ID 1872396"]);
+    expect(screen.getByRole("heading", { level: 2, name: "Pool (2)" })).toBeInTheDocument();
   });
 
   it("removes a slot and clears the pack after confirming", async () => {
