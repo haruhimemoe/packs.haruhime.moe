@@ -5,7 +5,7 @@
  *       registry; anything else 404s.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Oct 4, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { contentParams, contentPath, findEntry, markdownPath } from "@haruhimemoe/next-kit/docs";
@@ -63,6 +63,7 @@ export default async function LegalPage({ params }: Props) {
       description={entry.description}
       lastUpdated={entry.lastUpdated}
       markdownHref={markdownPath("legal", slug)}
+      proseSize="sm"
     >
       <Body />
     </ContentPage>

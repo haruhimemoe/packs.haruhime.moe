@@ -8,11 +8,13 @@
  *       <path>.md. @haruhimemoe/brand
  *       and resvg stay out of the server bundle (resvg is a native binary, and brand reads its
  *       fonts by a computed path, traced for the pack card route), so ogCard runs per request.
- *       MDX content runs through @haruhimemoe/ui/remark (code fence meta, callouts, heading ids);
- *       passed by module name since Turbopack only takes MDX plugins that way.
+ *       MDX content runs through @haruhimemoe/ui/remark (code fence meta, callouts, heading ids,
+ *       figures, video embeds); passed as a module-name tuple with `mdxExports: true` so guides
+ *       pages get their table of contents and reading time as module exports (Turbopack only
+ *       takes MDX plugins that way, by module name with serializable options).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { contentRewrites } from "@haruhimemoe/next-kit/docs";
@@ -21,7 +23,7 @@ import type { NextConfig } from "next";
 
 const withMDX = createMDX({
   extension: /\.mdx?$/,
-  options: { remarkPlugins: ["@haruhimemoe/ui/remark"] },
+  options: { remarkPlugins: [["@haruhimemoe/ui/remark", { mdxExports: true }]] },
 });
 
 /**

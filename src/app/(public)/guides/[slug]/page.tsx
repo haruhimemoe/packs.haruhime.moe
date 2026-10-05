@@ -5,12 +5,13 @@
  *       registry; anything else 404s.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Oct 4, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { contentParams, contentPath, findEntry, markdownPath } from "@haruhimemoe/next-kit/docs";
 import { notFoundMetadata, pageMetadata } from "@haruhimemoe/next-kit/seo";
-import { ContentPage } from "@haruhimemoe/ui";
+import { ContentPage, Toc } from "@haruhimemoe/ui";
+import type { MdxArticleModule } from "@haruhimemoe/ui/mdx";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CONTENT } from "@/constants/content";
@@ -57,7 +58,7 @@ export default async function GuidePage({ params }: Props) {
   const entry = findEntry(CONTENT, "guides", slug);
   const load = LOADERS.guides?.[slug];
   if (!entry || !load) notFound();
-  const { default: Body } = await load();
+  const page = (await load()) as unknown as MdxArticleModule;
   return (
     <ContentPage
       title={entry.title}
@@ -65,8 +66,9 @@ export default async function GuidePage({ params }: Props) {
       lastUpdated={entry.lastUpdated}
       markdownHref={markdownPath("guides", slug)}
       jsonLd={guideJsonLd(entry)}
+      toc={<Toc items={page.toc} />}
     >
-      <Body />
+      <page.default />
     </ContentPage>
   );
 }

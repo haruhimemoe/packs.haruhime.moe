@@ -6,7 +6,7 @@
  *       change.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { contentLlmsFull } from "@haruhimemoe/next-kit/docs";
@@ -15,6 +15,7 @@ import { textResponse } from "@haruhimemoe/next-kit/seo";
 import { CONTENT } from "@/constants/content";
 import { SEO_SITE } from "@/constants/seo";
 import { SITE } from "@/constants/site";
+import { CONTENT_MARKDOWN } from "@/utils/content-markdown";
 
 export const dynamic = "force-static";
 
@@ -29,8 +30,7 @@ export async function GET() {
     title: `${SITE.title} docs, guides and legal pages`,
     summary: SITE.description,
     content: CONTENT,
-    read: (s, slug) =>
-      readContentMarkdown(CONTENT, s, slug, { siteUrl: SITE.url }).then((m) => m ?? ""),
+    read: (s, slug) => readContentMarkdown(CONTENT, s, slug, CONTENT_MARKDOWN).then((m) => m ?? ""),
   });
   return textResponse(body, { type: "text/markdown", maxAge: 3600, sMaxAge: 86400 });
 }

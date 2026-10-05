@@ -5,14 +5,14 @@
  *       unregistered slugs never build and answer 404.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Oct 4, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { contentParams } from "@haruhimemoe/next-kit/docs";
 import { readContentMarkdown } from "@haruhimemoe/next-kit/docs/files";
 import { textResponse } from "@haruhimemoe/next-kit/seo";
 import { CONTENT } from "@/constants/content";
-import { SITE } from "@/constants/site";
+import { CONTENT_MARKDOWN } from "@/utils/content-markdown";
 
 export const dynamic = "force-static";
 export const dynamicParams = false;
@@ -31,7 +31,7 @@ export const generateStaticParams = () => contentParams(CONTENT, "guides");
  */
 export async function GET(_request: Request, { params }: RouteContext<"/guides/[slug]/md">) {
   const { slug } = await params;
-  const md = await readContentMarkdown(CONTENT, "guides", slug, { siteUrl: SITE.url });
+  const md = await readContentMarkdown(CONTENT, "guides", slug, CONTENT_MARKDOWN);
   // Explicit 404: notFound() in route handlers misbehaves on Next 16 (AGENTS.md 6a).
   if (md === null) return new Response("Not found.\n", { status: 404 });
   return textResponse(md, { type: "text/markdown" });
