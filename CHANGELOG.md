@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `@haruhimemoe/ui` 0.11.2: Copy as Markdown works on Safari and iOS.
 - Depends on `@haruhimemoe/ui` 0.12.0: buttons and form fields are 44px tall on touch screens, motion stops when your system asks for reduced motion, colors get stronger when it asks for more contrast, "See all public packs" is underlined, and pack names in lists underline on hover instead of turning pink.
 - Depends on `@haruhimemoe/ui` 0.13.0: guide and legal index cards have rounder corners, the public packs grid is a little tighter, and on the torrent panel the Copy magnet link button now comes before Add magnet link to this pack.
+- `@haruhimemoe/next-kit` 0.7.0 and `@haruhimemoe/vcs` 0.1.0 for pack history.
 
 ## [0.1.0] - 2026-10-04
 
