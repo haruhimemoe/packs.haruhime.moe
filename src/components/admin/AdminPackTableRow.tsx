@@ -5,14 +5,13 @@
  *       Delete that asks first (@haruhimemoe/ui's InlineConfirm).
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 
 import { userUrl } from "@haruhimemoe/osu/shapes";
 import { Badge, Button, InlineConfirm, Td, TextLink } from "@haruhimemoe/ui";
-import Link from "next/link";
 import { VISIBILITY_OPTIONS } from "@/constants/visibility";
 import type { packsApi } from "@/lib/packs-api";
 import type { AdminPackRow } from "@/schemas/public-pack";
@@ -49,9 +48,9 @@ export function AdminPackTableRow({ row, api, busy, run, onDeleted }: AdminPackT
   return (
     <tr className="align-top">
       <Td>
-        <Link href={`/p/${row.slug}`} className="wrap-anywhere font-bold text-c1 hover:text-h1">
+        <TextLink href={`/p/${row.slug}`} variant="plain" className="wrap-anywhere">
           {row.name}
-        </Link>
+        </TextLink>
       </Td>
       <Td>
         {row.ownerOsuId === null ? (

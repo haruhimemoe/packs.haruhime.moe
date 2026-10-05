@@ -7,13 +7,12 @@
  *       confirmation after an unpin, so it isn't lost with the row.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 
-import { Button, Card, Notice } from "@haruhimemoe/ui";
-import Link from "next/link";
+import { Button, Card, Notice, Text, TextLink } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { MAX_PINNED_PACKS } from "@/constants/public-packs";
@@ -116,14 +115,14 @@ export function PinnedPacks({ pins: initial, api = packsApi }: PinnedPacksProps)
 
   return (
     <Card title="Pinned packs" className="flex flex-col gap-3">
-      <p className="text-c3 text-sm">
+      <Text tone="muted">
         Up to {MAX_PINNED_PACKS} public packs show above the list on /packs, in this order, until
         someone searches or filters.
-      </p>
+      </Text>
       {pins.length === 0 ? (
-        <p className="text-c3 text-sm">
+        <Text tone="muted">
           Nothing is pinned. Pin a public pack from the table above or from its page.
-        </p>
+        </Text>
       ) : (
         <ol className="flex flex-col divide-y divide-b3">
           {pins.map((pin, index) => (
@@ -131,13 +130,13 @@ export function PinnedPacks({ pins: initial, api = packsApi }: PinnedPacksProps)
               <span className="w-5 text-c4 text-sm tabular-nums">{index + 1}.</span>
               {/* At least 10rem for the name: narrower, the buttons wrap under it. */}
               <span className="min-w-0 flex-1 basis-40">
-                <Link
-                  href={`/p/${pin.slug}`}
-                  className="wrap-anywhere font-bold text-c1 hover:text-h1"
-                >
+                <TextLink href={`/p/${pin.slug}`} variant="plain" className="wrap-anywhere">
                   {pin.name}
-                </Link>
-                <span className="text-c3 text-sm"> by {pin.ownerName}</span>
+                </TextLink>
+                <Text as="span" tone="muted">
+                  {" "}
+                  by {pin.ownerName}
+                </Text>
               </span>
               <span className="flex flex-wrap gap-2">
                 {index > 0 ? moveButton(pin, "up") : null}
@@ -161,9 +160,9 @@ export function PinnedPacks({ pins: initial, api = packsApi }: PinnedPacksProps)
         </ol>
       )}
       {unpinned !== null ? (
-        <p ref={unpinnedRef} tabIndex={-1} role="status" className="text-c3 text-sm outline-none">
+        <Text ref={unpinnedRef} tabIndex={-1} role="status" tone="muted" className="outline-none">
           Unpinned {unpinned.name}.
-        </p>
+        </Text>
       ) : null}
       {error ? (
         <Notice live tone="error">

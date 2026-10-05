@@ -3,11 +3,10 @@
  * @desc /me: one page of the signed-in user's saved packs, newest update first.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
-import { ButtonLink } from "@haruhimemoe/ui";
-import Link from "next/link";
+import { ButtonLink, TextLink } from "@haruhimemoe/ui";
 import { VISIBILITY_OPTIONS } from "@/constants/visibility";
 import type { SavedPackSummary } from "@/schemas/saved-pack";
 import { formatShortDate } from "@/utils/date";
@@ -49,12 +48,9 @@ export function MyPacksList({ packs, total }: { packs: SavedPackSummary[]; total
           key={pack.slug}
           className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-3"
         >
-          <Link
-            href={`/p/${pack.slug}`}
-            className="wrap-anywhere min-w-0 font-bold text-c1 transition-colors hover:text-h1"
-          >
+          <TextLink href={`/p/${pack.slug}`} variant="plain" className="wrap-anywhere min-w-0">
             {pack.name}
-          </Link>
+          </TextLink>
           <span className="text-c4 text-sm">
             {countOf(pack.slotCount, "map")} · {VISIBILITY_OPTIONS[pack.visibility].label}
             {pack.hidden ? " · Hidden" : ""} · Updated {formatShortDate(pack.updatedAt)}

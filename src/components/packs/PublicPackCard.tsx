@@ -5,12 +5,12 @@
  *       default order), or when it was last updated for lists sorted that way.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { formatDuration, formatRange, formatStars } from "@haruhimemoe/osu/format";
+import { Text, TextLink } from "@haruhimemoe/ui";
 import Image from "next/image";
-import Link from "next/link";
 import type { PublicPackCard as PublicPack } from "@/schemas/public-pack";
 import { formatShortDate } from "@/utils/date";
 import { countOf } from "@/utils/text";
@@ -36,13 +36,10 @@ export function PublicPackCard({ pack, date = "added" }: PublicPackCardProps) {
   const length = pack.stats?.l;
   return (
     <li className="flex min-w-0 flex-col gap-2 rounded-[10px] bg-b4 p-4">
-      <Link
-        href={`/p/${pack.slug}`}
-        className="wrap-anywhere font-bold text-c1 text-lg transition-colors hover:text-h1"
-      >
+      <TextLink href={`/p/${pack.slug}`} variant="plain" className="wrap-anywhere text-lg">
         {pack.name}
-      </Link>
-      <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-c3 text-sm">
+      </TextLink>
+      <Text tone="muted" className="flex flex-wrap items-center gap-x-2 gap-y-1">
         {pack.ownerAvatarUrl ? (
           <Image src={pack.ownerAvatarUrl} alt="" width={20} height={20} className="rounded-full" />
         ) : null}
@@ -67,7 +64,7 @@ export function PublicPackCard({ pack, date = "added" }: PublicPackCardProps) {
             </span>
           </>
         ) : null}
-      </p>
+      </Text>
       {pack.excerpt ? (
         <p className="wrap-anywhere line-clamp-2 text-c2 text-sm">{pack.excerpt}</p>
       ) : null}

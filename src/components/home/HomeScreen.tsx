@@ -9,8 +9,7 @@
  */
 
 import { HARUHIME_ORG, ld, SEARCH_TERM } from "@haruhimemoe/next-kit/seo";
-import { ButtonLink, Card, JsonLd, PageHeader, TextLink } from "@haruhimemoe/ui";
-import Link from "next/link";
+import { ButtonLink, Card, JsonLd, PageHeader, Text, TextLink } from "@haruhimemoe/ui";
 import { KeyPasteForm } from "@/components/pack/KeyPasteForm";
 import { PublicPackList } from "@/components/packs/PublicPackList";
 import { BB_URL, POOLS_URL, SEO_SITE } from "@/constants/seo";
@@ -146,9 +145,9 @@ export function HomeScreen({ recent }: { recent: readonly PublicPackCard[] }) {
             <h2 id="recent-packs" className="font-bold text-c1 text-xl">
               Recent public packs
             </h2>
-            <Link href="/packs" className="font-bold text-h1 text-sm hover:text-c1">
+            <TextLink href="/packs" className="font-bold text-sm">
               See all public packs
-            </Link>
+            </TextLink>
           </div>
           <PublicPackList packs={recent} />
         </section>
@@ -158,7 +157,7 @@ export function HomeScreen({ recent }: { recent: readonly PublicPackCard[] }) {
           {HOME_FAQ.map(({ question, answer }) => (
             <div key={question}>
               <h3 className="font-bold text-c1">{question}</h3>
-              <p className="mt-1 text-c3 text-sm">
+              <Text tone="muted" className="mt-1">
                 {answer}
                 {question === "What's a pack key?" ? (
                   <>
@@ -166,7 +165,7 @@ export function HomeScreen({ recent }: { recent: readonly PublicPackCard[] }) {
                     <TextLink href="/guides/pack-key">How pack keys work</TextLink>
                   </>
                 ) : null}
-              </p>
+              </Text>
             </div>
           ))}
         </div>
