@@ -12,6 +12,7 @@
 import { AUTH_INDEXES } from "@haruhimemoe/next-kit/auth";
 import { indexName } from "@haruhimemoe/next-kit/mongo";
 import { describe, expect, it } from "vitest";
+import { PACK_REVISIONS_COLLECTION } from "@/constants/pack";
 import { HIDDEN_ORIGINS_COLLECTION, POOLS_BACKFILL_COLLECTION } from "@/constants/pools";
 import {
   RATE_LIMITS_COLLECTION,
@@ -81,6 +82,13 @@ describe("PACKS_INDEX_SPECS", () => {
     await markers.insertOne({ originId: "otdb-58", hiddenAt: new Date() });
     await expect(markers.insertOne({ originId: "otdb-58", hiddenAt: new Date() })).rejects.toThrow(
       /duplicate key/,
+    );
+  });
+
+  it("keeps one revision per docId/seq in pack history", async () => {
+    await connectDb();
+    expect(await getDb().collection(PACK_REVISIONS_COLLECTION).indexes()).toContainEqual(
+      expect.objectContaining({ key: { docId: 1, seq: -1 }, unique: true }),
     );
   });
 

@@ -22,6 +22,7 @@ const COLLECTIONS = [
   "deleted_origins",
   "hidden_origins",
   "pools_backfill",
+  "pack_revisions",
 ];
 
 /**

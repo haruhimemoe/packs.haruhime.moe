@@ -20,6 +20,7 @@ import type { PackVisibility } from "@haruhimemoe/pool/service";
 import { type Document, ObjectId } from "mongodb";
 import type { PipelineStage } from "mongoose";
 import { ADMIN_PAGE_SIZE } from "@/constants/public-packs";
+import { packRevisions } from "@/lib/pack-revisions";
 import { revalidatePack, revalidatePublicPacks } from "@/lib/revalidate";
 import { UNPIN } from "@/models/Pack";
 import { type AdminPackPage, type AdminPackRow, adminPackRowSchema } from "@/schemas/public-pack";
@@ -174,6 +175,7 @@ export const adminDeletePack = async (slug: string): Promise<boolean> => {
   if (typeof originId === "string") await tombstoneOrigin(originId);
   const { deletedCount } = await model.collection.deleteOne({ _id: found._id, ...MODERATED });
   if (deletedCount === 0) return false;
+  await packRevisions.removeDoc(slug);
   revalidatePack(slug);
   revalidatePublicPacks();
   return true;

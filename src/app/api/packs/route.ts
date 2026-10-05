@@ -54,6 +54,7 @@ export async function POST(request: Request) {
         pack: await createPack(user.id, body.data, {
           unlimited: user.isAdmin,
           subject: rateLimitSubject(clientIp(request.headers)),
+          author: { id: user.id, name: user.username },
         }),
       },
       { status: 201 },

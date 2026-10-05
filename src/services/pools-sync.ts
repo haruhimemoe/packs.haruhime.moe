@@ -21,6 +21,7 @@
  */
 
 import "server-only";
+import type { RevisionAuthor } from "@haruhimemoe/next-kit/vcs";
 import type { PackInput, PoolsSyncAnswer } from "@haruhimemoe/pool/service";
 import { ObjectId } from "mongodb";
 import {
@@ -31,6 +32,7 @@ import {
   POOLS_SYNC_SUBJECT,
 } from "@/constants/pools";
 import { connectedDb } from "@/lib/db";
+import { packRevisions } from "@/lib/pack-revisions";
 import { revalidatePack, revalidatePublicPacks } from "@/lib/revalidate";
 import type { SavedPack } from "@/schemas/saved-pack";
 import {
@@ -43,6 +45,9 @@ import {
 } from "@/services/pack-records";
 import { createPack, updatePack } from "@/services/packs";
 import { ensurePoolsAccount } from "@/services/pools-account";
+
+/** Who the pools account's own saves (creates, updates) are recorded as in pack history. */
+const POOLS_AUTHOR: RevisionAuthor = { id: POOLS_ACCOUNT.id, name: POOLS_ACCOUNT.name };
 
 /** A tombstone: the pools id (as _id) of a pack a moderator deleted. */
 type DeletedOrigin = { _id: string; deletedAt: Date };
@@ -132,7 +137,10 @@ const applyTo = async (
   if (sameInput(current, input)) {
     return { slug: current.slug, state: "unchanged", listed: isListed(current) };
   }
-  const pack = await updatePack(current.slug, ownerId, input, { subject: POOLS_SYNC_SUBJECT });
+  const pack = await updatePack(current.slug, ownerId, input, {
+    subject: POOLS_SYNC_SUBJECT,
+    author: POOLS_AUTHOR,
+  });
   if (!pack) {
     if (await isTombstoned(ref)) return null;
     if (!(await findByOrigin(ref))) return VANISHED;
@@ -185,6 +193,7 @@ const createFor = async (
       subject: POOLS_SYNC_SUBJECT,
       origin: { kind: POOLS_ORIGIN_KIND, id: ref },
       ...(hiddenAt ? { hiddenAt } : {}),
+      author: POOLS_AUTHOR,
     });
   } catch (error) {
     // Another sync of this pool created it first: update that pack instead, once.
@@ -253,6 +262,7 @@ export const deletePoolsPack = async (
     // Only while the hide is as read: a moderator's hide or unhide in between means read again.
     const { deletedCount } = await packs.deleteOne({ _id: found._id, hiddenAt });
     if (deletedCount === 1) {
+      await packRevisions.removeDoc(found.slug);
       touch(found.slug);
       return "deleted";
     }

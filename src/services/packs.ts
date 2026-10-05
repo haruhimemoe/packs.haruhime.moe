@@ -7,22 +7,26 @@
  *       (services/pack-stats.ts); a slot or bucket change clears the old ones first. Saving a
  *       pack as anything but public takes away its pin (services/pins.ts). A pack
  *       pools.haruhime.moe publishes also stores its origin (the pools pool), which no DTO
- *       carries. Reads live in services/pack-reads.ts; record mappers and pack keys in
- *       services/pack-records.ts.
+ *       carries. Every create and update records a revision (services/pack-history.ts), best
+ *       effort; delete removes the pack's history too. Reads live in services/pack-reads.ts;
+ *       record mappers and pack keys in services/pack-records.ts.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { isDuplicateKeyError } from "@haruhimemoe/next-kit/mongo";
 import "server-only";
+import type { RevisionAuthor } from "@haruhimemoe/next-kit/vcs";
 import { bucketsOf, canonicalBuckets } from "@haruhimemoe/pool";
 import type { PackInput } from "@haruhimemoe/pool/service";
 import { nanoid } from "nanoid";
 import { MAX_SAVED_PACKS, SLUG_LENGTH } from "@/constants/pack";
+import { packRevisions } from "@/lib/pack-revisions";
 import { revalidatePack, revalidatePublicPacks } from "@/lib/revalidate";
 import { UNPIN } from "@/models/Pack";
 import { type SavedPack, slugSchema } from "@/schemas/saved-pack";
+import { recordPackSave } from "@/services/pack-history";
 import {
   connectedPackModel,
   duplicateKeyOn,
@@ -33,6 +37,7 @@ import {
   toSavedPack,
 } from "@/services/pack-records";
 import { schedulePackStats } from "@/services/pack-stats";
+import { snapshotOf } from "@/utils/pack-snapshot";
 
 const SLUG_ATTEMPTS = 3;
 
@@ -53,6 +58,9 @@ type CreateOptions = {
   subject?: string;
   origin?: PackOrigin;
   hiddenAt?: Date;
+  /** Who to record the pack's first revision as. Every real write path (session, API key, pools
+   *  sync) passes its caller; the default only covers callers that predate history (tests). */
+  author?: RevisionAuthor;
 };
 
 /**
@@ -61,8 +69,9 @@ type CreateOptions = {
  * @param input {PackInput} validated pack
  * @param options {CreateOptions} slug source (tests), unlimited to skip the MAX_SAVED_PACKS check
  *        (admins, the pools account), the caller's rate-limit subject (its share of the osu!
- *        budget pays for the stats lookups), the pools pool it comes from, and hiddenAt to create
- *        it already hidden (a pools pack a moderator hid before pools deleted it)
+ *        budget pays for the stats lookups), the pools pool it comes from, hiddenAt to create
+ *        it already hidden (a pools pack a moderator hid before pools deleted it), and who to
+ *        record the pack's first revision as (default: the owner, name "unknown")
  * @returns {Promise<SavedPack>} the stored pack, without stats: they're computed after the
  *          response
  * @throws {PackLimitError} when the owner already has MAX_SAVED_PACKS packs and isn't unlimited
@@ -77,6 +86,7 @@ export const createPack = async (
     subject,
     origin,
     hiddenAt,
+    author = { id: ownerId, name: "unknown" },
   }: CreateOptions = {},
 ): Promise<SavedPack> => {
   const model = await connectedPackModel();
@@ -109,7 +119,9 @@ export const createPack = async (
       }
       if (touchesPublicList(input.visibility)) revalidatePublicPacks();
       schedulePackStats(doc.slug, subject);
-      return toSavedPack(doc.toObject());
+      const pack = toSavedPack(doc.toObject());
+      await recordPackSave(doc.slug, null, snapshotOf(pack), author);
+      return pack;
     } catch (error) {
       // A slug collision gets a new slug; a pack with the same origin is the caller's to handle.
       if (
@@ -129,7 +141,9 @@ export const createPack = async (
  * @param slug {string} untrusted route segment
  * @param ownerId {string} signed-in user's id
  * @param input {PackInput} validated replacement (a missing description clears it)
- * @param options {{ subject?: string }} the caller's rate-limit subject (for the stats lookups)
+ * @param options {{ subject?: string; author?: RevisionAuthor }} the caller's rate-limit subject
+ *        (for the stats lookups) and who to record this save as (default: the owner, name
+ *        "unknown"; every real write path passes its caller)
  * @returns {Promise<SavedPack | null>} the updated pack, or null when missing or not the owner's.
  *          Never touches the moderation flag. Clears recorded export links when the pack
  *          key changes, stats when the slots or buckets change, and the pin when it stops being
@@ -139,7 +153,10 @@ export const updatePack = async (
   slug: string,
   ownerId: string,
   input: PackInput,
-  { subject }: { subject?: string } = {},
+  {
+    subject,
+    author = { id: ownerId, name: "unknown" },
+  }: { subject?: string; author?: RevisionAuthor } = {},
 ): Promise<SavedPack | null> => {
   if (!slugSchema.safeParse(slug).success) return null;
   const model = await connectedPackModel();
@@ -179,6 +196,7 @@ export const updatePack = async (
   if (touchesPublicList(before.visibility, doc.visibility)) revalidatePublicPacks();
   const pack = toSavedPack(doc);
   if (!pack.stats?.complete) schedulePackStats(slug, subject);
+  await recordPackSave(slug, snapshotOf(previous), snapshotOf(pack), author);
   return pack;
 };
 
@@ -186,13 +204,14 @@ export const updatePack = async (
  * @function deletePack
  * @param slug {string} untrusted route segment
  * @param ownerId {string} signed-in user's id
- * @returns {Promise<boolean>} true when the owner's pack was deleted
+ * @returns {Promise<boolean>} true when the owner's pack was deleted (its history goes too)
  */
 export const deletePack = async (slug: string, ownerId: string): Promise<boolean> => {
   if (!slugSchema.safeParse(slug).success) return false;
   const model = await connectedPackModel();
   const doc = await model.findOneAndDelete({ slug, ownerId }).select("visibility").lean();
   if (!doc) return false;
+  await packRevisions.removeDoc(slug);
   revalidatePack(slug);
   if (touchesPublicList(doc.visibility)) revalidatePublicPacks();
   return true;

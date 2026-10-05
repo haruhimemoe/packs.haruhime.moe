@@ -42,6 +42,7 @@ export const PUT = withApiKey<Context>(async (request, caller, { params }) => {
   if (!body.ok) return body.response;
   const pack = await updatePack(slug, caller.id, body.data, {
     subject: rateLimitSubject(clientIp(request.headers)),
+    author: { id: caller.id, name: caller.username },
   });
   if (!pack) return jsonError(404, PACK_NOT_FOUND);
   return Response.json({ pack: toApiPack(pack, caller.username) });

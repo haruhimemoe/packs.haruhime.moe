@@ -21,6 +21,7 @@ import {
   POOLS_ACCOUNT,
 } from "@/constants/pools";
 import { getDb } from "@/lib/db";
+import { packRevisions } from "@/lib/pack-revisions";
 import { getPackModel } from "@/models/Pack";
 import { adminDeletePack, setPackHidden } from "@/services/moderation";
 import { createPack } from "@/services/packs";
@@ -84,6 +85,17 @@ describe("syncPoolsPack", () => {
     expect(await syncPoolsPack(REF, input())).toBeNull();
     expect(await getPackModel().countDocuments({})).toBe(0);
     expect(await getDb().collection("user").countDocuments({})).toBe(0);
+  });
+
+  it("records the pools account as the author of a sync's revision", async () => {
+    const created = await syncPoolsPack(REF, input());
+    const head = await packRevisions.head(created?.slug ?? "");
+    expect(head?.authorId).toBe(POOLS_ACCOUNT.id);
+    expect(head?.authorName).toBe(POOLS_ACCOUNT.name);
+    await syncPoolsPack(REF, input({ name: "Ricma 2 Semifinals" }));
+    const updated = await packRevisions.head(created?.slug ?? "");
+    expect(updated?.seq).toBe(1);
+    expect(updated?.authorId).toBe(POOLS_ACCOUNT.id);
   });
 });
 
@@ -165,6 +177,13 @@ describe("deletePoolsPack and a moderator's hide or unhide during the delete", (
     expect(await deletePoolsPack(REF, { afterRead: hide })).toBe("deleted");
     expect(await getPackModel().countDocuments({})).toBe(0);
     expect(await markers().countDocuments({ originId: REF })).toBe(1);
+  });
+
+  it("deletes the pack's history too", async () => {
+    const pack = await createdMeanwhile();
+    expect(await packRevisions.head(pack.slug)).not.toBeNull();
+    await deletePoolsPack(REF);
+    expect(await packRevisions.head(pack.slug)).toBeNull();
   });
 
   it("forgets the hide when an unhide lands between its read and its delete", async () => {

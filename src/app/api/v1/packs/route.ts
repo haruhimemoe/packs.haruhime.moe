@@ -39,6 +39,7 @@ export const POST = withApiKey(async (request, caller) => {
     const pack = await createPack(caller.id, body.data, {
       unlimited: caller.isAdmin,
       subject: rateLimitSubject(clientIp(request.headers)),
+      author: { id: caller.id, name: caller.username },
     });
     return Response.json({ pack: toApiPack(pack, caller.username) }, { status: 201 });
   } catch (error) {

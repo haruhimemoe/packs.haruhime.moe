@@ -1,10 +1,11 @@
 /**
  * @file src/constants/pack.ts
  * @desc Pack limits and defaults shared by schemas and the builder UI. The pool limits (slots,
- *       name length, slot number, description length) come from @haruhimemoe/pool.
+ *       name length, slot number, description length) come from @haruhimemoe/pool. Also the
+ *       revisions collection name (src/lib/pack-revisions.ts).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 export const DEFAULT_PACK_NAME = "Untitled pack";
@@ -23,3 +24,6 @@ export const MAX_PACK_EXPORTS = 10;
 
 /** Ours are about 600 characters with seven trackers. */
 export const MAX_MAGNET_LENGTH = 2048;
+
+/** A pack's revision history (src/lib/pack-revisions.ts), keyed by slug. */
+export const PACK_REVISIONS_COLLECTION = "pack_revisions";

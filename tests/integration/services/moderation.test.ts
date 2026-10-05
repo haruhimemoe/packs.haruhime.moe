@@ -14,6 +14,7 @@ import { ObjectId } from "mongodb";
 import { describe, expect, it } from "vitest";
 import { DELETED_ORIGINS_COLLECTION } from "@/constants/pools";
 import { getDb } from "@/lib/db";
+import { packRevisions } from "@/lib/pack-revisions";
 import { getPackModel } from "@/models/Pack";
 import { adminDeletePack, listPacksForAdmin, setPackHidden } from "@/services/moderation";
 import { createPack } from "@/services/packs";
@@ -126,6 +127,8 @@ describe("adminDeletePack and pools packs", () => {
     expect(await getDb().collection(DELETED_ORIGINS_COLLECTION).find({}).toArray()).toEqual([
       { _id: "otdb-58", deletedAt: expect.any(Date) },
     ]);
+    expect(await packRevisions.head(pooled.slug)).toBeNull();
+    expect(await packRevisions.head(saved.slug)).toBeNull();
   });
 
   it("keeps a pools pack whose tombstone can't be written", async () => {

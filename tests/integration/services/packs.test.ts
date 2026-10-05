@@ -14,6 +14,7 @@ import { revalidatePath } from "next/cache";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MAX_SAVED_PACKS, OWN_PAGE_SIZE } from "@/constants/pack";
 import { getDb } from "@/lib/db";
+import { packRevisions } from "@/lib/pack-revisions";
 import { getPackModel } from "@/models/Pack";
 import { deleteAccount } from "@/services/account";
 import { getPackForViewer, listPacks } from "@/services/pack-reads";
@@ -314,6 +315,27 @@ describe("hidden packs", () => {
     const { packs: list } = await listPacks(owner);
     expect(list.find((p) => p.name === "Hidden")?.hidden).toBe(true);
     expect(list.find((p) => p.name === "Shown")).not.toHaveProperty("hidden");
+  });
+});
+
+describe("history", () => {
+  it("records a root on create and a new revision on update", async () => {
+    const owner = newId();
+    const author = { id: owner, name: "tester" };
+    const pack = await createPack(owner, input(), { author });
+    expect((await packRevisions.head(pack.slug))?.seq).toBe(0);
+    await updatePack(pack.slug, owner, input({ name: "Renamed" }), { author });
+    const head = await packRevisions.head(pack.slug);
+    expect(head?.seq).toBe(1);
+    expect(head?.authorId).toBe(owner);
+  });
+
+  it("deletes a pack's history with the pack", async () => {
+    const owner = newId();
+    const pack = await createPack(owner, input());
+    expect(await packRevisions.head(pack.slug)).not.toBeNull();
+    await deletePack(pack.slug, owner);
+    expect(await packRevisions.head(pack.slug)).toBeNull();
   });
 });
 

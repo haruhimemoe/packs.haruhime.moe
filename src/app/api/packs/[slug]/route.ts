@@ -65,6 +65,7 @@ export async function PUT(request: Request, { params }: Context) {
   if (!body.ok) return body.response;
   const pack = await updatePack(slug, user.id, body.data, {
     subject: rateLimitSubject(clientIp(request.headers)),
+    author: { id: user.id, name: user.username },
   });
   if (!pack) return jsonError(404, PACK_NOT_FOUND);
   return Response.json({ pack });
