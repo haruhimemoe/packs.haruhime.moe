@@ -3,7 +3,7 @@
  * @desc Pack key display and copy buttons (key and share link with the key in the fragment).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -30,6 +30,13 @@ describe("PackKeyField", () => {
     expect(await navigator.clipboard.readText()).toBe(`${window.location.origin}/k#pk1.AbC`);
     expect(screen.getAllByRole("status").map((status) => status.textContent)).toContain(
       "Link copied.",
+    );
+  });
+
+  it("describes each copy button by the field's label", () => {
+    render(<PackKeyField packKey="AAEC" />);
+    expect(screen.getByRole("button", { name: "Copy key" })).toHaveAccessibleDescription(
+      "Pack key",
     );
   });
 });

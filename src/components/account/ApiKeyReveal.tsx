@@ -1,16 +1,16 @@
 /**
  * @file src/components/account/ApiKeyReveal.tsx
- * @desc A new API key, shown once: read-only and selected on focus, a @haruhimemoe/ui CopyButton,
- *       and "I've saved it", which hides it for good.
+ * @desc A new API key, shown once, on @haruhimemoe/ui's CopyField, and "I've saved it", which
+ *       hides it for good.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 "use client";
 
-import { Button, CopyButton, TextInput } from "@haruhimemoe/ui";
-import { type Ref, useId } from "react";
+import { Button, CopyField } from "@haruhimemoe/ui";
+import type { Ref } from "react";
 
 type ApiKeyRevealProps = {
   /** The whole key, which the server never shows again. */
@@ -26,23 +26,13 @@ type ApiKeyRevealProps = {
  * @returns {JSX.Element} the warning, the key field, Copy and I've saved it
  */
 export function ApiKeyReveal({ apiKey, onSaved, inputRef }: ApiKeyRevealProps) {
-  const id = useId();
   return (
     <>
       <p className="font-bold text-c1 text-sm">Copy your key now. You won't see it again.</p>
-      <TextInput
-        id={id}
+      <CopyField
         ref={inputRef}
         label="Your new API key"
-        wrapperClassName="gap-2"
-        readOnly
         value={apiKey}
-        onFocus={(event) => event.currentTarget.select()}
-        className="font-mono"
-      />
-      <CopyButton
-        text={apiKey}
-        label="Copy"
         copiedMessage="Key copied."
         failedMessage="Couldn't copy. Select the key and copy it by hand."
       />

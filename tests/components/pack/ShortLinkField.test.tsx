@@ -4,7 +4,7 @@
  *       "Link copied.", and what to do when the clipboard refuses.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -34,6 +34,13 @@ describe("ShortLinkField", () => {
     await user.click(screen.getByRole("button", { name: "Copy link" }));
     expect(screen.getByRole("status")).toHaveTextContent(
       "Couldn't copy. Select the link and copy it by hand.",
+    );
+  });
+
+  it("describes the Copy link button by the field's label", () => {
+    render(<ShortLinkField slug="abcdefghij" />);
+    expect(screen.getByRole("button", { name: "Copy link" })).toHaveAccessibleDescription(
+      "Short link",
     );
   });
 });

@@ -1,17 +1,16 @@
 /**
  * @file src/components/export/TorrentMadePanel.tsx
- * @desc A made torrent: Save .torrent, the magnet link (selected on focus, copied with
- *       @haruhimemoe/ui's CopyButton), for a saved pack's owner a button that lists the link on
- *       the pack, and how to seed it.
+ * @desc A made torrent: Save .torrent, the magnet link on @haruhimemoe/ui's CopyField, for a saved
+ *       pack's owner a button (after Copy) that lists the link on the pack, and how to seed it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 "use client";
 
-import { Button, CopyButton, Notice, Text, TextInput, TextLink } from "@haruhimemoe/ui";
-import { useId, useState } from "react";
+import { Button, CopyField, Notice, Text, TextLink } from "@haruhimemoe/ui";
+import { useState } from "react";
 import { PacksApiError } from "@/lib/packs-api";
 import type { BuiltTorrent } from "@/lib/torrent/build-torrent";
 import { infohashOf } from "@/utils/magnet";
@@ -41,7 +40,6 @@ type AddState = { phase: "idle" } | { phase: "adding" } | { phase: "error"; mess
  */
 export function TorrentMadePanel({ built, folder, onSave, magnets }: TorrentMadePanelProps) {
   const [adding, setAdding] = useState<AddState>({ phase: "idle" });
-  const magnetId = useId();
   const alreadyAdded = (magnets?.added ?? []).some((url) => infohashOf(url) === built.infoHash);
 
   const add = async (target: MagnetTarget) => {
@@ -61,37 +59,28 @@ export function TorrentMadePanel({ built, folder, onSave, magnets }: TorrentMade
       <div className="flex flex-wrap items-center gap-2">
         <Button onClick={onSave}>Save .torrent</Button>
       </div>
-      <TextInput
-        id={magnetId}
+      <CopyField
         label="Magnet link"
-        wrapperClassName="gap-2"
-        readOnly
         value={built.magnet}
-        onFocus={(event) => event.currentTarget.select()}
-        className="font-mono"
+        copyLabel="Copy magnet link"
+        copiedMessage="Magnet link copied."
+        failedMessage="Couldn't copy. Select the link and copy it by hand."
+        actions={
+          magnets ? (
+            <Button
+              variant="secondary"
+              onClick={() => add(magnets)}
+              disabled={alreadyAdded || adding.phase === "adding"}
+            >
+              {alreadyAdded
+                ? "Magnet link added"
+                : adding.phase === "adding"
+                  ? "Adding…"
+                  : "Add magnet link to this pack"}
+            </Button>
+          ) : undefined
+        }
       />
-      <div className="flex flex-wrap items-center gap-2">
-        {magnets ? (
-          <Button
-            variant="secondary"
-            onClick={() => add(magnets)}
-            disabled={alreadyAdded || adding.phase === "adding"}
-          >
-            {alreadyAdded
-              ? "Magnet link added"
-              : adding.phase === "adding"
-                ? "Adding…"
-                : "Add magnet link to this pack"}
-          </Button>
-        ) : null}
-        <CopyButton
-          text={built.magnet}
-          label="Copy magnet link"
-          copiedMessage="Magnet link copied."
-          failedMessage="Couldn't copy. Select the link and copy it by hand."
-          wrapperClassName="gap-2"
-        />
-      </div>
       {adding.phase === "error" ? (
         <Notice tone="error" live className="font-bold">
           {adding.message}
