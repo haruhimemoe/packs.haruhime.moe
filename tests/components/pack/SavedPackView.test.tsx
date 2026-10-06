@@ -7,7 +7,7 @@
  *       server looked up rendered into the HTML.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { HINAI_BATCH_URL, hinaiBatchHandler } from "@haruhimemoe/hinai/testing";
@@ -235,7 +235,9 @@ describe("SavedPackView", () => {
 
   it("shows the moderation notice on a hidden pack", () => {
     render(<SavedPackView pack={{ ...PACK, hiddenAt: "2026-09-22T12:00:00.000Z" }} isOwner />);
-    expect(screen.getByText(/A moderator hid this pack/)).toHaveTextContent("contact@haruhime.moe");
+    expect(screen.getByText(/A moderator hid this pack/)).toHaveTextContent(
+      "haruhime@haruhime.moe",
+    );
   });
 
   it("shows recorded magnet links to visitors, without Remove", () => {

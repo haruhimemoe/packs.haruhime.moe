@@ -3,7 +3,7 @@
  * @desc Guards the site constants other components and legal pages depend on.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -23,7 +23,7 @@ describe("SITE", () => {
 
   it("builds the server User-Agent from the site name, URL, and contact email", () => {
     expect(SERVER_USER_AGENT).toBe(
-      "packs.haruhime.moe (+https://packs.haruhime.moe; contact@haruhime.moe)",
+      "packs.haruhime.moe (+https://packs.haruhime.moe; haruhime@haruhime.moe)",
     );
     expect(SERVER_USER_AGENT).toBe(`${SITE.title} (+${SITE.url}; ${SITE.contactEmail})`);
   });

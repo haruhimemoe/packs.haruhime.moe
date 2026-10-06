@@ -1,6 +1,6 @@
 # Contributing
 
-Bug reports and fixes are welcome. For anything bigger than a fix, open an [issue](https://github.com/haruhimemoe/packs.haruhime.moe/issues) first so we can agree on it. Questions are welcome in our [Discord server](https://discord.gg/bKy9kjMV4y).
+Bug reports and fixes are welcome. For anything bigger than a fix, open an [issue](https://github.com/haruhimemoe/packs.haruhime.moe/issues) first so we can agree on it. Questions are welcome in our [Discord server](https://haruhime.moe/discord).
 
 Read [AGENTS.md](./AGENTS.md) before changing code. It has the layout, code style and data rules.
 

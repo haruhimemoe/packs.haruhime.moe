@@ -33,12 +33,12 @@
     "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && lefthook install || true"
   },
   "dependencies": {
-    "@haruhimemoe/brand": "0.7.0",
+    "@haruhimemoe/brand": "0.8.0",
     "@haruhimemoe/hinai": "0.3.0",
-    "@haruhimemoe/next-kit": "0.11.0",
+    "@haruhimemoe/next-kit": "0.11.1",
     "@haruhimemoe/osu": "0.3.0",
     "@haruhimemoe/pool": "0.3.0",
-    "@haruhimemoe/ui": "0.18.0",
+    "@haruhimemoe/ui": "0.19.0",
     "@haruhimemoe/vcs": "0.1.0",
     "@mdx-js/loader": "3.1.1",
     "@mdx-js/react": "3.1.1",

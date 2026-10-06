@@ -5,7 +5,7 @@
  *       point to our Discord server for help; the repo's llms.txt links pools.haruhime.moe.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { readFileSync } from "node:fs";
@@ -61,7 +61,7 @@ describe("SECURITY.md and security.txt", () => {
     const security = read("SECURITY.md");
     const github = security.indexOf("/security/advisories/new");
     expect(github).toBeGreaterThan(-1);
-    expect(github).toBeLessThan(security.indexOf("contact@haruhime.moe"));
+    expect(github).toBeLessThan(security.indexOf("haruhime@haruhime.moe"));
   });
 });
 

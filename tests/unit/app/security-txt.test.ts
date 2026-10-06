@@ -4,7 +4,7 @@
  *       the first Contact and email second, and not blocked by robots.txt.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -29,7 +29,7 @@ describe("GET /.well-known/security.txt", () => {
     expect(await response.text()).toBe(
       [
         "Contact: https://github.com/haruhimemoe/packs.haruhime.moe/security/advisories/new",
-        "Contact: mailto:contact@haruhime.moe",
+        "Contact: mailto:haruhime@haruhime.moe",
         "Expires: 2027-09-23T00:00:00.000Z",
         "Preferred-Languages: en",
         "Canonical: https://packs.haruhime.moe/.well-known/security.txt",

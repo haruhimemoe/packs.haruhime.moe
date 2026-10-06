@@ -5,13 +5,13 @@
  *       and the @source line that generates the library components' classes.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 @import "tailwindcss";
 @import "@haruhimemoe/ui/theme.css";
 
-/* packs is pink. Pinned here so a new library default can't recolor the site. */
+/* packs is orange. Pinned here so a new library default can't recolor the site. */
 :root {
-  --hue: 333;
+  --hue: 30;
 }

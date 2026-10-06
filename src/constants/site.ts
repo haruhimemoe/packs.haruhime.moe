@@ -3,7 +3,7 @@
  * @desc Site identity, the source repo, our Discord server, the parent brand and GitHub org, navigation, the ppy trademark notice, and the User-Agent our server sends.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 export const SITE = {
@@ -12,11 +12,11 @@ export const SITE = {
   url: "https://packs.haruhime.moe",
   description:
     "Build osu! tournament mappool packs from beatmap IDs or links, download them as one zip or a torrent, and share them with a pack key or a short link.",
-  contactEmail: "contact@haruhime.moe",
+  contactEmail: "haruhime@haruhime.moe",
   /** Public source repository, linked from the footer. */
   repoUrl: "https://github.com/haruhimemoe/packs.haruhime.moe",
   /** Our public Discord server, linked from the footer's Discord icon. */
-  discordUrl: "https://discord.gg/bKy9kjMV4y",
+  discordUrl: "https://haruhime.moe/discord",
   /** The parent brand, linked from the footer wordmark. */
   parentUrl: "https://www.haruhime.moe",
   /** The GitHub organization, linked from the footer's GitHub mark. */

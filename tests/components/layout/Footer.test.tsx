@@ -4,7 +4,7 @@
  *       haruhime tools, and the haruhime.moe wordmark, Discord icon and GitHub org links.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
@@ -69,7 +69,7 @@ describe("Footer", () => {
   it("links our Discord server with a decorative Discord icon before the GitHub mark", () => {
     render(<Footer />);
     const link = screen.getByRole("link", { name: "Discord" });
-    expect(link).toHaveAttribute("href", "https://discord.gg/bKy9kjMV4y");
+    expect(link).toHaveAttribute("href", "https://haruhime.moe/discord");
     expect(link).toHaveAttribute("href", SITE.discordUrl);
     // Same tab, like every other footer link.
     expect(link).not.toHaveAttribute("target");

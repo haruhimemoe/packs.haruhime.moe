@@ -51,7 +51,7 @@ MIT. See [LICENSE](LICENSE). Not affiliated with or endorsed by ppy Pty Ltd. osu
 
 ## Help
 
-Ask questions in our [Discord server](https://discord.gg/bKy9kjMV4y), and report bugs in [GitHub issues](https://github.com/haruhimemoe/packs.haruhime.moe/issues). Report security issues privately, as [SECURITY.md](SECURITY.md) describes.
+Ask questions in our [Discord server](https://haruhime.moe/discord), and report bugs in [GitHub issues](https://github.com/haruhimemoe/packs.haruhime.moe/issues). Report security issues privately, as [SECURITY.md](SECURITY.md) describes.
 
 ## Contributing
 

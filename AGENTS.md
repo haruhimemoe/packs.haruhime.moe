@@ -64,7 +64,7 @@ Dates match `date "+%a %b %-d, %Y"`. Update `@modified` on edits, never `@create
 
 ## 6. Visual system
 
-osu!-web look from `@haruhimemoe/ui`: `src/app/globals.css` imports its theme (`b1`–`b6` backgrounds, `c1`–`c4` text, `h1`/`h2` accent, all from `--hue`, pinned to 333 there). Dark only. Font: Nunito via `--font-sans`. Never copy osu-web source (AGPL-3.0) or ship the Torus font.
+osu!-web look from `@haruhimemoe/ui`: `src/app/globals.css` imports its theme (`b1`–`b6` backgrounds, `c1`–`c4` text, `h1`/`h2` accent, all from `--hue`, pinned to 30 there). Dark only. Font: Nunito via `--font-sans`. Never copy osu-web source (AGPL-3.0) or ship the Torus font.
 
 - Buttons, cards, form fields, pagination, the header, footer and page frame come from `@haruhimemoe/ui`. Use them instead of rebuilding one here; a missing piece belongs in the library.
 - Page titles go through `PageHeader` (`@haruhimemoe/ui`); don't hand-build page `h1`s. Structured data goes through `JsonLd` (`@haruhimemoe/ui`), built with `ld` from `@haruhimemoe/next-kit/seo`.
