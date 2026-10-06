@@ -35,7 +35,7 @@
   "dependencies": {
     "@haruhimemoe/brand": "0.7.0",
     "@haruhimemoe/hinai": "0.3.0",
-    "@haruhimemoe/next-kit": "0.10.0",
+    "@haruhimemoe/next-kit": "0.11.0",
     "@haruhimemoe/osu": "0.3.0",
     "@haruhimemoe/pool": "0.3.0",
     "@haruhimemoe/ui": "0.18.0",

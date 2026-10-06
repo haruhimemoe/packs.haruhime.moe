@@ -15,7 +15,7 @@ import { textResponse } from "@haruhimemoe/next-kit/seo";
 import { CONTENT } from "@/constants/content";
 import { SEO_SITE } from "@/constants/seo";
 import { SITE } from "@/constants/site";
-import { CONTENT_MARKDOWN } from "@/utils/content-markdown";
+import { CONTENT_MARKDOWN, CONTENT_MARKDOWN_LEGAL } from "@/utils/content-markdown";
 
 export const dynamic = "force-static";
 
@@ -30,7 +30,13 @@ export async function GET() {
     title: `${SITE.title} docs, guides and legal pages`,
     summary: SITE.description,
     content: CONTENT,
-    read: (s, slug) => readContentMarkdown(CONTENT, s, slug, CONTENT_MARKDOWN).then((m) => m ?? ""),
+    read: (s, slug) =>
+      readContentMarkdown(
+        CONTENT,
+        s,
+        slug,
+        s === "legal" ? CONTENT_MARKDOWN_LEGAL : CONTENT_MARKDOWN,
+      ).then((m) => m ?? ""),
   });
   return textResponse(body, { type: "text/markdown", maxAge: 3600, sMaxAge: 86400 });
 }

@@ -7,7 +7,7 @@
       "dependencies": {
         "@haruhimemoe/brand": "0.7.0",
         "@haruhimemoe/hinai": "0.3.0",
-        "@haruhimemoe/next-kit": "0.10.0",
+        "@haruhimemoe/next-kit": "0.11.0",
         "@haruhimemoe/osu": "0.3.0",
         "@haruhimemoe/pool": "0.3.0",
         "@haruhimemoe/ui": "0.18.0",
@@ -136,7 +136,7 @@
 
     "@haruhimemoe/hinai": ["@haruhimemoe/hinai@0.3.0", "", { "dependencies": { "@haruhimemoe/osu": "^0.3.0" }, "peerDependencies": { "msw": "^2.0.0", "zod": "^4.0.16" }, "optionalPeers": ["msw"] }, "sha512-uKkbYECnlc92JZPeIfoQ9oldm6ShQJV8ysP9/8f1xfaLgw8nersEVbNn/R9XA4l6gLeD9JSAL4e47/Dzl0HcRw=="],
 
-    "@haruhimemoe/next-kit": ["@haruhimemoe/next-kit@0.10.0", "", { "peerDependencies": { "@haruhimemoe/osu": "^0.2.0 || ^0.3.0 || ^0.4.0", "@haruhimemoe/ui": "^0.14.0 || ^0.15.0 || ^0.16.0 || ^0.17.0 || ^0.18.0", "@haruhimemoe/vcs": "^0.1.0", "better-auth": "^1.7.5", "mongodb": "^7.6.0", "mongodb-memory-server": "^11.3.0", "mongoose": "^9.10.2", "msw": "^2.15.0", "next": "^16.3.6", "react": "^19.3.0", "vitest": "^5.0.1", "zod": "^4.6.5" }, "optionalPeers": ["@haruhimemoe/osu", "@haruhimemoe/ui", "@haruhimemoe/vcs", "better-auth", "mongodb", "mongodb-memory-server", "mongoose", "msw", "next", "react", "vitest"], "bin": { "next-kit": "dist/check/cli.js" } }, "sha512-OXpnyxXYsOzjpWpmFXXLOIRwQ5HYG2iWv4d8IarSwxScNSuvACMW9ahNUC+hVXnNgF3OPcrjSmZb9Vlk9yQgFA=="],
+    "@haruhimemoe/next-kit": ["@haruhimemoe/next-kit@0.11.0", "", { "peerDependencies": { "@haruhimemoe/osu": "^0.2.0 || ^0.3.0 || ^0.4.0", "@haruhimemoe/ui": "^0.14.0 || ^0.15.0 || ^0.16.0 || ^0.17.0 || ^0.18.0", "@haruhimemoe/vcs": "^0.1.0", "better-auth": "^1.7.5", "mongodb": "^7.6.0", "mongodb-memory-server": "^11.3.0", "mongoose": "^9.10.2", "msw": "^2.15.0", "next": "^16.3.6", "react": "^19.3.0", "vitest": "^5.0.1", "zod": "^4.6.5" }, "optionalPeers": ["@haruhimemoe/osu", "@haruhimemoe/ui", "@haruhimemoe/vcs", "better-auth", "mongodb", "mongodb-memory-server", "mongoose", "msw", "next", "react", "vitest"], "bin": { "next-kit": "dist/check/cli.js" } }, "sha512-6iCJx8F1CpaOcXj/DcEfd/mr2i3W7vIml0eZWnahTPoIHtKr4+66BJDa7a3wKsM0f/6ORgBrJzyxXjRqb8y6eQ=="],
 
     "@haruhimemoe/osu": ["@haruhimemoe/osu@0.3.0", "", { "peerDependencies": { "zod": "^4.0.16" } }, "sha512-crTv5aR/tAhu8XUckhr18+msQOOWzrP3fGRDpQjs2ebUt8YI4j8o5FyOKKcYXfhy1HO7dV6/EeNQUAn7uOmiZg=="],
 

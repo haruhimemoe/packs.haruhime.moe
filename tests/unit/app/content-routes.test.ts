@@ -3,10 +3,11 @@
  * @desc /docs, /guides and /legal: each page and its .md mirror prerender exactly the registry
  *       (unregistered slugs never build, so they 404), every registered .md answers 200
  *       text/markdown with the entry's title as its H1, unknown slugs answer 404, and the
- *       rewrite maps each .md URL to its route.
+ *       rewrite maps each .md URL to its route. Legal's .md mirror additionally keeps its
+ *       next-kit legal blocks as real Markdown instead of dropping them (legalMarkdownTransform).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Oct 4, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { type ContentSection, contentRewrites } from "@haruhimemoe/next-kit/docs";
@@ -78,4 +79,28 @@ describe.each(SECTIONS)("/%s", (section) => {
 it("rewrites every section's .md URL to its route", async () => {
   const rewrites = await nextConfig.rewrites?.();
   expect(rewrites).toEqual(contentRewrites());
+});
+
+const NO_LEFTOVER_TAGS =
+  /<YourRights|<Processors|<LegalContact|<DmcaNotice|<NoWarranty|<DataWeKeep|<Changes/;
+
+it("legal/privacy.md keeps the Processors block as Markdown instead of dropping it", async () => {
+  const response = await legalMd.GET(
+    new Request("https://packs.haruhime.moe/legal/privacy.md"),
+    params("privacy"),
+  );
+  const body = await response.text();
+  expect(body).toContain("## Service providers");
+  expect(body).toContain("Vercel");
+  expect(body).not.toMatch(NO_LEFTOVER_TAGS);
+});
+
+it("legal/your-privacy-rights.md keeps the YourRights block as Markdown instead of dropping it", async () => {
+  const response = await legalMd.GET(
+    new Request("https://packs.haruhime.moe/legal/your-privacy-rights.md"),
+    params("your-privacy-rights"),
+  );
+  const body = await response.text();
+  expect(body).toContain("Your rights under the GDPR");
+  expect(body).not.toMatch(NO_LEFTOVER_TAGS);
 });
