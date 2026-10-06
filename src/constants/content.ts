@@ -5,10 +5,12 @@
  *       and both llms files read it. Bump an entry's lastUpdated in the same commit as its text.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Oct 4, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { defineContent } from "@haruhimemoe/next-kit/docs";
+import { legalEntries } from "@haruhimemoe/next-kit/legal";
+import { LEGAL_SITE } from "@/constants/legal-site";
 
 export const CONTENT = defineContent({
   docs: [
@@ -125,40 +127,25 @@ export const CONTENT = defineContent({
       lastUpdated: "2026-09-23",
     },
   ],
-  legal: [
-    {
-      slug: "terms",
-      title: "Terms of Service",
+  legal: legalEntries(LEGAL_SITE, {
+    terms: {
       description:
         "The rules for using packs.haruhime.moe: your account, the packs you save and share, the API, what we don't host, and what happens when something goes wrong.",
-      lastUpdated: "2026-09-25",
     },
-    {
-      slug: "privacy",
-      title: "Privacy Policy",
+    privacy: {
       description: "What packs.haruhime.moe stores, why, and what stays in your browser.",
-      lastUpdated: "2026-10-05",
     },
-    {
-      slug: "your-privacy-rights",
-      title: "GDPR & CCPA",
+    "your-privacy-rights": {
       description:
         "Your rights over your data under the GDPR and the CCPA, what we hold and why, and how to use them.",
-      lastUpdated: "2026-10-05",
     },
-    {
-      slug: "copyright",
-      title: "Copyright & Takedown",
+    copyright: {
       description:
         "How to report a saved pack, where to send notices about beatmap files, and where tournament pools come from.",
-      lastUpdated: "2026-09-25",
     },
-    {
-      slug: "disclaimers",
-      title: "Disclaimers",
+    disclaimers: {
       description:
         "Who packs isn't affiliated with, how our requests identify themselves, and what our numbers mean.",
-      lastUpdated: "2026-09-28",
     },
-  ],
+  }),
 });

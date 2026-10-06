@@ -8,7 +8,7 @@
  *       hosts, community submissions and sources like otdb, not from otdb alone.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { existsSync, readFileSync } from "node:fs";
@@ -35,8 +35,9 @@ describe.each(LEGAL_SLUGS)("content/legal/%s.mdx", (slug) => {
     expect(read(slug)).not.toMatch(/^# /m);
   });
 
-  it("lists the contact email", () => {
-    expect(read(slug)).toContain(SITE.contactEmail);
+  it("lists the contact email, directly or through the LegalContact block", () => {
+    const text = read(slug);
+    expect(text.includes(SITE.contactEmail) || text.includes("<LegalContact")).toBe(true);
   });
 
   it("names no sponsor (Evergreen Cup moved to haruhime.moe)", () => {
@@ -100,12 +101,13 @@ describe("privacy", () => {
     expect(text()).toContain("That request carries beatmap IDs only.");
   });
 
-  it.each(["MongoDB Atlas", "Vercel", "request logs", "assets.ppy.sh", "a.ppy.sh"])(
-    "contains %j",
-    (phrase) => {
-      expect(text()).toContain(phrase);
-    },
-  );
+  it("lists its service providers through the Processors block", () => {
+    expect(text()).toContain("<Processors");
+  });
+
+  it.each(["Vercel", "request logs", "assets.ppy.sh", "a.ppy.sh"])("contains %j", (phrase) => {
+    expect(text()).toContain(phrase);
+  });
 
   it("has a comma after the mirror in the third-party list", () => {
     expect(text()).toContain(
@@ -214,19 +216,19 @@ describe("your-privacy-rights", () => {
     "legitimate interest",
     "IP address and browser User-Agent",
     "Vercel",
-    "supervisory authority",
-    "portability",
     "Download my data",
     "Delete account",
     "within 30 days",
     "within 45 days",
-    "We don't sell or share personal information",
-    "Global Privacy Control",
     "Sensitive personal information",
     "may fall below",
     "/legal/privacy",
   ])("contains %j", (phrase) => {
     expect(text()).toContain(phrase);
+  });
+
+  it("covers the GDPR and CCPA rights lists through the YourRights block", () => {
+    expect(text()).toContain("<YourRights");
   });
 
   it("writes its table as JSX, since our MDX has no GFM tables", () => {
@@ -262,7 +264,7 @@ describe("copyright", () => {
   });
 
   it("dates the Sources section", () => {
-    expect(lastUpdated("copyright")).toBe("2026-09-25");
+    expect(lastUpdated("copyright")).toBe("2026-10-05");
     expect(lastUpdated("your-privacy-rights")).toBe("2026-10-05");
   });
 });
