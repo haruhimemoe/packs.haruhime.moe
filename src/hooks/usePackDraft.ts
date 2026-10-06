@@ -5,7 +5,7 @@
  *       rename keeps no lone surrogate (each becomes U+FFFD), so the key encoder can't throw.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 "use client";
@@ -22,6 +22,7 @@ import {
   removeBucket,
   removeSlot,
   renameBucket,
+  reorderSlot,
   type SlotMods,
   setBucketMods,
 } from "@haruhimemoe/pool";
@@ -35,6 +36,7 @@ export type DraftAction =
   | { type: "add"; mod: SlotBucket; beatmapId: number }
   | { type: "remove"; mod: SlotBucket; index: number }
   | { type: "move-slot"; mod: SlotBucket; index: number; to: SlotBucket }
+  | { type: "reorder-slot"; mod: SlotBucket; beatmapId: number; to: number }
   | { type: "merge"; slots: PoolSlot[]; newBuckets?: CustomBucket[] }
   | { type: "add-bucket"; code: string; color: number }
   | { type: "rename-bucket"; code: string; next: string }
@@ -82,6 +84,8 @@ export const draftReducer = (state: Pool, action: DraftAction): Pool => {
       return removeSlot(state, action.mod, action.index);
     case "move-slot":
       return moveSlot(state, { mod: action.mod, index: action.index }, action.to);
+    case "reorder-slot":
+      return reorderSlot(state, action.mod, action.beatmapId, action.to);
     case "merge":
       // Pasted lines can name buckets that don't exist yet: create them first.
       return mergeSlots(addBuckets(state, action.newBuckets ?? []), action.slots);

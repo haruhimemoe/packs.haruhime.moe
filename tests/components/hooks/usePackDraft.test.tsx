@@ -107,6 +107,22 @@ describe("draftReducer buckets", () => {
   });
 });
 
+describe("draftReducer reorder-slot", () => {
+  it("renumbers a bucket's maps in their new order, leaving other groups alone", () => {
+    let state = draftReducer(EMPTY_DRAFT, { type: "add", mod: "NM", beatmapId: 1 });
+    state = draftReducer(state, { type: "add", mod: "NM", beatmapId: 2 });
+    state = draftReducer(state, { type: "add", mod: "NM", beatmapId: 3 });
+    state = draftReducer(state, { type: "add", mod: "HD", beatmapId: 4 });
+    state = draftReducer(state, { type: "reorder-slot", mod: "NM", beatmapId: 2, to: 0 });
+    expect(state.slots).toEqual([
+      { mod: "NM", index: 1, beatmapId: 2 },
+      { mod: "NM", index: 2, beatmapId: 1 },
+      { mod: "NM", index: 3, beatmapId: 3 },
+      { mod: "HD", index: 1, beatmapId: 4 },
+    ]);
+  });
+});
+
 describe("draftReducer set-bucket-mods", () => {
   it("sets and clears a custom slot's mods", () => {
     const withEz = draftReducer(EMPTY_DRAFT, { type: "add-bucket", code: "EZ", color: 0 });
