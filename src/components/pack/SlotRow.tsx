@@ -1,7 +1,10 @@
 /**
  * @file src/components/pack/SlotRow.tsx
  * @desc One pool slot as a kit MapCard row: slot pill, cover, title linked to osu! in a new tab,
- *       stars with mods and stats, the freemod line, Copy ID, and optional Move and Remove.
+ *       stars with mods and stats, the freemod line, Copy ID, and optional drag handle, move
+ *       buttons, Move (to another bucket) and Remove. The handle and move buttons only render
+ *       when `sortable` is given (read-only surfaces never pass it, so they keep rendering plain
+ *       rows with no drag affordance).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Mon Oct 5, 2026
@@ -10,12 +13,21 @@
 "use client";
 
 import { type SlotMods, slotTitle } from "@haruhimemoe/pool";
-import { Button, MapCard, Select, Text } from "@haruhimemoe/ui";
+import {
+  Button,
+  MapCard,
+  Select,
+  type Sortable,
+  SortableHandle,
+  SortableMoveButtons,
+  Text,
+} from "@haruhimemoe/ui";
 import { Fragment, useId, useState } from "react";
 import { NO_SLOT_VALUE } from "@/constants/mods";
 import type { MetaState } from "@/schemas/beatmap-meta";
 import type { BucketEntry, PoolSlot, SlotBucket } from "@/schemas/pack";
 import { slotBadgeValue } from "@/utils/slot-badge";
+import { bucketListId, slotItemId } from "@/utils/slot-sortable-ids";
 import { type ModdedRating, slotStars } from "@/utils/slot-stars";
 
 /** A bucket a map can move to: its value, label and whether it is full. */
@@ -32,6 +44,12 @@ type SlotRowProps = {
   slotMods?: SlotMods;
   /** Ratings with mods: absent while calculating, empty when they couldn't be calculated. */
   ratings?: readonly ModdedRating[];
+  /** Dragging this slot by its handle (mouse, touch or keyboard). Absent: no handle, no move
+   * buttons, matching how onRemove/onMove already render nothing when omitted. */
+  sortable?: Sortable;
+  /** This slot's place within its bucket's list (empty slots not counted). Ignored without
+   * `sortable`. */
+  position?: number;
 };
 
 const freemodLine = (entries: readonly string[]) => (
@@ -62,8 +80,11 @@ export function SlotRow({
   onMove,
   slotMods,
   ratings,
+  sortable,
+  position,
 }: SlotRowProps) {
   const title = slotTitle(slot);
+  const itemId = slotItemId(slot.beatmapId);
   // Pick, then press Move: a <select> fires change on arrow keys, so moving on change would
   // move the map to whatever a keyboard user arrows past.
   const [picked, setPicked] = useState("");
@@ -115,18 +136,34 @@ export function SlotRow({
   return (
     <MapCard
       as="li"
+      {...(sortable
+        ? sortable.item(itemId, {
+            container: bucketListId(slot.mod),
+            index: position ?? 0,
+            label: title,
+          })
+        : {})}
       beatmapId={slot.beatmapId}
       map={meta}
       state={state.status === "found" ? "ready" : state.status}
       message={state.status === "error" ? state.message : undefined}
       slot={slotBadgeValue(entry, slot.index)}
+      leading={sortable ? <SortableHandle sortable={sortable} id={itemId} /> : undefined}
       stars={stars?.stars}
       starsLabel={stars?.label}
       starsTitle={stars?.title}
       details={stars?.freemod ? freemodLine(stars.freemod) : undefined}
       actions={
-        move || onRemove ? (
+        sortable || move || onRemove ? (
           <>
+            {sortable ? (
+              <SortableMoveButtons
+                sortable={sortable}
+                id={itemId}
+                label={title}
+                variant="secondary"
+              />
+            ) : null}
             {move}
             {onRemove ? (
               <Button variant="ghost" onClick={onRemove} aria-label={`Remove ${title}`}>

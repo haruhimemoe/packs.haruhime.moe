@@ -1,13 +1,15 @@
 /**
  * @file tests/components/pack/SlotRow.test.tsx
- * @desc SlotRow in each metadata state, the optional remove control, and Copy ID (the map's
- *       beatmap ID for "!mp map").
+ * @desc SlotRow in each metadata state, the optional remove control, Copy ID (the map's
+ *       beatmap ID for "!mp map"), and the drag handle and move buttons it renders when given a
+ *       real `sortable`.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Mon Oct 5, 2026
  */
 
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
+import { useSortable } from "@haruhimemoe/ui";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
@@ -325,5 +327,50 @@ describe("SlotRow Copy ID", () => {
     inList(<SlotRow slot={SLOT} entry={null} state={found()} onRemove={() => {}} />);
     const group = screen.getByRole("button", { name: /^Remove / }).parentElement as HTMLElement;
     expect(group.className).toContain("@2xl:w-auto");
+  });
+});
+
+/** A tiny wrapper that owns a real useSortable() over three NM slots, the way PoolTable would. */
+function SortableHarness() {
+  const sortable = useSortable({ onMove: () => true });
+  const slots = [
+    { mod: "NM" as const, index: 1, beatmapId: 129891 },
+    { mod: "NM" as const, index: 2, beatmapId: 2 },
+    { mod: "NM" as const, index: 3, beatmapId: 3 },
+  ];
+  return (
+    <ul>
+      {slots.map((slot, position) => (
+        <SlotRow
+          key={slot.beatmapId}
+          slot={slot}
+          entry={{ code: "NM" }}
+          state={found()}
+          sortable={sortable}
+          position={position}
+        />
+      ))}
+    </ul>
+  );
+}
+
+describe("SlotRow drag handle and move buttons", () => {
+  it("renders a handle and move buttons when sortable is given", () => {
+    render(<SortableHarness />);
+    expect(screen.getByRole("button", { name: "Reorder NM1" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Move NM2 up" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Move NM2 down" })).toBeEnabled();
+  });
+
+  it("disables Move up at the top and Move down at the bottom of the group", () => {
+    render(<SortableHarness />);
+    expect(screen.getByRole("button", { name: "Move NM1 up" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Move NM3 down" })).toBeDisabled();
+  });
+
+  it("renders neither a handle nor move buttons when sortable is omitted", () => {
+    inList(<SlotRow slot={SLOT} entry={{ code: "NM" }} state={found()} />);
+    expect(screen.queryByRole("button", { name: /^Reorder/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Move NM1 (up|down)$/ })).not.toBeInTheDocument();
   });
 });
