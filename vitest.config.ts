@@ -4,7 +4,7 @@
  *       shared path aliases, v8 coverage with a 90% floor on src/utils.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import path from "node:path";
@@ -24,6 +24,9 @@ export default defineConfig({
     },
   },
   test: {
+    // ui's CommandPalette imports next/navigation.js: inlined, so tests' next/navigation mocks
+    // apply to it too (otherwise Vitest treats the package as external and skips the mock).
+    server: { deps: { inline: ["@haruhimemoe/ui"] } },
     coverage: {
       provider: "v8",
       include: ["src/**"],

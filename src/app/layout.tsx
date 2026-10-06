@@ -1,10 +1,11 @@
 /**
  * @file src/app/layout.tsx
- * @desc Root layout: Nunito font variable, site metadata, dark osu!-web body, and the library
+ * @desc Root layout: Nunito font variable, site metadata, dark osu!-web body, the mounted
+ *       command palette (AppPalette; its Ctrl K/Cmd K hotkey is page-global), and the library
  *       PageShell frame around the packs header and footer.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { siteMetadata } from "@haruhimemoe/next-kit/seo";
@@ -12,6 +13,7 @@ import { PageShell } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import type { ReactNode } from "react";
+import { AppPalette } from "@/components/layout/AppPalette";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { SEO_SITE } from "@/constants/seo";
@@ -32,6 +34,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={nunito.variable}>
       <body className="bg-b5 font-sans text-c2 antialiased">
+        <AppPalette />
         <PageShell header={<Header />} footer={<Footer />}>
           {children}
         </PageShell>

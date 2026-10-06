@@ -4,7 +4,7 @@
  *       header, the page inside the #main landmark, and the packs footer, in that order.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Sat Oct 3, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { within } from "@testing-library/react";
@@ -13,6 +13,13 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("next/font/google", () => ({ Nunito: () => ({ variable: "font-nunito" }) }));
 vi.mock("@/lib/account", () => ({ useAccount: () => ({ status: "signed-out" }) }));
+
+// AppPalette mounts ui's CommandPalette, which reads the router; it imports the ".js" specifier.
+const { navigation } = vi.hoisted(() => ({
+  navigation: () => ({ useRouter: () => ({ push: vi.fn() }), usePathname: () => "/" }),
+}));
+vi.mock("next/navigation", navigation);
+vi.mock("next/navigation.js", navigation);
 
 const { default: RootLayout } = await import("@/app/layout");
 
