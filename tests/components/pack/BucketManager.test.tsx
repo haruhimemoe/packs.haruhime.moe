@@ -4,7 +4,7 @@
  *       recolor, and delete only when empty.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
@@ -75,12 +75,10 @@ describe("BucketManager", () => {
     expect(onMove).toHaveBeenCalledWith("EZ", 0);
   });
 
-  it("names the move buttons Up and Down", () => {
+  it("names the move buttons Move {slot} up/down (chevron icons, no visible text)", () => {
     setup();
-    expect(within(row("EZ")).getByRole("button", { name: "Move EZ up" })).toHaveTextContent("Up");
-    expect(within(row("EZ")).getByRole("button", { name: "Move EZ down" })).toHaveTextContent(
-      "Down",
-    );
+    expect(within(row("EZ")).getByRole("button", { name: "Move EZ up" })).toBeEnabled();
+    expect(within(row("EZ")).getByRole("button", { name: "Move EZ down" })).toBeEnabled();
   });
 
   it("adds a slot with the next free color, explaining bad codes", async () => {

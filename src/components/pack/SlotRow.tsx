@@ -162,6 +162,7 @@ export function SlotRow({
                 id={itemId}
                 label={title}
                 variant="secondary"
+                orientation="vertical"
               />
             ) : null}
             {move}
