@@ -1,8 +1,10 @@
 /**
  * @file src/components/pack/PoolTable.tsx
  * @desc Pool grouped by bucket: no-slot maps first, then the pack's buckets in order, one labelled
- *       section per non-empty group. Editable pools add Remove and "Move to" per row. Only the row
- *       whose ID was copied last says Copied.: one MapCopyScope around the groups.
+ *       section per non-empty group. Editable pools add Remove and "Move to" per row; passing
+ *       `onReorder` also wires up drag-and-drop reordering within a group (handle, move buttons,
+ *       and pointer/touch/keyboard drag via a single shared useSortable, one SortableLayer).
+ *       Only the row whose ID was copied last says Copied.: one MapCopyScope around the groups.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
  * @modified Mon Oct 5, 2026
@@ -22,12 +24,21 @@ import {
   slotModsSummary,
   sortSlots,
 } from "@haruhimemoe/pool";
-import { EmptyState, MapCopyScope, MapGroup } from "@haruhimemoe/ui";
+import {
+  EmptyState,
+  MapCopyScope,
+  MapGroup,
+  SORTABLE_CONTAINER,
+  SortableLayer,
+  type SortableMove,
+  useSortable,
+} from "@haruhimemoe/ui";
 import { type MoveTarget, SlotRow } from "@/components/pack/SlotRow";
 import { NO_SLOT_VALUE } from "@/constants/mods";
 import type { ModdedStarRatings } from "@/hooks/useModdedStarRatings";
 import type { MetaState } from "@/schemas/beatmap-meta";
 import { type BucketEntry, type PoolSlot, type SlotBucket, slotKey } from "@/schemas/pack";
+import { beatmapIdOfItem, bucketListId } from "@/utils/slot-sortable-ids";
 
 type PoolTableProps = {
   slots: readonly PoolSlot[];
@@ -35,6 +46,10 @@ type PoolTableProps = {
   getState: (beatmapId: number) => MetaState;
   onRemove?: (slot: PoolSlot) => void;
   onMove?: (slot: PoolSlot, to: SlotBucket) => void;
+  /** Reorders `slot` to 0-based position `to` within its own group. Given: PoolTable wires up
+   * drag-and-drop (handle, move buttons, pointer/touch/keyboard drag). Omitted: read-only, the
+   * surface this table already renders on `/p/[slug]` and in change history. */
+  onReorder?: (slot: PoolSlot, to: number) => void;
   /** slotKey -> mods, from usePoolStarRatings. */
   modsBySlot?: ReadonlyMap<string, SlotMods>;
   /** slotKey -> ratings with mods, from usePoolStarRatings. */
@@ -52,9 +67,22 @@ export function PoolTable({
   getState,
   onRemove,
   onMove,
+  onReorder,
   modsBySlot,
   ratings,
 }: PoolTableProps) {
+  const sortableHook = useSortable({
+    onMove: (move: SortableMove) => {
+      const beatmapId = beatmapIdOfItem(move.id);
+      const slot = beatmapId === null ? undefined : slots.find((s) => s.beatmapId === beatmapId);
+      if (!slot || move.to.container !== move.from.container) return false;
+      onReorder?.(slot, move.to.index);
+      return true;
+    },
+    canDrop: (move) => move.to.container === move.from.container,
+  });
+  const sortable = onReorder ? sortableHook : undefined;
+
   if (slots.length === 0) {
     return (
       <EmptyState variant="filled">
@@ -81,6 +109,7 @@ export function PoolTable({
 
   return (
     <MapCopyScope>
+      {sortable ? <SortableLayer sortable={sortable} /> : null}
       <div className="flex flex-col gap-6">
         {groups.map(({ key, entry }) => {
           const code = entry?.code ?? null;
@@ -98,8 +127,12 @@ export function PoolTable({
               }
               list="ul"
               copyScope={false}
+              {...(sortable
+                ? sortable.container(bucketListId(code), { label: bucketName(entry) })
+                : {})}
+              className={sortable ? SORTABLE_CONTAINER : undefined}
             >
-              {inGroup.map((slot) => (
+              {inGroup.map((slot, position) => (
                 <SlotRow
                   key={slotKey(slot)}
                   slot={slot}
@@ -110,6 +143,8 @@ export function PoolTable({
                   onMove={onMove ? (to) => onMove(slot, to) : undefined}
                   slotMods={modsBySlot?.get(slotKey(slot))}
                   ratings={ratings?.get(slotKey(slot))}
+                  sortable={sortable}
+                  position={position}
                 />
               ))}
             </MapGroup>

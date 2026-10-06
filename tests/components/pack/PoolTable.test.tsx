@@ -197,3 +197,46 @@ describe("PoolTable", () => {
     expect(within(region).getByTitle("5.00★ without mods")).toHaveTextContent("4.50");
   });
 });
+
+describe("PoolTable drag and drop", () => {
+  const threeNm = [
+    { mod: "NM" as const, index: 1, beatmapId: 1 },
+    { mod: "NM" as const, index: 2, beatmapId: 2 },
+    { mod: "NM" as const, index: 3, beatmapId: 3 },
+    { mod: "HD" as const, index: 1, beatmapId: 4 },
+  ];
+
+  it("drags a map to the top of its bucket by keyboard and calls onReorder", async () => {
+    const onReorder = vi.fn();
+    render(<PoolTable slots={threeNm} getState={loading} onReorder={onReorder} />);
+    const user = userEvent.setup();
+    screen.getByRole("button", { name: "Reorder NM3" }).focus();
+    await user.keyboard(" ");
+    await user.keyboard("{Home}");
+    expect(document.querySelector('[aria-live="assertive"]')).toHaveTextContent(
+      "NM3: position 1 of 3 in No Mod.",
+    );
+    await user.keyboard("{Enter}");
+    expect(onReorder).toHaveBeenCalledWith({ mod: "NM", index: 3, beatmapId: 3 }, 0);
+  });
+
+  it("refuses a keyboard move into a different bucket's region", async () => {
+    const onReorder = vi.fn();
+    render(<PoolTable slots={threeNm} getState={loading} onReorder={onReorder} />);
+    const user = userEvent.setup();
+    screen.getByRole("button", { name: "Reorder NM1" }).focus();
+    await user.keyboard(" ");
+    await user.keyboard("{PageDown}");
+    await user.keyboard("{Enter}");
+    expect(document.querySelector('[aria-live="assertive"]')?.textContent).toMatch(
+      /can't go there/i,
+    );
+    expect(onReorder).not.toHaveBeenCalled();
+  });
+
+  it("renders no handle or move buttons anywhere without onReorder", () => {
+    render(<PoolTable slots={threeNm} getState={loading} />);
+    expect(screen.queryByRole("button", { name: /^Reorder/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Move NM1 (up|down)$/ })).not.toBeInTheDocument();
+  });
+});

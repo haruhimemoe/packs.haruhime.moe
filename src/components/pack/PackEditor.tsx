@@ -149,6 +149,9 @@ export function PackEditor({ pack, dispatch, ready, meta }: PackEditorProps) {
           onMove={(slot, to) =>
             dispatch({ type: "move-slot", mod: slot.mod, index: slot.index, to })
           }
+          onReorder={(slot, to) =>
+            dispatch({ type: "reorder-slot", mod: slot.mod, beatmapId: slot.beatmapId, to })
+          }
         />
       </section>
     </>

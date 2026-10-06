@@ -7,7 +7,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { bucketListId, slotItemId } from "@/utils/slot-sortable-ids";
+import { beatmapIdOfItem, bucketListId, slotItemId } from "@/utils/slot-sortable-ids";
 
 describe("bucketListId", () => {
   it("prefixes a bucket's code", () => {
@@ -22,5 +22,16 @@ describe("bucketListId", () => {
 describe("slotItemId", () => {
   it("prefixes a map's beatmap id", () => {
     expect(slotItemId(42)).toBe("m:42");
+  });
+});
+
+describe("beatmapIdOfItem", () => {
+  it("reads the beatmap id back out of a slot item id", () => {
+    expect(beatmapIdOfItem(slotItemId(42))).toBe(42);
+  });
+
+  it("is null for anything that isn't one of its own ids", () => {
+    expect(beatmapIdOfItem("b:NM")).toBeNull();
+    expect(beatmapIdOfItem("m:abc")).toBeNull();
   });
 });
