@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- White text on primary buttons and the skip link meets 4.5:1 contrast on the orange theme (`--h2-l: 41%`; it was 3.99:1 at hue 30).
+
 ### Removed
 
 - `/api/auth/*`, packs' own `user`, `account`, `session` and `verification` collections and their indexes (the identity migration moves their rows to the hub), and the per-IP sign-in counter.

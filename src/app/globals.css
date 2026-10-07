@@ -11,7 +11,9 @@
 @import "tailwindcss";
 @import "@haruhimemoe/ui/theme.css";
 
-/* packs is orange. Pinned here so a new library default can't recolor the site. */
+/* packs is orange. Pinned here so a new library default can't recolor the site. At hue 30 white
+   text on h2 needs h2 at 41% lightness for 4.5:1 (the ui README). */
 :root {
   --hue: 30;
+  --h2-l: 41%;
 }
