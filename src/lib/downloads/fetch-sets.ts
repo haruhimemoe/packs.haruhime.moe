@@ -1,7 +1,7 @@
 /**
  * @file src/lib/downloads/fetch-sets.ts
  * @desc Gets every beatmapset in a pool as a Blob: OPFS cache first, then an availability check and
- *       a download from the hinai mirror (@haruhimemoe/hinai), 4 at a time, retrying what the
+ *       a download from the hinai mirror (@haruhimemoe/mirror/hinai), 4 at a time, retrying what the
  *       mirror client calls retryable (429, 5xx, timeouts, network) with backoff (honoring
  *       Retry-After). Follows the download options: the video variant has its own URL and
  *       cache name, and with backgrounds off they're removed in the browser after the cache read and
@@ -12,8 +12,8 @@
  * @modified Mon Sep 28, 2026
  */
 
-import type { HinaiClient } from "@haruhimemoe/hinai";
-import { backoffDelayMs, HinaiError } from "@haruhimemoe/hinai";
+import type { HinaiClient } from "@haruhimemoe/mirror/hinai";
+import { backoffDelayMs, HinaiError } from "@haruhimemoe/mirror/hinai";
 import { mirror, mirrorErrorText } from "@/lib/mirror";
 import { type OszCache, oszCache } from "@/lib/storage/osz-cache";
 import { DEFAULT_DOWNLOAD_CHOICES, type DownloadChoices } from "@/schemas/download-choices";

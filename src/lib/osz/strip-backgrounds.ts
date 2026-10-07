@@ -11,7 +11,7 @@
  * @modified Mon Sep 28, 2026
  */
 
-import { OSZ_MIME } from "@haruhimemoe/hinai";
+import { OSZ_MIME } from "@haruhimemoe/mirror/hinai";
 import { inflateSync } from "fflate";
 import {
   type LocalEntry,

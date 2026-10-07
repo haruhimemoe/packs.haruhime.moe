@@ -7,7 +7,7 @@
  * @modified Mon Sep 28, 2026
  */
 
-import { fakeOsz } from "@haruhimemoe/hinai/testing";
+import { fakeOsz } from "@haruhimemoe/mirror/testing";
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
 import { strFromU8, unzipSync } from "fflate";
 import { afterEach, describe, expect, it, vi } from "vitest";

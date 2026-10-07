@@ -7,7 +7,7 @@
  * @modified Mon Sep 28, 2026
  */
 
-import { createHinaiClient, type HinaiClient, HinaiError } from "@haruhimemoe/hinai";
+import { createHinaiClient, type HinaiClient, HinaiError } from "@haruhimemoe/mirror/hinai";
 
 /** One client for the app. Browsers send no User-Agent (it would force a CORS preflight). */
 export const mirror: HinaiClient = createHinaiClient();

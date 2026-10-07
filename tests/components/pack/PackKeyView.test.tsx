@@ -9,7 +9,7 @@
  */
 
 import "fake-indexeddb/auto";
-import { HINAI_BATCH_URL, hinaiBatchHandler } from "@haruhimemoe/hinai/testing";
+import { HINAI_BATCH_URL, hinaiBatchHandler } from "@haruhimemoe/mirror/testing";
 import { encodePackKey } from "@haruhimemoe/pool";
 import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";

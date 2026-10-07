@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- The hinai client now comes from `@haruhimemoe/mirror` 0.1.0 (`/hinai` and `/testing`) instead of `@haruhimemoe/hinai`, which is deprecated and `@haruhimemoe/osu` moves from 0.3.0 to 0.4.0, the version mirror needs. No change in behavior.
 - Sign-in moves to the shared haruhime.moe account. packs no longer runs better-auth or its own osu! sign-in: it reads the hub's session (on `.haruhime.moe`) from the `identity` database with `@haruhimemoe/next-kit` 0.12.1's `createSessionReader`, read-only. `/signin` sends you straight to osu! through haruhime.moe and back. Sign out stays on packs (`POST /api/signout` ends the hub session and clears the shared cookies). Sessions and deleting the account are on haruhime.moe/account, linked from `/me`. Banned haruhime accounts read as signed out, and their API keys stop working.
 - `/me` is your packs settings: "Delete account" is now "Delete my packs data" (API key, saved packs and their history), at most 3 times an hour. It no longer deletes the account itself. "Download my data" no longer lists sessions or the osu! link (they're haruhime.moe's).
 - The signed-in marker is the shared `haruhime-signed-in` cookie, set by the hub. `packs-signed-in` is gone.

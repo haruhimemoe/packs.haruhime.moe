@@ -1,6 +1,6 @@
 /**
  * @file src/lib/beatmaps/lookup.ts
- * @desc Browser beatmap lookup: the hinai mirror (@haruhimemoe/hinai) first, then our /api/osu/beatmaps fallback for
+ * @desc Browser beatmap lookup: the hinai mirror (@haruhimemoe/mirror/hinai) first, then our /api/osu/beatmaps fallback for
  *       ids the mirror doesn't know. The fallback is best-effort: if it fails those ids simply
  *       stay "missing". Ids osu! couldn't check yet (its budget spent, or our route's per-IP
  *       limit hit) come back "unchecked", never missing, so the page can ask again.
@@ -9,7 +9,7 @@
  * @modified Wed Sep 23, 2026
  */
 
-import type { BeatmapLookup } from "@haruhimemoe/hinai";
+import type { BeatmapLookup } from "@haruhimemoe/mirror/hinai";
 import { type BeatmapMeta, beatmapMetaSchema } from "@haruhimemoe/osu/shapes";
 import { z } from "zod";
 import { mirror } from "@/lib/mirror";

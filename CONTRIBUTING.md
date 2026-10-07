@@ -47,7 +47,7 @@ There are no releases: Vercel deploys every push to `main` to packs.haruhime.moe
 - `tests/components/`: React components in jsdom.
 - `tests/integration/`: route handlers and services against an in-memory MongoDB (mongodb-memory-server). The first run downloads the MongoDB binary.
 
-Tests never hit the network: HTTP is mocked with msw, using the mirror's recorded answers from `@haruhimemoe/hinai/testing` and our own recorded fixtures in `tests/fixtures/`.
+Tests never hit the network: HTTP is mocked with msw, using the mirror's recorded answers from `@haruhimemoe/mirror/testing` and our own recorded fixtures in `tests/fixtures/`.
 
 ## Scripts
 

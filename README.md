@@ -34,7 +34,7 @@ Next.js 16 (App Router), React 19, TypeScript 7, Tailwind CSS v4 and MDX, on Bun
 packs uses these shared haruhime.moe packages:
 
 - [`@haruhimemoe/pool`](https://www.npmjs.com/package/@haruhimemoe/pool): the mappool shape, slot and mod rules, pasted-pool parsing, and the pack key codec.
-- [`@haruhimemoe/hinai`](https://www.npmjs.com/package/@haruhimemoe/hinai): the client for the hinai beatmap mirror (metadata and `.osz` downloads).
+- [`@haruhimemoe/mirror`](https://www.npmjs.com/package/@haruhimemoe/mirror): the client for the hinai beatmap mirror (metadata and `.osz` downloads).
 - [`@haruhimemoe/osu`](https://www.npmjs.com/package/@haruhimemoe/osu): osu! API v2 shapes, the osu! sign-in settings, the server client we use for maps the mirror doesn't have, star ratings with mods and pack stats, and the collection.db reader and writer behind "Add to osu! collection".
 - [`@haruhimemoe/ui`](https://www.npmjs.com/package/@haruhimemoe/ui): the theme and colors the site uses, buttons, cards, form fields, pagination, and the site header, footer and page frame.
 - [`@haruhimemoe/next-kit`](https://www.npmjs.com/package/@haruhimemoe/next-kit): the server plumbing packs shares with pools.haruhime.moe: JSON errors and body parsing, rate limits and the osu! API budget in MongoDB, the haruhime.moe session reader, env checks, the database client, the test helpers, version history (the `vcs` module), and the page titles, robots.txt, sitemap, structured data and llms.txt format shared by every haruhime.moe site.

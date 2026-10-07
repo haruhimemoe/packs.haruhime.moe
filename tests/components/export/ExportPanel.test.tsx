@@ -9,7 +9,7 @@
  * @modified Sun Oct 4, 2026
  */
 
-import { HinaiError } from "@haruhimemoe/hinai";
+import { HinaiError } from "@haruhimemoe/mirror/hinai";
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";

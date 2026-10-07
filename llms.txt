@@ -29,7 +29,7 @@
 ## Elsewhere
 
 - [@haruhimemoe/pool](https://github.com/haruhimemoe/pool): the mappool shape, mod rules, pasted-pool parsing and the pack key codec packs uses
-- [@haruhimemoe/hinai](https://github.com/haruhimemoe/hinai): the client for the hinai beatmap mirror
+- [@haruhimemoe/mirror](https://github.com/haruhimemoe/mirror): the client for the hinai beatmap mirror
 - [@haruhimemoe/osu](https://github.com/haruhimemoe/osu): osu! API v2 shapes, the server client, and the collection.db reader and writer behind "Add to osu! collection"
 - [@haruhimemoe/ui](https://github.com/haruhimemoe/ui): the React components and theme the site is built from
 - [@haruhimemoe/next-kit](https://github.com/haruhimemoe/next-kit): the server plumbing and the SEO helpers (metadata, robots.txt, sitemap, JSON-LD, llms.txt) packs shares with the other haruhime.moe sites

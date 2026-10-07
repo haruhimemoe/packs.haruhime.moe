@@ -8,7 +8,7 @@
  * @modified Mon Sep 28, 2026
  */
 
-import { HINAI_BATCH_URL } from "@haruhimemoe/hinai/testing";
+import { HINAI_BATCH_URL } from "@haruhimemoe/mirror/testing";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, beforeEach } from "vitest";

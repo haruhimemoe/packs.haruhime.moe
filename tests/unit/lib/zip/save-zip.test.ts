@@ -6,7 +6,7 @@
  * @modified Mon Sep 28, 2026
  */
 
-import { fakeOsz } from "@haruhimemoe/hinai/testing";
+import { fakeOsz } from "@haruhimemoe/mirror/testing";
 import { unzipSync } from "fflate";
 import { describe, expect, it, vi } from "vitest";
 import { saveZip } from "@/lib/zip/save-zip";

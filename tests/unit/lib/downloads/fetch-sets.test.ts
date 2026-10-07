@@ -8,13 +8,13 @@
  * @modified Mon Sep 28, 2026
  */
 
-import { HinaiError } from "@haruhimemoe/hinai";
+import { HinaiError } from "@haruhimemoe/mirror/hinai";
 import {
   fakeOsz,
   HINAI_AVAILABILITY_URL,
   HINAI_DOWNLOAD_URL,
   hinaiUnknownSetHandler,
-} from "@haruhimemoe/hinai/testing";
+} from "@haruhimemoe/mirror/testing";
 import { unzipSync } from "fflate";
 import { HttpResponse, http } from "msw";
 import { describe, expect, it, vi } from "vitest";

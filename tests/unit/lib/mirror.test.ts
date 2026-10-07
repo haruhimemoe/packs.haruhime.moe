@@ -7,7 +7,7 @@
  * @modified Mon Sep 28, 2026
  */
 
-import { HinaiError } from "@haruhimemoe/hinai";
+import { HinaiError } from "@haruhimemoe/mirror/hinai";
 import { describe, expect, it } from "vitest";
 import { mirrorErrorText } from "@/lib/mirror";
 

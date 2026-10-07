@@ -1,6 +1,6 @@
 /**
  * @file tests/helpers/hinai-server.ts
- * @desc MSW server for the pack pages: the hinai mirror as @haruhimemoe/hinai/testing answers it
+ * @desc MSW server for the pack pages: the hinai mirror as @haruhimemoe/mirror/testing answers it
  *       (the recorded batch, availability and fake downloads), plus our own osu! fallback and
  *       star-ratings routes, which know nothing extra in component tests.
  * @author David @dvhsh (https://dvh.sh)
@@ -8,7 +8,7 @@
  * @modified Mon Sep 28, 2026
  */
 
-import { hinaiBatchHandler, hinaiDownloadHandlers } from "@haruhimemoe/hinai/testing";
+import { hinaiBatchHandler, hinaiDownloadHandlers } from "@haruhimemoe/mirror/testing";
 import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { HttpResponse, http } from "msw";
 import type { SetupServer } from "msw/node";
