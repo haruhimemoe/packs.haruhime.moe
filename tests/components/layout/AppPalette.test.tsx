@@ -5,7 +5,7 @@
  *       signed in, and offers Sign in while signed out.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Oct 5, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import type { Account } from "@haruhimemoe/next-kit/auth-react";
@@ -24,16 +24,14 @@ vi.mock("next/navigation", navigation);
 // ui's CommandPalette imports the ".js" specifier.
 vi.mock("next/navigation.js", navigation);
 
-const { account, signOut, markSignedOut } = vi.hoisted(() => ({
+const { account, signOut } = vi.hoisted(() => ({
   account: { current: { status: "signed-out" } as Account },
-  signOut: vi.fn().mockResolvedValue(undefined),
-  markSignedOut: vi.fn(),
+  signOut: vi.fn(async () => undefined),
 }));
 vi.mock("@/lib/account", () => ({
   useAccount: () => account.current,
-  markSignedOut,
+  signOut,
 }));
-vi.mock("@/lib/auth-client", () => ({ authClient: { signOut } }));
 vi.mock("@/lib/palette-packs", () => ({
   createPacksProvider: () => ({ id: "packs", search: async () => [] }),
 }));
@@ -43,7 +41,6 @@ const { AppPalette } = await import("@/components/layout/AppPalette");
 beforeEach(() => {
   push.mockClear();
   signOut.mockClear();
-  markSignedOut.mockClear();
   account.current = { status: "signed-out" };
   localStorage.clear();
 });
@@ -91,7 +88,7 @@ describe("AppPalette", () => {
     expect(screen.queryByRole("option", { name: "Sign in" })).not.toBeInTheDocument();
   });
 
-  it("signs out, marks signed out, and navigates home when Sign out runs", async () => {
+  it("signs out in place when Sign out runs", async () => {
     account.current = {
       status: "signed-in",
       user: { id: "u1", username: "peppy", avatarUrl: null },
@@ -101,8 +98,7 @@ describe("AppPalette", () => {
     await user.keyboard("{Control>}k{/Control}");
     await user.click(screen.getByRole("option", { name: /^Sign out/ }));
     expect(signOut).toHaveBeenCalled();
-    expect(markSignedOut).toHaveBeenCalled();
-    expect(push).toHaveBeenCalledWith("/");
+    expect(push).not.toHaveBeenCalled();
   });
 
   it("navigates to /new when New pack runs", async () => {

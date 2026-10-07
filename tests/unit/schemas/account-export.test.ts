@@ -4,7 +4,7 @@
  *       so a secret added to a stored record upstream never reaches the downloaded file.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Wed Sep 23, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -22,10 +22,6 @@ const valid = {
     country: "AU",
     createdAt: AT,
   },
-  accounts: [
-    { provider: "osu", accountId: "2", scope: "identify public", createdAt: AT, updatedAt: AT },
-  ],
-  sessions: [{ createdAt: AT, expiresAt: AT, ipAddress: "203.0.113.7", userAgent: null }],
   packs: [],
   apiKey: null,
 };
@@ -39,24 +35,13 @@ describe("accountExportSchema", () => {
     const parsed = accountExportSchema.parse({
       ...valid,
       user: { ...valid.user, email: "2@osu.local", emailVerified: false },
-      sessions: [{ ...valid.sessions[0], token: "session-secret" }],
+      sessions: [{ token: "session-secret" }],
       accessToken: "osu-secret",
     });
     const text = JSON.stringify(parsed);
     for (const secret of ["2@osu.local", "session-secret", "osu-secret", "emailVerified"]) {
       expect(text).not.toContain(secret);
     }
-  });
-
-  it("keeps the linked osu! account record without its tokens", () => {
-    const [account] = valid.accounts;
-    const parsed = accountExportSchema.parse({
-      ...valid,
-      accounts: [
-        { ...account, accessToken: "osu-access", refreshToken: "osu-refresh", idToken: "osu-id" },
-      ],
-    });
-    expect(parsed.accounts).toEqual([account]);
   });
 
   it("rejects a user without an osu! id", () => {

@@ -5,16 +5,15 @@
  *       share one set of visibility rules.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import "server-only";
-import { ObjectId } from "mongodb";
 import { API_PAGE_SIZE, UNKNOWN_OWNER_NAME } from "@/constants/api";
-import { connectedDb } from "@/lib/db";
 import type { ApiPack, ApiPackPage } from "@/schemas/api";
 import type { SavedPack } from "@/schemas/saved-pack";
 import type { ApiCaller } from "@/services/api-keys";
+import { findOwners, ownerOf } from "@/services/owners";
 import { getPackWithOwner, listSavedPackPage } from "@/services/pack-reads";
 import { packKeyOf } from "@/services/pack-records";
 import { listPublicPacksFull } from "@/services/public-packs";
@@ -31,12 +30,8 @@ export const toApiPack = (pack: SavedPack, ownerName: string): ApiPack => ({
   ownerName,
 });
 
-const usernameOf = async (userId: string): Promise<string> => {
-  const user = await (await connectedDb())
-    .collection("user")
-    .findOne({ _id: new ObjectId(userId) }, { projection: { username: 1 } });
-  return typeof user?.username === "string" ? user.username : UNKNOWN_OWNER_NAME;
-};
+const usernameOf = async (userId: string): Promise<string> =>
+  ownerOf(await findOwners([userId]), userId)?.username ?? UNKNOWN_OWNER_NAME;
 
 /**
  * @function getApiPack

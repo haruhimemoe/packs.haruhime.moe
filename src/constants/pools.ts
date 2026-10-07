@@ -1,15 +1,16 @@
 /**
  * @file src/constants/pools.ts
  * @desc pools.haruhime.moe publishes tournament pools as packs: the haruhime pools account
- *       that owns them. A users record with `system: true` and no linked osu! account, so nobody
- *       can sign in as it (src/lib/auth.ts refuses its sessions too). Its id is fixed, so two
- *       first syncs at once make one record, and queries can name it without a lookup. Also a
+ *       that owns them. A system account (SYSTEM_USER_IDS in src/constants/db.ts): no user row in
+ *       packs or in the hub's identity database, just a fixed id its packs carry as ownerId, and
+ *       the name and avatar below that lists show. Nobody can sign in or use an API key as it
+ *       (src/lib/auth.ts, src/services/api-keys.ts refuse it). Also a
  *       pools pool id's shape, the origin kind, where tombstones and hide markers live, the
  *       rate-limit subject pools' saves and the stats backfill spend osu! calls under, and where
  *       that backfill writes down the rating pairs it tried.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { SITE } from "@/constants/site";

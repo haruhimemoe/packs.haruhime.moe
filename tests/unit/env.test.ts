@@ -1,12 +1,13 @@
 /**
  * @file tests/unit/env.test.ts
  * @desc packs' env wiring over @haruhimemoe/next-kit/env (parsing, placeholders and the production
- *       rule are the package's own tests): the five server variables, ADMIN_OSU_IDS read on every
+ *       rule are the package's own tests): the four server variables (no BETTER_AUTH_URL: sign-in
+ *       runs on the hub), HUB_URL, ADMIN_OSU_IDS read on every
  *       call, CRON_SECRET and POOLS_SERVICE_TOKEN kept out of the server env, MONGODB_URI read
  *       alone, and the placeholder guard.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { EnvError } from "@haruhimemoe/next-kit/env";
@@ -17,6 +18,7 @@ import {
   getAdminOsuIds,
   getCronSecret,
   getDatabaseUri,
+  getHubUrl,
   getPoolsServiceToken,
   parseServerEnv,
   SERVER_ENV_KEYS,
@@ -29,9 +31,10 @@ afterEach(() => {
 });
 
 describe("parseServerEnv", () => {
-  it("returns exactly the five server variables", () => {
-    expect(parseServerEnv({ ...TEST_OSU_APP_ENV, ADMIN_OSU_IDS: "2" })).toEqual(TEST_OSU_APP_ENV);
-    expect([...SERVER_ENV_KEYS].sort()).toEqual(Object.keys(TEST_OSU_APP_ENV).sort());
+  it("returns exactly the four server variables, without BETTER_AUTH_URL", () => {
+    const { BETTER_AUTH_URL: _, ...expected } = TEST_OSU_APP_ENV;
+    expect(parseServerEnv({ ...TEST_OSU_APP_ENV, ADMIN_OSU_IDS: "2" })).toEqual(expected);
+    expect([...SERVER_ENV_KEYS].sort()).toEqual(Object.keys(expected).sort());
   });
 
   it("names a missing variable without printing values", () => {
@@ -91,5 +94,16 @@ describe.each([
     expect(read()).toBeUndefined();
     vi.stubEnv(key, ` ${"x".repeat(minLength)}\n`);
     expect(read()).toBe("x".repeat(minLength));
+  });
+});
+
+describe("getHubUrl", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("defaults to www.haruhime.moe and reads HUB_URL on every call", () => {
+    vi.stubEnv("HUB_URL", "");
+    expect(getHubUrl()).toBe("https://www.haruhime.moe");
+    vi.stubEnv("HUB_URL", "https://hub.example.com");
+    expect(getHubUrl()).toBe("https://hub.example.com");
   });
 });

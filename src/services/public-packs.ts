@@ -2,8 +2,8 @@
  * @file src/services/public-packs.ts
  * @desc The public list (/packs) and its search index: public packs with no moderation flag,
  *       newest created first (an edit doesn't move a pack up; the browser can sort the index by
- *       last update), joined with the host's current osu! name from better-auth's "user"
- *       collection. Read by ISR pages, so each runs once per regeneration, not per visitor.
+ *       last update), joined with the host's current osu! name (src/services/owners.ts: the
+ *       hub's identity users, or a system account's own name). Read by ISR pages, so each runs once per regeneration, not per visitor.
  *       CI builds (SKIP_ENV_VALIDATION) get empty results instead of a database. The API's page
  *       (listPublicPacksFull) lists full pack objects, most recently updated first, and keeps a
  *       pack whose owner has no username or no record (as UNKNOWN_OWNER_NAME), so its total is
@@ -12,7 +12,7 @@
  *       order.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import "server-only";
@@ -30,6 +30,7 @@ import {
   searchIndexSchema,
 } from "@/schemas/public-pack";
 import type { SavedPack } from "@/schemas/saved-pack";
+import { findOwners, ownerOf } from "@/services/owners";
 import {
   connectedPackModel,
   type PackRecord,
@@ -43,7 +44,8 @@ import { excerpt } from "@/utils/text";
 /** On /packs: public and not hidden (`hiddenAt: null` also matches a missing field). */
 const LISTED = { visibility: "public", hiddenAt: null };
 
-type ListedRow = {
+type CardRow = {
+  ownerId: unknown;
   slug: string;
   name: string;
   description?: string | null;
@@ -51,16 +53,16 @@ type ListedRow = {
   createdAt: Date;
   updatedAt: Date;
   stats?: PackRecord["stats"];
-  owner: { username: string; avatarUrl?: string | null };
 };
 
-/** Host and card fields. Packs whose owner record is gone drop out at $unwind. */
+type ListedRow = CardRow & { owner: { username: string; avatarUrl?: string | null } };
+
+/** Card fields; the host is joined after (withOwners). */
 const cardStages: PipelineStage[] = [
-  { $lookup: { from: "user", localField: "ownerId", foreignField: "_id", as: "owner" } },
-  { $unwind: "$owner" },
   {
     $project: {
       _id: 0,
+      ownerId: 1,
       slug: 1,
       name: 1,
       description: 1,
@@ -68,10 +70,23 @@ const cardStages: PipelineStage[] = [
       updatedAt: 1,
       stats: 1,
       slotCount: { $size: "$slots" },
-      owner: { username: "$owner.username", avatarUrl: "$owner.avatarUrl" },
     },
   },
 ];
+
+/**
+ * @function withOwners
+ * @param rows {CardRow[]} card rows
+ * @returns {Promise<ListedRow[]>} the rows with their host's name and avatar; packs whose owner
+ *          is gone (or has no username) drop out
+ */
+const withOwners = async (rows: CardRow[]): Promise<ListedRow[]> => {
+  const owners = await findOwners(rows.map((row) => row.ownerId));
+  return rows.flatMap((row) => {
+    const owner = ownerOf(owners, row.ownerId);
+    return owner ? [{ ...row, owner }] : [];
+  });
+};
 
 /** Newest created first. */
 const listedStages = (skip: number, limit: number): PipelineStage[] => [
@@ -117,8 +132,8 @@ export const listPublicPacks = async (page: number): Promise<PublicPackPage> => 
   const pageCount = Math.max(1, Math.ceil(total / PUBLIC_PAGE_SIZE));
   // Past the end: the page 404s anyway, so skip the (large-$skip) aggregate.
   if (page > pageCount) return { packs: [], page, pageCount, total };
-  const rows = await model.aggregate<ListedRow>(
-    listedStages((page - 1) * PUBLIC_PAGE_SIZE, PUBLIC_PAGE_SIZE),
+  const rows = await withOwners(
+    await model.aggregate<CardRow>(listedStages((page - 1) * PUBLIC_PAGE_SIZE, PUBLIC_PAGE_SIZE)),
   );
   return { packs: rows.map(toCard), page, pageCount, total };
 };
@@ -132,12 +147,14 @@ export const listPublicPacks = async (page: number): Promise<PublicPackPage> => 
 export const listPinnedPacks = async (): Promise<PublicPackCard[]> => {
   if (isEnvValidationSkipped()) return [];
   const model = await connectedPackModel();
-  const rows = await model.aggregate<ListedRow>([
-    { $match: { ...PINNED, ...LISTED } },
-    { $sort: PIN_SORT },
-    { $limit: MAX_PINNED_PACKS },
-    ...cardStages,
-  ]);
+  const rows = await withOwners(
+    await model.aggregate<CardRow>([
+      { $match: { ...PINNED, ...LISTED } },
+      { $sort: PIN_SORT },
+      { $limit: MAX_PINNED_PACKS },
+      ...cardStages,
+    ]),
+  );
   return rows.map(toCard);
 };
 
@@ -153,7 +170,7 @@ export const buildSearchIndex = async ({
 } = {}): Promise<SearchIndex> => {
   if (isEnvValidationSkipped()) return { v: 1, packs: [] };
   const model = await connectedPackModel();
-  const rows = await model.aggregate<ListedRow>(listedStages(0, limit));
+  const rows = await withOwners(await model.aggregate<CardRow>(listedStages(0, limit)));
   return searchIndexSchema.parse({
     v: 1,
     packs: rows.map((row) => ({
@@ -190,28 +207,18 @@ export const listPublicPacksFull = async (
   const total = await model.collection.countDocuments(LISTED);
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
   if (page > pageCount) return { packs: [], page, pageCount, total };
-  const rows = await model.aggregate<PackRecord & { ownerName: string }>([
+  const rows = await model.aggregate<PackRecord & { ownerId: unknown }>([
     { $match: LISTED },
     { $sort: { updatedAt: -1, _id: -1 } },
     { $skip: (page - 1) * pageSize },
     { $limit: pageSize },
-    { $lookup: { from: "user", localField: "ownerId", foreignField: "_id", as: "owner" } },
-    { $unwind: { path: "$owner", preserveNullAndEmptyArrays: true } },
-    {
-      $addFields: {
-        ownerName: {
-          $cond: [
-            { $eq: [{ $type: "$owner.username" }, "string"] },
-            "$owner.username",
-            UNKNOWN_OWNER_NAME,
-          ],
-        },
-      },
-    },
-    { $project: { owner: 0 } },
   ]);
+  const owners = await findOwners(rows.map((row) => row.ownerId));
   return {
-    packs: rows.map((row) => ({ pack: toSavedPack(row), ownerName: row.ownerName })),
+    packs: rows.map((row) => ({
+      pack: toSavedPack(row),
+      ownerName: ownerOf(owners, row.ownerId)?.username ?? UNKNOWN_OWNER_NAME,
+    })),
     page,
     pageCount,
     total,

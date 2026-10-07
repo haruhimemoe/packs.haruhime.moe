@@ -9,7 +9,7 @@
  *       page data, index, the owner's packs, sitemap). The mirror and osu! are MSW.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { ObjectId } from "mongodb";
@@ -163,7 +163,8 @@ describe("PUT /api/service/pools/{ref}: answers", () => {
       visibility: "public",
       origin: { kind: "pools", id: REF },
     });
-    expect(await getDb().collection("user").countDocuments({ email: POOLS_ACCOUNT.email })).toBe(1);
+    // A system account: no user row anywhere, only its fixed id on the pack.
+    expect(await getDb().collection("user").countDocuments({})).toBe(0);
   });
 
   it("says an unlisted pack isn't listed", async () => {

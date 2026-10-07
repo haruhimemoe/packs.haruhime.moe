@@ -4,14 +4,15 @@ This policy explains what packs.haruhime.moe collects, why, and what stays on yo
 
 ## What we store
 
-Only if you sign in with osu!:
+Sign-in happens on [haruhime.moe](https://www.haruhime.moe), the account every haruhime tool shares. It stores your osu! user ID, username, avatar URL, and country, a record linking your account to osu! (never your osu! tokens), and the sessions that keep you signed in, with the IP address and browser User-Agent each one started from. haruhime.moe's own privacy page covers them. packs only reads that account and session to know who you are, and writes nothing to it.
 
-- your osu! user ID, username, avatar URL, and country, which osu! sends us when you sign in, and a record linking your account to osu! (never your osu! tokens);
-- session records that keep you signed in. Our sign-in library stores the IP address and browser User-Agent you signed in from with each one;
+Only if you sign in, packs itself stores:
+
 - packs you choose to save: the pack name, description, beatmap IDs, slot layout, visibility, and any magnet links you choose to record on a pack (we keep only the torrent's fingerprint, name, size, and our own tracker list).
 - every saved version of a pack (its name, description, beatmap IDs and slot layout, with who saved it and when), kept until the pack is deleted. Only you see it unless you turn on "Anyone who can see the pack" for that pack's history.
 - If you create an API key: a SHA-256 hash of it (never the key itself), its first 12 characters so you can recognize it, when you created it, and when it was last used (updated at most once an hour).
 - If you save or change packs (magnet links included), use the API, or create a key: short-lived request counters, by account, to enforce rate limits. They're deleted automatically within about two minutes, or about an hour for key creation.
+- If you delete your packs data: a counter of deletions, by osu! user ID, deleted automatically within about an hour.
 - If you set a pack to Public, it's listed on the public packs page with your osu! username and avatar.
 
 If you don't sign in, we don't keep an account or any profile about you. If you send a request to the API without a valid key, we keep your IP address in a short-lived counter (about 2 minutes) to stop key guessing. Our host (Vercel) keeps standard request logs, such as IP address and browser type, for security and operations.
@@ -20,12 +21,10 @@ If you don't sign in, we don't keep an account or any profile about you. If you 
 
 Every place packs uses your IP address:
 
-- **Sign-in sessions.** Our sign-in library stores the IP address you signed in from with each session, as listed above.
+- **Sign-in sessions.** haruhime.moe stores the IP address you signed in from with each session, as listed above. packs never stores it.
 - **osu! lookups.** While you build or view a pack, signed in or not, your browser asks our server for star ratings with mods (`/api/osu/star-ratings`) and for maps the mirror doesn't have (`/api/osu/beatmaps`). Our server counts these requests per IP address in short-lived counters, so one visitor can't use up the site's osu! API quota. When you save a pack, on the site or through the API, our server looks up its maps to work out the pack's stats, and any osu! calls it makes for that count against your IP address's share too. The counters are deleted automatically within about two minutes.
 - **API requests without a valid key.** Counted per IP address for about 2 minutes, to stop key guessing.
 - **Requests to our pools service without its token.** Only pools.haruhime.moe has the token for the endpoints it publishes packs through. A request to them without the token is counted per IP address for about 2 minutes, and an address that keeps failing is told to slow down.
-- **Starting a sign-in.** Each time you press Sign in with osu!, our server counts it per IP address in a short-lived counter, so nobody can flood the database with unfinished sign-ins. The counters are deleted automatically within about two minutes.
-- **Sign-in rate limits.** Our sign-in library limits requests to its sign-in, sign-out and session endpoints per IP address. It keeps these counts in server memory only: they're never written to the database, they expire after about 10 seconds, and they're gone when the server instance restarts.
 - **Our host's request logs.** Vercel keeps standard request logs, including your IP address.
 
 Every counter groups an IPv6 address by its /64 network, so the addresses in one network share a counter. Our server never forwards your IP address to osu!: the osu! API sees only our server.
@@ -36,11 +35,12 @@ Every counter groups an IPv6 address by its /64 network, so the addresses in one
 
 ## Cookies
 
-We set these cookies, all our own:
+packs sets no cookies of its own. It reads two that haruhime.moe sets on `.haruhime.moe` when you sign in there:
 
-- **The session cookie** keeps you signed in. It's HttpOnly, so page scripts can't read it. It's only set when you sign in.
-- **`packs-signed-in`** tells the page to check whether you're signed in. Page scripts can read it, and it holds no personal data, only the value `1`.
-- **A sign-in cookie** connects osu!'s reply to your browser while you sign in. It lasts at most 5 minutes and is deleted once you're signed in.
+- **The session cookie** keeps you signed in. It's HttpOnly, so page scripts can't read it.
+- **`haruhime-signed-in`** tells the page to check whether you're signed in. Page scripts can read it, and it holds no personal data.
+
+Signing out on packs asks haruhime.moe to end the session and clears both cookies.
 
 We use no tracking or advertising cookies, so there's no cookie banner.
 
@@ -72,7 +72,7 @@ The [GDPR & CCPA page](/legal/your-privacy-rights) has a table of each kind of d
 
 ## Getting or deleting your data
 
-**Download my data** on your account page gives you a copy of everything we hold about your account, as a JSON file. **Delete account** on the same page deletes your user record, sessions, linked osu! account record, API key, and every pack you saved, along with its saved history. You can also email us to ask for a copy or for deletion.
+**Download my data** on your [packs settings page](/me) gives you a copy of everything packs holds about you, as a JSON file. **Delete my packs data** on the same page deletes your API key and every pack you saved, along with its saved history. Your haruhime account itself (your user record, sessions, and linked osu! account record) is deleted on [haruhime.moe/account](https://www.haruhime.moe/account); delete your packs data first if you want it gone too. You can also email us to ask for a copy or for deletion.
 
 <Changes />
 

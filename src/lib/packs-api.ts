@@ -5,7 +5,7 @@
  *       can show it as-is.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import type { PackInputBody } from "@haruhimemoe/pool/service";
@@ -53,7 +53,7 @@ type PacksApiOptions = {
 /**
  * @function createPacksApi
  * @param options {PacksApiOptions} base URL and fetch (tests)
- * @returns {{ get; create; update; remove; deleteAccount; createApiKey; revokeApiKey; setHidden; adminRemove; pin; unpin; reorderPins; fillPackStats; addMagnet; removeMagnet; adminRemoveMagnet }}
+ * @returns {{ get; create; update; remove; deletePacksData; createApiKey; revokeApiKey; setHidden; adminRemove; pin; unpin; reorderPins; fillPackStats; addMagnet; removeMagnet; adminRemoveMagnet }}
  */
 export const createPacksApi = ({
   baseUrl = "",
@@ -117,8 +117,8 @@ export const createPacksApi = ({
         body: JSON.stringify({ historyPublic }),
       });
     },
-    /** @function deleteAccount @returns {Promise<void>} */
-    deleteAccount: async (): Promise<void> => {
+    /** @function deletePacksData @returns {Promise<void>} */
+    deletePacksData: async (): Promise<void> => {
       await request("/api/me", { method: "DELETE" });
     },
     /** @function createApiKey @returns {Promise<ApiKeyCreated>} a new key (shown once); replaces the old one */

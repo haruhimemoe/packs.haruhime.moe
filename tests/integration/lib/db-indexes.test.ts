@@ -1,15 +1,14 @@
 /**
  * @file tests/integration/lib/db-indexes.test.ts
  * @desc Indexes connectDb builds (PACKS_INDEX_SPECS, through next-kit's ensureIndexes): every
- *       one exists, the session TTL (and proof that better-auth stores expiresAt as a Date, which
- *       a TTL index needs), the TTLs on cached star ratings, rate-limit counters, the pools
- *       backfill's record of tried pairs and sign-in state rows, and one hide marker per pool.
+ *       one exists, the TTLs on cached star ratings, rate-limit counters and the pools backfill's
+ *       record of tried pairs, and one hide marker per pool; and nothing in the hub's identity
+ *       database, which packs' Atlas user can't write.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Tue Oct 6, 2026
  */
 
-import { AUTH_INDEXES } from "@haruhimemoe/next-kit/auth";
 import { indexName } from "@haruhimemoe/next-kit/mongo";
 import { describe, expect, it } from "vitest";
 import { PACK_REVISIONS_COLLECTION } from "@/constants/pack";
@@ -20,9 +19,8 @@ import {
   STAR_RATINGS_TTL_INDEX,
   STAR_RATINGS_TTL_SECONDS,
 } from "@/constants/star-ratings";
-import { connectDb, getDb } from "@/lib/db";
+import { connectDb, getDb, getIdentityDb } from "@/lib/db";
 import { PACKS_INDEX_SPECS } from "@/lib/db-indexes";
-import { createTestUser } from "../../helpers/auth";
 import { setupTestDb } from "../../helpers/db";
 
 setupTestDb();
@@ -36,18 +34,17 @@ describe("PACKS_INDEX_SPECS", () => {
     }
   });
 
-  it("connectDb leaves a TTL index on session.expiresAt that expires rows at expiresAt", async () => {
+  it("builds nothing in identity, and no better-auth collections in packs", async () => {
     await connectDb();
-    const indexes = await getDb().collection("session").indexes();
-    const ttl = indexes.find((index) => index.name === AUTH_INDEXES.sessionTtl);
-    expect(ttl?.key).toEqual({ expiresAt: 1 });
-    expect(ttl?.expireAfterSeconds).toBe(0);
-  });
-
-  it("better-auth stores session.expiresAt as a Date, so the TTL index applies", async () => {
-    await createTestUser();
-    const row = await getDb().collection("session").findOne({});
-    expect(row?.expiresAt).toBeInstanceOf(Date);
+    // The test helpers write identity rows the way the hub would; packs builds no index there.
+    for (const { name } of await getIdentityDb().listCollections().toArray()) {
+      const indexes = await getIdentityDb().collection(name).indexes();
+      expect(indexes.map((index) => index.name)).toEqual(["_id_"]);
+    }
+    const packs = (await getDb().listCollections().toArray()).map((c) => c.name);
+    for (const name of ["user", "account", "session", "verification"]) {
+      expect(packs).not.toContain(name);
+    }
   });
 
   it("expires cached star ratings 30 days after they were fetched", async () => {
@@ -89,13 +86,6 @@ describe("PACKS_INDEX_SPECS", () => {
     await connectDb();
     expect(await getDb().collection(PACK_REVISIONS_COLLECTION).indexes()).toContainEqual(
       expect.objectContaining({ key: { docId: 1, seq: -1 }, unique: true }),
-    );
-  });
-
-  it("expires sign-in state rows (verification) at expiresAt", async () => {
-    await connectDb();
-    expect(await getDb().collection("verification").indexes()).toContainEqual(
-      expect.objectContaining({ key: { expiresAt: 1 }, expireAfterSeconds: 0 }),
     );
   });
 });

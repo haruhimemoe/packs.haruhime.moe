@@ -297,7 +297,7 @@ describe("SavedPackView", () => {
       pin: vi.fn(),
       unpin: vi.fn(),
     };
-    render(<SavedPackView pack={pack} api={api} readCookie={() => "packs-signed-in=1"} />);
+    render(<SavedPackView pack={pack} api={api} readCookie={() => "haruhime-signed-in=1"} />);
     await user.click(await screen.findByRole("button", { name: "Remove magnet link abababab" }));
     await user.click(screen.getByRole("button", { name: "Yes, remove" }));
     expect(api.adminRemoveMagnet).toHaveBeenCalledWith("abcdefghij", MAGNET);
@@ -321,7 +321,7 @@ describe("SavedPackView", () => {
       pin: vi.fn(),
       unpin: vi.fn(),
     };
-    render(<SavedPackView pack={pack} api={api} readCookie={() => "packs-signed-in=1"} />);
+    render(<SavedPackView pack={pack} api={api} readCookie={() => "haruhime-signed-in=1"} />);
     await waitFor(() => expect(api.get).toHaveBeenCalled());
     expect(
       await screen.findByRole("link", { name: "Open magnet link abababab" }),
@@ -345,7 +345,7 @@ describe("SavedPackView", () => {
       pin: vi.fn(async () => [PIN]),
       unpin: vi.fn(async () => []),
     });
-    const signedIn = () => "packs-signed-in=1";
+    const signedIn = () => "haruhime-signed-in=1";
 
     it("lets an admin pin a public pack to the top of /packs", async () => {
       const user = userEvent.setup();
@@ -437,7 +437,7 @@ describe("SavedPackView", () => {
     expect(api.get).not.toHaveBeenCalled();
     expect(screen.queryByRole("link", { name: "Edit" })).not.toBeInTheDocument();
     unmount();
-    render(<SavedPackView pack={PACK} api={api} readCookie={() => "packs-signed-in=1"} />);
+    render(<SavedPackView pack={PACK} api={api} readCookie={() => "haruhime-signed-in=1"} />);
     expect(await screen.findByRole("link", { name: "Edit" })).toHaveAttribute(
       "href",
       "/p/abcdefghij/edit",

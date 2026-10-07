@@ -1,10 +1,12 @@
 /**
  * @file tests/integration/app/api/me.test.ts
- * @desc DELETE /api/me removes the user, their sessions, osu! account link, API key, and packs,
- *       and nothing that belongs to anyone else. The key goes before the packs.
+ * @desc DELETE /api/me removes the caller's packs data (API key, packs, their history) and
+ *       nothing that belongs to anyone else, leaves the haruhime account and session alone (still
+ *       signed in), counts deletions per osu! account, and refuses other sites. The key goes
+ *       before the packs.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { ObjectId } from "mongodb";
@@ -14,7 +16,7 @@ import { POST } from "@/app/api/packs/route";
 import { RATE_LIMITS } from "@/constants/api";
 import { RATE_LIMITS_COLLECTION } from "@/constants/star-ratings";
 import { getUserFromHeaders } from "@/lib/auth";
-import { getDb } from "@/lib/db";
+import { getDb, getIdentityDb } from "@/lib/db";
 import { packRevisions } from "@/lib/pack-revisions";
 import { limiter } from "@/lib/rate-limit";
 import { getPackModel } from "@/models/Pack";
@@ -34,8 +36,9 @@ describe("DELETE /api/me", () => {
     expect((await DELETE(apiRequest("/api/me", { method: "DELETE" }))).status).toBe(401);
   });
 
-  it("refuses a request from another origin and keeps the account", async () => {
+  it("refuses a request from another origin and keeps the packs", async () => {
     const user = await createTestUser();
+    await POST(apiRequest("/api/packs", { method: "POST", body: PACK, cookie: user.cookie }));
     const response = await DELETE(
       apiRequest("/api/me", {
         method: "DELETE",
@@ -44,24 +47,16 @@ describe("DELETE /api/me", () => {
       }),
     );
     expect(response.status).toBe(403);
-    expect(
-      await getDb()
-        .collection("user")
-        .countDocuments({ _id: new ObjectId(user.id) }),
-    ).toBe(1);
+    expect(await getPackModel().countDocuments({ ownerId: new ObjectId(user.id) })).toBe(1);
   });
 
-  it("deletes the account and everything it owns, and nothing else", async () => {
+  it("deletes the packs data and nothing else, and leaves the haruhime account", async () => {
     const leaving = await createTestUser();
     const staying = await createTestUser();
     for (const user of [leaving, leaving, staying]) {
       await POST(apiRequest("/api/packs", { method: "POST", body: PACK, cookie: user.cookie }));
     }
     const id = new ObjectId(leaving.id);
-    // Preconditions: better-auth stores userId as an ObjectId, so the deletes below can match.
-    expect(await getDb().collection("user").countDocuments({ _id: id })).toBe(1);
-    expect(await getDb().collection("session").countDocuments({ userId: id })).toBe(1);
-    expect(await getDb().collection("account").countDocuments({ userId: id })).toBe(1);
     expect(await getPackModel().countDocuments({ ownerId: id })).toBe(2);
     const slugs = (await getPackModel().find({ ownerId: id }, { slug: 1 }).lean()).map(
       (doc) => doc.slug,
@@ -75,22 +70,25 @@ describe("DELETE /api/me", () => {
 
     for (const slug of slugs) expect(await packRevisions.head(slug)).toBeNull();
     expect(await getPackModel().countDocuments({ ownerId: id })).toBe(0);
-    expect(await getDb().collection("user").countDocuments({ _id: id })).toBe(0);
-    expect(await getDb().collection("session").countDocuments({ userId: id })).toBe(0);
-    expect(await getDb().collection("account").countDocuments({ userId: id })).toBe(0);
-    expect(await getUserFromHeaders(new Headers({ cookie: leaving.cookie }))).toBeNull();
+    // The haruhime account is the hub's: untouched, still signed in.
+    expect(await getIdentityDb().collection("user").countDocuments({ _id: id })).toBe(1);
+    expect(await getIdentityDb().collection("session").countDocuments({ userId: id })).toBe(1);
+    expect(await getUserFromHeaders(new Headers({ cookie: leaving.cookie }))).not.toBeNull();
 
     expect(await getPackModel().countDocuments({ ownerId: new ObjectId(staying.id) })).toBe(1);
     expect(await getUserFromHeaders(new Headers({ cookie: staying.cookie }))).not.toBeNull();
   });
 
-  it("answers 401 to a cookie whose account is already gone", async () => {
+  it("allows RATE_LIMITS.dataDelete deletions an hour per osu! account, then 429", async () => {
     const user = await createTestUser();
-    await DELETE(apiRequest("/api/me", { method: "DELETE", cookie: user.cookie }));
-    const again = await POST(
-      apiRequest("/api/packs", { method: "POST", body: PACK, cookie: user.cookie }),
-    );
-    expect(again.status).toBe(401);
+    for (let i = 0; i < RATE_LIMITS.dataDelete.limit; i++) {
+      const response = await DELETE(
+        apiRequest("/api/me", { method: "DELETE", cookie: user.cookie }),
+      );
+      expect(response.status).toBe(204);
+    }
+    const refused = await DELETE(apiRequest("/api/me", { method: "DELETE", cookie: user.cookie }));
+    expect(refused.status).toBe(429);
   });
 
   it("revokes the API key before deleting packs, so an API write can't slip in", async () => {
@@ -130,7 +128,10 @@ describe("DELETE /api/me", () => {
         .countDocuments({ userId: new ObjectId(leaving.id) }),
     ).toBe(0);
     // Before any key goes through the guard, which counts its own (per IP) hits.
-    const counters = await getDb().collection(RATE_LIMITS_COLLECTION).find().toArray();
+    // The deletion's own counter is keyed by osu! id, so deleting doesn't reset it.
+    const counters = (await getDb().collection(RATE_LIMITS_COLLECTION).find().toArray()).filter(
+      (doc) => !String(doc._id).startsWith(`${RATE_LIMITS.dataDelete.scope}:`),
+    );
     expect(counters.map((doc) => String(doc._id).split(":")[1])).toEqual([staying.id]);
     expect(await apiCaller(gone.key)).toBeNull();
     expect(await apiCaller(kept.key)).toMatchObject({ id: staying.id });

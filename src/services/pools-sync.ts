@@ -1,7 +1,8 @@
 /**
  * @file src/services/pools-sync.ts
  * @desc The packs pools.haruhime.moe publishes (PUT /api/service/pools/{ref}): one plain pack per
- *       pools pool, owned by the haruhime pools account and found by its origin (`{ kind: "pools",
+ *       pools pool, owned by the haruhime pools account (a system account under a fixed id, never a
+ *       haruhime.moe user) and found by its origin (`{ kind: "pools",
  *       id }`, never sent anywhere). The first sync creates the pack; later ones update it when
  *       the name, description, visibility or pack key changed (a moderator's hide stays) and leave
  *       it alone otherwise. A pool whose pack a moderator deleted has a tombstone in
@@ -17,7 +18,7 @@
  *       Every write marks the pack's page and every public list stale.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import "server-only";
@@ -44,7 +45,6 @@ import {
   toSavedPack,
 } from "@/services/pack-records";
 import { createPack, updatePack } from "@/services/packs";
-import { ensurePoolsAccount } from "@/services/pools-account";
 
 /** Who the pools account's own saves (creates, updates) are recorded as in pack history. */
 const POOLS_AUTHOR: RevisionAuthor = { id: POOLS_ACCOUNT.id, name: POOLS_ACCOUNT.name };
@@ -167,7 +167,8 @@ export const syncPoolsPack = async (
   { lookup = findByOrigin }: { lookup?: (ref: string) => Promise<PackRecord | null> } = {},
 ): Promise<PoolsSyncAnswer | null> => {
   if (await isTombstoned(ref)) return null;
-  const ownerId = await ensurePoolsAccount();
+  // A system account (SYSTEM_USER_IDS): no user row anywhere, only its fixed id.
+  const ownerId = POOLS_ACCOUNT.id;
   const existing = await lookup(ref);
   if (existing) {
     const applied = await applyTo(existing, ownerId, input, ref);

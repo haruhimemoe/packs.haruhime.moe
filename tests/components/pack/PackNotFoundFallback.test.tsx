@@ -4,7 +4,7 @@
  *       admin) in the browser, and never asks without the signed-in marker.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -48,7 +48,7 @@ describe("PackNotFoundFallback", () => {
       <PackNotFoundFallback
         slug="abcdefghij"
         api={api({ pack: PACK, isOwner: true })}
-        readCookie={() => "packs-signed-in=1"}
+        readCookie={() => "haruhime-signed-in=1"}
       />,
     );
     expect(
@@ -68,7 +68,7 @@ describe("PackNotFoundFallback", () => {
           pack: { ...PACK, visibility: "public", hiddenAt: "2026-09-22T12:00:00.000Z" },
           isOwner: true,
         })}
-        readCookie={() => "packs-signed-in=1"}
+        readCookie={() => "haruhime-signed-in=1"}
       />,
     );
     expect(await screen.findByText(/A moderator hid this pack/)).toBeInTheDocument();
@@ -89,7 +89,7 @@ describe("PackNotFoundFallback", () => {
           isOwner: false,
           isAdmin: true,
         })}
-        readCookie={() => "packs-signed-in=1"}
+        readCookie={() => "haruhime-signed-in=1"}
       />,
     );
     expect(
@@ -101,7 +101,11 @@ describe("PackNotFoundFallback", () => {
   it("still says not found to a signed-in stranger", async () => {
     const fake = api(null);
     render(
-      <PackNotFoundFallback slug="abcdefghij" api={fake} readCookie={() => "packs-signed-in=1"} />,
+      <PackNotFoundFallback
+        slug="abcdefghij"
+        api={fake}
+        readCookie={() => "haruhime-signed-in=1"}
+      />,
     );
     expect(
       await screen.findByRole("heading", { level: 1, name: "Pack not found" }),
@@ -114,7 +118,7 @@ describe("PackNotFoundFallback", () => {
       <PackNotFoundFallback
         slug="abcdefghij"
         api={api({ pack: PACK, isOwner: true })}
-        readCookie={() => "packs-signed-in=1"}
+        readCookie={() => "haruhime-signed-in=1"}
       />,
     );
     expect(html).toContain("Pack not found");
@@ -127,7 +131,7 @@ describe("PackNotFoundFallback", () => {
       <PackNotFoundFallback
         slug="abcdefghij"
         api={api({ pack: PACK, isOwner: true })}
-        readCookie={() => "packs-signed-in=1"}
+        readCookie={() => "haruhime-signed-in=1"}
       />,
     );
     await screen.findByRole("heading", { level: 1, name: "Secret Quals" });

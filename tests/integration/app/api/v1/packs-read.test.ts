@@ -15,12 +15,12 @@ import { GET as MY_PACKS } from "@/app/api/v1/me/packs/route";
 import { GET as ONE } from "@/app/api/v1/packs/[slug]/route";
 import { GET as LIST } from "@/app/api/v1/packs/route";
 import { API_PAGE_SIZE, UNKNOWN_OWNER_NAME } from "@/constants/api";
-import { getDb } from "@/lib/db";
+import { POOLS_ACCOUNT } from "@/constants/pools";
+import { getIdentityDb } from "@/lib/db";
 import { getPackModel } from "@/models/Pack";
 import { apiPackPageResponseSchema, apiPackResponseSchema } from "@/schemas/api";
 import { setPackHidden } from "@/services/moderation";
 import { createPack } from "@/services/packs";
-import { ensurePoolsAccount } from "@/services/pools-account";
 import { bearer, createTestApiKey, freezeTime } from "../../../../helpers/api-key";
 import { createTestUser } from "../../../../helpers/auth";
 import { setupTestDb } from "../../../../helpers/db";
@@ -92,7 +92,7 @@ describe("GET /api/v1/packs", () => {
     const reader = await createTestUser();
     const key = await createTestApiKey(reader.id);
     await createPack(nameless.id, { ...INPUT, name: "Nameless" });
-    await getDb()
+    await getIdentityDb()
       .collection("user")
       .updateOne({ _id: new ObjectId(nameless.id) }, { $unset: { username: "" } });
     await getPackModel().create({
@@ -194,7 +194,7 @@ describe("GET /api/v1/packs/{slug}", () => {
     const host = await createTestUser();
     const reader = await createTestUser();
     const { slug } = await createPack(host.id, INPUT);
-    await getDb()
+    await getIdentityDb()
       .collection("user")
       .updateOne({ _id: new ObjectId(host.id) }, { $unset: { username: "" } });
     const response = await one(await createTestApiKey(reader.id), slug);
@@ -214,7 +214,7 @@ describe("GET /api/v1/packs/{slug}", () => {
   it("reads a pack the system account owns like any other, with no archive field", async () => {
     const reader = await createTestUser();
     const key = await createTestApiKey(reader.id);
-    const poolsId = await ensurePoolsAccount();
+    const poolsId = POOLS_ACCOUNT.id;
     const { slug } = await createPack(poolsId, INPUT, { unlimited: true });
     await getPackModel().collection.updateOne(
       { slug },

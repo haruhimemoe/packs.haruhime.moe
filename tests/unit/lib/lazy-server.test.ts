@@ -4,7 +4,7 @@
  *       the db and auth modules must not throw; only using them does.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Sep 22, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -21,7 +21,7 @@ describe("server modules without env", () => {
     vi.resetModules();
     const db = await import("@/lib/db");
     const auth = await import("@/lib/auth");
-    expect(() => auth.getAuth()).toThrow(/Missing or invalid environment variables/);
+    expect(() => auth.getSessionReader()).toThrow(/Missing or invalid environment variables/);
     expect(() => db.getDb()).toThrow(/Missing or invalid environment variables/);
   });
 });

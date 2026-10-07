@@ -5,13 +5,12 @@
  *       nav (from NAV_LINKS), tools, GitHub, and Sign in when signed out; New pack, Paste pack
  *       key, and My packs (signed-in only); and a provider over public packs by name or owner.
  *       signedIn comes from the app's existing client-side session read (useAccount, asked once
- *       per page load), the same source AccountNav uses, so the root layout stays static. Sign
- *       out has no navigable route here (next-kit's SignOutButton calls better-auth directly, not
- *       a GET route), so the palette runs the same signOut-then-markSignedOut SignOutButton uses
- *       (mirroring pools' AppPalette), instead of duplicating /me's button.
+ *       per page load), the same source AccountNav uses, so the root layout stays static.
+ *       Sign out runs signOut (src/lib/account.ts): POST /api/signout ends the haruhime.moe
+ *       session and clears its shared cookies, then the page refreshes in place.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Oct 5, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 "use client";
@@ -19,8 +18,7 @@
 import { type Command, CommandPalette, siteCommands } from "@haruhimemoe/ui";
 import { useMemo } from "react";
 import { NAV_LINKS, SITE } from "@/constants/site";
-import { markSignedOut, useAccount } from "@/lib/account";
-import { authClient } from "@/lib/auth-client";
+import { signOut, useAccount } from "@/lib/account";
 import { createPacksProvider } from "@/lib/palette-packs";
 
 /** Packs-specific commands beyond siteCommands' defaults. */
@@ -44,7 +42,7 @@ const extras = (signedIn: boolean): Command[] => [
   {
     id: "packs.my-packs",
     title: "My packs",
-    subtitle: "Your saved packs, API key and account",
+    subtitle: "Your saved packs, API key and packs data",
     group: "Account",
     when: () => signedIn,
     run: (ctx) => ctx.navigate("/me"),
@@ -54,10 +52,8 @@ const extras = (signedIn: boolean): Command[] => [
     title: "Sign out",
     group: "Account",
     when: () => signedIn,
-    run: async (ctx) => {
-      await authClient.signOut();
-      markSignedOut();
-      ctx.navigate("/");
+    run: async () => {
+      await signOut();
     },
   },
 ];
