@@ -18,8 +18,11 @@ import { pageFromQuery } from "@/utils/paging";
  * @param request {Request} the incoming request
  * @returns {Promise<Response>} 200, 400, 401, 429
  */
-export const GET = withApiKey(async (request, caller) => {
-  const page = pageFromQuery(request.url);
-  if (page === null) return jsonError(400, BAD_PAGE);
-  return Response.json(await listOwnApiPacks(caller, page));
-});
+export const GET = withApiKey(
+  async (request, caller) => {
+    const page = pageFromQuery(request.url);
+    if (page === null) return jsonError(400, BAD_PAGE);
+    return Response.json(await listOwnApiPacks(caller, page));
+  },
+  { scope: "read" },
+);

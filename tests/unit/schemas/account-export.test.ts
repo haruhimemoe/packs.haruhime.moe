@@ -54,6 +54,7 @@ describe("accountExportSchema", () => {
       prefix: "hpk_AbCdEfGh",
       createdAt: "2026-09-22T12:00:00.000Z",
       lastUsedAt: null,
+      scopes: ["*"],
     };
     const parsed = accountExportSchema.parse({ ...valid, apiKey: { ...apiKey, hash: "abc123" } });
     expect(parsed.apiKey).toEqual(apiKey);

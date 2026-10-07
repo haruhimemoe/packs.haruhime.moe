@@ -17,12 +17,14 @@ const INFO: ApiKeyInfo = {
   prefix: "hpk_AbCdEfGh",
   createdAt: "2026-09-20T10:00:00.000Z",
   lastUsedAt: null,
+  scopes: ["*"],
 };
 const NEW_KEY = `hpk_${"Z".repeat(43)}`;
 const NEW_INFO: ApiKeyInfo = {
   prefix: "hpk_ZZZZZZZZ",
   createdAt: "2026-09-22T12:00:00.000Z",
   lastUsedAt: null,
+  scopes: ["*"],
 };
 const created = () => vi.fn(async () => ({ key: NEW_KEY, apiKey: NEW_INFO }));
 

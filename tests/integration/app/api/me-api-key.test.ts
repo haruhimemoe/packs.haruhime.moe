@@ -59,6 +59,7 @@ describe("/api/me/api-key", () => {
       prefix: body.key.slice(0, 12),
       createdAt: "2026-09-22T12:00:10.000Z",
       lastUsedAt: null,
+      scopes: ["*"],
     });
 
     const text = await (await read(user.cookie)).text();

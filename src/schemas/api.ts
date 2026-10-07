@@ -22,6 +22,8 @@ export const apiKeyInfoSchema = z.object({
   prefix: z.string(),
   createdAt: z.string(),
   lastUsedAt: z.string().nullable(),
+  /** What the key may do (read, write); keys made before scopes read as ["*"]. */
+  scopes: z.array(z.string()),
 });
 
 export type ApiKeyInfo = z.infer<typeof apiKeyInfoSchema>;

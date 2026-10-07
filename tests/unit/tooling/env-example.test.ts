@@ -10,17 +10,26 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { CRON_SECRET_KEY, HUB_URL_KEY, POOLS_SERVICE_TOKEN_KEY, SERVER_ENV_KEYS } from "@/env";
+import {
+  ACCOUNT_FANOUT_SECRET_KEY,
+  CRON_SECRET_KEY,
+  HUB_URL_KEY,
+  POOLS_SERVICE_TOKEN_KEY,
+  SERVER_ENV_KEYS,
+} from "@/env";
 
 const text = readFileSync(path.join(process.cwd(), ".env.example"), "utf8");
 
 describe(".env.example", () => {
-  it.each([...SERVER_ENV_KEYS, CRON_SECRET_KEY, POOLS_SERVICE_TOKEN_KEY, HUB_URL_KEY])(
-    "documents %s",
-    (key) => {
-      expect(text).toMatch(new RegExp(`^${key}=`, "m"));
-    },
-  );
+  it.each([
+    ...SERVER_ENV_KEYS,
+    ACCOUNT_FANOUT_SECRET_KEY,
+    CRON_SECRET_KEY,
+    POOLS_SERVICE_TOKEN_KEY,
+    HUB_URL_KEY,
+  ])("documents %s", (key) => {
+    expect(text).toMatch(new RegExp(`^${key}=`, "m"));
+  });
 
   it.each([
     "MONGODB_URI",

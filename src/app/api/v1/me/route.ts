@@ -13,6 +13,8 @@ import { withApiKey } from "@/lib/api-auth";
  * @param request {Request} the incoming request
  * @returns {Promise<Response>} 200, 401, 429
  */
-export const GET = withApiKey(async (_request, caller) =>
-  Response.json({ user: { id: caller.id, osuId: caller.osuId, username: caller.username } }),
+export const GET = withApiKey(
+  async (_request, caller) =>
+    Response.json({ user: { id: caller.id, osuId: caller.osuId, username: caller.username } }),
+  { scope: "read" },
 );

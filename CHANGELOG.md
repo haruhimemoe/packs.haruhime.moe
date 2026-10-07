@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- `POST /api/internal/account/export` and `/delete` for the haruhime.moe hub's account export and delete (next-kit's `createAccountHandlers`), behind `ACCOUNT_FANOUT_SECRET` (the hub's `ACCOUNT_SECRET_PACKS`). Unset, both answer 503.
 - Pack history: every save of a saved pack is kept, with a page listing each version and what changed, map links included. Off by default; a pack's owner can make its history visible to anyone who can see the pack. Deleting a pack or your account deletes its history too.
 
 ### Fixed
@@ -24,6 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- API keys carry scopes: `read` for GET, `write` for POST, PUT and DELETE on `/api/v1`. A key without the scope gets 403 `insufficient_scope`. Every existing and new key has `["*"]`, so nothing changes for callers yet. @haruhimemoe/next-kit 0.15.0.
 - The hinai client now comes from `@haruhimemoe/mirror` 0.1.0 (`/hinai` and `/testing`) instead of `@haruhimemoe/hinai`, which is deprecated and `@haruhimemoe/osu` moves from 0.3.0 to 0.4.0, the version mirror needs. No change in behavior.
 - Sign-in moves to the shared haruhime.moe account. packs no longer runs better-auth or its own osu! sign-in: it reads the hub's session (on `.haruhime.moe`) from the `identity` database with `@haruhimemoe/next-kit` 0.12.1's `createSessionReader`, read-only. `/signin` sends you straight to osu! through haruhime.moe and back. Sign out stays on packs (`POST /api/signout` ends the hub session and clears the shared cookies). Sessions and deleting the account are on haruhime.moe/account, linked from `/me`. Banned haruhime accounts read as signed out, and their API keys stop working.
 - `/me` is your packs settings: "Delete account" is now "Delete my packs data" (API key, saved packs and their history), at most 3 times an hour. It no longer deletes the account itself. "Download my data" no longer lists sessions or the osu! link (they're haruhime.moe's).

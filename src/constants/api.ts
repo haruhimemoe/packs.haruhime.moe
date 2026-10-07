@@ -13,6 +13,8 @@ import { API_LIMITS } from "@haruhimemoe/next-kit/api-keys";
 
 /** Can't be mistaken for a pack key (pk1.). */
 export const API_KEY_PREFIX = "hpk_";
+/** What a key may do: read (GET) and write (POST, PUT, DELETE). Keys made before scopes read as ["*"]. */
+export const API_KEY_SCOPES = ["read", "write"] as const;
 
 /** ownerName when the owner's record has no osu! username (or is gone). */
 export const UNKNOWN_OWNER_NAME = "Unknown player";

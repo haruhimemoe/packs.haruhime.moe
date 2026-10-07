@@ -24,6 +24,7 @@ import {
   optionalSecret,
   osuAppEnvSchema,
   readIdSet,
+  readOptional,
   readOrigin,
 } from "@haruhimemoe/next-kit/env";
 import type { z } from "zod";
@@ -125,3 +126,14 @@ export const DEFAULT_HUB_URL = "https://www.haruhime.moe";
  * @throws {EnvError} naming HUB_URL when it isn't an https origin (http only on localhost)
  */
 export const getHubUrl = (): string => readOrigin(HUB_URL_KEY, DEFAULT_HUB_URL);
+
+/** The hub's account fan-out secret for this app (its ACCOUNT_SECRET_PACKS). */
+export const ACCOUNT_FANOUT_SECRET_KEY = "ACCOUNT_FANOUT_SECRET";
+
+/**
+ * @function getAccountFanoutSecret
+ * @returns {string | undefined} ACCOUNT_FANOUT_SECRET read now; undefined when unset (the
+ *          /api/internal/account routes then answer 503 to every call)
+ */
+export const getAccountFanoutSecret = (): string | undefined =>
+  readOptional(ACCOUNT_FANOUT_SECRET_KEY);

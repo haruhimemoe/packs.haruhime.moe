@@ -23,12 +23,15 @@ type Context = { params: Promise<{ slug: string }> };
  * @param context {{ params }} the route segment
  * @returns {Promise<Response>} 200, 404
  */
-export const GET = withApiKey<Context>(async (_request, caller, { params }) => {
-  const { slug } = await params;
-  const pack = await getApiPack(slug, caller);
-  if (!pack) return jsonError(404, PACK_NOT_FOUND);
-  return Response.json({ pack });
-});
+export const GET = withApiKey<Context>(
+  async (_request, caller, { params }) => {
+    const { slug } = await params;
+    const pack = await getApiPack(slug, caller);
+    if (!pack) return jsonError(404, PACK_NOT_FOUND);
+    return Response.json({ pack });
+  },
+  { scope: "read" },
+);
 
 /**
  * @function PUT
@@ -36,17 +39,20 @@ export const GET = withApiKey<Context>(async (_request, caller, { params }) => {
  * @param context {{ params }} the route segment
  * @returns {Promise<Response>} 200, 400, 404, 413, 415
  */
-export const PUT = withApiKey<Context>(async (request, caller, { params }) => {
-  const { slug } = await params;
-  const body = await parsePackBody(request, packInputSchema);
-  if (!body.ok) return body.response;
-  const pack = await updatePack(slug, caller.id, body.data, {
-    subject: rateLimitSubject(clientIp(request.headers)),
-    author: { id: caller.id, name: caller.username },
-  });
-  if (!pack) return jsonError(404, PACK_NOT_FOUND);
-  return Response.json({ pack: toApiPack(pack, caller.username) });
-});
+export const PUT = withApiKey<Context>(
+  async (request, caller, { params }) => {
+    const { slug } = await params;
+    const body = await parsePackBody(request, packInputSchema);
+    if (!body.ok) return body.response;
+    const pack = await updatePack(slug, caller.id, body.data, {
+      subject: rateLimitSubject(clientIp(request.headers)),
+      author: { id: caller.id, name: caller.username },
+    });
+    if (!pack) return jsonError(404, PACK_NOT_FOUND);
+    return Response.json({ pack: toApiPack(pack, caller.username) });
+  },
+  { scope: "write" },
+);
 
 /**
  * @function DELETE
@@ -54,8 +60,11 @@ export const PUT = withApiKey<Context>(async (request, caller, { params }) => {
  * @param context {{ params }} the route segment
  * @returns {Promise<Response>} 204, 404
  */
-export const DELETE = withApiKey<Context>(async (_request, caller, { params }) => {
-  const { slug } = await params;
-  if (!(await deletePack(slug, caller.id))) return jsonError(404, PACK_NOT_FOUND);
-  return new Response(null, { status: 204 });
-});
+export const DELETE = withApiKey<Context>(
+  async (_request, caller, { params }) => {
+    const { slug } = await params;
+    if (!(await deletePack(slug, caller.id))) return jsonError(404, PACK_NOT_FOUND);
+    return new Response(null, { status: 204 });
+  },
+  { scope: "write" },
+);

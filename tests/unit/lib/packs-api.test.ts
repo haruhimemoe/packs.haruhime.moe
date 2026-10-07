@@ -283,7 +283,12 @@ describe("createPacksApi", () => {
 describe("API key client", () => {
   const CREATED = {
     key: `hpk_${"A".repeat(43)}`,
-    apiKey: { prefix: "hpk_AAAAAAAA", createdAt: "2026-09-22T12:00:00.000Z", lastUsedAt: null },
+    apiKey: {
+      prefix: "hpk_AAAAAAAA",
+      createdAt: "2026-09-22T12:00:00.000Z",
+      lastUsedAt: null,
+      scopes: ["*"],
+    },
   };
 
   it("creates a key", async () => {

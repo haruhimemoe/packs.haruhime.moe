@@ -37,6 +37,7 @@ describe("createApiKey", () => {
       prefix: apiKeyDisplay(key),
       createdAt: "2026-09-22T12:00:10.000Z",
       lastUsedAt: null,
+      scopes: ["*"],
     });
     const stored = await getDb()
       .collection("api_keys")
