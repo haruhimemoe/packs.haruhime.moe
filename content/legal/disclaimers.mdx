@@ -13,7 +13,7 @@ Not affiliated with or endorsed by ppy Pty Ltd. osu! is a trademark of ppy Pty L
 ## How our requests identify themselves
 
 - **Our server to the osu! API.** Our server calls the osu! API for maps the mirror doesn't have, for star ratings with mods, and to work out a saved pack's stats. Those requests send `User-Agent: packs.haruhime.moe (+https://packs.haruhime.moe; haruhime@haruhime.moe)`.
-- **Signing in.** Sign-in with osu! runs through our sign-in library, which talks to osu! with its own default headers.
+- **Signing in.** Sign-in with osu! runs on haruhime.moe, not on packs. Signing out on packs makes one request from our server to haruhime.moe, carrying only your session cookie.
 - **Your browser to the mirror.** Beatmap files and beatmap data go from the mirror to your browser. Browsers don't let a website set the User-Agent, so these requests carry your browser's own User-Agent, plus the `Origin` and `Referer` headers that name packs.haruhime.moe.
 - **Our server to the mirror.** To work out a saved pack's stats, and to list the maps on a saved pack's page, our server asks the mirror for the maps' details (never the beatmap files), with the same User-Agent.
 

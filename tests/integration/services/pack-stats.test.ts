@@ -10,7 +10,7 @@
  *       before and makes no account. The mirror and osu! are MSW.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import type { PackInput } from "@haruhimemoe/pool/service";
@@ -316,8 +316,8 @@ describe("runPackStatsJob and the pools account's packs", () => {
       waiting: 0,
     });
     expect((await storedStats(newerRetry))?.complete).toBe(true);
-    // Only the test user: the job never creates the pools account.
-    expect(await getDb().collection("user").countDocuments({})).toBe(1);
+    // The job never writes a user row (the pools account is a system account with none).
+    expect(await getDb().collection("user").countDocuments({})).toBe(0);
   });
 });
 

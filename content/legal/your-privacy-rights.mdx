@@ -17,34 +17,34 @@ The operator of packs.haruhime.moe is the controller of your personal data. Writ
   </thead>
   <tbody>
     <tr>
-      <td>Your osu! user ID, username, avatar URL, and country, and the record linking your account to osu! (never your osu! tokens)</td>
-      <td>Your account, and knowing which packs are yours</td>
+      <td>Your osu! user ID, username, avatar URL, and country, read from your haruhime.moe account</td>
+      <td>Knowing who you are and which packs are yours</td>
       <td>Contract</td>
-      <td>You delete your account</td>
+      <td>haruhime.moe keeps it until you delete your haruhime account there</td>
     </tr>
     <tr>
-      <td>Sign-in sessions, each with the IP address and browser User-Agent our sign-in library records when you sign in</td>
-      <td>Keeping you signed in, and spotting misuse of your account</td>
-      <td>Contract, and our legitimate interest in keeping accounts secure</td>
-      <td>About a week after your last signed-in visit, or right away when you sign out or delete your account</td>
+      <td>Sign-in sessions, each with the IP address and browser User-Agent you signed in from, kept by haruhime.moe (packs only reads the session)</td>
+      <td>Keeping you signed in</td>
+      <td>Contract</td>
+      <td>Up to haruhime.moe; signing out on packs ends the session</td>
     </tr>
     <tr>
       <td>Packs you save, with their name, description, maps, visibility, and magnet links</td>
       <td>The service you asked for</td>
       <td>Contract</td>
-      <td>You delete the pack or your account</td>
+      <td>You delete the pack or your packs data</td>
     </tr>
     <tr>
       <td>Every saved version of a pack, with who saved it and when</td>
       <td>Letting you see and keep a pack's history</td>
       <td>Contract</td>
-      <td>You delete the pack or your account</td>
+      <td>You delete the pack or your packs data</td>
     </tr>
     <tr>
       <td>Your API key, if you create one. We store only a hash of it, its first 12 characters, and when it was created and last used.</td>
       <td>Letting your scripts and bots use the packs API</td>
       <td>Contract</td>
-      <td>You revoke the key or delete your account</td>
+      <td>You revoke the key or delete your packs data</td>
     </tr>
     <tr>
       <td>Rate-limit counters, if you save or change packs, use the API, or create a key, keyed by your account, or by your IP address when a request to the API has no valid key or a request to our pools service has no valid token</td>
@@ -53,22 +53,16 @@ The operator of packs.haruhime.moe is the controller of your personal data. Writ
       <td>About 2 minutes, or about an hour for the key-creation counter</td>
     </tr>
     <tr>
+      <td>A counter of packs data deletions, keyed by your osu! user ID</td>
+      <td>Protecting the service from abuse</td>
+      <td>Our legitimate interest in preventing abuse</td>
+      <td>About an hour</td>
+    </tr>
+    <tr>
       <td>Rate-limit counters for osu! lookups (star ratings, maps the mirror doesn't have, and the lookups for a pack's stats when you save it), keyed by your IP address, signed in or not</td>
       <td>Keeping one visitor from using up the site's osu! API quota</td>
       <td>Our legitimate interest in preventing abuse</td>
       <td>About 2 minutes</td>
-    </tr>
-    <tr>
-      <td>Counters of sign-ins you start, keyed by your IP address</td>
-      <td>Stopping floods of unfinished sign-ins</td>
-      <td>Our legitimate interest in keeping the service available</td>
-      <td>About two minutes</td>
-    </tr>
-    <tr>
-      <td>Sign-in rate-limit counts, keyed by your IP address and kept in server memory only, never in the database</td>
-      <td>Protecting sign-in from abuse</td>
-      <td>Our legitimate interest in keeping accounts secure</td>
-      <td>About 10 seconds, or until the server instance restarts</td>
     </tr>
     <tr>
       <td>Request logs kept by our host, Vercel, such as IP address and browser type</td>
@@ -85,9 +79,9 @@ Every IP-keyed counter groups an IPv6 address by its /64 network. Our server nev
 
 ### How to use your GDPR rights
 
-- **Download my data** on your [account page](/me) gives you a JSON file with everything we hold about your account: your profile details, your linked osu! account record, your sessions, your saved packs, and your API key's prefix and dates.
-- **Delete account** on the same page deletes your account, your sessions, your API key, and every pack you saved.
-- Your name and avatar come from your osu! profile. Change them on osu!, and we copy the new ones the next time you sign in.
+- **Download my data** on your [packs settings page](/me) gives you a JSON file with everything packs holds about you: your profile details, your saved packs, and your API key's prefix and dates.
+- **Delete my packs data** on the same page deletes your API key and every pack you saved. Your haruhime account (your sessions and the osu! link) is deleted on [haruhime.moe/account](https://www.haruhime.moe/account).
+- Your name and avatar come from your osu! profile. Change them on osu!, and haruhime.moe picks up the new ones the next time you sign in.
 - For anything else, email [haruhime@haruhime.moe](mailto:haruhime@haruhime.moe). We answer within 30 days.
 
 ### More about the CCPA

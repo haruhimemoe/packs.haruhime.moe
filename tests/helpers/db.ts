@@ -1,19 +1,18 @@
 /**
  * @file tests/helpers/db.ts
  * @desc setupTestDb: @haruhimemoe/next-kit's, over packs' database and every collection packs
- *       writes (better-auth's included), emptied before each test and closed after the file.
+ *       writes, emptied before each test and closed after the file. The hub's identity users and
+ *       sessions (which tests/helpers/auth.ts writes, standing in for the hub) are emptied too.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Tue Oct 6, 2026
  */
 
-import {
-  BETTER_AUTH_COLLECTIONS,
-  setupTestDb as setupKitTestDb,
-} from "@haruhimemoe/next-kit/testing";
-import { closeDb, connectDb, getDb } from "@/lib/db";
+import { setupTestDb as setupKitTestDb } from "@haruhimemoe/next-kit/testing";
+import { beforeEach } from "vitest";
+import { closeDb, connectDb, getDb, getIdentityDb } from "@/lib/db";
 
-/** Our collections; better-auth's come from BETTER_AUTH_COLLECTIONS. */
+/** Every collection packs writes. */
 const COLLECTIONS = [
   "packs",
   "star_ratings",
@@ -25,14 +24,17 @@ const COLLECTIONS = [
   "pack_revisions",
 ];
 
+/** The identity collections the session reader reads. */
+const IDENTITY_COLLECTIONS = ["user", "session"];
+
 /**
  * @function setupTestDb
  * @returns {void} registers beforeEach (connect and clear) and afterAll (close) hooks
  */
-export const setupTestDb = (): void =>
-  setupKitTestDb({
-    connect: connectDb,
-    db: getDb,
-    close: closeDb,
-    collections: [...COLLECTIONS, ...BETTER_AUTH_COLLECTIONS],
+export const setupTestDb = (): void => {
+  setupKitTestDb({ connect: connectDb, db: getDb, close: closeDb, collections: COLLECTIONS });
+  beforeEach(async () => {
+    const identity = getIdentityDb();
+    await Promise.all(IDENTITY_COLLECTIONS.map((name) => identity.collection(name).deleteMany({})));
   });
+};

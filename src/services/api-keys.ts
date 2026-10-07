@@ -3,18 +3,20 @@
  * @desc API keys: one per user, via @haruhimemoe/next-kit's store (src/lib/api-keys.ts).
  *       resolveApiCaller is the user lookup the /api/v1 guard (src/lib/api-auth.ts) runs after the
  *       store matches a key; the guard is the only place a key is looked up. An admin's key skips
- *       the saved-pack cap but gets no moderation rights. A key never acts as a system account
- *       (haruhime pools).
+ *       the saved-pack cap but gets no moderation rights. The owner is read from the hub's
+ *       identity database (read-only). A key never acts as a banned user or a system account
+ *       (SYSTEM_USER_IDS, the haruhime pools account, or an identity row still marked `system`).
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import "server-only";
 import { ObjectId } from "mongodb";
 import { isAdminOsuId } from "@/lib/admin";
 import { apiKeys } from "@/lib/api-keys";
-import { getDb } from "@/lib/db";
+import { isSystemUserId } from "@/lib/auth";
+import { connectDb, getIdentityDb } from "@/lib/db";
 import type { ApiKeyCreated, ApiKeyInfo } from "@/schemas/api";
 
 /**
@@ -47,14 +49,19 @@ export const revokeApiKey = (userId: string): Promise<boolean> => apiKeys.revoke
 /**
  * @function resolveApiCaller
  * @param userId {string} a key's owner, from apiKeys.authenticate
- * @returns {Promise<ApiCaller | null>} the owner, or null when the user record is gone or is a
- *          system account
+ * @returns {Promise<ApiCaller | null>} the owner, or null when the user record is gone, banned
+ *          or a system account
  */
 export const resolveApiCaller = async (userId: string): Promise<ApiCaller | null> => {
-  const user = await getDb()
+  if (!ObjectId.isValid(userId) || isSystemUserId(userId)) return null;
+  await connectDb();
+  const user = await getIdentityDb()
     .collection("user")
-    .findOne({ _id: new ObjectId(userId) }, { projection: { osuId: 1, username: 1, system: 1 } });
-  if (!user || user.system === true) return null;
+    .findOne(
+      { _id: new ObjectId(userId) },
+      { projection: { osuId: 1, username: 1, system: 1, bannedAt: 1 } },
+    );
+  if (!user || user.system === true || user.bannedAt) return null;
   if (typeof user.username !== "string" || typeof user.osuId !== "number") return null;
   return {
     id: userId,

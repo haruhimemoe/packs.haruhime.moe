@@ -11,7 +11,7 @@ import type { PackInput } from "@haruhimemoe/pool/service";
 import { ObjectId } from "mongodb";
 import { revalidatePath } from "next/cache";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { deleteAccount } from "@/services/account";
+import { deletePacksData } from "@/services/account";
 import { adminDeletePack, setPackHidden } from "@/services/moderation";
 import { addMagnet, removeMagnet } from "@/services/pack-exports";
 import { createPack, deletePack, updatePack } from "@/services/packs";
@@ -72,7 +72,7 @@ describe("pack page revalidation", () => {
     const owner = newId();
     const a = await createPack(owner, INPUT);
     const b = await createPack(owner, { ...INPUT, visibility: "private" });
-    await deleteAccount(owner);
+    await deletePacksData(owner);
     expect(paths()).toEqual(expect.arrayContaining([`/p/${a.slug}`, `/p/${b.slug}`]));
   });
 

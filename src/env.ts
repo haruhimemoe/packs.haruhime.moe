@@ -1,16 +1,19 @@
 /**
  * @file src/env.ts
- * @desc Server environment, wired to @haruhimemoe/next-kit/env: the five variables every osu! app
- *       needs, validated with zod on first use (not at import), so `next build` and every
+ * @desc Server environment, wired to @haruhimemoe/next-kit/env: the osu! app's variables minus
+ *       BETTER_AUTH_URL (MONGODB_URI, BETTER_AUTH_SECRET shared with the haruhime.moe hub to
+ *       verify its session cookie, and OSU_CLIENT_ID/OSU_CLIENT_SECRET for osu! API client
+ *       credentials; sign-in itself runs only on the hub), validated with zod on first use (not
+ *       at import), so `next build` and every
  *       anonymous page work without database or auth variables. SKIP_ENV_VALIDATION=true (CI)
  *       swaps missing values for placeholders nothing ever connects with, and a production server
  *       refuses that when a secret would be one of them (first use throws, and so does server
- *       start: src/instrumentation.ts). ADMIN_OSU_IDS, CRON_SECRET and POOLS_SERVICE_TOKEN aren't
+ *       start: src/instrumentation.ts). ADMIN_OSU_IDS, CRON_SECRET, POOLS_SERVICE_TOKEN and HUB_URL aren't
  *       part of that env: each is read and checked on its own on every call, so a bad value only
  *       breaks what uses it, and a removed admin loses access at the next request.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import "server-only";
@@ -18,18 +21,24 @@ import {
   createServerEnv,
   OSU_APP_PLACEHOLDERS,
   OSU_APP_SECRET_KEYS,
-  type OsuAppEnv,
   optionalSecret,
   osuAppEnvSchema,
   readIdSet,
+  readOrigin,
 } from "@haruhimemoe/next-kit/env";
+import type { z } from "zod";
 
-/** The server env: MONGODB_URI, BETTER_AUTH_SECRET, BETTER_AUTH_URL, OSU_CLIENT_ID/SECRET. */
-export type ServerEnv = OsuAppEnv;
+/** next-kit's osu! app schema without BETTER_AUTH_URL: packs runs no better-auth of its own. */
+const serverEnvSchema = osuAppEnvSchema.omit({ BETTER_AUTH_URL: true });
+
+/** The server env: MONGODB_URI, BETTER_AUTH_SECRET (the hub's), OSU_CLIENT_ID/SECRET. */
+export type ServerEnv = z.infer<typeof serverEnvSchema>;
+
+const { BETTER_AUTH_URL: _, ...placeholders } = OSU_APP_PLACEHOLDERS;
 
 const serverEnv = createServerEnv({
-  schema: osuAppEnvSchema,
-  placeholders: OSU_APP_PLACEHOLDERS,
+  schema: serverEnvSchema,
+  placeholders,
   secretKeys: OSU_APP_SECRET_KEYS,
 });
 
@@ -103,3 +112,16 @@ export const POOLS_SERVICE_TOKEN_KEY = "POOLS_SERVICE_TOKEN";
  */
 export const getPoolsServiceToken = (): string | undefined =>
   optionalSecret(POOLS_SERVICE_TOKEN_KEY, 32);
+
+/** The haruhime.moe hub's origin: sign-in, the account page and session refreshes live there. */
+export const HUB_URL_KEY = "HUB_URL";
+
+/** The hub's origin when HUB_URL isn't set. */
+export const DEFAULT_HUB_URL = "https://www.haruhime.moe";
+
+/**
+ * @function getHubUrl
+ * @returns {string} HUB_URL read now (an origin), or www.haruhime.moe when it's unset
+ * @throws {EnvError} naming HUB_URL when it isn't an https origin (http only on localhost)
+ */
+export const getHubUrl = (): string => readOrigin(HUB_URL_KEY, DEFAULT_HUB_URL);

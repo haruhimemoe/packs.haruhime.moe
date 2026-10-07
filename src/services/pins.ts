@@ -10,7 +10,7 @@
  *       pin in the same write.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import "server-only";
@@ -20,6 +20,7 @@ import { UNPIN } from "@/models/Pack";
 import { type PinnedPack, pinnedPackSchema } from "@/schemas/public-pack";
 import { slugSchema } from "@/schemas/saved-pack";
 import { MODERATED } from "@/services/moderation";
+import { findOwners, ownerOf } from "@/services/owners";
 import { connectedPackModel } from "@/services/pack-records";
 import {
   isOverPinLimit,
@@ -51,7 +52,7 @@ export const PIN_SORT = { pinOrder: 1, pinnedAt: 1, _id: 1 } as const;
 /** What can hold a pin: public and not hidden (`hiddenAt: null` also matches a missing field). */
 const PINNABLE = { visibility: "public", hiddenAt: null } as const;
 
-type PinnedRow = { slug: string; name: string; pinnedAt: Date; ownerName: string };
+type PinnedRow = { slug: string; name: string; pinnedAt: Date; ownerId: unknown };
 
 /**
  * @function listPinnedForAdmin
@@ -63,26 +64,15 @@ export const listPinnedForAdmin = async (): Promise<PinnedPack[]> => {
   const rows = await model.aggregate<PinnedRow>([
     { $match: PINNED },
     { $sort: PIN_SORT },
-    { $lookup: { from: "user", localField: "ownerId", foreignField: "_id", as: "owner" } },
-    { $unwind: { path: "$owner", preserveNullAndEmptyArrays: true } },
-    {
-      $project: {
-        _id: 0,
-        slug: 1,
-        name: 1,
-        pinnedAt: 1,
-        ownerName: {
-          $cond: [
-            { $eq: [{ $type: "$owner.username" }, "string"] },
-            "$owner.username",
-            UNKNOWN_OWNER_NAME,
-          ],
-        },
-      },
-    },
+    { $project: { _id: 0, slug: 1, name: 1, pinnedAt: 1, ownerId: 1 } },
   ]);
-  return rows.map((row) =>
-    pinnedPackSchema.parse({ ...row, pinnedAt: row.pinnedAt.toISOString() }),
+  const owners = await findOwners(rows.map((row) => row.ownerId));
+  return rows.map(({ ownerId, ...row }) =>
+    pinnedPackSchema.parse({
+      ...row,
+      pinnedAt: row.pinnedAt.toISOString(),
+      ownerName: ownerOf(owners, ownerId)?.username ?? UNKNOWN_OWNER_NAME,
+    }),
   );
 };
 

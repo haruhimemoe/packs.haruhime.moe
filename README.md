@@ -27,7 +27,7 @@ The site never hosts beatmap files. Each `.osz` goes from the beatmap mirror str
 
 ## Stack
 
-Next.js 16 (App Router), React 19, TypeScript 7, Tailwind CSS v4 and MDX, on Bun. Accounts use better-auth with osu! OAuth and MongoDB. Tests run on Vitest, lint and format on Biome.
+Next.js 16 (App Router), React 19, TypeScript 7, Tailwind CSS v4 and MDX, on Bun. MongoDB with Mongoose. Sign-in is the shared haruhime.moe account (osu! sign-in runs on the hub; packs reads its session from the `identity` database, read-only). Tests run on Vitest, lint and format on Biome.
 
 ## Packages
 
@@ -37,7 +37,7 @@ packs uses these shared haruhime.moe packages:
 - [`@haruhimemoe/hinai`](https://www.npmjs.com/package/@haruhimemoe/hinai): the client for the hinai beatmap mirror (metadata and `.osz` downloads).
 - [`@haruhimemoe/osu`](https://www.npmjs.com/package/@haruhimemoe/osu): osu! API v2 shapes, the osu! sign-in settings, the server client we use for maps the mirror doesn't have, star ratings with mods and pack stats, and the collection.db reader and writer behind "Add to osu! collection".
 - [`@haruhimemoe/ui`](https://www.npmjs.com/package/@haruhimemoe/ui): the theme and colors the site uses, buttons, cards, form fields, pagination, and the site header, footer and page frame.
-- [`@haruhimemoe/next-kit`](https://www.npmjs.com/package/@haruhimemoe/next-kit): the server plumbing packs shares with pools.haruhime.moe: JSON errors and body parsing, rate limits and the osu! API budget in MongoDB, sign-in with osu!, env checks, the database client, the test helpers, version history (the `vcs` module), and the page titles, robots.txt, sitemap, structured data and llms.txt format shared by every haruhime.moe site.
+- [`@haruhimemoe/next-kit`](https://www.npmjs.com/package/@haruhimemoe/next-kit): the server plumbing packs shares with pools.haruhime.moe: JSON errors and body parsing, rate limits and the osu! API budget in MongoDB, the haruhime.moe session reader, env checks, the database client, the test helpers, version history (the `vcs` module), and the page titles, robots.txt, sitemap, structured data and llms.txt format shared by every haruhime.moe site.
 - [`@haruhimemoe/brand`](https://www.npmjs.com/package/@haruhimemoe/brand): the wordmark, icons and link preview image, each public pack's own preview card (drawn per request), and the palette file behind the colors on [/brand](https://packs.haruhime.moe/brand).
 - [`@haruhimemoe/vcs`](https://www.npmjs.com/package/@haruhimemoe/vcs): the diff, merge and codec primitives behind pack version history.
 

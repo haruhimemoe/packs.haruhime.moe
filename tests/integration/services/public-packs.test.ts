@@ -13,11 +13,11 @@
 import type { PackInput } from "@haruhimemoe/pool/service";
 import { ObjectId } from "mongodb";
 import { describe, expect, it, vi } from "vitest";
+import { POOLS_ACCOUNT } from "@/constants/pools";
 import { getPackModel } from "@/models/Pack";
 import { searchIndexSchema } from "@/schemas/public-pack";
 import { createPack } from "@/services/packs";
 import { pinPack, reorderPins } from "@/services/pins";
-import { ensurePoolsAccount } from "@/services/pools-account";
 import { buildSearchIndex, listPinnedPacks, listPublicPacks } from "@/services/public-packs";
 import { createTestUser } from "../../helpers/auth";
 import { setupTestDb } from "../../helpers/db";
@@ -286,7 +286,7 @@ describe("listPinnedPacks", () => {
 describe("the system account's packs", () => {
   it("list and index like any other pack: newest first, no extra keys", async () => {
     const host = await createTestUser({ username: "Chiyo" });
-    const poolsId = await ensurePoolsAccount();
+    const poolsId = POOLS_ACCOUNT.id;
     const community = await createPack(host.id, input({ name: "Community" }));
     const imported = await createPack(poolsId, input({ name: "OWC 2023 Finals" }), {
       unlimited: true,

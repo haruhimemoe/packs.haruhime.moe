@@ -8,7 +8,7 @@
  *       hosts, community submissions and sources like otdb, not from otdb alone.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { existsSync, readFileSync } from "node:fs";
@@ -131,10 +131,7 @@ describe("privacy", () => {
     "signed in or not",
     "so one visitor can't use up the site's osu! API quota",
     "deleted automatically within about two minutes",
-    "Each time you press Sign in with osu!, our server counts it per IP address",
-    "in server memory only",
-    "never written to the database",
-    "gone when the server instance restarts",
+    "haruhime.moe stores the IP address you signed in from with each session",
     "/64 network",
     "Our server never forwards your IP address to osu!: the osu! API sees only our server.",
   ])("discloses every IP use: %j", (phrase) => {
@@ -186,7 +183,7 @@ describe("privacy", () => {
   it.each([
     "[Your rights under GDPR and CCPA](/legal/your-privacy-rights)",
     "## Cookies",
-    "packs-signed-in",
+    "haruhime-signed-in",
     "HttpOnly",
     "no tracking or advertising cookies",
     "IP address and browser User-Agent",
@@ -217,7 +214,7 @@ describe("your-privacy-rights", () => {
     "IP address and browser User-Agent",
     "Vercel",
     "Download my data",
-    "Delete account",
+    "Delete my packs data",
     "within 30 days",
     "within 45 days",
     "Sensitive personal information",
@@ -264,8 +261,8 @@ describe("copyright", () => {
   });
 
   it("dates the Sources section", () => {
-    expect(lastUpdated("copyright")).toBe("2026-10-05");
-    expect(lastUpdated("your-privacy-rights")).toBe("2026-10-05");
+    expect(lastUpdated("copyright")).toBe("2026-10-06");
+    expect(lastUpdated("your-privacy-rights")).toBe("2026-10-06");
   });
 });
 
@@ -297,7 +294,7 @@ describe("API copy", () => {
     ["privacy", "SHA-256"],
     ["privacy", "never the key itself"],
     ["privacy", "rate limits"],
-    ["privacy", "linked osu! account record, API key"],
+    ["privacy", "deletes your API key and every pack you saved"],
   ] as const)("%s says %j", (slug, phrase) => {
     expect(read(slug)).toContain(phrase);
   });
@@ -307,9 +304,7 @@ describe("API copy", () => {
   });
 
   it("the rights page says deletion covers the key", () => {
-    expect(read("your-privacy-rights")).toContain(
-      "deletes your account, your sessions, your API key, and every pack you saved",
-    );
+    expect(read("your-privacy-rights")).toContain("deletes your API key and every pack you saved");
   });
 
   it("the rights page says saving packs creates account counters too", () => {
@@ -318,9 +313,9 @@ describe("API copy", () => {
     );
   });
 
-  it("the rights page lists the linked osu! account record in the export", () => {
+  it("the rights page says the export holds packs' own data, not the haruhime account's", () => {
     expect(read("your-privacy-rights")).toContain(
-      "your profile details, your linked osu! account record, your sessions",
+      "your profile details, your saved packs, and your API key's prefix and dates",
     );
   });
 
@@ -332,13 +327,15 @@ describe("API copy", () => {
 
   it.each([
     "Rate-limit counters for osu! lookups",
-    "Sign-in rate-limit counts",
-    "Counters of sign-ins you start, keyed by your IP address",
-    "server memory only",
     "/64 network",
     "Our server never forwards your IP address to osu!",
   ])("the rights page lists every IP use: %j", (phrase) => {
     expect(read("your-privacy-rights")).toContain(phrase);
+  });
+
+  it("no longer lists packs' own sign-in counters (sign-in runs on haruhime.moe)", () => {
+    expect(read("your-privacy-rights")).not.toContain("Counters of sign-ins you start");
+    expect(read("privacy")).not.toContain("Each time you press Sign in with osu!");
   });
 
   it("the rights page counts the stats lookups among the osu! lookups", () => {

@@ -7,7 +7,7 @@ Please report vulnerabilities privately, not in an issue:
 
 Include steps to reproduce and the impact you expect. You'll get a reply within 7 days. `/.well-known/security.txt` on the live site lists the same two contacts.
 
-In scope: this repository, the live site at https://packs.haruhime.moe and its API (`/api/v1`). Only the current `main` branch and the live site are supported: every change on `main` is deployed.
+In scope: this repository, the live site at https://packs.haruhime.moe and its API (`/api/v1`), including how it reads and ends the haruhime.moe session (`/api/session`, `/api/signout`, `src/lib/auth.ts`; sign-in itself is the hub's). Only the current `main` branch and the live site are supported: every change on `main` is deployed.
 
 The `@haruhimemoe` packages packs uses have their own repositories and SECURITY.md files; report problems with them there. Report problems in third-party services (osu!, the beatmap mirror) to those services.
 

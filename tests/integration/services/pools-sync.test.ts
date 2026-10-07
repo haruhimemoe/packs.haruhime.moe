@@ -25,7 +25,6 @@ import { packRevisions } from "@/lib/pack-revisions";
 import { getPackModel } from "@/models/Pack";
 import { adminDeletePack, setPackHidden } from "@/services/moderation";
 import { createPack } from "@/services/packs";
-import { ensurePoolsAccount } from "@/services/pools-account";
 import { deletePoolsPack, syncPoolsPack, tombstoneOrigin } from "@/services/pools-sync";
 import { setupTestDb } from "../../helpers/db";
 
@@ -41,7 +40,6 @@ const input = (overrides: Partial<PackInput> = {}): PackInput => ({
 
 /** The pack another sync of REF created after this one looked and found nothing. */
 const createdMeanwhile = async (overrides: Partial<PackInput> = {}) => {
-  await ensurePoolsAccount();
   return createPack(POOLS_ACCOUNT.id, input(overrides), {
     unlimited: true,
     origin: { kind: "pools", id: REF },

@@ -6,7 +6,7 @@
  *       @haruhimemoe/next-kit's API_LIMITS, shared across every haruhime app.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Sat Oct 3, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { API_LIMITS } from "@haruhimemoe/next-kit/api-keys";
@@ -45,10 +45,10 @@ export const RATE_LIMITS = {
   /** Create or regenerate on /me, per user. */
   keyCreate: API_LIMITS.keyCreate,
   /**
-   * Starting an osu! sign-in (POST /api/auth/sign-in/*), per IP. Each start writes an OAuth
-   * state row; better-auth's own limiter counts per server instance, this one across them.
+   * "Delete my packs data" (DELETE /api/me), per osu! account (not the user id, so deleting
+   * doesn't reset it).
    */
-  signIn: { scope: "sign-in", limit: 10, windowSeconds: 60 },
+  dataDelete: { scope: "data-delete", limit: 3, windowSeconds: 3600 },
   /**
    * GET /api/osu/star-ratings, per IP. A pool view asks once, then every 5 s at most 12 times
    * (13 a minute); the editor asks 1.5 s after the last change. 120 leaves room for several tabs

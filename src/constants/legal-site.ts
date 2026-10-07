@@ -6,7 +6,7 @@
  *       store, processor or cookie the app doesn't really have.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Oct 5, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import type { LegalSite } from "@haruhimemoe/next-kit/legal";
@@ -16,16 +16,8 @@ export const LEGAL_SITE: LegalSite = {
   siteName: SITE.title,
   operator: "haruhime.moe",
   contactEmail: SITE.contactEmail,
-  effectiveDate: "2026-10-05",
+  effectiveDate: "2026-10-06",
   stores: [
-    {
-      what: "Your osu! account link (user ID, username, avatar URL and country)",
-      why: "Your account, and knowing which packs are yours",
-    },
-    {
-      what: "Sign-in sessions (the IP address and browser User-Agent you signed in from)",
-      why: "Keeping you signed in, and spotting misuse of your account",
-    },
     {
       what: "Packs you save (name, description, beatmap IDs, slot layout, visibility and magnet links)",
       why: "The service you asked for",
@@ -39,7 +31,7 @@ export const LEGAL_SITE: LegalSite = {
       why: "Letting your scripts and bots use the packs API",
     },
     {
-      what: "Short-lived rate-limit counters, by account or IP address",
+      what: "Short-lived rate-limit counters, by account, osu! user ID or IP address",
       why: "Protecting the service from abuse",
     },
   ],
@@ -51,19 +43,24 @@ export const LEGAL_SITE: LegalSite = {
     },
     {
       name: "MongoDB Atlas",
-      purpose: "stores the account and pack data listed above.",
+      purpose: "stores the pack data listed above.",
       link: "https://www.mongodb.com/atlas",
     },
     {
+      name: "haruhime.moe",
+      purpose: "runs sign-in and keeps the account and sessions packs reads to know who you are.",
+      link: "https://www.haruhime.moe",
+    },
+    {
       name: "osu! (ppy Pty Ltd)",
-      purpose: "handles sign-in and answers lookups for maps the mirror doesn't have.",
+      purpose:
+        "confirms sign-in for haruhime.moe and answers lookups for maps the mirror doesn't have.",
       link: "https://osu.ppy.sh",
     },
   ],
   cookies: [
-    "The session cookie (HttpOnly, keeps you signed in; set only when you sign in)",
-    "packs-signed-in (tells the page to check whether you're signed in; holds no personal data)",
-    "A sign-in cookie (connects osu!'s reply to your browser while you sign in; deleted within 5 minutes)",
+    "haruhime.moe's session cookie (on .haruhime.moe, HttpOnly, keeps you signed in; packs only reads it)",
+    "haruhime-signed-in (set by haruhime.moe; tells the page to check whether you're signed in; holds no personal data)",
   ],
   hosting:
     "packs doesn't host files. What you can save is pack metadata, a name, description, beatmap IDs and links, never a beatmap file.",

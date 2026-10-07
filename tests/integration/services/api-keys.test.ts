@@ -5,15 +5,15 @@
  *       would act as a system account (haruhime pools).
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { apiKeyDisplay, hashApiKey } from "@haruhimemoe/next-kit/api-keys";
 import { ObjectId } from "mongodb";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getDb } from "@/lib/db";
+import { POOLS_ACCOUNT } from "@/constants/pools";
+import { getDb, getIdentityDb } from "@/lib/db";
 import { createApiKey, getApiKeyInfo, revokeApiKey } from "@/services/api-keys";
-import { ensurePoolsAccount } from "@/services/pools-account";
 import { apiCaller, freezeTime } from "../../helpers/api-key";
 import { createTestUser } from "../../helpers/auth";
 import { setupTestDb } from "../../helpers/db";
@@ -108,20 +108,31 @@ describe("a key through the /api/v1 guard", () => {
   it("refuses a key whose user record is gone", async () => {
     const user = await createTestUser();
     const { key } = await createApiKey(user.id);
-    await getDb()
+    await getIdentityDb()
       .collection("user")
       .deleteOne({ _id: new ObjectId(user.id) });
     expect(await apiCaller(key)).toBeNull();
   });
 
-  it("refuses a key stored for a system account, even one with an osu! id", async () => {
-    const poolsId = await ensurePoolsAccount();
+  it("refuses a key stored for a system account, even one with an identity row", async () => {
+    const poolsId = POOLS_ACCOUNT.id;
     const { key } = await createApiKey(poolsId);
     expect(await apiCaller(key)).toBeNull();
-    await getDb()
+    await getIdentityDb()
       .collection("user")
-      .updateOne({ _id: new ObjectId(poolsId) }, { $set: { osuId: 1 } });
+      .insertOne({
+        _id: new ObjectId(poolsId),
+        osuId: 1,
+        username: "haruhime pools",
+      });
     expect(await apiCaller(key)).toBeNull();
+  });
+
+  it("refuses a key whose identity row is marked system or banned", async () => {
+    const system = await createTestUser({ fields: { system: true } });
+    const banned = await createTestUser({ fields: { bannedAt: new Date() } });
+    expect(await apiCaller((await createApiKey(system.id)).key)).toBeNull();
+    expect(await apiCaller((await createApiKey(banned.id)).key)).toBeNull();
   });
 
   it("writes lastUsedAt at most once an hour", async () => {

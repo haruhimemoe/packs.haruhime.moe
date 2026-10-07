@@ -1,73 +1,50 @@
 /**
  * @file src/lib/auth.ts
- * @desc better-auth from @haruhimemoe/next-kit's createOsuAuth, built on first use: osu! as the only
- *       way in (identify + public, PKCE), no osu! tokens stored, the signed-in marker cookie kept
- *       in step with the session. getUserFromHeaders() is how route handlers read the caller.
- *       System users (`system: true`, like the haruhime pools account) can never act: no session
- *       or osu! account link is ever created for one, and a session that reaches one anyway reads
- *       as signed out.
+ * @desc Who a request comes from, read from the haruhime.moe hub's session. The hub is the only
+ *       app that runs osu! sign-in; packs reads its `better-auth.session_token` cookie (on
+ *       .haruhime.moe) with next-kit's createSessionReader: the signature checked against the
+ *       shared BETTER_AUTH_SECRET, then the session and user read from the identity database,
+ *       with zero writes (packs' Atlas user can only read identity). An old session pings the
+ *       hub to refresh it there. A banned user reads as signed out (requireSession), and so does
+ *       a system account (SYSTEM_USER_IDS, like the haruhime pools account), however a session
+ *       reaches one. Admin rights come only from ADMIN_OSU_IDS, read on every request.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import "server-only";
-import { createOsuAuth, toSessionUser } from "@haruhimemoe/next-kit/auth";
-import { ObjectId } from "mongodb";
-import { SIGNED_IN_COOKIE } from "@/constants/site";
-import { getServerEnv } from "@/env";
+import {
+  createSessionReader,
+  requireSession,
+  type SessionReaderInstance,
+} from "@haruhimemoe/next-kit/auth";
+import { SYSTEM_USER_IDS } from "@/constants/db";
+import { getHubUrl, getServerEnv } from "@/env";
 import { isAdminOsuId } from "@/lib/admin";
-import { getDb, getMongoClient } from "@/lib/db";
+import { connectDb, getIdentityDb } from "@/lib/db";
 
 /**
- * @function isSystemUser
- * @param userId {unknown} a user id as better-auth passes it (string or ObjectId)
- * @returns {Promise<boolean>} true for a system account (the haruhime pools account)
+ * @function isSystemUserId
+ * @param userId {string} a user id (hex)
+ * @returns {boolean} true for a system account (the haruhime pools account)
  */
-export const isSystemUser = async (userId: unknown): Promise<boolean> => {
-  const id =
-    userId instanceof ObjectId
-      ? userId
-      : typeof userId === "string" && ObjectId.isValid(userId)
-        ? new ObjectId(userId)
-        : null;
-  if (!id) return false;
-  return (
-    (await getDb().collection("user").countDocuments({ _id: id, system: true }, { limit: 1 })) > 0
-  );
-};
+export const isSystemUserId = (userId: string): boolean => SYSTEM_USER_IDS.has(userId);
 
-/** A write that would let a system account act: refused (false), anything else goes ahead. */
-const refuseSystemUser = async (row: Record<string, unknown>): Promise<boolean | undefined> =>
-  (await isSystemUser(row.userId)) ? false : undefined;
+let reader: SessionReaderInstance | null = null;
 
-const createAuth = () => {
-  const env = getServerEnv();
-  return createOsuAuth({
-    clientId: env.OSU_CLIENT_ID,
-    clientSecret: env.OSU_CLIENT_SECRET,
-    baseURL: env.BETTER_AUTH_URL,
-    secret: env.BETTER_AUTH_SECRET,
-    db: getDb(),
-    client: getMongoClient(),
-    markerCookie: SIGNED_IN_COOKIE,
-    // Set only by the server on system accounts. Nothing a client or an osu! profile sends can.
-    userFields: { system: { type: "boolean", required: false, input: false } },
-    hooks: { beforeAccountCreate: refuseSystemUser, beforeSessionCreate: refuseSystemUser },
+/**
+ * @function getSessionReader
+ * @returns {SessionReaderInstance} the process-wide reader of the hub's session, built on first
+ *          use (not at import, so builds need no env)
+ */
+export const getSessionReader = (): SessionReaderInstance => {
+  reader ??= createSessionReader({
+    identityDb: getIdentityDb(),
+    secret: getServerEnv().BETTER_AUTH_SECRET,
+    hubUrl: getHubUrl(),
   });
-};
-
-export type Auth = ReturnType<typeof createAuth>;
-
-let instance: Auth | null = null;
-
-/**
- * @function getAuth
- * @returns {Auth} the process-wide better-auth instance, built on first use
- */
-export const getAuth = (): Auth => {
-  instance ??= createAuth();
-  return instance;
+  return reader;
 };
 
 /** The signed-in caller, as routes and pages see them. */
@@ -81,12 +58,19 @@ export type SessionUser = {
 
 /**
  * @function getUserFromHeaders
- * @param headers {Headers} the request's headers (its session cookie)
- * @returns {Promise<SessionUser | null>} the caller, or null when signed out or a system account
+ * @param headers {Headers} the request's headers (the hub's session cookie)
+ * @returns {Promise<SessionUser | null>} the caller, or null when signed out, banned or a system
+ *          account
  */
 export const getUserFromHeaders = async (headers: Headers): Promise<SessionUser | null> => {
-  const session = await getAuth().api.getSession({ headers });
-  if (!session || session.user.system === true) return null;
-  const user = toSessionUser(session);
-  return { ...user, isAdmin: isAdminOsuId(user.osuId) };
+  await connectDb();
+  const user = await requireSession(getSessionReader(), headers);
+  if (!user || isSystemUserId(user.id)) return null;
+  return {
+    id: user.id,
+    osuId: user.osuId,
+    username: user.username,
+    avatarUrl: user.avatarUrl,
+    isAdmin: isAdminOsuId(user.osuId),
+  };
 };

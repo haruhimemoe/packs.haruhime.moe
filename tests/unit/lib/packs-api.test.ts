@@ -53,7 +53,7 @@ describe("createPacksApi", () => {
   it("updates, removes, and deletes the account", async () => {
     await api.update("abcdefghij", { ...PACK, visibility: "private" });
     await api.remove("abcdefghij");
-    await api.deleteAccount();
+    await api.deletePacksData();
     expect(calls.map((c) => `${c.method} ${c.path}`)).toEqual([
       "PUT /api/packs/abcdefghij",
       "DELETE /api/packs/abcdefghij",

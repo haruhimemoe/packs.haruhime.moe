@@ -12,13 +12,12 @@
 import type { PackInput } from "@haruhimemoe/pool/service";
 import { ObjectId } from "mongodb";
 import { describe, expect, it } from "vitest";
-import { DELETED_ORIGINS_COLLECTION } from "@/constants/pools";
+import { DELETED_ORIGINS_COLLECTION, POOLS_ACCOUNT } from "@/constants/pools";
 import { getDb } from "@/lib/db";
 import { packRevisions } from "@/lib/pack-revisions";
 import { getPackModel } from "@/models/Pack";
 import { adminDeletePack, listPacksForAdmin, setPackHidden } from "@/services/moderation";
 import { createPack } from "@/services/packs";
-import { ensurePoolsAccount } from "@/services/pools-account";
 import { createTestUser } from "../../helpers/auth";
 import { setupTestDb } from "../../helpers/db";
 
@@ -54,7 +53,7 @@ describe("listPacksForAdmin", () => {
   });
 
   it("lists, hides and deletes the pools account's packs, whose host has no osu! id", async () => {
-    const poolsId = await ensurePoolsAccount();
+    const poolsId = POOLS_ACCOUNT.id;
     const pack = await createPack(poolsId, input({ name: "OWC 2023 Finals" }), {
       unlimited: true,
     });
@@ -115,7 +114,7 @@ describe("setPackHidden", () => {
 
 describe("adminDeletePack and pools packs", () => {
   it("leaves a tombstone of a pools pack's pool, and none for any other pack", async () => {
-    const poolsId = await ensurePoolsAccount();
+    const poolsId = POOLS_ACCOUNT.id;
     const pooled = await createPack(poolsId, input({ name: "Ricma 2 Quarterfinals" }), {
       unlimited: true,
       origin: { kind: "pools", id: "otdb-58" },
@@ -132,7 +131,7 @@ describe("adminDeletePack and pools packs", () => {
   });
 
   it("keeps a pools pack whose tombstone can't be written", async () => {
-    const poolsId = await ensurePoolsAccount();
+    const poolsId = POOLS_ACCOUNT.id;
     const pooled = await createPack(poolsId, input({ name: "Ricma 2 Quarterfinals" }), {
       unlimited: true,
       origin: { kind: "pools", id: "otdb-58" },

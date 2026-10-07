@@ -12,7 +12,7 @@
  *       pools deletes and publishes again after that is listed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import "server-only";
@@ -25,6 +25,7 @@ import { revalidatePack, revalidatePublicPacks } from "@/lib/revalidate";
 import { UNPIN } from "@/models/Pack";
 import { type AdminPackPage, type AdminPackRow, adminPackRowSchema } from "@/schemas/public-pack";
 import { slugSchema } from "@/schemas/saved-pack";
+import { findOwners, ownerOf } from "@/services/owners";
 import { connectedPackModel } from "@/services/pack-records";
 import { forgetHiddenOrigin, tombstoneOrigin } from "@/services/pools-sync";
 import { escapeRegExp } from "@/utils/text";
@@ -42,16 +43,15 @@ type AdminRecord = {
   updatedAt: Date;
   hiddenAt?: Date | null;
   pinnedAt?: Date | null;
-  /** No osu! id on a system account (haruhime pools). */
-  owner: { username: string; osuId?: number | null };
+  ownerId: unknown;
 };
 
+/** The owner is joined after (src/services/owners.ts): identity can't be $lookup'd. */
 const ownerStages: PipelineStage[] = [
-  { $lookup: { from: "user", localField: "ownerId", foreignField: "_id", as: "owner" } },
-  { $unwind: "$owner" },
   {
     $project: {
       _id: 0,
+      ownerId: 1,
       slug: 1,
       name: 1,
       visibility: 1,
@@ -59,17 +59,32 @@ const ownerStages: PipelineStage[] = [
       hiddenAt: 1,
       pinnedAt: 1,
       slotCount: { $size: "$slots" },
-      owner: { username: "$owner.username", osuId: "$owner.osuId" },
     },
   },
 ];
 
-const toRow = (record: AdminRecord): AdminPackRow =>
+/** No osu! id on a system account (haruhime pools). */
+type Owned = AdminRecord & { owner: { username: string; osuId: number | null } };
+
+/**
+ * @function withOwners
+ * @param records {AdminRecord[]} admin rows
+ * @returns {Promise<Owned[]>} the rows with their owner; packs whose owner is gone drop out
+ */
+const withOwners = async (records: AdminRecord[]): Promise<Owned[]> => {
+  const owners = await findOwners(records.map((record) => record.ownerId));
+  return records.flatMap((record) => {
+    const owner = ownerOf(owners, record.ownerId);
+    return owner ? [{ ...record, owner }] : [];
+  });
+};
+
+const toRow = (record: Owned): AdminPackRow =>
   adminPackRowSchema.parse({
     slug: record.slug,
     name: record.name,
     ownerName: record.owner.username,
-    ownerOsuId: record.owner.osuId ?? null,
+    ownerOsuId: record.owner.osuId,
     visibility: record.visibility,
     slotCount: record.slotCount,
     updatedAt: record.updatedAt.toISOString(),
@@ -105,7 +120,7 @@ export const listPacksForAdmin = async ({
     ...ownerStages,
   ]);
   return {
-    rows: records.map(toRow),
+    rows: (await withOwners(records)).map(toRow),
     page,
     pageCount: Math.max(1, Math.ceil(total / ADMIN_PAGE_SIZE)),
     total,
@@ -151,7 +166,9 @@ export const setPackHidden = async (
   }
   revalidatePack(slug);
   revalidatePublicPacks();
-  const [record] = await model.aggregate<AdminRecord>([{ $match: { slug } }, ...ownerStages]);
+  const [record] = await withOwners(
+    await model.aggregate<AdminRecord>([{ $match: { slug } }, ...ownerStages]),
+  );
   return record ? toRow(record) : null;
 };
 
