@@ -30,7 +30,8 @@ export function AccountNav() {
         className={textClasses({
           tone: "muted",
           bold: true,
-          className: "transition-colors hover:text-c1",
+          className:
+            "inline-flex coarse:min-h-11 min-h-6 items-center transition-colors hover:text-c1",
         })}
       >
         Sign in
@@ -41,7 +42,7 @@ export function AccountNav() {
   return (
     <Link
       href="/me"
-      className="flex items-center gap-2 font-bold text-c1 text-sm transition-colors hover:text-h1"
+      className="flex coarse:min-h-11 min-h-6 items-center gap-2 font-bold text-c1 text-sm transition-colors hover:text-h1"
     >
       {account.user.avatarUrl ? (
         <Image
