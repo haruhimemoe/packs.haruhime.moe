@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Installs to a phone's home screen: a web app manifest, the page color as the browser's theme color, home-screen icons, and an offline page when a page can't load (a service worker that caches only the site's build files). The color picker's swatches are 44px touch targets.
+
 ### Fixed
 
 - White text on primary buttons and the skip link meets 4.5:1 contrast on the orange theme (`--h2-l: 41%`; it was 3.99:1 at hue 30).

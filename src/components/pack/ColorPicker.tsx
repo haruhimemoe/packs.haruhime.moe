@@ -40,10 +40,14 @@ export function ColorPicker({
     <fieldset
       disabled={disabled}
       aria-label={legend}
-      className="flex flex-wrap items-center gap-1.5"
+      className="flex flex-wrap items-center coarse:gap-0 gap-1.5"
     >
       {PALETTE.map((color, id) => (
-        <label key={color} title={color} className="relative inline-flex">
+        <label
+          key={color}
+          title={color}
+          className="relative inline-flex coarse:size-11 items-center justify-center"
+        >
           <input
             type="radio"
             name={name}
