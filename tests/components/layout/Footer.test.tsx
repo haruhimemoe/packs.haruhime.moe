@@ -89,7 +89,8 @@ describe("Footer", () => {
     const labels = within(about)
       .getAllByRole("link")
       .map((l) => l.textContent);
-    expect(labels).toEqual(["Brand", "API", "Source on GitHub", SITE.contactEmail]);
+    // Longest label first (ui 0.23).
+    expect(labels).toEqual([SITE.contactEmail, "Source on GitHub", "Brand", "API"]);
   });
 
   it("keeps one line of fine print with the mirror note and the trademark notice", () => {
