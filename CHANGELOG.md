@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Markdown pipe tables, task lists and strikethrough in the site's MDX pages render as HTML instead of plain text (`remark-gfm` runs before ui's remark plugin).
 - White text on primary buttons and the skip link meets 4.5:1 contrast on the orange theme (`--h2-l: 41%`; it was 3.99:1 at hue 30).
 
 ### Removed

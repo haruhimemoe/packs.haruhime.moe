@@ -53,6 +53,7 @@
     "next": "16.3.6",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "remark-gfm": "4.0.1",
     "server-only": "0.0.1",
     "shiki": "4.5.0",
     "zod": "4.6.5"
