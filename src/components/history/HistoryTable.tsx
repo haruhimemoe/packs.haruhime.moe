@@ -50,7 +50,7 @@ export function HistoryTable({ slug, revisions, selected, older }: HistoryTableP
                 <Td>{revision.authorName || "the owner"}</Td>
                 <Td>
                   {REVISION_LABELS[revision.kind]}
-                  {revision.message ? ` — ${revision.message}` : ""}
+                  {revision.message ? `: ${revision.message}` : ""}
                 </Td>
                 <Td>
                   <TextLink
