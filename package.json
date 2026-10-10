@@ -35,10 +35,10 @@
   "dependencies": {
     "@haruhimemoe/brand": "0.10.0",
     "@haruhimemoe/mirror": "0.2.0",
-    "@haruhimemoe/next-kit": "0.16.1",
+    "@haruhimemoe/next-kit": "0.17.1",
     "@haruhimemoe/osu": "0.7.0",
-    "@haruhimemoe/pool": "0.3.0",
-    "@haruhimemoe/ui": "0.24.1",
+    "@haruhimemoe/pool": "0.4.0",
+    "@haruhimemoe/ui": "0.25.0",
     "@haruhimemoe/vcs": "0.1.0",
     "@mdx-js/loader": "3.1.1",
     "@mdx-js/react": "3.1.1",
