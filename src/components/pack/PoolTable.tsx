@@ -7,7 +7,7 @@
  *       Only the row whose ID was copied last says Copied.: one MapCopyScope around the groups.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
@@ -33,6 +33,7 @@ import {
   type SortableMove,
   useSortable,
 } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { type MoveTarget, SlotRow } from "@/components/pack/SlotRow";
 import { NO_SLOT_VALUE } from "@/constants/mods";
 import type { ModdedStarRatings } from "@/hooks/useModdedStarRatings";
@@ -71,6 +72,7 @@ export function PoolTable({
   modsBySlot,
   ratings,
 }: PoolTableProps) {
+  const tx = useTranslations("packs.poolTable");
   const sortableHook = useSortable({
     onMove: (move: SortableMove) => {
       const beatmapId = beatmapIdOfItem(move.id);
@@ -84,11 +86,7 @@ export function PoolTable({
   const sortable = onReorder ? sortableHook : undefined;
 
   if (slots.length === 0) {
-    return (
-      <EmptyState variant="filled">
-        No maps yet. Add a beatmap ID or paste a mappool above.
-      </EmptyState>
-    );
+    return <EmptyState variant="filled">{tx("noMapsYetAdd")}</EmptyState>;
   }
   const ordered = sortSlots(slots, buckets);
   const groups: { key: string; entry: BucketEntry | null }[] = [

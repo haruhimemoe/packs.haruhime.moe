@@ -5,22 +5,27 @@
  *       maps, saving a zip, making a torrent).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Checkbox, Disclosure, Text } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 import type { DownloadChoices } from "@/schemas/download-choices";
 
+/** A translator: next-intl's t for "packs.downloadOptions". */
+type T = (key: string, values?: Record<string, string | number>) => string;
+
 /**
  * @function downloadOptionsSummary
+ * @param t {T} the "packs.downloadOptions" translator
  * @param choices {DownloadChoices} the current choice
  * @returns {string} e.g. "Download options: no videos, backgrounds"
  */
-export const downloadOptionsSummary = ({ videos, backgrounds }: DownloadChoices): string =>
-  `Download options: ${videos ? "videos" : "no videos"}, ${backgrounds ? "backgrounds" : "no backgrounds"}`;
+export const downloadOptionsSummary = (t: T, { videos, backgrounds }: DownloadChoices): string =>
+  t("summary", { videos: String(videos), backgrounds: String(backgrounds) });
 
 type DownloadOptionsProps = {
   choices: DownloadChoices;
@@ -35,34 +40,33 @@ type DownloadOptionsProps = {
  * @returns {JSX.Element} a @haruhimemoe/ui Disclosure whose button sums up the choices while closed
  */
 export function DownloadOptions({ choices, onChange, disabled = false }: DownloadOptionsProps) {
+  const t = useTranslations("packs.downloadOptions");
   const [open, setOpen] = useState(false);
   const id = useId();
 
   return (
     <Disclosure
-      summary={open ? "Download options" : downloadOptionsSummary(choices)}
+      summary={open ? t("downloadOptions") : downloadOptionsSummary(t, choices)}
       open={open}
       onOpenChange={setOpen}
     >
       <fieldset disabled={disabled} className="flex flex-col gap-2">
-        <legend className="sr-only">Download options</legend>
+        <legend className="sr-only">{t("downloadOptions")}</legend>
         <Checkbox
           id={`${id}-videos`}
-          label="Include videos"
-          hint="Videos make packs several times larger."
+          label={t("includeVideos")}
+          hint={t("videosMakePacksSeveral")}
           checked={choices.videos}
           onChange={(event) => onChange({ ...choices, videos: event.currentTarget.checked })}
         />
         <Checkbox
           id={`${id}-backgrounds`}
-          label="Include backgrounds"
-          hint="Turn this off to remove background images in your browser. osu! shows its default background instead."
+          label={t("includeBackgrounds")}
+          hint={t("turnThisOffTo")}
           checked={choices.backgrounds}
           onChange={(event) => onChange({ ...choices, backgrounds: event.currentTarget.checked })}
         />
-        {disabled ? (
-          <Text tone="muted">You can change these once the download, zip or torrent is done.</Text>
-        ) : null}
+        {disabled ? <Text tone="muted">{t("youCanChangeThese")}</Text> : null}
       </fieldset>
     </Disclosure>
   );

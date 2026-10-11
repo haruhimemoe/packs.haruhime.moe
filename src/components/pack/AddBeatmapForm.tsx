@@ -3,7 +3,7 @@
  * @desc Add one map: pick a bucket (or no slot), paste an ID or osu! difficulty link.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
@@ -16,6 +16,7 @@ import {
   parseBeatmapRef,
 } from "@haruhimemoe/pool";
 import { Button, Select, Text, TextInput } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { type FormEvent, useId, useState } from "react";
 import { NO_SLOT_VALUE } from "@/constants/mods";
 import type { BucketEntry, SlotBucket } from "@/schemas/pack";
@@ -37,6 +38,7 @@ export function AddBeatmapForm({
   buckets = DEFAULT_BUCKETS,
   disabled = false,
 }: AddBeatmapFormProps) {
+  const t = useTranslations("packs.addBeatmapForm");
   const [choice, setChoice] = useState<string>("NM");
   // A deleted or renamed bucket can't stay selected: fall back to NM.
   const current =
@@ -64,7 +66,7 @@ export function AddBeatmapForm({
       <div className="flex flex-wrap items-end gap-2">
         <Select
           id={selectId}
-          label="Slot"
+          label={t("slot")}
           value={current}
           disabled={disabled}
           onChange={(event) => setChoice(event.target.value)}
@@ -80,17 +82,17 @@ export function AddBeatmapForm({
         {/* The error sits under the whole row, not the field, so it's wired up by hand. */}
         <TextInput
           id={inputId}
-          label="Beatmap ID or link"
+          label={t("beatmapIdOrLink")}
           wrapperClassName="min-w-48 flex-1"
           value={value}
           disabled={disabled}
           onChange={(event) => setValue(event.target.value)}
-          placeholder="129891 or https://osu.ppy.sh/beatmapsets/…#osu/…"
+          placeholder={t("n129891OrHttpsOsu")}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
         />
         <Button type="submit" disabled={disabled}>
-          Add
+          {t("add")}
         </Button>
       </div>
       {error ? (

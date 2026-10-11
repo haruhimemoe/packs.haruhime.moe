@@ -16,12 +16,13 @@
  *       "instead" button passes it to the Collection select. Names wrap anywhere on a phone.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 import type { CollectionDbRead } from "@haruhimemoe/osu/collections";
 import { Button, Notice, Select, Text, TextInput } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { NEW, useStableCollection } from "@/hooks/useStableCollection";
 import { readCollectionFile } from "@/lib/collections/collection-files";
 import { collectionLabel } from "@/utils/osu-collection";
@@ -56,6 +57,7 @@ export function StableCollection({
   download,
   readFile = readCollectionFile,
 }: StableCollectionProps) {
+  const t = useTranslations("packs.stableCollection");
   const {
     id,
     loaded,
@@ -91,13 +93,13 @@ export function StableCollection({
         id={`${id}-file`}
         type="file"
         accept=".db"
-        label="Your collection.db"
+        label={t("yourCollectionDb")}
         hint={FILE_HINT}
         error={readError ?? undefined}
         disabled={reading}
         onChange={onFile}
       />
-      {reading ? <Text tone="muted">Reading collection.db…</Text> : null}
+      {reading ? <Text tone="muted">{t("readingCollectionDb")}</Text> : null}
       {loaded && (loaded.unusual.kept > 0 || loaded.unusual.dropped > 0) ? (
         <Notice>{unusualText(loaded.unusual)}</Notice>
       ) : null}
@@ -106,12 +108,12 @@ export function StableCollection({
           <Select
             ref={collectionRef}
             id={`${id}-collection`}
-            label="Collection"
+            label={t("collection")}
             value={picked}
             hint={unlisted > 0 ? unlistedHint(unlisted) : undefined}
             onChange={(event) => pick(event.currentTarget.value)}
           >
-            <option value={NEW}>New collection</option>
+            <option value={NEW}>{t("newCollection")}</option>
             {options.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -121,9 +123,9 @@ export function StableCollection({
           {picked === NEW ? (
             <TextInput
               id={`${id}-name`}
-              label="Name"
+              label={t("name")}
               value={typedOrDefault}
-              hint="Case counts, and so do spaces inside the name. A name you already have adds to that collection."
+              hint={t("caseCountsAndSo")}
               error={preview?.kind === "error" ? preview.message : undefined}
               onChange={(event) => {
                 setTypedName(event.currentTarget.value);
@@ -136,9 +138,7 @@ export function StableCollection({
           ) : null}
           {hashes === null ? (
             <Text tone="muted">
-              {mapInfoFailed
-                ? `Some map info didn't load. Press "Retry loading maps" in the Download card, and the preview shows once it has.`
-                : "The preview shows once every map's info has loaded."}
+              {mapInfoFailed ? t("someMapInfoDidn") : t("thePreviewShowsOnce")}
             </Text>
           ) : null}
           {preview?.kind === "ok" ? (
@@ -149,7 +149,9 @@ export function StableCollection({
           {preview?.kind === "ok" && preview.similarName !== null ? (
             <div className="flex flex-col items-start gap-2">
               <Notice id={similarId} tone="warning" className="wrap-anywhere">
-                {`You already have "${collectionLabel(preview.similarName)}". Case and spaces count, so this makes a second collection.`}
+                {t("youAlreadyHaveSimilarname", {
+                  similarName: collectionLabel(preview.similarName),
+                })}
               </Notice>
               {similarListed ? (
                 <Button
@@ -161,25 +163,20 @@ export function StableCollection({
                     collectionRef.current?.focus();
                   }}
                 >
-                  {`Add to "${collectionLabel(preview.similarName)}" instead`}
+                  {t("addToSimilarnameInstead", {
+                    similarName: collectionLabel(preview.similarName),
+                  })}
                 </Button>
               ) : null}
             </div>
           ) : null}
           <div className="flex flex-col gap-1 text-sm">
-            <p className="font-bold text-c1">Then, to use it:</p>
+            <p className="font-bold text-c1">{t("thenToUseIt")}</p>
             <ol className="flex list-decimal flex-col gap-1 pl-5 text-c2">
-              <li>
-                Keep osu! closed until the new file is in place. It reads collection.db when it
-                starts and saves its own copy later, so it ignores a file swapped while it runs,
-                then overwrites it.
-              </li>
-              <li>Keep a copy of your old collection.db.</li>
-              <li>
-                Put the new file in your osu! folder, named exactly collection.db. If your browser
-                saved it as collection (1).db, rename it.
-              </li>
-              <li>Start osu!.</li>
+              <li>{t("keepOsuClosedUntil")}</li>
+              <li>{t("keepACopyOf")}</li>
+              <li>{t("putTheNewFile")}</li>
+              <li>{t("startOsu")}</li>
             </ol>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -190,7 +187,7 @@ export function StableCollection({
               aria-describedby={downloadDescribedBy}
               className="aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
             >
-              Download collection.db
+              {t("downloadCollectionDb")}
             </Button>
           </div>
         </>

@@ -6,12 +6,13 @@
  *       Open; the owner (and admins) can also remove them.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Notice, Text, TextLink } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 import { MagnetLinkRow } from "@/components/pack/MagnetLinkRow";
 import { PacksApiError } from "@/lib/packs-api";
@@ -31,6 +32,7 @@ type MagnetLinksProps = {
  * @returns {JSX.Element | null} the Torrent section, or nothing when no link is valid
  */
 export function MagnetLinks({ exports, onRemove }: MagnetLinksProps) {
+  const t = useTranslations("packs.magnetLinks");
   const [error, setError] = useState<string | null>(null);
   const headingId = useId();
 
@@ -44,9 +46,7 @@ export function MagnetLinks({ exports, onRemove }: MagnetLinksProps) {
         try {
           await onRemove(url);
         } catch (cause) {
-          setError(
-            cause instanceof PacksApiError ? cause.message : "Couldn't remove it. Try again.",
-          );
+          setError(cause instanceof PacksApiError ? cause.message : t("couldnTRemoveIt"));
           throw cause;
         }
       }
@@ -55,12 +55,12 @@ export function MagnetLinks({ exports, onRemove }: MagnetLinksProps) {
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-3">
       <h3 id={headingId} className="font-bold text-c1">
-        Torrent
+        {t("torrent")}
       </h3>
-      <Text tone="muted">Added by the pack owner. packs doesn't host or check these files.</Text>
+      <Text tone="muted">{t("addedByThePack")}</Text>
       <Text tone="muted">
         Download with a torrent app. It only works while someone seeds it.{" "}
-        <TextLink href="/guides/download-a-torrent">How to download with a torrent</TextLink>
+        <TextLink href="/guides/download-a-torrent">{t("howToDownloadWith")}</TextLink>
       </Text>
       <ul className="flex flex-col gap-3">
         {links.map((entry) => (

@@ -6,10 +6,11 @@
  *       page of the plain list; any search, filter or sort replaces both.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { PageHeader, Pagination, SectionHeading } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { PublicPackBrowser } from "@/components/packs/PublicPackBrowser";
 import { PublicPackList } from "@/components/packs/PublicPackList";
 import type { PublicPackCard, PublicPackPage } from "@/schemas/public-pack";
@@ -33,6 +34,7 @@ export function PublicPacksScreen({
   pageCount,
   total,
 }: PublicPacksScreenProps) {
+  const t = useTranslations("packs.publicPacksScreen");
   const list = (
     <div className="flex flex-col gap-4">
       <PublicPackList packs={packs} />
@@ -40,19 +42,17 @@ export function PublicPacksScreen({
         page={page}
         pageCount={pageCount}
         hrefFor={publicPageHref}
-        previousLabel="Newer"
-        nextLabel="Older"
+        previousLabel={t("newer")}
+        nextLabel={t("older")}
       />
     </div>
   );
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Public packs"
+        title={t("publicPacks")}
         lead={
-          total === 0
-            ? "Packs hosts share publicly show up here."
-            : `${countOf(total, "pack")} shared by hosts.`
+          total === 0 ? t("packsHostsSharePublicly") : `${countOf(total, "pack")} shared by hosts.`
         }
       />
       <PublicPackBrowser>
@@ -61,11 +61,11 @@ export function PublicPacksScreen({
         ) : (
           <div className="flex flex-col gap-8">
             <section aria-labelledby="pinned-packs" className="flex flex-col gap-4">
-              <SectionHeading id="pinned-packs">Pinned</SectionHeading>
+              <SectionHeading id="pinned-packs">{t("pinned")}</SectionHeading>
               <PublicPackList packs={pinned} />
             </section>
             <section aria-labelledby="all-packs" className="flex flex-col gap-4">
-              <SectionHeading id="all-packs">All packs</SectionHeading>
+              <SectionHeading id="all-packs">{t("allPacks")}</SectionHeading>
               {list}
             </section>
           </div>

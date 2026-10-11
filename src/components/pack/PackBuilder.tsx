@@ -5,13 +5,14 @@
  *       collection.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { encodePackKey } from "@haruhimemoe/pool";
 import { Card } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import { CollectionPanel } from "@/components/collection/CollectionPanel";
 import { ExportPanel } from "@/components/export/ExportPanel";
@@ -28,6 +29,7 @@ import { saveDraft } from "@/lib/storage/drafts";
  * @returns {JSX.Element} the /new experience
  */
 export function PackBuilder() {
+  const t = useTranslations("packs.packBuilder");
   const { pack, hydrated, dispatch } = usePackDraft();
   const ids = useMemo(() => pack.slots.map((s) => s.beatmapId), [pack.slots]);
   const meta = useBeatmapMeta(ids);
@@ -42,7 +44,7 @@ export function PackBuilder() {
       <PackEditor pack={pack} dispatch={dispatch} ready={hydrated} meta={meta} />
 
       {packKey ? (
-        <Card title="Save">
+        <Card title={t("save")}>
           <SavePackButton
             pack={pack}
             signInNext="/new"
@@ -59,7 +61,7 @@ export function PackBuilder() {
       {packKey ? <CollectionPanel pack={pack} getMeta={meta.get} /> : null}
 
       {packKey ? (
-        <Card title="Share">
+        <Card title={t("share")}>
           <PackKeyField packKey={packKey} />
         </Card>
       ) : null}

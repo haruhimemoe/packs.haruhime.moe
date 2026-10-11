@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Every word the site shows comes from `@haruhimemoe/messages` through next-intl, with no language in the URL: the shared `NEXT_LOCALE` cookie, then the browser's languages, and English for anything not translated. A language picker sits in the footer once a second language exists. English only for now. Guides, docs, legal pages, admin pages, search metadata and structured data stay English. `bun run check:keys` checks every key against the catalogs.
 - Installs to a phone's home screen: a web app manifest, the page color as the browser's theme color, home-screen icons, and an offline page when a page can't load (a service worker that caches only the site's build files). The color picker's swatches are 44px touch targets.
 
 ### Fixed

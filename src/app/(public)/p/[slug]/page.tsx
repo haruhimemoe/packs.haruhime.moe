@@ -6,7 +6,7 @@
  *       every map for crawlers and first paint; public packs also carry CreativeWork JSON-LD.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { notFoundMetadata } from "@haruhimemoe/next-kit/seo";

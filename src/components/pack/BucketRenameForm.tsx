@@ -4,13 +4,14 @@
  *       Cancel. A code @haruhimemoe/pool's checkBucketCode refuses shows why and stays open.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { BUCKET_CODE_MESSAGES, checkBucketCode } from "@haruhimemoe/pool";
 import { Button, TextInput } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { type FormEvent, useId, useState } from "react";
 import type { BucketEntry } from "@/schemas/pack";
 
@@ -30,6 +31,7 @@ type BucketRenameFormProps = {
  * @returns {JSX.Element} the rename form
  */
 export function BucketRenameForm({ code, buckets, onRename, onDone }: BucketRenameFormProps) {
+  const t = useTranslations("packs.bucketRenameForm");
   const [value, setValue] = useState(code);
   const [error, setError] = useState<string | null>(null);
   const id = useId();
@@ -52,7 +54,7 @@ export function BucketRenameForm({ code, buckets, onRename, onDone }: BucketRena
     <form onSubmit={submit} className="flex flex-wrap items-start gap-2">
       <TextInput
         id={id}
-        label={`New code for ${code}`}
+        label={t("newCodeForCode", { code })}
         hideLabel
         value={value}
         onChange={(event) => {
@@ -63,10 +65,10 @@ export function BucketRenameForm({ code, buckets, onRename, onDone }: BucketRena
         className="w-32"
       />
       <Button type="submit" variant="secondary">
-        Save
+        {t("save")}
       </Button>
       <Button variant="ghost" onClick={onDone}>
-        Cancel
+        {t("cancel")}
       </Button>
     </form>
   );

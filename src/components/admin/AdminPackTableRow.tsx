@@ -6,13 +6,14 @@
  *       once, focus going to the table's "Deleted" line.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { userUrl } from "@haruhimemoe/osu/shapes";
 import { Badge, Button, ConfirmDialog, Td, TextLink } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { VISIBILITY_OPTIONS } from "@/constants/visibility";
 import type { packsApi } from "@/lib/packs-api";
@@ -41,6 +42,7 @@ type AdminPackTableRowProps = {
  * @returns {JSX.Element} the table row
  */
 export function AdminPackTableRow({ row, api, busy, run, onDeleted }: AdminPackTableRowProps) {
+  const t = useTranslations("packs.adminPackTableRow");
   const hidden = row.hiddenAt !== null;
   const pinnable = isPinnable({ visibility: row.visibility, hidden });
   // Leaves at once on a delete, so the dialog hands focus to the table's "Deleted" line.
@@ -80,7 +82,7 @@ export function AdminPackTableRow({ row, api, busy, run, onDeleted }: AdminPackT
         {row.hiddenAt ? (
           <Badge tone="warning">Hidden {formatShortDate(row.hiddenAt)}</Badge>
         ) : row.pinnedAt ? (
-          <Badge tone="accent">Pinned</Badge>
+          <Badge tone="accent">{t("pinned")}</Badge>
         ) : null}
       </Td>
       <Td>
@@ -104,14 +106,14 @@ export function AdminPackTableRow({ row, api, busy, run, onDeleted }: AdminPackT
             </Button>
           ) : null}
           <ConfirmDialog
-            trigger="Delete"
+            trigger={t("delete")}
             triggerProps={{ variant: "ghost", "aria-label": `Delete ${row.name}`, disabled: busy }}
-            title={`Delete ${row.name} for good?`}
-            description="It goes for its host too, and its short link stops working for everyone."
+            title={t("deleteNameForGood", { name: row.name })}
+            description={t("itGoesForIts")}
             tone="destructive"
-            cancelLabel="Keep it"
-            confirmLabel="Yes, delete it"
-            failedMessage="Couldn't delete it. The reason is above the table."
+            cancelLabel={t("keepIt")}
+            confirmLabel={t("yesDeleteIt")}
+            failedMessage={t("couldnTDeleteIt")}
             returnFocus={() => document.querySelector<HTMLElement>("[data-admin-deleted]")}
             onConfirm={remove}
           />

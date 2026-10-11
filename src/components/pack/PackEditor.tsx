@@ -4,13 +4,14 @@
  *       star ratings with mods.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { bucketsOf, MAX_NAME_LENGTH, MAX_SLOTS } from "@haruhimemoe/pool";
 import { Button, Card, SectionHeading, Text, TextInput } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { type Dispatch, useId, useState } from "react";
 import { AddBeatmapForm } from "@/components/pack/AddBeatmapForm";
 import { BucketManager } from "@/components/pack/BucketManager";
@@ -38,6 +39,7 @@ type PackEditorProps = {
  * @returns {JSX.Element} editing surface shared by /new and /p/[slug]/edit
  */
 export function PackEditor({ pack, dispatch, ready, meta }: PackEditorProps) {
+  const t = useTranslations("packs.packEditor");
   // Armed for one pack value: any edit makes a new pack object and disarms it.
   const [armedFor, setArmedFor] = useState<Pool | null>(null);
   const confirmClear = armedFor === pack;
@@ -51,7 +53,7 @@ export function PackEditor({ pack, dispatch, ready, meta }: PackEditorProps) {
     <>
       <TextInput
         id={nameId}
-        label="Pack name"
+        label={t("packName")}
         value={pack.name}
         maxLength={MAX_NAME_LENGTH}
         disabled={!ready}
@@ -60,7 +62,7 @@ export function PackEditor({ pack, dispatch, ready, meta }: PackEditorProps) {
         className="font-bold text-lg"
       />
 
-      <Card title="Add maps">
+      <Card title={t("addMaps")}>
         <div className="flex flex-col gap-5">
           <AddBeatmapForm
             buckets={buckets}
@@ -81,7 +83,7 @@ export function PackEditor({ pack, dispatch, ready, meta }: PackEditorProps) {
         </div>
       </Card>
 
-      <Card title="Slots">
+      <Card title={t("slots")}>
         <BucketManager
           buckets={buckets}
           slots={pack.slots}
@@ -95,7 +97,7 @@ export function PackEditor({ pack, dispatch, ready, meta }: PackEditorProps) {
         />
       </Card>
 
-      <section aria-label="Pool" className="flex flex-col gap-3">
+      <section aria-label={t("pool")} className="flex flex-col gap-3">
         <SectionHeading
           detail={`(${pack.slots.length})`}
           wrapperClassName="items-center"
@@ -103,14 +105,14 @@ export function PackEditor({ pack, dispatch, ready, meta }: PackEditorProps) {
             <div className="flex gap-2">
               {meta.hasErrors ? (
                 <Button variant="secondary" onClick={meta.retry}>
-                  Retry loading maps
+                  {t("retryLoadingMaps")}
                 </Button>
               ) : null}
               {pack.slots.length > 0 ? (
                 confirmClear ? (
                   <>
                     <Button variant="ghost" onClick={() => setArmedFor(null)}>
-                      Cancel
+                      {t("cancel")}
                     </Button>
                     <Button
                       variant="ghost"
@@ -119,19 +121,19 @@ export function PackEditor({ pack, dispatch, ready, meta }: PackEditorProps) {
                         setArmedFor(null);
                       }}
                     >
-                      Confirm clear
+                      {t("confirmClear")}
                     </Button>
                   </>
                 ) : (
                   <Button variant="ghost" onClick={() => setArmedFor(pack)}>
-                    Clear pack
+                    {t("clearPack")}
                   </Button>
                 )
               ) : null}
             </div>
           }
         >
-          Pool
+          {t("pool")}
         </SectionHeading>
         <PackStats
           slots={pack.slots}

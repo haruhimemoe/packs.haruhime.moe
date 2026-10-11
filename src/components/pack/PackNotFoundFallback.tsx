@@ -5,13 +5,14 @@
  *       here in the browser instead.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Text } from "@haruhimemoe/ui";
 import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 import { PackNotFound } from "@/components/pack/PackNotFound";
 import { type PackViewApi, SavedPackView } from "@/components/pack/SavedPackView";
@@ -36,6 +37,7 @@ export function PackNotFoundFallback({
   api = packsApi,
   readCookie,
 }: PackNotFoundFallbackProps) {
+  const t = useTranslations("packs.packNotFoundFallback");
   const params = useParams<{ slug?: string }>();
   const target = slug ?? params?.slug ?? null;
   const access = usePackAccess(target, { get: api.get, ...(readCookie ? { readCookie } : {}) });
@@ -47,7 +49,7 @@ export function PackNotFoundFallback({
   }, [foundName]);
 
   if (access.status === "checking") {
-    return <Text tone="muted">Loading pack…</Text>;
+    return <Text tone="muted">{t("loadingPack")}</Text>;
   }
   if (access.status === "found") {
     return (

@@ -4,17 +4,21 @@
  *       the browser allows, else built in memory with a warning for huge packs).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { formatBytes } from "@haruhimemoe/osu/format";
 import { Button, Text, textClasses } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useEffect, useId, useState } from "react";
 import { BLOB_FALLBACK_WARN_BYTES, type PackZipInput, packZipSize } from "@/lib/zip/pack-zip";
 import { getSaveFilePicker, type SaveOutcome, saveZip } from "@/lib/zip/save-zip";
 import { countOf } from "@/utils/text";
+
+/** A translator: next-intl's t for this file's catalog keys. */
+type T = (key: string, values?: Record<string, string | number>) => string;
 
 export type ZipExportProps = {
   input: PackZipInput;
@@ -34,14 +38,14 @@ export type ZipSeams = Pick<ZipExportProps, "save" | "canStream" | "blobWarnByte
 
 type SaveState = "idle" | "saving" | SaveOutcome | "error";
 
-const SAVE_MESSAGES: Record<SaveState, string> = {
+const SAVE_MESSAGES = (t: T): Record<SaveState, string> => ({
   idle: "",
-  saving: "Building the zip…",
-  streamed: "Zip saved.",
-  downloaded: "Download started.",
+  saving: t("buildingTheZip"),
+  streamed: t("zipSaved"),
+  downloaded: t("downloadStarted"),
   cancelled: "",
-  error: "Couldn't save the zip. Try again.",
-};
+  error: t("couldnTSaveThe"),
+});
 
 /**
  * @function ZipExport
@@ -58,6 +62,7 @@ export function ZipExport({
   canStream,
   blobWarnBytes = BLOB_FALLBACK_WARN_BYTES,
 }: ZipExportProps) {
+  const t = useTranslations("packs.zipExport");
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const headingId = useId();
   const Heading = headingLevel === 4 ? "h4" : "h3";
@@ -79,9 +84,9 @@ export function ZipExport({
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-3">
       <Heading id={headingId} className="font-bold text-c1">
-        Zip
+        {t("zip")}
       </Heading>
-      <Text tone="muted">One folder, numbered in pool order, with a pack.txt.</Text>
+      <Text tone="muted">{t("oneFolderNumberedIn")}</Text>
       {inMemorySize > blobWarnBytes ? (
         <Text tone="warning">
           This zip is about {formatBytes(inMemorySize)}. This browser has to build it in memory,
@@ -94,10 +99,12 @@ export function ZipExport({
           onClick={onSave}
           disabled={saveState === "saving"}
         >
-          {failedSlots > 0 ? `Save .zip without ${countOf(failedSlots, "map")}` : "Save .zip"}
+          {failedSlots > 0
+            ? t("saveZipWithoutMap", { map: countOf(failedSlots, "map") })
+            : t("saveZip")}
         </Button>
       </div>
-      <output className={textClasses({ tone: "muted" })}>{SAVE_MESSAGES[saveState]}</output>
+      <output className={textClasses({ tone: "muted" })}>{SAVE_MESSAGES(t)[saveState]}</output>
     </section>
   );
 }

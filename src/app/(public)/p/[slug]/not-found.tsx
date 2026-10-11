@@ -5,7 +5,7 @@
  *       the empty error shell, which takes the nearest not-found's metadata (AGENTS.md, 6a).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { notFoundMetadata } from "@haruhimemoe/next-kit/seo";

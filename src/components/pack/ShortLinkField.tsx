@@ -5,12 +5,13 @@
  *       work there.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { CopyField } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { SITE } from "@/constants/site";
 
@@ -20,6 +21,7 @@ import { SITE } from "@/constants/site";
  * @returns {JSX.Element} copyable /p/{slug} link
  */
 export function ShortLinkField({ slug }: { slug: string }) {
+  const t = useTranslations("packs.shortLinkField");
   const [origin, setOrigin] = useState<string>(SITE.url);
 
   useEffect(() => {
@@ -30,12 +32,12 @@ export function ShortLinkField({ slug }: { slug: string }) {
 
   return (
     <CopyField
-      label="Short link"
+      label={t("shortLink")}
       value={link}
-      copyLabel="Copy link"
+      copyLabel={t("copyLink")}
       copyVariant="primary"
-      copiedMessage="Link copied."
-      failedMessage="Couldn't copy. Select the link and copy it by hand."
+      copiedMessage={t("linkCopied")}
+      failedMessage={t("couldnTCopySelect")}
     />
   );
 }

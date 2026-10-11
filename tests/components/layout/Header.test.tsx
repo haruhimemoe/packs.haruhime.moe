@@ -6,10 +6,12 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { loadMessages } from "@haruhimemoe/messages";
 import { render, screen, within } from "@testing-library/react";
+import { createTranslator } from "next-intl";
 import { describe, expect, it, vi } from "vitest";
 import { Header } from "@/components/layout/Header";
-import { NAV_LINKS } from "@/constants/site";
+import { navLinks } from "@/constants/site";
 
 vi.mock("@/lib/account", () => ({ useAccount: () => ({ status: "signed-out" }) }));
 
@@ -19,10 +21,15 @@ describe("Header", () => {
     expect(screen.getByRole("link", { name: /packs/ })).toHaveAttribute("href", "/");
   });
 
-  it("renders every nav link inside the main navigation", () => {
+  it("renders every nav link inside the main navigation", async () => {
+    const english = createTranslator({
+      locale: "en",
+      messages: await loadMessages("en", "packs"),
+      namespace: "packs",
+    });
     render(<Header />);
     const nav = screen.getByRole("navigation", { name: "Main" });
-    for (const { href, label } of NAV_LINKS) {
+    for (const { href, label } of navLinks(english as (key: string) => string)) {
       expect(within(nav).getByRole("link", { name: label })).toHaveAttribute("href", href);
     }
   });

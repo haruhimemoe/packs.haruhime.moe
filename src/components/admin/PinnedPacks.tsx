@@ -8,7 +8,7 @@
  *       with the row.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
@@ -24,6 +24,7 @@ import {
   TextLink,
 } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { MAX_PINNED_PACKS } from "@/constants/public-packs";
 import { PacksApiError, packsApi } from "@/lib/packs-api";
@@ -40,6 +41,7 @@ type PinnedPacksProps = {
  * @returns {JSX.Element} /admin "Pinned packs" panel
  */
 export function PinnedPacks({ pins: initial, api = packsApi }: PinnedPacksProps) {
+  const t = useTranslations("packs.pinnedPacks");
   const router = useRouter();
   const [pins, setPins] = useState(initial);
   // A refreshed page brings the server's pins; they replace what this panel showed.
@@ -92,21 +94,19 @@ export function PinnedPacks({ pins: initial, api = packsApi }: PinnedPacksProps)
     );
 
   return (
-    <Card title="Pinned packs" className="flex flex-col gap-3">
+    <Card title={t("pinnedPacks")} className="flex flex-col gap-3">
       <Text tone="muted">
         Up to {MAX_PINNED_PACKS} public packs show above the list on /packs, in this order, until
         someone searches or filters. Drag a pack by its handle, or use Up and Down.
       </Text>
       {pins.length === 0 ? (
-        <Text tone="muted">
-          Nothing is pinned. Pin a public pack from the table above or from its page.
-        </Text>
+        <Text tone="muted">{t("nothingIsPinnedPin")}</Text>
       ) : (
         <SortableList
           items={pins}
           getId={(pin) => pin.slug}
           getLabel={(pin) => pin.name}
-          label="Pinned packs"
+          label={t("pinnedPacks")}
           disabled={busy}
           onMove={reorder}
           className="divide-y divide-b3"
@@ -130,7 +130,7 @@ export function PinnedPacks({ pins: initial, api = packsApi }: PinnedPacksProps)
                 {moveButtons}
                 <Button
                   variant="secondary"
-                  aria-label={`Unpin ${pin.name}`}
+                  aria-label={t("unpinName", { name: pin.name })}
                   onClick={() =>
                     run(
                       () => api.unpin(pin.slug),
@@ -139,7 +139,7 @@ export function PinnedPacks({ pins: initial, api = packsApi }: PinnedPacksProps)
                   }
                   disabled={busy}
                 >
-                  Unpin
+                  {t("unpin")}
                 </Button>
               </span>
             </>

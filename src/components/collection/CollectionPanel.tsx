@@ -9,12 +9,13 @@
  *       and the maps left out show. Downloads are plain browser downloads started by the click.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Card, Notice, RadioGroup, Text, TextLink } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { LazerCollection } from "@/components/collection/LazerCollection";
 import { StableCollection } from "@/components/collection/StableCollection";
@@ -24,6 +25,9 @@ import type { Pool } from "@/schemas/pack";
 import { collectionMaps, type SkippedMap } from "@/utils/osu-collection";
 import { countOf } from "@/utils/text";
 
+/** A translator: next-intl's t for this file's catalog keys. */
+type T = (key: string, values?: Record<string, string | number>) => string;
+
 export type CollectionPanelProps = {
   pack: Pool;
   getMeta: (beatmapId: number) => MetaState;
@@ -31,19 +35,20 @@ export type CollectionPanelProps = {
   download?: (blob: Blob, filename: string) => void;
 };
 
-const CLIENTS = [
-  {
-    value: "stable",
-    label: "osu!stable",
-    hint: "Load your collection.db and download it back with the maps added.",
-  },
-  {
-    value: "lazer",
-    label: "osu!lazer",
-    hint: "Download a zip that lazer's setup wizard imports.",
-  },
-] as const;
-type Client = (typeof CLIENTS)[number]["value"];
+const CLIENTS = (t: T) =>
+  [
+    {
+      value: "stable",
+      label: "osu!stable",
+      hint: t("loadYourCollectionDb"),
+    },
+    {
+      value: "lazer",
+      label: "osu!lazer",
+      hint: t("downloadAZipThat"),
+    },
+  ] as const;
+type Client = ReturnType<typeof CLIENTS>[number]["value"];
 
 const REASONS: Record<SkippedMap["reason"], string> = {
   missing: "not found on the mirror or osu!",
@@ -57,6 +62,7 @@ const REASONS: Record<SkippedMap["reason"], string> = {
  *          to the guide
  */
 export function CollectionPanel({ pack, getMeta, download = downloadBlob }: CollectionPanelProps) {
+  const t = useTranslations("packs.collectionPanel");
   const maps = useMemo(() => collectionMaps(pack, getMeta), [pack, getMeta]);
   const hashes = maps.status === "ready" ? maps.hashes : null;
   // No map can go in a collection: only the message (and why) shows, no client choice or sides.
@@ -64,17 +70,15 @@ export function CollectionPanel({ pack, getMeta, download = downloadBlob }: Coll
   const [client, setClient] = useState<Client>("stable");
 
   return (
-    <Card title="Add to osu! collection">
+    <Card title={t("addToOsuCollection")}>
       <div className="flex flex-col gap-4">
         <Text tone="muted">
           Put this pack's maps in one of your osu! collections.{" "}
-          <TextLink href="/guides/osu-collections">How it works</TextLink>
+          <TextLink href="/guides/osu-collections">{t("howItWorks")}</TextLink>
         </Text>
-        {maps.status === "loading" ? <Text tone="muted">Loading map info…</Text> : null}
+        {maps.status === "loading" ? <Text tone="muted">{t("loadingMapInfo")}</Text> : null}
         {maps.status === "error" ? (
-          <Notice tone="error">
-            {`Map info didn't load for ${countOf(maps.failed, "map")}. Retry loading maps in the Download card first.`}
-          </Notice>
+          <Notice tone="error">{t("mapInfoDidnT", { map: countOf(maps.failed, "map") })}</Notice>
         ) : null}
         {maps.status === "ready" && maps.skipped.length > 0 ? (
           <Notice tone="warning" as="div">
@@ -90,17 +94,13 @@ export function CollectionPanel({ pack, getMeta, download = downloadBlob }: Coll
             </ul>
           </Notice>
         ) : null}
-        {nothingToAdd ? (
-          <Text tone="muted">
-            None of these maps can go in a collection, so there's nothing to add.
-          </Text>
-        ) : null}
+        {nothingToAdd ? <Text tone="muted">{t("noneOfTheseMaps")}</Text> : null}
         {/* Hidden, not unmounted, so a loaded file or a typed name survives a pool that empties
             and fills again. */}
         <div hidden={nothingToAdd} className="flex flex-col gap-4">
           <RadioGroup
-            label="Which osu! do you play?"
-            options={CLIENTS}
+            label={t("whichOsuDoYou")}
+            options={CLIENTS(t)}
             value={client}
             onChange={(next) => setClient(next as Client)}
           />

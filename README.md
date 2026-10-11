@@ -40,6 +40,7 @@ packs uses these shared haruhime.moe packages:
 - [`@haruhimemoe/next-kit`](https://www.npmjs.com/package/@haruhimemoe/next-kit): the server plumbing packs shares with pools.haruhime.moe: JSON errors and body parsing, rate limits and the osu! API budget in MongoDB, the haruhime.moe session reader, env checks, the database client, the hub's account export and delete fan-out (the `account` module), the test helpers, version history (the `vcs` module), and the page titles, robots.txt, sitemap, structured data and llms.txt format shared by every haruhime.moe site.
 - [`@haruhimemoe/brand`](https://www.npmjs.com/package/@haruhimemoe/brand): the wordmark, icons and link preview image, each public pack's own preview card (drawn per request), and the palette file behind the colors on [/brand](https://packs.haruhime.moe/brand).
 - [`@haruhimemoe/vcs`](https://www.npmjs.com/package/@haruhimemoe/vcs): the diff, merge and codec primitives behind pack version history.
+- [`@haruhimemoe/messages`](https://www.npmjs.com/package/@haruhimemoe/messages): every word the site shows, through next-intl. The URL never carries a language: the shared `NEXT_LOCALE` cookie, then the browser's, picks it, and English fills any gap.
 
 ## Changes
 

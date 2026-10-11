@@ -7,7 +7,7 @@
  *       rows with no drag affordance).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
@@ -22,6 +22,7 @@ import {
   SortableMoveButtons,
   Text,
 } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { Fragment, useId, useState } from "react";
 import { NO_SLOT_VALUE } from "@/constants/mods";
 import type { MetaState } from "@/schemas/beatmap-meta";
@@ -29,6 +30,9 @@ import type { BucketEntry, PoolSlot, SlotBucket } from "@/schemas/pack";
 import { slotBadgeValue } from "@/utils/slot-badge";
 import { bucketListId, slotItemId } from "@/utils/slot-sortable-ids";
 import { type ModdedRating, slotStars } from "@/utils/slot-stars";
+
+/** A translator: next-intl's t for this file's catalog keys. */
+type T = (key: string, values?: Record<string, string | number>) => string;
 
 /** A bucket a map can move to: its value, label and whether it is full. */
 export type MoveTarget = { value: SlotBucket; label: string; disabled: boolean };
@@ -52,9 +56,9 @@ type SlotRowProps = {
   position?: number;
 };
 
-const freemodLine = (entries: readonly string[]) => (
+const freemodLine = (t: T, entries: readonly string[]) => (
   <Text size="xs" tone="subtle">
-    <span className="sr-only">With mods:</span>{" "}
+    <span className="sr-only">{t("withMods")}</span>{" "}
     <span>
       {entries.map((entry, i) => (
         <Fragment key={entry}>
@@ -83,6 +87,7 @@ export function SlotRow({
   sortable,
   position,
 }: SlotRowProps) {
+  const t = useTranslations("packs.slotRow");
   const title = slotTitle(slot);
   const itemId = slotItemId(slot.beatmapId);
   // Pick, then press Move: a <select> fires change on arrow keys, so moving on change would
@@ -101,14 +106,14 @@ export function SlotRow({
       <div className="flex items-center gap-1">
         <Select
           id={moveId}
-          label={`Move ${title} to`}
+          label={t("moveTitleTo", { title })}
           hideLabel
           value={target}
           onChange={(event) => setPicked(event.target.value)}
           className="w-auto text-sm"
         >
           <option value="" disabled>
-            Move to…
+            {t("moveTo")}
           </option>
           {moveTargets.map((option) => (
             <option
@@ -122,14 +127,14 @@ export function SlotRow({
         </Select>
         <Button
           variant="secondary"
-          aria-label={`Move ${title}`}
+          aria-label={t("moveTitle", { title })}
           disabled={target === ""}
           onClick={() => {
             onMove(target === NO_SLOT_VALUE ? null : target);
             setPicked("");
           }}
         >
-          Move
+          {t("move")}
         </Button>
       </div>
     ) : null;
@@ -152,7 +157,7 @@ export function SlotRow({
       stars={stars?.stars}
       starsLabel={stars?.label}
       starsTitle={stars?.title}
-      details={stars?.freemod ? freemodLine(stars.freemod) : undefined}
+      details={stars?.freemod ? freemodLine(t, stars.freemod) : undefined}
       actions={
         sortable || move || onRemove ? (
           <>
@@ -167,14 +172,14 @@ export function SlotRow({
             ) : null}
             {move}
             {onRemove ? (
-              <Button variant="ghost" onClick={onRemove} aria-label={`Remove ${title}`}>
-                Remove
+              <Button variant="ghost" onClick={onRemove} aria-label={t("removeTitle", { title })}>
+                {t("remove")}
               </Button>
             ) : null}
           </>
         ) : undefined
       }
-      labels={{ missing: (id) => `Beatmap ${id} wasn't found on the mirror. Check the ID.` }}
+      labels={{ missing: (id) => t("beatmapIdWasnT", { id }) }}
       copyId
       newTab
     />

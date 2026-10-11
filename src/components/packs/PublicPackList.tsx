@@ -4,10 +4,11 @@
  *       by: when each pack was added (default), or when it was last updated.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { CardGrid } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { type PackCardDate, PublicPackCard } from "@/components/packs/PublicPackCard";
 import type { PublicPackCard as PublicPack } from "@/schemas/public-pack";
 
@@ -22,12 +23,9 @@ type PublicPackListProps = {
  * @returns {JSX.Element} grid of public pack cards, or the empty state
  */
 export function PublicPackList({ packs, date }: PublicPackListProps) {
+  const t = useTranslations("packs.publicPackList");
   if (packs.length === 0) {
-    return (
-      <p className="text-c3">
-        No public packs yet. Save a pack and set it to Public to list it here.
-      </p>
-    );
+    return <p className="text-c3">{t("noPublicPacksYet")}</p>;
   }
   return (
     <CardGrid gap="sm">

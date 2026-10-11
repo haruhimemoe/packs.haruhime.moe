@@ -7,12 +7,13 @@
  *       `status` live region.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Button, Card, InlineConfirm, Notice, Text, TextLink, textClasses } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { ApiKeyReveal } from "@/components/account/ApiKeyReveal";
 import { API_DOCS_PATH } from "@/constants/api";
@@ -39,6 +40,7 @@ export function ApiKeyCard({
   createKey = packsApi.createApiKey,
   revokeKey = packsApi.revokeApiKey,
 }: ApiKeyCardProps) {
+  const t = useTranslations("packs.apiKeyCard");
   const [apiKey, setApiKey] = useState<ApiKeyInfo | null>(initial);
   const [revealed, setRevealed] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -85,30 +87,30 @@ export function ApiKeyCard({
       const made = await createKey();
       setApiKey(made.apiKey);
       setRevealed(made.key);
-      setStatus("API key created. Copy it now; it won't be shown again.");
+      setStatus(t("apiKeyCreatedCopy"));
       setPendingFocus("reveal");
-    }, "Couldn't make a key. Try again.");
+    }, t("couldnTMakeA"));
 
   const revoke = () =>
     run(async () => {
       await revokeKey();
       setApiKey(null);
-      setStatus("API key revoked.");
+      setStatus(t("apiKeyRevoked"));
       setPendingFocus("empty");
-    }, "Couldn't revoke the key. Try again.");
+    }, t("couldnTRevokeThe"));
 
   const saved = () => {
     setRevealed(null);
-    setStatus("Key saved.");
+    setStatus(t("keySaved"));
     setPendingFocus("existing");
   };
 
   return (
-    <Card title="API key">
+    <Card title={t("apiKey")}>
       <Text tone="muted">
         Scripts and bots can use a key to read public packs and manage yours. Anyone with the key
         can change your packs, so keep it secret.{" "}
-        <TextLink href={API_DOCS_PATH}>Read the API docs</TextLink>
+        <TextLink href={API_DOCS_PATH}>{t("readTheApiDocs")}</TextLink>
       </Text>
       <div className="mt-3 flex flex-col gap-3">
         {revealed !== null ? (
@@ -120,7 +122,7 @@ export function ApiKeyCard({
             onClick={() => create().catch(() => undefined)}
             disabled={busy}
           >
-            Create API key
+            {t("createApiKey")}
           </Button>
         ) : (
           <>
@@ -128,25 +130,25 @@ export function ApiKeyCard({
               <code className="font-mono text-c1">{apiKey.prefix}…</code> Created{" "}
               {formatShortDate(apiKey.createdAt)}.{" "}
               {apiKey.lastUsedAt
-                ? `Last used ${formatShortDate(apiKey.lastUsedAt)}.`
-                : "Not used yet."}
+                ? t("lastUsedLastusedat", { lastUsedAt: formatShortDate(apiKey.lastUsedAt) })
+                : t("notUsedYet")}
             </p>
             <div ref={regenerateRef} className="flex flex-wrap items-center gap-2">
               <InlineConfirm
-                trigger="Regenerate"
+                trigger={t("regenerate")}
                 triggerProps={{ disabled: busy }}
-                question="Your current key stops working right away."
-                cancelLabel="Keep it"
-                confirmLabel="Yes, regenerate"
+                question={t("yourCurrentKeyStops")}
+                cancelLabel={t("keepIt")}
+                confirmLabel={t("yesRegenerate")}
                 confirmVariant="danger"
                 onConfirm={create}
               />
               <InlineConfirm
-                trigger="Revoke"
+                trigger={t("revoke")}
                 triggerProps={{ variant: "ghost", disabled: busy }}
-                question="Revoke this key? Anything using it stops working right away."
-                cancelLabel="Keep it"
-                confirmLabel="Yes, revoke"
+                question={t("revokeThisKeyAnything")}
+                cancelLabel={t("keepIt")}
+                confirmLabel={t("yesRevoke")}
                 confirmVariant="danger"
                 onConfirm={revoke}
               />

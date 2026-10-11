@@ -6,15 +6,19 @@
  *       focusable while it works, so focus isn't lost.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Button, Notice } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { PacksApiError } from "@/lib/packs-api";
 import type { PinnedPack } from "@/schemas/public-pack";
+
+/** A translator: next-intl's t for this file's catalog keys. */
+type T = (key: string, values?: Record<string, string | number>) => string;
 
 export type PinApi = {
   pin: (slug: string) => Promise<PinnedPack[]>;
@@ -28,7 +32,7 @@ type PinButtonProps = {
   api: PinApi;
 };
 
-const PINNED = "Pinned to the top of /packs.";
+const PINNED = (t: T) => t("pinnedToTheTop");
 
 /**
  * @function PinButton
@@ -36,8 +40,9 @@ const PINNED = "Pinned to the top of /packs.";
  * @returns {JSX.Element} the Pin or Unpin button admins see on a public pack's page
  */
 export function PinButton({ slug, pinned: initial, api }: PinButtonProps) {
+  const t = useTranslations("packs.pinButton");
   const [pinned, setPinned] = useState(initial);
-  const [status, setStatus] = useState(initial ? PINNED : "");
+  const [status, setStatus] = useState(initial ? PINNED(t) : "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,9 +54,9 @@ export function PinButton({ slug, pinned: initial, api }: PinButtonProps) {
       const pins = await (pinned ? api.unpin(slug) : api.pin(slug));
       const now = pins.some((pin) => pin.slug === slug);
       setPinned(now);
-      setStatus(now ? PINNED : "Unpinned from /packs.");
+      setStatus(now ? PINNED(t) : t("unpinnedFromPacks"));
     } catch (cause) {
-      setError(cause instanceof PacksApiError ? cause.message : "Something went wrong. Try again.");
+      setError(cause instanceof PacksApiError ? cause.message : t("somethingWentWrongTry"));
     } finally {
       setBusy(false);
     }

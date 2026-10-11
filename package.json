@@ -30,15 +30,17 @@
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "standards": "next-kit check",
-    "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && lefthook install || true"
+    "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && lefthook install || true",
+    "check:keys": "messages-check-keys src"
   },
   "dependencies": {
     "@haruhimemoe/brand": "0.10.0",
+    "@haruhimemoe/messages": "0.1.0",
     "@haruhimemoe/mirror": "0.2.0",
-    "@haruhimemoe/next-kit": "0.17.1",
+    "@haruhimemoe/next-kit": "0.19.1",
     "@haruhimemoe/osu": "0.7.0",
     "@haruhimemoe/pool": "0.4.0",
-    "@haruhimemoe/ui": "0.25.0",
+    "@haruhimemoe/ui": "0.27.1",
     "@haruhimemoe/vcs": "0.1.0",
     "@mdx-js/loader": "3.1.1",
     "@mdx-js/react": "3.1.1",
@@ -51,6 +53,7 @@
     "mongoose": "9.11.1",
     "nanoid": "6.0.2",
     "next": "16.4.0",
+    "next-intl": "4.14.9",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "remark-gfm": "4.0.1",

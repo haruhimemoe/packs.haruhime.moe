@@ -3,7 +3,7 @@
  * @desc /p/[slug]/edit: edit a saved pack in memory (no IndexedDB draft), then save or delete.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
@@ -11,6 +11,7 @@
 import type { PackInputBody, PackVisibility } from "@haruhimemoe/pool/service";
 import { Button, ButtonLink, Card, ConfirmDialog, Notice, PageHeader, Text } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useMemo, useReducer, useState } from "react";
 import { DescriptionField } from "@/components/pack/DescriptionField";
 import { HiddenNotice } from "@/components/pack/HiddenNotice";
@@ -40,6 +41,7 @@ export function SavedPackEditor({
   update = packsApi.update,
   remove = packsApi.remove,
 }: SavedPackEditorProps) {
+  const t = useTranslations("packs.savedPackEditor");
   const router = useRouter();
   const [pack, dispatch] = useReducer(
     draftReducer,
@@ -56,7 +58,7 @@ export function SavedPackEditor({
   const busy = phase === "saving" || phase === "deleting";
 
   const fail = (cause: unknown) => {
-    setError(cause instanceof PacksApiError ? cause.message : "Something went wrong. Try again.");
+    setError(cause instanceof PacksApiError ? cause.message : t("somethingWentWrongTry"));
     setPhase("idle");
   };
 
@@ -96,10 +98,10 @@ export function SavedPackEditor({
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Edit pack"
+        title={t("editPack")}
         actions={
           <ButtonLink href={`/p/${saved.slug}`} variant="ghost">
-            Cancel
+            {t("cancel")}
           </ButtonLink>
         }
       />
@@ -108,18 +110,16 @@ export function SavedPackEditor({
 
       <PackEditor pack={pack} dispatch={dispatch} ready={!busy} meta={meta} />
 
-      <Card title="Visibility">
+      <Card title={t("visibility")}>
         <VisibilityField value={visibility} onChange={setVisibility} disabled={busy} />
       </Card>
 
-      <Card title="Description">
+      <Card title={t("description")}>
         <DescriptionField value={description} onChange={setDescription} disabled={busy} />
       </Card>
 
       {(saved.exports?.length ?? 0) > 0 ? (
-        <Text tone="muted">
-          Changing the name, maps, or slots removes this pack's magnet links.
-        </Text>
+        <Text tone="muted">{t("changingTheNameMaps")}</Text>
       ) : null}
 
       {error ? (
@@ -130,19 +130,19 @@ export function SavedPackEditor({
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Button onClick={saveChanges} disabled={busy || pack.slots.length === 0}>
-          {phase === "saving" ? "Saving…" : "Save changes"}
+          {phase === "saving" ? t("saving") : t("saveChanges")}
         </Button>
         <ConfirmDialog
-          trigger="Delete pack"
+          trigger={t("deletePack")}
           triggerProps={{ variant: "ghost", disabled: phase === "saving" }}
-          title="Delete this pack for good?"
-          description={`Its short link (/p/${saved.slug}) stops working for everyone. Pack keys you've shared still open the pool.`}
+          title={t("deleteThisPackFor")}
+          description={t("itsShortLinkP", { slug: saved.slug })}
           tone="destructive"
-          cancelLabel="Keep it"
-          confirmLabel="Yes, delete it"
-          pendingLabel="Deleting…"
+          cancelLabel={t("keepIt")}
+          confirmLabel={t("yesDeleteIt")}
+          pendingLabel={t("deleting")}
           failedMessage={(cause) =>
-            cause instanceof PacksApiError ? cause.message : "Something went wrong. Try again."
+            cause instanceof PacksApiError ? cause.message : t("somethingWentWrongTry")
           }
           onConfirm={deleteNow}
         />

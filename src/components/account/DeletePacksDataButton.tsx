@@ -6,12 +6,13 @@
  *       dialog with the server's message.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Oct 6, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { ConfirmDialog } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { PacksApiError, packsApi } from "@/lib/packs-api";
 import { countOf } from "@/utils/text";
 
@@ -37,24 +38,23 @@ export function DeletePacksDataButton({
   deletePacksData = packsApi.deletePacksData,
   onDeleted = reload,
 }: DeletePacksDataButtonProps) {
+  const t = useTranslations("packs.deletePacksDataButton");
   const run = async () => {
     await deletePacksData();
     onDeleted();
   };
   return (
     <ConfirmDialog
-      trigger="Delete my packs data"
+      trigger={t("deleteMyPacksData")}
       triggerProps={{ variant: "danger" }}
-      title="Delete your packs data?"
-      description={`This deletes your API key and ${countOf(packCount, "saved pack")}. Their short links stop working. Pack keys you've shared still open, and your haruhime account stays.`}
+      title={t("deleteYourPacksData")}
+      description={t("thisDeletesYourApi", { pack: countOf(packCount, "saved pack") })}
       tone="destructive"
       typeToConfirm={username}
-      confirmLabel="Delete for good"
-      pendingLabel="Deleting…"
+      confirmLabel={t("deleteForGood")}
+      pendingLabel={t("deleting")}
       failedMessage={(cause) =>
-        cause instanceof PacksApiError
-          ? cause.message
-          : "Couldn't delete your packs data. Try again."
+        cause instanceof PacksApiError ? cause.message : t("couldnTDeleteYour")
       }
       onConfirm={run}
     />

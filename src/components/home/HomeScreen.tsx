@@ -5,7 +5,7 @@
  *       WebApplication, FAQPage) as one JSON-LD graph.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { HARUHIME_ORG, ld, SEARCH_TERM } from "@haruhimemoe/next-kit/seo";
@@ -18,25 +18,30 @@ import {
   Text,
   TextLink,
 } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { KeyPasteForm } from "@/components/pack/KeyPasteForm";
 import { PublicPackList } from "@/components/packs/PublicPackList";
 import { BB_URL, POOLS_URL, SEO_SITE } from "@/constants/seo";
 import type { PublicPackCard } from "@/schemas/public-pack";
 
-const FEATURES = [
-  {
-    title: "Build",
-    body: "Paste IDs, links, or a whole spreadsheet. Maps land in NM, HD, HR, DT, FM, TB or your own slots.",
-  },
-  {
-    title: "Share",
-    body: "Every pack has a pack key anyone can open, no account needed. Save it to get a short link.",
-  },
-  {
-    title: "Download",
-    body: "Get the whole pool as one zip or a torrent, numbered in pool order, with a pack.txt listing every map.",
-  },
-] as const;
+/** A translator: next-intl's t for this file's catalog keys. */
+type T = (key: string, values?: Record<string, string | number>) => string;
+
+const FEATURES = (t: T) =>
+  [
+    {
+      title: "Build",
+      body: t("pasteIdsLinksOr"),
+    },
+    {
+      title: "Share",
+      body: t("everyPackHasA"),
+    },
+    {
+      title: "Download",
+      body: t("getTheWholePool"),
+    },
+  ] as const;
 
 export const HOME_FAQ = [
   {
@@ -102,18 +107,19 @@ export const HOME_LD = ld.graph(
   ld.faq(HOME_FAQ.map(({ question, answer }) => ({ q: question, a: answer }))),
 );
 
-const TOOLS = [
-  {
-    name: "pools",
-    href: POOLS_URL,
-    body: "Build the mappool itself: search maps with mods, check the content rules, and see where each map was played before.",
-  },
-  {
-    name: "bb",
-    href: BB_URL,
-    body: "Write the tournament's forum post or your userpage in osu! BBCode and see it as you type.",
-  },
-] as const;
+const TOOLS = (t: T) =>
+  [
+    {
+      name: "pools",
+      href: POOLS_URL,
+      body: t("buildTheMappoolItself"),
+    },
+    {
+      name: "bb",
+      href: BB_URL,
+      body: t("writeTheTournamentS"),
+    },
+  ] as const;
 
 /**
  * @function HomeScreen
@@ -121,27 +127,28 @@ const TOOLS = [
  * @returns {JSX.Element} homepage body
  */
 export function HomeScreen({ recent }: { recent: readonly PublicPackCard[] }) {
+  const t = useTranslations("packs.homeScreen");
   return (
     <div className="flex flex-col gap-10">
       <PageHeader
-        title="osu! beatmap packs for tournament hosts"
-        lead="packs turns a mappool into one download. Paste beatmap IDs or links, sort them into slots, and share the pack with a key or a short link."
+        title={t("osuBeatmapPacksFor")}
+        lead={t("packsTurnsAMappool")}
         actions={
           <>
             <ButtonLink href="/new" size="lg">
-              New pack
+              {t("newPack")}
             </ButtonLink>
             <ButtonLink href="/packs" size="lg" variant="secondary">
-              Browse public packs
+              {t("browsePublicPacks")}
             </ButtonLink>
           </>
         }
       />
-      <Card title="Have a pack key?">
+      <Card title={t("haveAPackKey")}>
         <KeyPasteForm />
       </Card>
       <div className="grid gap-4 sm:grid-cols-3">
-        {FEATURES.map(({ title, body }) => (
+        {FEATURES(t).map(({ title, body }) => (
           <Card key={title} title={title}>
             <p className="text-sm">{body}</p>
           </Card>
@@ -153,26 +160,26 @@ export function HomeScreen({ recent }: { recent: readonly PublicPackCard[] }) {
             id="recent-packs"
             actions={
               <TextLink href="/packs" className="font-bold text-sm">
-                See all public packs
+                {t("seeAllPublicPacks")}
               </TextLink>
             }
           >
-            Recent public packs
+            {t("recentPublicPacks")}
           </SectionHeading>
           <PublicPackList packs={recent} />
         </section>
       ) : null}
-      <Card title="Questions">
+      <Card title={t("questions")}>
         <div className="flex flex-col gap-4">
-          {HOME_FAQ.map(({ question, answer }) => (
+          {HOME_FAQ.map(({ question }, index) => (
             <div key={question}>
-              <h3 className="font-bold text-c1">{question}</h3>
+              <h3 className="font-bold text-c1">{t(`faq.${index}.question`)}</h3>
               <Text tone="muted" className="mt-1">
-                {answer}
+                {t(`faq.${index}.answer`)}
                 {question === "What's a pack key?" ? (
                   <>
                     {" "}
-                    <TextLink href="/guides/pack-key">How pack keys work</TextLink>
+                    <TextLink href="/guides/pack-key">{t("howPackKeysWork")}</TextLink>
                   </>
                 ) : null}
               </Text>
@@ -180,9 +187,9 @@ export function HomeScreen({ recent }: { recent: readonly PublicPackCard[] }) {
           ))}
         </div>
       </Card>
-      <Card title="More haruhime tools">
+      <Card title={t("moreHaruhimeTools")}>
         <ul className="flex flex-col gap-2 text-sm">
-          {TOOLS.map(({ name, href, body }) => (
+          {TOOLS(t).map(({ name, href, body }) => (
             <li key={name}>
               <TextLink href={href}>{name}</TextLink>: {body}
             </li>

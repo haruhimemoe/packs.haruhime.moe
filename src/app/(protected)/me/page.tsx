@@ -6,12 +6,13 @@
  *       shows no limit.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Oct 6, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { ButtonLink, Card, PageHeader, Pagination, Text } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { ApiKeyCard } from "@/components/account/ApiKeyCard";
 import { DeletePacksDataButton } from "@/components/account/DeletePacksDataButton";
 import { DownloadDataLink } from "@/components/account/DownloadDataLink";
@@ -43,6 +44,7 @@ const myPacksHref = (page: number): string => (page <= 1 ? "/me" : `/me?page=${p
  * @returns {Promise<JSX.Element>} the page
  */
 export default async function MyPacksPage({ searchParams }: PageProps<"/me">) {
+  const t = await getTranslations("packs.pages.protectedMe");
   const user = await requireUser("/me");
   const page = parsePageParam(first((await searchParams).page)) ?? 1;
   const [{ packs, pageCount, total }, apiKey] = await Promise.all([
@@ -54,17 +56,17 @@ export default async function MyPacksPage({ searchParams }: PageProps<"/me">) {
     <div className="flex flex-col gap-6">
       <RestoreSignedIn />
       <PageHeader
-        title="My packs"
-        lead={`Signed in as ${user.username}. This page is your packs settings.`}
+        title={t("myPacks")}
+        lead={t("signedInAsUsername", { username: user.username })}
         actions={
           <>
             {user.isAdmin ? (
               <ButtonLink href="/admin" variant="secondary">
-                Admin
+                {t("admin")}
               </ButtonLink>
             ) : null}
             <ButtonLink href={HUB_ACCOUNT_URL} variant="secondary">
-              haruhime.moe account
+              {t("haruhimeMoeAccount")}
             </ButtonLink>
             <SignOutButton />
           </>
@@ -81,27 +83,19 @@ export default async function MyPacksPage({ searchParams }: PageProps<"/me">) {
             page={page}
             pageCount={pageCount}
             hrefFor={myPacksHref}
-            previousLabel="Newer"
-            nextLabel="Older"
+            previousLabel={t("newer")}
+            nextLabel={t("older")}
           />
         </div>
       </Card>
       <ApiKeyCard initial={apiKey} />
-      <Card title="Your data">
+      <Card title={t("yourData")}>
         <div className="flex flex-col gap-3">
-          <Text tone="muted">
-            Download a copy of everything packs stores about you: your osu! profile details, your
-            API key's prefix and dates, and every pack you saved. Your sessions and deleting your
-            haruhime account are on your haruhime.moe account.
-          </Text>
+          <Text tone="muted">{t("downloadACopyOf")}</Text>
           <DownloadDataLink />
         </div>
         <div className="mt-6 flex flex-col gap-3 border-b3 border-t pt-6">
-          <Text tone="muted">
-            Deleting your packs data removes your API key and every pack you saved, with their
-            history. Your haruhime account stays. Files you downloaded and torrents you seed stay on
-            your devices, so they aren't ours to delete.
-          </Text>
+          <Text tone="muted">{t("deletingYourPacksData")}</Text>
           <DeletePacksDataButton username={user.username} packCount={total} />
         </div>
       </Card>

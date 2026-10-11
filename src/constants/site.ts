@@ -5,7 +5,7 @@
  *       hub's account page and the shared signed-in marker.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Tue Oct 6, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { SHARED_MARKER_COOKIE } from "@haruhimemoe/next-kit/auth-react";
@@ -55,9 +55,18 @@ export const SIGNED_IN_COOKIE = SHARED_MARKER_COOKIE;
 
 export const SERVER_USER_AGENT = `${SITE.title} (+${SITE.url}; ${SITE.contactEmail})`;
 
+/** The header's links: each label is a key under "packs.nav". */
 export const NAV_LINKS: readonly { href: string; label: string }[] = [
-  { href: "/", label: "Home" },
-  { href: "/new", label: "New pack" },
-  { href: "/packs", label: "Packs" },
-  { href: "/guides", label: "Guides" },
+  { href: "/", label: "home" },
+  { href: "/new", label: "newPack" },
+  { href: "/packs", label: "packs" },
+  { href: "/guides", label: "guides" },
 ];
+
+/**
+ * @function navLinks
+ * @param t {(key: string) => string} the "packs" translator
+ * @returns {{ href: string; label: string }[]} NAV_LINKS with their labels in the page's language
+ */
+export const navLinks = (t: (key: string) => string): { href: string; label: string }[] =>
+  NAV_LINKS.map((link) => ({ href: link.href, label: t(`nav.${link.label}`) }));

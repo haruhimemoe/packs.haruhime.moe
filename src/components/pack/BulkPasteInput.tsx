@@ -4,7 +4,7 @@
  *       are added (new codes become custom slots); bad lines stay in the box with a reason.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
@@ -19,9 +19,13 @@ import {
   slotLabel,
 } from "@haruhimemoe/pool";
 import { Button, Textarea, textClasses } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { type FormEvent, useId, useState } from "react";
 import type { BucketEntry, CustomBucket, PoolSlot } from "@/schemas/pack";
 import { countOf } from "@/utils/text";
+
+/** A translator: next-intl's t for this file's catalog keys. */
+type T = (key: string, values?: Record<string, string | number>) => string;
 
 type BulkPasteInputProps = {
   onAdd: (slots: PoolSlot[], newBuckets: CustomBucket[]) => void;
@@ -36,15 +40,19 @@ const asLine = (slot: PoolSlot) =>
   slot.mod === null ? String(slot.beatmapId) : `${slotLabel(slot)} ${slot.beatmapId}`;
 
 const summarize = (
+  t: T,
   { added, replaced, dropped }: ReturnType<typeof planMerge>,
   created: readonly CustomBucket[],
 ): string =>
   [
-    added.length > 0 ? `Added ${countOf(added.length, "map")}.` : "",
+    added.length > 0 ? t("addedMap", { map: countOf(added.length, "map") }) : "",
     created.length > 0
-      ? `Added ${created.length === 1 ? "slot" : "slots"} ${created.map((b) => b.code).join(", ")}.`
+      ? t("addedSlotsJoin", {
+          slots: created.length === 1 ? "slot" : "slots",
+          join: created.map((b) => b.code).join(", "),
+        })
       : "",
-    replaced.length > 0 ? `Replaced ${replaced.map(slotLabel).join(", ")}.` : "",
+    replaced.length > 0 ? t("replacedJoin", { join: replaced.map(slotLabel).join(", ") }) : "",
     dropped.length > 0 ? `${dropped.length} didn't fit: the pack is full (${MAX_SLOTS} maps).` : "",
   ]
     .filter(Boolean)
@@ -64,6 +72,7 @@ export function BulkPasteInput({
   buckets,
   disabled = false,
 }: BulkPasteInputProps) {
+  const t = useTranslations("packs.bulkPasteInput");
   const [text, setText] = useState("");
   const [errors, setErrors] = useState<SlotLineError[]>([]);
   const [summary, setSummary] = useState("");
@@ -83,7 +92,7 @@ export function BulkPasteInput({
     const used = new Set(accepted.map((slot) => slot.mod));
     const created = result.newBuckets.filter((bucket) => used.has(bucket.code));
     if (accepted.length > 0) onAdd(accepted, created);
-    setSummary(summarize(plan, created));
+    setSummary(summarize(t, plan, created));
     setErrors(result.errors);
     // Keep everything that didn't make it into the pool so nothing the host pasted is lost.
     setText([...result.errors.map((e) => e.text), ...plan.dropped.map(asLine)].join("\n"));
@@ -93,7 +102,7 @@ export function BulkPasteInput({
     <form onSubmit={submit} className="flex flex-col gap-2">
       <Textarea
         id={id}
-        label="Paste a mappool"
+        label={t("pasteAMappool")}
         rows={5}
         value={text}
         disabled={disabled}
@@ -114,7 +123,7 @@ export function BulkPasteInput({
       />
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" variant="secondary" disabled={disabled || text.trim() === ""}>
-          Add to pool
+          {t("addToPool")}
         </Button>
         <output className={textClasses({ tone: "muted" })}>{summary}</output>
       </div>

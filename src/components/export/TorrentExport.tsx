@@ -5,12 +5,13 @@
  *       TorrentMadePanel.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Button, Notice, Text } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useEffect, useId, useRef, useState } from "react";
 import { type MagnetTarget, TorrentMadePanel } from "@/components/export/TorrentMadePanel";
 import {
@@ -66,6 +67,7 @@ export function TorrentExport({
   saveFile = saveTorrentFile,
   canHash = canHashInBrowser(),
 }: TorrentExportProps) {
+  const t = useTranslations("packs.torrentExport");
   const [state, setState] = useState<State>({ phase: "idle" });
   const controllerRef = useRef<AbortController | null>(null);
   const headingId = useId();
@@ -115,12 +117,10 @@ export function TorrentExport({
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-3">
       <Heading id={headingId} className="font-bold text-c1">
-        Torrent file
+        {t("torrentFile")}
       </Heading>
-      <Text tone="muted">
-        The same files as a .torrent and a magnet link, for torrent apps like qBittorrent.
-      </Text>
-      {canHash ? null : <Text tone="warning">Your browser can't make torrents on this page.</Text>}
+      <Text tone="muted">{t("theSameFilesAs")}</Text>
+      {canHash ? null : <Text tone="warning">{t("yourBrowserCanT")}</Text>}
 
       {made ? (
         <TorrentMadePanel
@@ -136,30 +136,30 @@ export function TorrentExport({
               <Text
                 as="div"
                 role="progressbar"
-                aria-label="Making torrent"
+                aria-label={t("makingTorrent")}
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={state.percent}
                 tone="muted"
               >
-                {`Making torrent… ${state.percent}%`}
+                {t("makingTorrentPercent", { percent: state.percent })}
               </Text>
               <Button variant="secondary" onClick={cancel}>
-                Cancel
+                {t("cancel")}
               </Button>
             </>
           ) : (
             <Button onClick={start} disabled={!canHash}>
               {failedSlots > 0
-                ? `Make torrent without ${countOf(failedSlots, "map")}`
-                : "Make torrent"}
+                ? t("makeTorrentWithoutMap", { map: countOf(failedSlots, "map") })
+                : t("makeTorrent")}
             </Button>
           )}
         </div>
       )}
       {state.phase === "error" ? (
         <Notice tone="error" live className="font-bold">
-          Couldn't make the torrent. Try again.
+          {t("couldnTMakeThe")}
         </Notice>
       ) : null}
     </section>

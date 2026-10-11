@@ -4,7 +4,7 @@
  *       after load.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
@@ -12,6 +12,7 @@
 import { textClasses } from "@haruhimemoe/ui";
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useAccount } from "@/lib/account";
 
 /**
@@ -19,6 +20,7 @@ import { useAccount } from "@/lib/account";
  * @returns {JSX.Element} header account area
  */
 export function AccountNav() {
+  const ui = useTranslations("ui");
   const account = useAccount();
 
   if (account.status === "loading") return <span aria-hidden="true" className="block h-7 w-16" />;
@@ -34,7 +36,7 @@ export function AccountNav() {
             "inline-flex coarse:min-h-11 min-h-6 items-center transition-colors hover:text-c1",
         })}
       >
-        Sign in
+        {ui("account.signIn")}
       </Link>
     );
   }

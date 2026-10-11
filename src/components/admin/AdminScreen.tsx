@@ -4,10 +4,11 @@
  *       pinned packs panel, and the pack stats panel.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { Button, LinkTabs, PageHeader, Pagination, TextInput } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { AdminPackTable } from "@/components/admin/AdminPackTable";
 import { PackStatsBackfill } from "@/components/admin/PackStatsBackfill";
 import { PinnedPacks } from "@/components/admin/PinnedPacks";
@@ -37,11 +38,12 @@ export function AdminScreen({
   query,
   pins,
 }: AdminScreenProps) {
+  const t = useTranslations("packs.adminScreen");
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Admin" lead="Public and unlisted packs. Private packs never show here." />
+      <PageHeader title={t("admin")} lead={t("publicAndUnlistedPacks")} />
       <LinkTabs
-        label="Filter"
+        label={t("filter")}
         items={[
           { href: adminHref({ query }), label: "All", current: !hiddenOnly },
           { href: adminHref({ hiddenOnly: true, query }), label: "Hidden", current: hiddenOnly },
@@ -52,13 +54,13 @@ export function AdminScreen({
           {hiddenOnly ? <input type="hidden" name="show" value="hidden" /> : null}
           <TextInput
             id="admin-query"
-            label="Pack name"
+            label={t("packName")}
             wrapperClassName="min-w-48 flex-1"
             name="q"
             defaultValue={query}
           />
           <Button type="submit" variant="secondary">
-            Filter
+            {t("filter")}
           </Button>
         </form>
       </search>
@@ -68,8 +70,8 @@ export function AdminScreen({
         page={page}
         pageCount={pageCount}
         hrefFor={(n) => adminHref({ page: n, hiddenOnly, query })}
-        previousLabel="Newer"
-        nextLabel="Older"
+        previousLabel={t("newer")}
+        nextLabel={t("older")}
       />
       <PinnedPacks pins={pins} />
       <PackStatsBackfill />
