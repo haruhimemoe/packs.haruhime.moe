@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@haruhimemoe/brand": "0.10.0",
-    "@haruhimemoe/messages": "/private/tmp/claude-501/-Users-david-Documents-obsidian-vault/48be55d9-fccc-4299-b087-5331dd6e4515/scratchpad/messages-1791723045771059000.tgz",
+    "@haruhimemoe/messages": "0.1.0",
     "@haruhimemoe/mirror": "0.2.0",
     "@haruhimemoe/next-kit": "0.19.1",
     "@haruhimemoe/osu": "0.7.0",

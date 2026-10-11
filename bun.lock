@@ -6,8 +6,7 @@
       "name": "packs.haruhime.moe",
       "dependencies": {
         "@haruhimemoe/brand": "0.10.0",
-        "@haruhimemoe/messages": "/private/tmp/claude-501/-Users-david-Documents-obsidian-vault/48be55d9-fccc-4299-b087-5331dd6e4515/scratchpad/messages-1791723045771059000.tgz",
-        "@haruhimemoe/messages": "/private/tmp/claude-501/-Users-david-Documents-obsidian-vault/48be55d9-fccc-4299-b087-5331dd6e4515/scratchpad/messages-1791722822068436000.tgz",
+        "@haruhimemoe/messages": "0.1.0",
         "@haruhimemoe/mirror": "0.2.0",
         "@haruhimemoe/next-kit": "0.19.1",
         "@haruhimemoe/osu": "0.7.0",
@@ -152,7 +151,7 @@
 
     "@haruhimemoe/brand": ["@haruhimemoe/brand@0.10.0", "", { "dependencies": { "@resvg/resvg-js": "2.6.2", "opentype.js": "2.0.0" }, "bin": { "haruhime-brand": "dist/cli.js" } }, "sha512-4ib+VbXqvL2bIN/2Gkr5qdINxSyz+EcHtcKkEYeX8iSrif/KivInHFjG3xIlBsgZknE6iRcpj6ke2PIZxHGwlQ=="],
 
-    "@haruhimemoe/messages": ["@haruhimemoe/messages@/private/tmp/claude-501/-Users-david-Documents-obsidian-vault/48be55d9-fccc-4299-b087-5331dd6e4515/scratchpad/messages-1791722563904746000.tgz", { "bin": { "messages-check-keys": "./bin/check-keys.mjs" } }, "sha512-Qh59dvX3dnfYwnLVYeNTxXGQMRNCLOiyclzHPMkTWSBlfDRb6XqHjxtvDkGr77AXBgz3RoUpaDMlfkj4BZJRIA=="],
+    "@haruhimemoe/messages": ["@haruhimemoe/messages@0.1.0", "", { "bin": { "messages-check-keys": "bin/check-keys.mjs" } }, "sha512-FOeJ7ILApIfPIw+fLA7Re1M8Pcd/2pull7mCSvi0042U2XZxGPK/3Uh/1rTYmb0chH2ZaSPsxHjVrhRVNLPgpA=="],
 
     "@haruhimemoe/mirror": ["@haruhimemoe/mirror@0.2.0", "", { "dependencies": { "@haruhimemoe/osu": "^0.7.0" }, "peerDependencies": { "msw": "^2.0.0 || ^3.0.0", "zod": "^4.0.16" }, "optionalPeers": ["msw"] }, "sha512-bT/FIY6m1vWaXLQBbJISCifTrsnkzYk2Pr+s8Iu4ikDS9KNllj3JOHgk0DgKHcWIV/o/khXz6SDZR8oxRbzlqA=="],
 
