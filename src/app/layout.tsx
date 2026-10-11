@@ -5,7 +5,7 @@
  *       PageShell frame around the packs header and footer.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { pwaMetadata, pwaViewport, ServiceWorkerRegister } from "@haruhimemoe/next-kit/pwa";
@@ -20,6 +20,7 @@ import { Header } from "@/components/layout/Header";
 import { PWA } from "@/constants/pwa";
 import { SEO_SITE } from "@/constants/seo";
 import "./globals.css";
+import { NextIntlClientProvider, useLocale, useTranslations } from "next-intl";
 
 const nunito = Nunito({ subsets: ["latin"], variable: "--font-nunito", display: "swap" });
 
@@ -36,13 +37,17 @@ export const viewport: Viewport = pwaViewport(PWA);
  * @returns {JSX.Element} root layout
  */
 export default function RootLayout({ children }: { children: ReactNode }) {
+  const locale = useLocale();
+  const ui = useTranslations("ui");
   return (
-    <html lang="en" className={nunito.variable}>
+    <html lang={locale} className={nunito.variable}>
       <body className="bg-b5 font-sans text-c2 antialiased">
-        <AppPalette />
-        <PageShell header={<Header />} footer={<Footer />}>
-          {children}
-        </PageShell>
+        <NextIntlClientProvider>
+          <AppPalette />
+          <PageShell header={<Header />} footer={<Footer />} skipLabel={ui("shell.skip")}>
+            {children}
+          </PageShell>
+        </NextIntlClientProvider>
         <ServiceWorkerRegister />
       </body>
     </html>

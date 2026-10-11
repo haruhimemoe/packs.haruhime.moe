@@ -5,12 +5,13 @@
  *       the button.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Oct 6, 2026
- * @modified Tue Oct 6, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Button, Text } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { signOut as defaultSignOut } from "@/lib/account";
 
@@ -20,6 +21,7 @@ import { signOut as defaultSignOut } from "@/lib/account";
  * @returns {JSX.Element} the Sign out button
  */
 export function SignOutButton({ signOut = defaultSignOut }: { signOut?: () => Promise<void> }) {
+  const t = useTranslations("packs.signOutButton");
   const [state, setState] = useState<"idle" | "pending" | "failed">("idle");
   const run = async () => {
     setState("pending");
@@ -32,11 +34,11 @@ export function SignOutButton({ signOut = defaultSignOut }: { signOut?: () => Pr
   return (
     <span className="flex flex-col items-end gap-1">
       <Button variant="secondary" onClick={run} disabled={state === "pending"}>
-        {state === "pending" ? "Signing out…" : "Sign out"}
+        {state === "pending" ? t("signingOut") : t("signOut")}
       </Button>
       {state === "failed" ? (
         <Text role="alert" tone="error" className="text-xs">
-          Couldn't sign out. Try again.
+          {t("couldnTSignOut")}
         </Text>
       ) : null}
     </span>

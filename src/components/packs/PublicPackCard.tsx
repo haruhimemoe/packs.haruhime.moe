@@ -5,12 +5,13 @@
  *       default order), or when it was last updated for lists sorted that way.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { formatDuration, formatRange, formatStars } from "@haruhimemoe/osu/format";
 import { Surface, Text, TextLink } from "@haruhimemoe/ui";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import type { PublicPackCard as PublicPack } from "@/schemas/public-pack";
 import { formatShortDate } from "@/utils/date";
 import { countOf } from "@/utils/text";
@@ -32,6 +33,7 @@ type PublicPackCardProps = {
  * @returns {JSX.Element} one public pack in the /packs grid
  */
 export function PublicPackCard({ pack, date = "added" }: PublicPackCardProps) {
+  const t = useTranslations("packs.publicPackCard");
   const stars = pack.stats?.r;
   const length = pack.stats?.l;
   return (
@@ -51,7 +53,7 @@ export function PublicPackCard({ pack, date = "added" }: PublicPackCardProps) {
             {DOT}
             <span className="tabular-nums">
               <span aria-hidden="true">★</span> {formatRange(stars[0], stars[1], formatStars)}
-              <span className="sr-only"> stars</span>
+              <span className="sr-only">{` ${t("stars")}`}</span>
             </span>
           </>
         ) : null}
@@ -59,7 +61,7 @@ export function PublicPackCard({ pack, date = "added" }: PublicPackCardProps) {
           <>
             {DOT}
             <span className="tabular-nums">
-              <span className="sr-only">Length </span>
+              <span className="sr-only">{`${t("length")} `}</span>
               {formatRange(length[0], length[1], formatDuration)}
             </span>
           </>
@@ -70,8 +72,8 @@ export function PublicPackCard({ pack, date = "added" }: PublicPackCardProps) {
       ) : null}
       <p className="mt-auto text-c4 text-xs">
         {date === "added" && pack.createdAt
-          ? `Added ${formatShortDate(pack.createdAt)}`
-          : `Updated ${formatShortDate(pack.updatedAt)}`}
+          ? t("addedCreatedat", { createdAt: formatShortDate(pack.createdAt) })
+          : t("updatedUpdatedat", { updatedAt: formatShortDate(pack.updatedAt) })}
       </p>
     </Surface>
   );

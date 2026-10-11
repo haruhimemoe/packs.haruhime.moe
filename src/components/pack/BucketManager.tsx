@@ -7,13 +7,14 @@
  *       here.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { bucketName, isCustomBucket, NO_MODS, type SlotMods } from "@haruhimemoe/pool";
 import { Button, SortableList, Text } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { BucketAddForm } from "@/components/pack/BucketAddForm";
 import { BucketRenameForm } from "@/components/pack/BucketRenameForm";
@@ -52,21 +53,19 @@ export function BucketManager({
   onRemove,
   onSetMods,
 }: BucketManagerProps) {
+  const t = useTranslations("packs.bucketManager");
   const [renaming, setRenaming] = useState<string | null>(null);
   const countFor = (code: string) => slots.filter((s) => s.mod === code).length;
 
   return (
     <div className="flex flex-col gap-4">
-      <Text tone="muted">
-        Maps without a slot always come first. Drag a slot by its handle, or use Up and Down, to
-        change the order.
-      </Text>
+      <Text tone="muted">{t("mapsWithoutASlot")}</Text>
       <SortableList
         as="ul"
         items={buckets}
         getId={(entry) => entry.code}
         getLabel={(entry) => entry.code}
-        label="Slots"
+        label={t("slots")}
         disabled={disabled}
         onMove={({ id, to }) => onMove(id, to.index)}
         className="gap-2 [--sortable-gap:0.5rem]"
@@ -89,7 +88,7 @@ export function BucketManager({
               {isCustomBucket(entry) ? (
                 <div className="flex w-full flex-wrap items-center gap-3">
                   <ColorPicker
-                    legend={`Color for ${entry.code}`}
+                    legend={t("colorForCode", { code: entry.code })}
                     offsetClass="ring-offset-b5"
                     value={entry.color}
                     disabled={disabled}
@@ -105,24 +104,24 @@ export function BucketManager({
                   ) : (
                     <Button
                       variant="ghost"
-                      aria-label={`Rename ${entry.code}`}
+                      aria-label={t("renameCode", { code: entry.code })}
                       disabled={disabled}
                       onClick={() => setRenaming(entry.code)}
                     >
-                      Rename
+                      {t("rename")}
                     </Button>
                   )}
                   <Button
                     variant="ghost"
-                    aria-label={`Delete ${entry.code}`}
+                    aria-label={t("deleteCode", { code: entry.code })}
                     disabled={disabled || count > 0}
-                    title={count > 0 ? "Remove or move its maps first." : undefined}
+                    title={count > 0 ? t("removeOrMoveIts") : undefined}
                     onClick={() => onRemove(entry.code)}
                   >
-                    Delete
+                    {t("delete")}
                   </Button>
                   {count > 0 ? (
-                    <span className="text-c4 text-xs">Remove or move its maps first.</span>
+                    <span className="text-c4 text-xs">{t("removeOrMoveIts")}</span>
                   ) : null}
                   <div className="w-full">
                     <ModsField

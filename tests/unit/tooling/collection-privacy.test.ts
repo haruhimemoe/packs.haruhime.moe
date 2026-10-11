@@ -59,6 +59,8 @@ const ALLOWED_IMPORTS = [
   "@haruhimemoe/pool",
   "@haruhimemoe/ui",
   "react",
+  // Translations only: reads the catalogs, sends and keeps nothing.
+  "next-intl",
   "fflate",
   "next/link",
   "@/components/collection/",

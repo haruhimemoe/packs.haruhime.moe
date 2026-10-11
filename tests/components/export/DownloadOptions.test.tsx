@@ -9,6 +9,7 @@
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useTranslations } from "next-intl";
 import { describe, expect, it, vi } from "vitest";
 import { DownloadOptions, downloadOptionsSummary } from "@/components/export/DownloadOptions";
 import { DEFAULT_DOWNLOAD_CHOICES } from "@/schemas/download-choices";
@@ -20,7 +21,7 @@ describe("downloadOptionsSummary", () => {
     [{ videos: true, backgrounds: true }, "Download options: videos, backgrounds"],
     [{ videos: true, backgrounds: false }, "Download options: videos, no backgrounds"],
   ])("%j → %j", (choices, text) => {
-    expect(downloadOptionsSummary(choices)).toBe(text);
+    expect(downloadOptionsSummary(useTranslations("packs.downloadOptions"), choices)).toBe(text);
   });
 });
 

@@ -10,47 +10,51 @@
  *       session and clears its shared cookies, then the page refreshes in place.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Oct 5, 2026
- * @modified Tue Oct 6, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
+import { uiLabels } from "@haruhimemoe/next-kit/i18n";
 import { type Command, CommandPalette, siteCommands } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
-import { NAV_LINKS, SITE } from "@/constants/site";
+import { navLinks, SITE } from "@/constants/site";
 import { signOut, useAccount } from "@/lib/account";
 import { createPacksProvider } from "@/lib/palette-packs";
 
 /** Packs-specific commands beyond siteCommands' defaults. */
-const extras = (signedIn: boolean): Command[] => [
+type T = ReturnType<typeof useTranslations>;
+
+const extras = (t: T, ui: ReturnType<typeof uiLabels>, signedIn: boolean): Command[] => [
   {
     id: "packs.new",
-    title: "New pack",
-    subtitle: "Build a pack from beatmap IDs or links",
-    group: "Packs",
+    title: t("palette.new"),
+    subtitle: t("palette.newSub"),
+    group: t("palette.packs"),
     keywords: ["create", "build"],
     run: (ctx) => ctx.navigate("/new"),
   },
   {
     id: "packs.paste-key",
-    title: "Paste pack key",
-    subtitle: "Open a pack someone shared with you",
-    group: "Packs",
+    title: t("palette.pasteKey"),
+    subtitle: t("palette.pasteKeySub"),
+    group: t("palette.packs"),
     keywords: ["open", "share"],
     run: (ctx) => ctx.navigate("/k"),
   },
   {
     id: "packs.my-packs",
-    title: "My packs",
-    subtitle: "Your saved packs, API key and packs data",
-    group: "Account",
+    title: t("palette.myPacks"),
+    subtitle: t("palette.myPacksSub"),
+    group: ui.siteCommands.account,
     when: () => signedIn,
     run: (ctx) => ctx.navigate("/me"),
   },
   {
     id: "packs.sign-out",
-    title: "Sign out",
-    group: "Account",
+    title: ui.account.signOut,
+    group: ui.siteCommands.account,
     when: () => signedIn,
     run: async () => {
       await signOut();
@@ -63,23 +67,36 @@ const extras = (signedIn: boolean): Command[] => [
  * @returns {JSX.Element} the mounted command palette
  */
 export function AppPalette() {
+  const t = useTranslations("packs");
+  const tUi = useTranslations("ui");
+  const ui = useMemo(() => uiLabels(tUi), [tUi]);
   const account = useAccount();
   const signedIn = account.status === "signed-in";
 
   const commands = useMemo<Command[]>(
     () => [
       ...siteCommands({
-        pages: NAV_LINKS,
+        pages: navLinks(t),
         tools: "packs",
         repo: SITE.repoUrl,
         account: { signedIn, signInHref: "/signin" },
+        labels: ui.siteCommands,
       }),
-      ...extras(signedIn),
+      ...extras(t, ui, signedIn),
     ],
-    [signedIn],
+    [signedIn, t, ui],
   );
 
   const providers = useMemo(() => [createPacksProvider()], []);
 
-  return <CommandPalette storageKey="packs" commands={commands} providers={providers} />;
+  return (
+    <CommandPalette
+      storageKey="packs"
+      commands={commands}
+      providers={providers}
+      labels={ui.palette}
+      placeholder={ui.paletteProps.placeholder}
+      label={ui.paletteProps.label}
+    />
+  );
 }

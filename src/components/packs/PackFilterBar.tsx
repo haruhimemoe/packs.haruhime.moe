@@ -8,7 +8,7 @@
  *       filter components.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
@@ -23,6 +23,7 @@ import {
   Select,
   TextInput,
 } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { type ReactNode, useId } from "react";
 import {
   BPM_RANGE,
@@ -37,6 +38,9 @@ import {
 import { STAT_MOD_CODES, type StatModCode } from "@/constants/pack-stats";
 import { formatLengthText, parseLengthText } from "@/utils/pack-filter-query";
 import { clearFilters, hasFilters, normalizeRange, type PackFilters } from "@/utils/pack-filters";
+
+/** A translator: next-intl's t for this file's catalog keys. */
+type T = (key: string, values?: Record<string, string | number>) => string;
 
 const MOD_OPTIONS: readonly ChipOption[] = STAT_MOD_CODES.map((code) => ({
   value: code,
@@ -60,12 +64,12 @@ type RangeRowSpec = {
   parse?: (text: string) => number | null;
 };
 
-const STAR_ROW: RangeRowSpec = {
+const STAR_ROW = (t: T): RangeRowSpec => ({
   key: "sr",
-  label: "Star rating",
+  label: t("starRating"),
   noun: "star rating",
   bounds: STAR_RANGE,
-};
+});
 
 const LENGTH_ROW: RangeRowSpec = {
   key: "len",
@@ -115,6 +119,7 @@ export function PackFilterBar({
   onSearchFocus,
   urlReads = 0,
 }: PackFilterBarProps) {
+  const t = useTranslations("packs.packFilterBar");
   const searchId = useId();
   const sortId = useId();
   const set = (patch: Partial<PackFilters>) => onChange({ ...filters, ...patch });
@@ -124,8 +129,8 @@ export function PackFilterBar({
       <RangeSlider
         label={label}
         hideLabel
-        minLabel={`Minimum ${noun}`}
-        maxLabel={`Maximum ${noun}`}
+        minLabel={t("minimumNoun", { noun })}
+        maxLabel={t("maximumNoun", { noun })}
         min={bounds.min}
         max={bounds.max}
         step={bounds.step}
@@ -143,17 +148,17 @@ export function PackFilterBar({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <TextInput
           id={searchId}
-          label="Search public packs"
+          label={t("searchPublicPacks")}
           type="search"
           value={filters.q}
-          placeholder="Pack name, host, or description"
+          placeholder={t("packNameHostOr")}
           onFocus={onSearchFocus}
           onChange={(event) => set({ q: event.target.value })}
           wrapperClassName="min-w-0 flex-1"
         />
         <Select
           id={sortId}
-          label="Sort by"
+          label={t("sortBy")}
           value={filters.sort}
           onChange={(event) => {
             const sort = PACK_SORTS.find((value) => value === event.target.value);
@@ -172,16 +177,16 @@ export function PackFilterBar({
         // Remounted for filters from the URL, so it opens on phones when they set a row; a
         // change made on the page leaves the fold as the reader left it.
         key={urlReads}
-        title="Filters"
+        title={t("filters")}
         resultCount={resultCount}
         active={hasFilters(filters)}
         defaultOpen={hasFilters(filters)}
         onClear={() => onChange(clearFilters(filters))}
       >
-        {rangeRow(STAR_ROW)}
-        <FilterRow label="Mods">
+        {rangeRow(STAR_ROW(t))}
+        <FilterRow label={t("mods")}>
           <ChipGroup
-            label="Mods"
+            label={t("mods")}
             hideLabel
             options={MOD_OPTIONS}
             value={filters.mods}
@@ -190,9 +195,9 @@ export function PackFilterBar({
         </FilterRow>
         {rangeRow(LENGTH_ROW)}
         {rangeRow(BPM_ROW)}
-        <FilterRow label="Mode">
+        <FilterRow label={t("mode")}>
           <ChipGroup
-            label="Mode"
+            label={t("mode")}
             hideLabel
             options={MODE_OPTIONS}
             value={filters.mode}

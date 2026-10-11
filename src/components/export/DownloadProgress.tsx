@@ -3,32 +3,38 @@
  * @desc Overall and per-slot download state while a pack's sets come down from the mirror.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { formatBytes } from "@haruhimemoe/osu/format";
 import { Progress, textClasses } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import type { ProgressRow } from "@/hooks/usePackDownloads";
 import type { SetStatus } from "@/lib/downloads/fetch-sets";
 import { countOf } from "@/utils/text";
 
-const statusText = (status: SetStatus | undefined): string => {
+/** A translator: next-intl's t for this file's catalog keys. */
+type T = (key: string, values?: Record<string, string | number>) => string;
+
+const statusText = (t: T, status: SetStatus | undefined): string => {
   switch (status?.status) {
     case undefined:
     case "queued":
       return "Waiting";
     case "checking":
-      return "Checking…";
+      return t("checking");
     case "downloading":
       return status.total
-        ? `Downloading ${Math.min(100, Math.round((status.loaded / status.total) * 100))}%`
-        : `Downloading ${formatBytes(status.loaded)}`;
+        ? t("downloadingTotal", {
+            total: Math.min(100, Math.round((status.loaded / status.total) * 100)),
+          })
+        : t("downloadingLoaded", { loaded: formatBytes(status.loaded) });
     case "waiting":
-      return `Mirror is busy, retrying in ${Math.ceil(status.retryInMs / 1000)}s`;
+      return t("mirrorIsBusyRetrying", { retryInMs: Math.ceil(status.retryInMs / 1000) });
     case "removing":
-      return "Removing backgrounds…";
+      return t("removingBackgrounds");
     case "ready": {
-      const text = status.fromCache ? "Ready (saved in this browser)" : "Ready";
+      const text = status.fromCache ? t("readySavedInThis") : "Ready";
       return status.backgroundsKept ? `${text}, backgrounds kept` : text;
     }
     case "failed":
@@ -48,12 +54,13 @@ type DownloadProgressProps = {
  *          mirror
  */
 export function DownloadProgress({ rows, statuses }: DownloadProgressProps) {
+  const t = useTranslations("packs.downloadProgress");
   const setIds = [...new Set(rows.map((row) => row.setId))];
   const ready = setIds.filter((id) => statuses.get(id)?.status === "ready").length;
   return (
     <div className="flex flex-col gap-3">
       <Progress
-        label="Download progress"
+        label={t("downloadProgress")}
         hideLabel
         value={ready}
         max={setIds.length}
@@ -72,7 +79,7 @@ export function DownloadProgress({ rows, statuses }: DownloadProgressProps) {
                   className: "ml-auto text-right",
                 })}
               >
-                {statusText(status)}
+                {statusText(t, status)}
               </span>
             </li>
           );

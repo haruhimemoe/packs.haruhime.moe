@@ -5,15 +5,19 @@
  *       browser).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { CopyButton, CopyField } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
-const FAILED = "Couldn't copy. Select the key and copy it by hand.";
+/** A translator: next-intl's t for this file's catalog keys. */
+type T = (key: string, values?: Record<string, string | number>) => string;
+
+const FAILED = (t: T) => t("couldnTCopySelect");
 
 /**
  * @function PackKeyField
@@ -21,25 +25,26 @@ const FAILED = "Couldn't copy. Select the key and copy it by hand.";
  * @returns {JSX.Element} the key field and its Copy key and Copy share link buttons
  */
 export function PackKeyField({ packKey }: { packKey: string }) {
+  const t = useTranslations("packs.packKeyField");
   // The origin is only known in the browser: the link button waits for it.
   const [origin, setOrigin] = useState<string | null>(null);
   useEffect(() => setOrigin(window.location.origin), []);
 
   return (
     <CopyField
-      label="Pack key"
+      label={t("packKey")}
       value={packKey}
-      copyLabel="Copy key"
+      copyLabel={t("copyKey")}
       copyVariant="primary"
-      copiedMessage="Key copied."
-      failedMessage={FAILED}
+      copiedMessage={t("keyCopied")}
+      failedMessage={FAILED(t)}
       actions={
         <CopyButton
           text={origin === null ? "" : `${origin}/k#${packKey}`}
           disabled={origin === null}
-          label="Copy share link"
-          copiedMessage="Link copied."
-          failedMessage={FAILED}
+          label={t("copyShareLink")}
+          copiedMessage={t("linkCopied")}
+          failedMessage={FAILED(t)}
         />
       }
     />

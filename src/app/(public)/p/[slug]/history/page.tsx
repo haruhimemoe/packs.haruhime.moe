@@ -5,13 +5,14 @@
  *       can see but whose history is private answers with a plain notice instead.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Oct 5, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { EmptyState, LinkRow, PageHeader } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { ChangeList } from "@/components/history/ChangeList";
 import { HistoryTable } from "@/components/history/HistoryTable";
 import { HistoryVisibilityForm } from "@/components/history/HistoryVisibilityForm";
@@ -60,6 +61,7 @@ export default async function PackHistoryPage({
   params,
   searchParams,
 }: PageProps<"/p/[slug]/history">) {
+  const t = await getTranslations("packs.pages.publicPSlugHistory");
   const { slug } = await params;
   if (!slugSchema.safeParse(slug).success) notFound();
   const query = await searchParams;
@@ -69,7 +71,7 @@ export default async function PackHistoryPage({
     if (history.status !== 403) notFound();
     return (
       <div className="flex flex-col gap-6">
-        <PageHeader title="Pack history" />
+        <PageHeader title={t("packHistory")} />
         <EmptyState variant="filled" title={HISTORY_COPY.privateTitle}>
           {HISTORY_COPY.privateBody}
         </EmptyState>
@@ -82,7 +84,7 @@ export default async function PackHistoryPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={`History of ${pack.name}`} />
+      <PageHeader title={t("historyOfName", { name: pack.name })} />
       <LinkRow items={[{ href: `/p/${slug}`, label: "Back to the pack" }]} />
       {access.canToggle ? (
         <HistoryVisibilityForm slug={slug} historyPublic={historyPublic} />

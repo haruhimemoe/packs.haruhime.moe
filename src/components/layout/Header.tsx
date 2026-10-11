@@ -4,19 +4,22 @@
  *       palette button, and the account area.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { CommandPaletteButton, SiteHeader } from "@haruhimemoe/ui";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { AccountNav } from "@/components/layout/AccountNav";
-import { NAV_LINKS, SITE } from "@/constants/site";
+import { navLinks, SITE } from "@/constants/site";
 
 /**
  * @function Header
  * @returns {JSX.Element} site header
  */
 export function Header() {
+  const t = useTranslations("packs");
+  const ui = useTranslations("ui");
   return (
     <SiteHeader
       brand={
@@ -25,10 +28,11 @@ export function Header() {
           <span className="text-h1">.</span>
         </Link>
       }
-      links={NAV_LINKS}
+      links={navLinks(t)}
+      navLabel={ui("shell.mainNav")}
       actions={
         <>
-          <CommandPaletteButton />
+          <CommandPaletteButton label={ui("palette.openLabel")} />
           <AccountNav />
         </>
       }

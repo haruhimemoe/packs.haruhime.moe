@@ -3,7 +3,7 @@
  * @desc Stats tiles above a pool: maps, length, averages, ranges. Computed from loaded metadata.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import {
@@ -14,6 +14,7 @@ import {
 } from "@haruhimemoe/osu/format";
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
 import { StatList } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import type { MetaState } from "@/schemas/beatmap-meta";
 import { packStats } from "@/utils/pack-stats";
 
@@ -39,33 +40,30 @@ export function PackStats<S extends { beatmapId: number }>({
   starsOf,
   speedOf,
 }: PackStatsProps<S>) {
+  const t = useTranslations("packs.packStats");
   const stats = packStats(slots, getState, starsOf, speedOf);
   if (stats.status === "empty") return null;
 
-  const tiles: [string, string][] = [["Maps", String(stats.maps)]];
+  const tiles: [string, string][] = [[t("maps"), String(stats.maps)]];
   if (stats.status === "loading") {
-    for (const label of ["Length", "Avg length", "Avg ★", "★ range", "BPM"])
+    for (const label of [t("length"), t("avgLength"), t("avg"), t("range"), t("bpm")])
       tiles.push([label, "…"]);
   } else if (stats.summary) {
     const s = stats.summary;
     tiles.push(
-      ["Length", formatLongDuration(s.totalLength)],
-      ["Avg length", formatDuration(s.averageLength)],
-      ["Avg ★", formatStars(s.averageStars)],
-      ["★ range", range(formatStars(s.minStars), formatStars(s.maxStars))],
-      ["BPM", range(formatBpm(s.minBpm), formatBpm(s.maxBpm))],
+      [t("length"), formatLongDuration(s.totalLength)],
+      [t("avgLength"), formatDuration(s.averageLength)],
+      [t("avg"), formatStars(s.averageStars)],
+      [t("range"), range(formatStars(s.minStars), formatStars(s.maxStars))],
+      [t("bpm"), range(formatBpm(s.minBpm), formatBpm(s.maxBpm))],
     );
   }
   const skipped = stats.status === "ready" ? stats.skipped : 0;
 
   return (
-    <section aria-label="Pack stats" className="flex flex-col gap-2">
+    <section aria-label={t("packStats")} className="flex flex-col gap-2">
       <StatList variant="tiles" items={tiles.map(([label, value]) => ({ label, value }))} />
-      {skipped > 0 ? (
-        <p className="text-c4 text-sm">
-          Stats leave out {skipped} {skipped === 1 ? "map that" : "maps that"} didn't load.
-        </p>
-      ) : null}
+      {skipped > 0 ? <p className="text-c4 text-sm">{t("skipped", { count: skipped })}</p> : null}
     </section>
   );
 }

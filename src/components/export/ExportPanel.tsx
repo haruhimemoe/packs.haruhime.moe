@@ -7,12 +7,13 @@
  *       the card offers the retry itself (onRetryMeta).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Button, Card, cx, Text } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { type ReactNode, useId, useState } from "react";
 import { DownloadOptions } from "@/components/export/DownloadOptions";
 import { DownloadProgress } from "@/components/export/DownloadProgress";
@@ -63,6 +64,7 @@ export function ExportPanel({
   zip,
   torrent,
 }: ExportPanelProps) {
+  const t = useTranslations("packs.exportPanel");
   const [choices, setChoices] = useDownloadChoices();
   const downloads = usePackDownloads({ pack, packKey, getMeta, deps, choices });
   const { loading, metaError, missing, setIds, failedIds, settled, started, running } = downloads;
@@ -80,43 +82,39 @@ export function ExportPanel({
 
   let actions: ReactNode = null;
   if (loading) {
-    actions = <Button disabled>Loading map info…</Button>;
+    actions = <Button disabled>{t("loadingMapInfo")}</Button>;
   } else if (metaError && onRetryMeta) {
     actions = (
       <>
-        <Button onClick={onRetryMeta}>Retry loading maps</Button>
-        <Text tone="error">Some map info didn't load.</Text>
+        <Button onClick={onRetryMeta}>{t("retryLoadingMaps")}</Button>
+        <Text tone="error">{t("someMapInfoDidn")}</Text>
       </>
     );
   } else if (metaError) {
     actions = (
       <>
-        <Button disabled>Download maps</Button>
-        <Text tone="error">Some map info didn't load. Retry loading maps first.</Text>
+        <Button disabled>{t("downloadMaps")}</Button>
+        <Text tone="error">{t("someMapInfoDidn2")}</Text>
       </>
     );
   } else if (setIds.length === 0) {
-    actions = (
-      <Text tone="muted">
-        None of these maps are on the mirror, so there's nothing to download.
-      </Text>
-    );
+    actions = <Text tone="muted">{t("noneOfTheseMaps")}</Text>;
   } else if (running) {
     actions = (
       <Button variant="secondary" onClick={downloads.cancel}>
-        Cancel
+        {t("cancel")}
       </Button>
     );
   } else if (settled && failedIds.length > 0) {
-    actions = <Button onClick={downloads.retryFailed}>Retry failed</Button>;
+    actions = <Button onClick={downloads.retryFailed}>{t("retryFailed")}</Button>;
   } else if (!settled) {
-    actions = <Button onClick={downloads.downloadRemaining}>Download maps</Button>;
+    actions = <Button onClick={downloads.downloadRemaining}>{t("downloadMaps")}</Button>;
   }
 
   const plan = settled && !running && !loading && !metaError ? downloads.plan() : null;
 
   return (
-    <Card title="Download">
+    <Card title={t("download")}>
       <div className="flex flex-col gap-4">
         {hasTorrentLinks ? torrentLinks : null}
         {/* Always this element, so the card gaining a Torrent section keeps the flow's state. */}
@@ -126,13 +124,10 @@ export function ExportPanel({
         >
           {hasTorrentLinks ? (
             <h3 id={mirrorHeadingId} className="font-bold text-c1">
-              From the mirror
+              {t("fromTheMirror")}
             </h3>
           ) : null}
-          <Text tone="muted">
-            Maps download 4 at a time and stay cached in this browser, so the next download is
-            quick.
-          </Text>
+          <Text tone="muted">{t("mapsDownload4At")}</Text>
           {missing > 0 ? (
             <Text tone="warning">
               {missing === 1 ? "1 map wasn't" : `${missing} maps weren't`} found on the mirror and
@@ -152,7 +147,9 @@ export function ExportPanel({
           {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
           {plan && downloads.backgroundsKeptSlots > 0 ? (
             <Text tone="warning">
-              {`Couldn't remove backgrounds from ${countOf(downloads.backgroundsKeptSlots, "map")}. They're included as downloaded.`}
+              {t("couldnTRemoveBackgrounds", {
+                map: countOf(downloads.backgroundsKeptSlots, "map"),
+              })}
             </Text>
           ) : null}
           {plan ? (

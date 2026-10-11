@@ -3,10 +3,11 @@
  * @desc /me: one page of the signed-in user's saved packs, newest update first.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { ButtonLink, TextLink } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { VISIBILITY_OPTIONS } from "@/constants/visibility";
 import type { SavedPackSummary } from "@/schemas/saved-pack";
 import { formatShortDate } from "@/utils/date";
@@ -22,12 +23,13 @@ import { countOf } from "@/utils/text";
  * @returns {JSX.Element} the /me list of saved packs
  */
 export function MyPacksList({ packs, total }: { packs: SavedPackSummary[]; total: number }) {
+  const t = useTranslations("packs.myPacksList");
   if (packs.length === 0 && total > 0) {
     return (
       <div className="flex flex-col items-start gap-3">
-        <p className="text-c3">There are no packs on this page.</p>
+        <p className="text-c3">{t("thereAreNoPacks")}</p>
         <ButtonLink href="/me" variant="secondary">
-          Back to your newest packs
+          {t("backToYourNewest")}
         </ButtonLink>
       </div>
     );
@@ -35,8 +37,8 @@ export function MyPacksList({ packs, total }: { packs: SavedPackSummary[]; total
   if (packs.length === 0) {
     return (
       <div className="flex flex-col items-start gap-3">
-        <p className="text-c3">You haven't saved any packs yet.</p>
-        <ButtonLink href="/new">Build a pack</ButtonLink>
+        <p className="text-c3">{t("youHavenTSaved")}</p>
+        <ButtonLink href="/new">{t("buildAPack")}</ButtonLink>
       </div>
     );
   }

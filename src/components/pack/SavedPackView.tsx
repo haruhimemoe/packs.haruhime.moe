@@ -11,7 +11,7 @@
  *       runs; the browser still refreshes it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
@@ -19,6 +19,7 @@
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
 import { encodePackKey } from "@haruhimemoe/pool";
 import { ButtonLink, Card, LinkRow, PageHeader, Text, TextLink } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { Fragment, type ReactNode, useId, useMemo, useState } from "react";
 import { CollectionPanel } from "@/components/collection/CollectionPanel";
 import { ExportPanel } from "@/components/export/ExportPanel";
@@ -91,6 +92,7 @@ export function SavedPackView({
   api?: PackViewApi;
   readCookie?: () => string;
 }) {
+  const t = useTranslations("packs.savedPackView");
   const access = usePackAccess(isOwnerProp === undefined ? pack.slug : null, {
     get: api.get,
     ...(readCookie ? { readCookie } : {}),
@@ -141,14 +143,16 @@ export function SavedPackView({
       <PageHeader
         title={pack.name}
         meta={isOwner ? `${count} · ${VISIBILITY_OPTIONS[pack.visibility].label}` : count}
-        actions={isOwner ? <ButtonLink href={`/p/${pack.slug}/edit`}>Edit</ButtonLink> : undefined}
+        actions={
+          isOwner ? <ButtonLink href={`/p/${pack.slug}/edit`}>{t("edit")}</ButtonLink> : undefined
+        }
       />
       {pack.historyPublic || isOwner ? (
         <LinkRow
           items={[
             {
               href: `/p/${pack.slug}/history`,
-              label: isOwner ? "History" : "Version history",
+              label: isOwner ? "History" : t("versionHistory"),
             },
           ]}
         />
@@ -171,7 +175,7 @@ export function SavedPackView({
       />
       <section aria-labelledby={mapsHeadingId} className="flex flex-col gap-6">
         <h2 id={mapsHeadingId} className="sr-only">
-          Maps
+          {t("maps")}
         </h2>
         <PackStats
           slots={ref.slots}
@@ -188,12 +192,10 @@ export function SavedPackView({
         />
       </section>
       <CollectionPanel pack={ref} getMeta={meta.get} />
-      <Card title="Share">
+      <Card title={t("share")}>
         <div className="flex flex-col gap-5">
           {isOwner && pack.visibility === "private" ? (
-            <Text tone="muted">
-              This pack is private. Only you can open the short link; the pack key works for anyone.
-            </Text>
+            <Text tone="muted">{t("thisPackIsPrivate")}</Text>
           ) : null}
           <ShortLinkField slug={pack.slug} />
           <PackKeyField packKey={packKey} />

@@ -4,7 +4,7 @@
  *       beforeSignIn has put the pack somewhere it will survive the redirect).
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
@@ -13,6 +13,7 @@ import { signInHref } from "@haruhimemoe/next-kit/auth-react";
 import type { PackInputBody } from "@haruhimemoe/pool/service";
 import { Button, Notice, Text } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 import { DEFAULT_PACK_NAME } from "@/constants/pack";
 import { useAccount } from "@/lib/account";
@@ -43,6 +44,7 @@ export function SavePackButton({
   signInNote,
   save = packsApi.create,
 }: SavePackButtonProps) {
+  const t = useTranslations("packs.savePackButton");
   const account = useAccount();
   const router = useRouter();
   const [working, setWorking] = useState(false);
@@ -74,9 +76,7 @@ export function SavePackButton({
       });
       router.push(`/p/${saved.slug}`);
     } catch (cause) {
-      setError(
-        cause instanceof PacksApiError ? cause.message : "Couldn't save the pack. Try again.",
-      );
+      setError(cause instanceof PacksApiError ? cause.message : t("couldnTSaveThe"));
       busy.current = false;
       setWorking(false);
     }
@@ -86,19 +86,15 @@ export function SavePackButton({
 
   return (
     <div className="flex flex-col gap-2">
-      <Text tone="muted">
-        {signedIn
-          ? "Save this pack to your account for a short link you can edit later."
-          : "Sign in with osu! to save this pack and get a short link you can edit later."}
-      </Text>
+      <Text tone="muted">{signedIn ? t("saveThisPackTo") : t("signInWithOsu")}</Text>
       <div>
         {signedIn ? (
           <Button onClick={saveNow} disabled={working || pack.slots.length === 0}>
-            {working ? "Saving…" : "Save to account"}
+            {working ? t("saving") : t("saveToAccount")}
           </Button>
         ) : (
           <Button onClick={goSignIn} disabled={working || account.status === "loading"}>
-            Sign in to save
+            {t("signInToSave")}
           </Button>
         )}
       </div>

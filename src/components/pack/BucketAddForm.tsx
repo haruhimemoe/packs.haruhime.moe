@@ -4,13 +4,14 @@
  *       slot. A code @haruhimemoe/pool's checkBucketCode refuses shows why.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { BUCKET_CODE_MESSAGES, checkBucketCode, nextFreeColor } from "@haruhimemoe/pool";
 import { Button, Notice, TextInput } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { type FormEvent, useId, useState } from "react";
 import { ColorPicker } from "@/components/pack/ColorPicker";
 import type { BucketEntry } from "@/schemas/pack";
@@ -28,6 +29,7 @@ type BucketAddFormProps = {
  * @returns {JSX.Element} the add-slot form
  */
 export function BucketAddForm({ buckets, disabled = false, onAdd }: BucketAddFormProps) {
+  const t = useTranslations("packs.bucketAddForm");
   const [code, setCode] = useState("");
   const [pickedColor, setPickedColor] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +55,7 @@ export function BucketAddForm({ buckets, disabled = false, onAdd }: BucketAddFor
       <div className="flex flex-wrap items-end gap-3">
         <TextInput
           id={codeId}
-          label="New slot code"
+          label={t("newSlotCode")}
           value={code}
           disabled={disabled}
           placeholder="EZ"
@@ -64,13 +66,13 @@ export function BucketAddForm({ buckets, disabled = false, onAdd }: BucketAddFor
           className="w-40"
         />
         <ColorPicker
-          legend="Color for the new slot"
+          legend={t("colorForTheNew")}
           value={color}
           disabled={disabled}
           onChange={setPickedColor}
         />
         <Button type="submit" variant="secondary" disabled={disabled}>
-          Add slot
+          {t("addSlot")}
         </Button>
       </div>
       {error ? (

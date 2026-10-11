@@ -6,13 +6,14 @@
  *       site's Organization structured data.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { brandPageData } from "@haruhimemoe/brand/products";
 import { HARUHIME_ORG, ld, pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { BrandPage, JsonLd, PageHeader } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
+import { useTranslations } from "next-intl";
 import { SEO_SITE } from "@/constants/seo";
 
 export const metadata: Metadata = pageMetadata(SEO_SITE, {
@@ -27,9 +28,10 @@ export const metadata: Metadata = pageMetadata(SEO_SITE, {
  * @returns {JSX.Element} the page header, the brand sections and the Organization JSON-LD
  */
 export default function BrandRoute() {
+  const t = useTranslations("packs.pages.publicBrand");
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Brand" lead="The packs name, logos, colors and type." />
+      <PageHeader title={t("brand")} lead={t("thePacksNameLogos")} />
       <BrandPage {...brandPageData("packs")} />
       <JsonLd
         data={ld.graph(

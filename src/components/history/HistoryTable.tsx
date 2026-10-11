@@ -4,11 +4,12 @@
  *       selected row is marked current for assistive tech. Server-safe.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Oct 5, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { LinkRow, Table, Td, TextLink, Th } from "@haruhimemoe/ui";
 import type { RevisionMeta } from "@haruhimemoe/vcs";
+import { useTranslations } from "next-intl";
 import { REVISION_LABELS } from "@/constants/history";
 import { formatShortDate } from "@/utils/date";
 
@@ -28,16 +29,17 @@ type HistoryTableProps = {
  * @returns {JSX.Element} the versions table, with an "Older versions" link when there's a next page
  */
 export function HistoryTable({ slug, revisions, selected, older }: HistoryTableProps) {
+  const t = useTranslations("packs.historyTable");
   return (
     <div className="flex flex-col gap-3">
-      <Table caption="Versions">
+      <Table caption={t("versions")}>
         <thead>
           <tr>
-            <Th scope="col">When</Th>
-            <Th scope="col">Who</Th>
-            <Th scope="col">What</Th>
+            <Th scope="col">{t("when")}</Th>
+            <Th scope="col">{t("who")}</Th>
+            <Th scope="col">{t("what")}</Th>
             <Th scope="col">
-              <span className="sr-only">Changes</span>
+              <span className="sr-only">{t("changes")}</span>
             </Th>
           </tr>
         </thead>
@@ -57,7 +59,7 @@ export function HistoryTable({ slug, revisions, selected, older }: HistoryTableP
                     href={`/p/${slug}/history?rev=${encodeURIComponent(revision.id)}`}
                     aria-current={current ? "true" : undefined}
                   >
-                    Changes
+                    {t("changes")}
                   </TextLink>
                 </Td>
               </tr>
@@ -67,7 +69,7 @@ export function HistoryTable({ slug, revisions, selected, older }: HistoryTableP
       </Table>
       {older !== null ? (
         <LinkRow
-          items={[{ href: `/p/${slug}/history?before=${older}`, label: "Older versions" }]}
+          items={[{ href: `/p/${slug}/history?before=${older}`, label: t("olderVersions") }]}
         />
       ) : null}
     </div>

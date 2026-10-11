@@ -21,10 +21,20 @@ const files = (dir: string): string[] =>
   });
 
 describe("no-hosting copy", () => {
-  it("appears in the footer and nowhere else in src", () => {
+  it("appears in the footer's fine print and nowhere else", async () => {
     const hits = files(SRC)
       .filter((file) => PATTERN.test(readFileSync(file, "utf8")))
       .map((file) => path.relative(process.cwd(), file));
-    expect(hits).toEqual(["src/components/layout/Footer.tsx"]);
+    // The words live in @haruhimemoe/messages now; src only names the key.
+    expect(hits).toEqual([]);
+    const { loadMessages } = await import("@haruhimemoe/messages");
+    const { packs } = (await loadMessages("en", "packs")) as {
+      packs: { footer: { finePrint: string } } & Record<string, unknown>;
+    };
+    expect(packs.footer.finePrint).toMatch(PATTERN);
+    const elsewhere = JSON.stringify({ ...packs, footer: {} });
+    expect(PATTERN.test(elsewhere)).toBe(false);
+    const footer = readFileSync(path.join(SRC, "components/layout/Footer.tsx"), "utf8");
+    expect(footer).toContain('t("footer.finePrint")');
   });
 });

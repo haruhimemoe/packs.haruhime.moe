@@ -6,7 +6,7 @@
  *       Freemod.
  * @author David @dvhsh (https://dvh.sh)
  * @created Wed Sep 23, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
@@ -21,7 +21,11 @@ import {
   toggleMod,
 } from "@haruhimemoe/pool";
 import { Chip, RadioGroup } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
+
+/** A translator: next-intl's t for this file's catalog keys. */
+type T = (key: string, values?: Record<string, string | number>) => string;
 
 type ModsFieldProps = {
   code: string;
@@ -30,11 +34,12 @@ type ModsFieldProps = {
   onChange: (mods: SlotMods) => void;
 };
 
-const CHOICES = [
-  { value: "none", label: "No mods" },
-  { value: "forced", label: "Forced" },
-  { value: "free", label: "Freemod" },
-] as const;
+const CHOICES = (t: T) =>
+  [
+    { value: "none", label: t("noMods") },
+    { value: "forced", label: "Forced" },
+    { value: "free", label: "Freemod" },
+  ] as const;
 
 /**
  * @function ModsField
@@ -43,6 +48,7 @@ const CHOICES = [
  *          chips shown while Forced is selected
  */
 export function ModsField({ code, value, disabled = false, onChange }: ModsFieldProps) {
+  const t = useTranslations("packs.modsField");
   // "Forced" with nothing picked isn't a valid setting, so it lives here until a chip is pressed.
   const [pickingForced, setPickingForced] = useState(false);
   const kind = value.kind === "none" && pickingForced ? "forced" : value.kind;
@@ -64,10 +70,14 @@ export function ModsField({ code, value, disabled = false, onChange }: ModsField
   return (
     // aria-label, as ColorPicker does: an sr-only " for EZ" span loses its leading space in the
     // accessible name ("Modsfor EZ").
-    <fieldset disabled={disabled} aria-label={`Mods for ${code}`} className="flex flex-col gap-2">
+    <fieldset
+      disabled={disabled}
+      aria-label={t("modsForCode", { code })}
+      className="flex flex-col gap-2"
+    >
       <RadioGroup
-        label="Mods"
-        options={CHOICES}
+        label={t("mods")}
+        options={CHOICES(t)}
         value={kind}
         onChange={(next) => choose(next as SlotMods["kind"])}
         className="flex-row flex-wrap gap-x-3"

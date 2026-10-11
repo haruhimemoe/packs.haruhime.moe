@@ -13,12 +13,13 @@
  *       stays: an alert says so once, and only its "Try again" button fetches the index again.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Button, Text } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { type ReactNode, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { PackFilterBar } from "@/components/packs/PackFilterBar";
 import { PublicPackList } from "@/components/packs/PublicPackList";
@@ -33,6 +34,9 @@ import type { SearchIndex } from "@/schemas/public-pack";
 import { filterPacks, hasFilters, isBrowsing, type PackFilters } from "@/utils/pack-filters";
 import { prepareSearchIndex } from "@/utils/search";
 
+/** A translator: next-intl's t for this file's catalog keys. */
+type T = (key: string, values?: Record<string, string | number>) => string;
+
 type PublicPackBrowserProps = {
   /** The server-rendered list, shown while nothing is searched, filtered or sorted. */
   children: ReactNode;
@@ -40,39 +44,34 @@ type PublicPackBrowserProps = {
 };
 
 /** What nothing matched: the text, the filter rows, both, or neither (a sort alone). */
-const noMatch = (q: string, filtered: boolean): string => {
-  if (q !== "" && filtered) return `No packs match “${q}” with these filters.`;
-  if (q !== "") return `No packs match “${q}”.`;
-  return filtered ? "No packs match these filters." : "No public packs yet.";
+const noMatch = (t: T, q: string, filtered: boolean): string => {
+  if (q !== "" && filtered) return t("noPacksMatchQ", { q });
+  if (q !== "") return t("noPacksMatchQ2", { q });
+  return filtered ? t("noPacksMatchThese") : t("noPublicPacksYet");
 };
 
 /** "3 packs match. 1 pack is hidden until its stats are ready." */
-const describeResults = (count: number, hidden: number, q: string, filtered: boolean): string => {
-  const found =
-    count === 0
-      ? noMatch(q, filtered)
-      : `${count} ${count === 1 ? "pack matches" : "packs match"}.`;
+const describeResults = (
+  t: T,
+  count: number,
+  hidden: number,
+  q: string,
+  filtered: boolean,
+): string => {
+  const found = count === 0 ? noMatch(t, q, filtered) : t("found", { count });
   if (hidden === 0) return found;
-  return `${found} ${
-    hidden === 1
-      ? "1 pack is hidden until its stats are ready."
-      : `${hidden} packs are hidden until their stats are ready.`
-  }`;
+  return `${found} ${t("hidden", { count: hidden })}`;
 };
 
 /** What to try when nothing matches, or null when nothing would help (a sort alone). */
-const noMatchHint = (hidden: number, q: string, filtered: boolean): string | null => {
+const noMatchHint = (t: T, hidden: number, q: string, filtered: boolean): string | null => {
   if (hidden > 0) {
-    return hidden === 1
-      ? "That pack's stats are still being worked out. Clear the star rating, mod, length, BPM and mode filters to see it."
-      : "Those packs' stats are still being worked out. Clear the star rating, mod, length, BPM and mode filters to see them.";
+    return hidden === 1 ? t("thatPackSStats") : t("thosePacksStatsAre");
   }
   if (filtered) {
-    return q === ""
-      ? "Try a wider range or fewer mods or modes."
-      : "Try a wider range, fewer mods or modes, or other words.";
+    return q === "" ? t("tryAWiderRange") : t("tryAWiderRange2");
   }
-  return q === "" ? null : "Try other words.";
+  return q === "" ? null : t("tryOtherWords");
 };
 
 /**
@@ -81,6 +80,7 @@ const noMatchHint = (hidden: number, q: string, filtered: boolean): string | nul
  * @returns {JSX.Element} /packs in the browser
  */
 export function PublicPackBrowser({ children, loadIndex }: PublicPackBrowserProps) {
+  const t = useTranslations("packs.publicPackBrowser");
   const { filters, setFilters, followUrl, urlReads } = usePackFilters();
   const { state, failures, load, retry } = useSearchIndex(loadIndex);
   const list = useRef<HTMLDivElement>(null);
@@ -134,8 +134,8 @@ export function PublicPackBrowser({ children, loadIndex }: PublicPackBrowserProp
   const q = filters.q.trim();
   const filtered = hasFilters(filters);
   let count = "";
-  if (browsing && state.status === "loading" && !failed) count = "Loading packs…";
-  else if (result) count = describeResults(result.entries.length, result.hidden, q, filtered);
+  if (browsing && state.status === "loading" && !failed) count = t("loadingPacks");
+  else if (result) count = describeResults(t, result.entries.length, result.hidden, q, filtered);
   // Announce where a drag or a burst of typing ends up, not every step.
   const settledCount = useSettledValue(count, COUNT_SETTLE_MS);
 
@@ -143,9 +143,9 @@ export function PublicPackBrowser({ children, loadIndex }: PublicPackBrowserProp
   // After a failure the server list stays, a background retry included.
   if (browsing && !failed) {
     if (result === null) {
-      body = <p className="text-c4 text-sm">Loading packs…</p>;
+      body = <p className="text-c4 text-sm">{t("loadingPacks")}</p>;
     } else if (result.entries.length === 0) {
-      const hint = noMatchHint(result.hidden, q, filtered);
+      const hint = noMatchHint(t, result.hidden, q, filtered);
       body = hint ? <p className="text-c3">{hint}</p> : null;
     } else {
       body = (
@@ -164,7 +164,7 @@ export function PublicPackBrowser({ children, loadIndex }: PublicPackBrowserProp
                 setShown(shown + FILTER_RESULTS_STEP);
               }}
             >
-              Show more
+              {t("showMore")}
             </Button>
           ) : null}
         </div>
@@ -195,14 +195,14 @@ export function PublicPackBrowser({ children, loadIndex }: PublicPackBrowserProp
       <Text role="alert" tone="error" className="empty:sr-only">
         {browsing && failed
           ? failures === 1
-            ? "Search and filters aren't available right now."
-            : "Search and filters still aren't available. Try again in a minute."
+            ? t("searchAndFiltersAren")
+            : t("searchAndFiltersStill")
           : ""}
       </Text>
       {browsing && failed ? (
         <div>
           <Button variant="secondary" onClick={retry} disabled={retrying}>
-            {retrying ? "Trying again…" : "Try again"}
+            {retrying ? t("tryingAgain") : t("tryAgain")}
           </Button>
         </div>
       ) : null}

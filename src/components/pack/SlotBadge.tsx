@@ -5,7 +5,7 @@
  *       palette color through ModBadge's color prop, all built by slotBadgeValue.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { ModBadge } from "@haruhimemoe/ui";

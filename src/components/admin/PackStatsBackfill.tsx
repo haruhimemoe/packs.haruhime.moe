@@ -5,12 +5,13 @@
  *       to retry lookups that failed. Packs saved before filters existed get theirs this way.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { AsyncButton, Card, Text } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { PACK_STATS_JOB_LIMIT } from "@/constants/pack-stats";
 import { PacksApiError, packsApi } from "@/lib/packs-api";
 import type { PackStatsJob } from "@/schemas/pack-stats";
@@ -43,8 +44,9 @@ const summary = ({ updated, remaining, waiting }: PackStatsJob): string => {
  *          that runs one batch and announces its counts (or the server's error)
  */
 export function PackStatsBackfill({ api = packsApi }: PackStatsBackfillProps) {
+  const t = useTranslations("packs.packStatsBackfill");
   return (
-    <Card title="Pack stats" className="flex flex-col gap-3">
+    <Card title={t("packStats")} className="flex flex-col gap-3">
       <Text tone="muted">
         Filters on /packs need each pack's star rating, length and mods. A daily job fills in
         missing ones, {PACK_STATS_JOB_LIMIT} packs at a time. Run it now to catch up faster.
@@ -52,12 +54,12 @@ export function PackStatsBackfill({ api = packsApi }: PackStatsBackfillProps) {
       <AsyncButton
         variant="secondary"
         action={async () => summary(await api.fillPackStats())}
-        pendingLabel="Filling in stats…"
+        pendingLabel={t("fillingInStats")}
         failedMessage={(cause) =>
           cause instanceof PacksApiError ? cause.message : "Something went wrong. Try again."
         }
       >
-        Fill in stats
+        {t("fillInStats")}
       </AsyncButton>
     </Card>
   );

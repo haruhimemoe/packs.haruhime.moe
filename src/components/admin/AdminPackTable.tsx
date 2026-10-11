@@ -5,13 +5,14 @@
  *       status so it isn't lost with the row.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Notice, Table, TBody, Text, THead, Th } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import {
   type AdminApi,
@@ -34,6 +35,7 @@ const COLUMNS = ["Pack", "Host", "Visibility", "Maps", "Updated", "Status"] as c
  * @returns {JSX.Element} the table, or a line saying there's nothing to show
  */
 export function AdminPackTable({ rows, api = packsApi }: AdminPackTableProps) {
+  const t = useTranslations("packs.adminPackTable");
   const router = useRouter();
   // Rows act independently: one slow action doesn't lock the others.
   const [busy, setBusy] = useState<ReadonlySet<string>>(() => new Set());
@@ -96,7 +98,7 @@ export function AdminPackTable({ rows, api = packsApi }: AdminPackTableProps) {
           Deleted {deleted.name}.
         </Text>
       ) : null}
-      {rows.length === 0 ? <p className="text-c3">No packs here.</p> : null}
+      {rows.length === 0 ? <p className="text-c3">{t("noPacksHere")}</p> : null}
       {/* relative: the header's sr-only text is absolute and would widen the page on phones. */}
       <div className="relative" hidden={rows.length === 0}>
         <Table className="min-w-[40rem]">
@@ -106,7 +108,7 @@ export function AdminPackTable({ rows, api = packsApi }: AdminPackTableProps) {
                 <Th key={column}>{column}</Th>
               ))}
               <Th>
-                <span className="sr-only">Actions</span>
+                <span className="sr-only">{t("actions")}</span>
               </Th>
             </tr>
           </THead>

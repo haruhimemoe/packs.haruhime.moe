@@ -50,6 +50,9 @@ jobs:
       - name: Typecheck
         run: bun run typecheck
 
+      - name: Translation keys
+        run: bun run check:keys
+
       - name: Test
         run: bun run test:coverage
 

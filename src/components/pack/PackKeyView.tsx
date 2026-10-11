@@ -5,7 +5,7 @@
  *       The "Add to osu! collection" card sits between the maps and Save.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
@@ -19,6 +19,7 @@ import {
 } from "@haruhimemoe/pool";
 import { Button, Card, PageHeader } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useEffect, useId, useMemo, useState } from "react";
 import { CollectionPanel } from "@/components/collection/CollectionPanel";
 import { ExportPanel } from "@/components/export/ExportPanel";
@@ -59,6 +60,7 @@ const readHash = (): ViewState => {
  * @returns {JSX.Element} the /k page for a pack key
  */
 export function PackKeyView() {
+  const t = useTranslations("packs.packKeyView");
   const router = useRouter();
   const [state, setState] = useState<ViewState>({ status: "reading" });
   const [saving, setSaving] = useState(false);
@@ -77,14 +79,14 @@ export function PackKeyView() {
   const stars = usePoolStarRatings(pack ?? NO_POOL, meta.get);
 
   if (state.status === "reading") {
-    return <PageHeader title="Opening pack…" />;
+    return <PageHeader title={t("openingPack")} />;
   }
 
   if (state.status === "error") {
     return (
       <div className="flex flex-col gap-6">
-        <PageHeader title="Couldn't open that pack" lead={state.message} />
-        <Card title="Open a pack">
+        <PageHeader title={t("couldnTOpenThat")} lead={state.message} />
+        <Card title={t("openAPack")}>
           <KeyPasteForm />
         </Card>
       </div>
@@ -106,9 +108,9 @@ export function PackKeyView() {
         actions={
           <div className="flex flex-col items-end gap-1">
             <Button onClick={editCopy} disabled={saving}>
-              Edit a copy
+              {t("editACopy")}
             </Button>
-            <p className="text-c4 text-xs">Replaces the draft in this browser.</p>
+            <p className="text-c4 text-xs">{t("replacesTheDraftIn")}</p>
           </div>
         }
       />
@@ -120,7 +122,7 @@ export function PackKeyView() {
       />
       <section aria-labelledby={mapsHeadingId} className="flex flex-col gap-6">
         <h2 id={mapsHeadingId} className="sr-only">
-          Maps
+          {t("maps")}
         </h2>
         <PackStats
           slots={state.pack.slots}
@@ -137,15 +139,15 @@ export function PackKeyView() {
         />
       </section>
       <CollectionPanel pack={state.pack} getMeta={meta.get} />
-      <Card title="Save">
+      <Card title={t("save")}>
         <SavePackButton
           pack={state.pack}
           signInNext="/new"
           beforeSignIn={() => saveDraft(state.pack)}
-          signInNote="Signing in opens this pack in the builder (replacing the draft in this browser), where you can save it."
+          signInNote={t("signingInOpensThis")}
         />
       </Card>
-      <Card title="Share">
+      <Card title={t("share")}>
         <PackKeyField packKey={state.key} />
       </Card>
     </div>

@@ -3,13 +3,14 @@
  * @desc Radio group for a saved pack's visibility.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Sep 22, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { PACK_VISIBILITIES, type PackVisibility } from "@haruhimemoe/pool/service";
 import { RadioGroup } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { VISIBILITY_OPTIONS } from "@/constants/visibility";
 
 type VisibilityFieldProps = {
@@ -31,9 +32,10 @@ const OPTIONS = PACK_VISIBILITIES.map((option) => ({
  * @returns {JSX.Element} a @haruhimemoe/ui RadioGroup, "Who can open it"
  */
 export function VisibilityField({ value, onChange, disabled }: VisibilityFieldProps) {
+  const t = useTranslations("packs.visibilityField");
   return (
     <RadioGroup
-      label="Who can open it"
+      label={t("whoCanOpenIt")}
       options={OPTIONS}
       value={value}
       onChange={(next) => onChange(next as PackVisibility)}
