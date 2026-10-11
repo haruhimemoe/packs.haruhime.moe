@@ -29,7 +29,7 @@ describe("Header", () => {
     });
     render(<Header />);
     const nav = screen.getByRole("navigation", { name: "Main" });
-    for (const { href, label } of navLinks(english)) {
+    for (const { href, label } of navLinks(english as (key: string) => string)) {
       expect(within(nav).getByRole("link", { name: label })).toHaveAttribute("href", href);
     }
   });
